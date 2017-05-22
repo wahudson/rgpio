@@ -1,0 +1,27 @@
+2017-05-12
+		rgpio -- Raspberry Pi GPIO Tool
+		-------------------------------
+
+This is the "rgpio" tool.
+
+Content Experts:
+    William Hudson  970-215-8461
+
+
+Files:
+------
+README		this file
+
+trunk/		mainline development
+tags/		release tags
+branches/	development branches
+
+doc/		release notes
+
+
+Repository History:  (newest first)
+----------------------------------------------------------------------------
+(2017-04-22)  Initial development
+
+???
+
