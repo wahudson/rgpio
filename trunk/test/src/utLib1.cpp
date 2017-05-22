@@ -1,6 +1,6 @@
 // 2017-05-20  William A. Hudson
 
-// Unit Test Library.
+// utLib1 version 1.01 -- Unit Test Library.
 
 // User interface is thru #define macros.
 // Class methods operate on state of a test.  No object.
@@ -77,12 +77,12 @@ void
 utLib1::output_case()
 {
     if ( ! OutCase ) {
-	cout << Id << "  ";
 	if ( IsOk ) {
-	    cout << "OK" <<endl;
+	    cout << Id << "  OK" <<endl;
 	}
 	else {
-	    cout << "NOT OK - " << Headline <<endl;
+	    cout <<endl;
+	    cout << Id << "  NOT OK - " << Headline <<endl;
 	}
     }
     OutCase = 1;
@@ -147,9 +147,9 @@ utLib1::ut_CHECK(
     if ( strcmp( exp, ref ) != 0 ) {
 	IsOk = 0;
 	utLib1::output_case();
-	cout << "      CHECK str (line " << line << ")" <<endl;
-	cout << "      < " << ref <<endl;
-	cout << "      > " << exp <<endl;
+	cout << "CHECK str (line " << line << ")" <<endl;
+	cout << "< " << ref <<endl;
+	cout << "> " << exp <<endl;
     }
 }
 
@@ -171,9 +171,9 @@ utLib1::ut_CHECK(
     if ( exp != ref ) {
 	IsOk = 0;
 	utLib1::output_case();
-	cout << "      CHECK int (line " << line << ")" <<endl;
-	cout << "      < " << ref <<endl;
-	cout << "      > " << exp <<endl;
+	cout << "CHECK int (line " << line << ")" <<endl;
+	cout << "< " << ref <<endl;
+	cout << "> " << exp <<endl;
     }
 }
 
