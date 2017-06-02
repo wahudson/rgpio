@@ -1,0 +1,79 @@
+2017-05-13
+		Process Privilege Control
+		-------------------------
+
+See also:  ~/doc/ubuntu_linux.text
+
+Thinking about GPIO access.
+
+crw-rw---- 1 root gpio 244,  0 May 12 13:12 /dev/gpiomem
+crw-r----- 1 root kmem   1,  1 May 12 13:12 /dev/mem
+
+Typical pi user:
+% id
+uid=1000(pi) gid=1000(pi) groups=1000(pi),...,997(gpio),998(i2c),999(spi)
+Note some special groups:                         ^^^^      ^^^      ^^^
+
+----------------------------------------
+References:
+
+How and why Linux daemons drop privileges
+    https://linux-audit.com/how-and-why-linux-daemons-drop-privileges/
+    Quick insight to motivation.
+
+Linux Capabilities 101.
+    https://linux-audit.com/linux-capabilities-101/
+    Quick overview.
+
+Linux Capabilities: Hardening Linux binaries by removing setuid.
+    Security thoughts.
+    https://linux-audit.com/linux-capabilities-hardening-linux-binaries-by-removing-setuid/
+
+RPi SPI
+    http://elinux.org/RPi_SPI
+    Good
+
+A)  Set "capabilities" on a binary file.
+    Is a way of dividing up root capabilities into smaller parts so you can
+    give a specific capability to a binary command. 
+
+    % man capabilities
+    % man setcap
+
+See:  capabilities(7)
+
+    CAP_DAC_OVERRIDE
+	  Bypass file read, write, and execute permission checks.  (DAC is
+	  an abbreviation of "discretionary access control".)
+    CAP_DAC_READ_SEARCH
+	  * Bypass file read permission checks and directory read and exe-
+	    cute permission checks;
+	  * Invoke open_by_handle_at(2).
+    CAP_SETUID
+	  Make  arbitrary  manipulations  of  process   UIDs   (setuid(2),
+	  setreuid(2),  setresuid(2),  setfsuid(2));  make forged UID when
+	  passing socket credentials via UNIX domain sockets.
+    CAP_SETPCAP
+	  ... Change callers process Capabilities.
+
+
+    The idea is:
+    Put CAP_SETPCAP on the executable program.  The program then adds
+    CAP_DAC_OVERRIDE to open /dev/mem, then removes both CAP for remainder
+    of execution.  This way the code after is only the normal user, and the
+    code before has no extra priveleges other than setcap.
+    Much better than full root.
+
+Packages:
+    libcap2	- support for getting/setting POSIX.1e capabilities
+    libcap2-bin	- basic utility programs for using capabilities
+    libcap-dev	- development libraries and header files for libcap2
+
+B)  Process starts as root, then changes to a non-privileged user.
+    Often used with daemons.
+    Often there is a special user account to switch to.
+
+    % man setuid
+    % man setgid
+
+

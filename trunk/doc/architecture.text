@@ -1,0 +1,376 @@
+2017-05-10
+		rgpio - Architecture
+		---------------------
+
+Raspberry Pi GPIO Tool and Library
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    Ref by RaspberryPi
+    /home/var/ref/BCM2835-ARM-Peripherals.pdf
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+
+----------------------------------------------------------------------------
+## Discussion
+----------------------------------------------------------------------------
+
+The Library provides a seperate class for each Feature (BCM2845 peripheral).
+
+Possibly each class inherits from a common base class?
+
+The idea is to represent each control register as a unit32_t value and
+provide accessors to access each bit field.
+
+Register read/write functions transfer the object register value to/from
+the actual processor register.  Some functions may assist with requirements,
+e.g. disabling the clock before changing its configuration.
+
+Provide both direct unrestricted access, and methods for common safe operation.
+
+All operations are essentially bit twiddleing.  The value add is:
+1)  Abstraction that matches the BCM2835 ARM Peripherals description.
+2)  Error checking.
+3)  Object oriented interface.  Anti-bugging.
+
+The typical #define bit twiddleing macros provide no error checking.
+For configuration access, execution time is generally unimportant.
+
+Using a C union with bit fields was considered, but the ordering and
+packing of bit fields is compiler implementation dependent.  Portability
+is not important, but having correctness based on experimentation is not
+a good idea.  Thus use shift and mask methods instead.
+
+The library classes are intended to be close to the hardware.  They are
+NOT intended to hide the hardware or to provide a "future proof" interface
+that will allow the hardware to evolve underneath.
+
+Note the utility command may tend to provide more abstraction than the
+low-level library primitives.  Want the inspect-change-inspect cycle to
+be fairly intuitive.  I think be wary of abstracting the tool interface
+too much, i.e. "make beautiful clock" and loose relationship to the real
+hardware.
+
+The command status output should be close to the hardware.  Thus the
+change operation should also speak in the same terms, so it is more
+intuitive how to specify the new value.  Unspecified values are not changed
+and remain as last read.
+
+Should the tool provide all controls?
+Probably not, to keep the interface smaller and more user manageable.
+But could provide advanced options for more display output.
+Idea is keep the simple things simple, and let the lesser needed things
+be harder to do.
+Crude direct access to the full control register in hex might be a good
+way to "do anything", and provide validated options for the common things.
+This is much like the library itself.
+
+
+----------------------------------------------------------------------------
+## rgpio Command
+----------------------------------------------------------------------------
+
+This is a utility command based on the library.
+
+usage:  rgpio [action] [options..]
+  action:
+    status         status of GPIO ports
+    clock          GpClock generators
+  options:
+
+Major operations:
+    1)  Show configuration values.
+    2)  Change configuration.
+
+    clock --set
+	--mash=N	enum
+	--flip=0
+	--enable=0
+	--source=N	enum
+	--divi=N
+	--divf=N
+	--div=N.N
+
+
+----------------------------------------------------------------------------
+## Error Handling
+----------------------------------------------------------------------------
+
+Exceptions:
+    Exceptions are intended only for error handling.
+    Library functions use exceptions as a way to get an error condition
+    to a level where the program can report it thru the proper channels.
+
+    Exceptions in libraries are NOT intended as a mechanism to test for
+    a capability.  There are many possible exceptions, and they are not
+    specific enough, and their meaning may change.
+
+    We are using the C++ library <stdexcpt> to classify and throw exceptions.
+
+Error Reporting:
+    Is the process of getting an error message to the user.
+    Most programs will simply write it to stderr.
+
+    A global class is used to report an error message, and to set a flag
+    that an error has occured.  The flag can be later used to see if
+    any error has occured, e.g. for setting program exit code.
+
+Debug:
+    Some classes will have a Debug attribute that can be set to trace
+    function execution on stderr.  It is intended as a simple way for a
+    user to see and verify some internal behavior.  The actual trace
+    output may change.
+
+
+----------------------------------------------------------------------------
+## Feature Objects - common attributes.
+----------------------------------------------------------------------------
+
+Accessor functions get and put values into the object.
+Action methods apply the object to the IO registers.
+
+C++ would allow both get_() and put_() functions to have the same names,
+since they are distinguished by different arguments.  This does not seem
+very helpful to the user, as both functions still need to be declared.
+Also a single function name seems awkward to have two different meanings.
+Thus use two seperate names to make better clarity for the user.
+
+All BCM2835 registers are 32-bits, with values stored in uint32_t.
+
+Field values passed in accessor functions are also uint32_t, so no bits
+are lost in the common conversion from int.
+Possibly use int32_t, so negative values could be passed as some kind of
+flag - e.g. -1 could mean set to default.
+
+Exceptions:
+    Throw an error object containing an error message.
+    This would be most useful where continuing with some fallback condition
+    is not a good idea.
+
+Error handling:
+    Some errors are better to proceed with a fallback condition, but want
+    to alert the user that this has happend.  This is where calling global
+    (or per-class, or per-object) error message function is good.  It would
+    deliver a message on stderr, and set a flag that could be checked at
+    program termination to set a non-zero exit code.
+
+    I have used this method a lot in Perl programs, and found that detailed
+    error tracking per object or per class is seldom needed.  Most valuable
+    is a global error flag for reporting at program termination.
+    Especially for utility type tools.
+    Now a gui type tool that persists over many operations and needs to
+    recover objects after an error would benifit from per-object tracking.
+
+GpioBase address:
+    Each Feature object can contain its own copy of the GpioBase address.
+    The address allows the object to access the physical IO registers.
+    A single process will generally have only one map of the GPIO address
+    space, so all addresses will be the same.
+
+    Methods to access a GpioBase address:
+ >  A) Copy of GpioBase address.
+	+ No dependance on another object.
+	- No object to query further information.
+    B) Reference to a common GpioBase object.
+	+ Full access to the object.
+	- A bit more indirection to get the actual register address.
+	- Dependance on another object.
+    C) Pointer to a global value.
+	+ Can check for null before accessing.
+	- Not sure how to get desired effect when GpioBase object is destroyed.
+
+    What happens when the address map is revoked?
+    We generally don't need to create and destroy multiple GpioBase
+    objects.  It is sufficient to create one and keep it for the life of
+    the process.  Otherwise it would be nice if the Feature object could
+    know if the address map has been destroyed, before accessing it and
+    getting a address fault.
+
+    The memory map can only be removed by munmap() system call, after which
+    accesses will generate SIGSEGV. 
+
+    ==> Assume the GpioBase address and memory map will persist for the
+    life of the process.  This is a good enough assumption.
+
+    Each Feature object knows the offset to its control registers from
+    the GpioBase address.
+
+
+----------------------------------------------------------------------------
+## rgAddrMap Object - IO Register Memory Map
+----------------------------------------------------------------------------
+
+    Each Feature (Peripheral) has registers in a seperate 4Kbyte block.
+    Thus multiple mmap() blocks are needed.
+
+Names
+    rgPMap
+    rgPerMap
+    rgPerpMap
+    rgPeripMap
+    rgMap
+    rgRegBlock
+    rgBlocks
+    rgMemBlock
+    rgMemPage
+    rgIoMap
+    gGpMap
+    rGpMap
+    rgpMap
+    goMap
+    gpMap
+    rgRegMap
+    rgMemMap
+
+    rgAddrMap
+    rgGpClock
+    rgSpi
+    rgI2c
+    rgUart
+    rgGpio
+    rgPads
+
+There are multiple memory devices:
+    1)  /dev/mem	full capability, need root capability
+    2)  /dev/gpiomem	only GPIO pins, normal user
+    3)  fake_mem	fake on non-RPi
+
+Access mode:
+    1)  read/write
+    2)  read-only		for read-only intent
+
+    Want simple, obvious ways to specify particular modes.
+
+
+Object data:
+{
+    pagemap[]
+
+    int		Dev_fd;		// file descriptor
+    
+  ? int		mode;		// 0= unset, 1= /dev/mem, 2= /dev/gpiomem,
+    					3= fake
+    char	*ModeStr;	// user file string, NULL= unset,
+				// "/dev/mem", "/dev/gpiomem", "fake_mem"
+
+    int		Prot;		// mmap() prot field,
+					default (PROT_READ|PROT_WRITE)
+
+    bool	Debug;		// enable debug trace on stderr
+}
+
+Object methods:
+    ();		constructor, uninitialized object, for fine config.
+
+    (1);	constructor, full heuristics, ready to use.
+    			Select and open dev memory, drop_capabilities.
+
+    get_mem_block( paddr );	// normal request for a register block
+			Does the mmap() call.
+			paddr = peripheral address in BCM spec
+
+			// set mode and open Dev_fd
+    use_dev_mem();
+    use_dev_gpiomem();
+    use_fake_mem();
+ ?  use_heuristic();		// apply heuristic to select dev to open
+
+			// change access mode for next mmap()
+    prot_readonly();		// access read-only
+    prot_readwrite();		// access read-write
+
+    drop_capabilities();
+
+    close_mfd();		// to release resource, or to change mode
+
+
+    Possibly defer open of mfd until first get_mem_block() call.
+
+Note:  Must take extreem care to Not use /dev/mem on a non-RPi machine,
+    since writing it will likely trash the machine.
+
+Constructor:
+    Providing a fully initialize object (Def_fd open, etc) seems nice, but
+    is hard to provide the multiple modes.
+    Putting a switch in the constructor seems klunky.
+
+    Seems better to provide only a simple constructor, with methods
+    to configure it.  This takes more user steps, but is more obvious.
+
+    Maybe add a constructor to do full capability with /dev/mem.
+
+    Maybe a constructor to take a dev file name.  This could help testing.
+
+
+Heuristic to select mfd mode:
+    Not sure I like the heuristic idea.  Benefit is getting partial function
+    when user has no permission.  Disadvantage is you don't know what you got,
+    and not much comentary.
+
+    if ( not on RPi ) {
+	Mode = "fake_mem"
+    }
+    else if ( not exist /dev/gpiomem ) {
+	Mode = "fake_mem"
+    }
+    else if ( have CAP_DAC_OVERRIDE ) {
+	Mode = "/dev/mem"
+    }
+    else {
+	Mode = "/dev/gpiomem"
+    }
+
+    Once selected, report errors if cannot open.
+
+
+----------------------------------------------------------------------------
+## GpClock Object
+----------------------------------------------------------------------------
+
+See:  p.105-108  6.3 General Purpose GPIO Clocks
+
+The basic operation cycle is:
+    x.read_regs();		read IO registers into object
+
+    x.set_Mash( 0 );		modify object config
+    x.set_Source( 5 );
+    ...
+    x.write_regs();		safely update IO registers
+
+There are restrictions on when IO register fields may change in order to
+avoid glitches and potential lock-up of the clock generator.
+Generally, the clock must be disabled, and have have become not busy
+(BUSY=0) before changing any config.
+
+Methods:
+    
+
+Output format:
+    ctl[31:0] = 0xfabc0000   control register
+    div[31:0] = 0xfabc0000   divider register
+
+    Field         Value     English          R/W Register
+    -----------   -----   ----------------   --- ---------
+    Clock0.Mash   = 3     integer division   rw  ctl[10:9]
+    Clock0.Flip   = 1     not inverted
+    Clock0.Busy   = 1     running            r   ctl[7]
+    Clock0.Enable = 1     disabled
+    Clock0.Source = 15    oscillator
+    Clock0.DivI   = 4095                     rw  div[23:12]
+    Clock0.DivF   = 4095                     rw  div[11:0]
+
+
+    The idea is to make the status display almost self-descriptive, to
+    reduce the need to continually refer to the manual.
+
+    This output formatting is put in the object to be close to the source.
+    Possibly it could be made as a friend object, or derived object.
+
+    Here the English notes seem essential for things like Mash and Source.
+
+    The R/W flags help know if you can change it.
+    The Register bit positions help relate to reference doc and 32-bit
+    hex value.
+
+
