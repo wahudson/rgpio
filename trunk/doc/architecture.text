@@ -124,6 +124,21 @@ Debug:
 
 
 ----------------------------------------------------------------------------
+## Naming of code objects.
+----------------------------------------------------------------------------
+
+Enum:
+    An enum name is a reserved word within its scope.
+    Enumerators defined in a class are in the scope of that class.
+
+    We choose:
+    1) Put enums in a class to give the name context.
+    2) Name enums with a lower case prefix to help group and make unique.
+    [OA named their enums with prefix "oac".]
+    If the enum should have limited scope, put it in the class it is used
+    with.
+
+----------------------------------------------------------------------------
 ## Feature Objects - common attributes.
 ----------------------------------------------------------------------------
 
@@ -179,6 +194,31 @@ GpioBase address:
     C) Pointer to a global value.
 	+ Can check for null before accessing.
 	- Not sure how to get desired effect when GpioBase object is destroyed.
+
+    Methods to know "BCM2835 ARM Peripherals" address:
+ >  A) Each feature object knows its BCM address.
+	x.init_io( rgAddrMap )
+	The feature knows how to use an rgAddrMap object.
+	+ Nicely self contained.
+	- Dependency on rgAddrMap object.
+	+ Testing would use a mock rgAddrMap.
+    B) User tells feature what BCM address to use.
+        x.init_addr( bcm.get_mem_block( addr ) )
+	+ Give user control.
+	-- User has to know the correct address.
+	- More complex use.
+	+ May help testing.
+
+    Each feature object knows what its "BCM2835 ARM Peripherals" documented
+    address is.  We want the feature object to request the appropriate
+    address block from the rgAddrMap object.
+	x.init_io()
+    OR tell the user what the address is so it can be requeste externally.
+        addr = x.get_bcm_addr()
+        x.init_addr( bcm.get_mem_block( addr ) )
+    OR user tells it what address to use
+        x.init_addr( bcm.get_mem_block( addr ) )
+
 
     What happens when the address map is revoked?
     We generally don't need to create and destroy multiple GpioBase
@@ -344,7 +384,7 @@ Generally, the clock must be disabled, and have have become not busy
 (BUSY=0) before changing any config.
 
 Methods:
-    
+
 
 Output format:
     ctl[31:0] = 0xfabc0000   control register
@@ -373,4 +413,453 @@ Output format:
     The Register bit positions help relate to reference doc and 32-bit
     hex value.
 
+
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
+
+    uint32_t		ClkNum;		// Clock number {0,1,2}
+
+    uint32_t		CtlReg;		// Control  register value
+    uint32_t		DivReg;		// Divisior register value
+
+}
+
+
+Methods:
+
+    init_io_addr( rgAddrMap );
+
+    read_regs();
+    write_regs();
+    raw_write_regs();
+
+    get_Mash();
+    put_Mash( bit2 );
+
+    get_Enable();
+    put_Enable( bit1 );
+
+    text_status();		All register values.
+
+    get_bcm_address();		Get the "BCM2835 ARM Peripherals" address.
+				    Debug.  A simple accessor.
+
+
+----------------------------------------------------------------------------
+## rgIoPin Object
+----------------------------------------------------------------------------
+
+This is the GPIO pins and alternate function select.
+Features include:
+    Function select - In, Out, Alt0 .. Alt5
+    Output Set
+    Output Clear
+    Input read level
+    Event Detect Status
+    Rising  Edge Detect Enable
+    Falling Edge Detect Enable
+    High Detect Enable
+    Low  Detect Enable
+    Async Rising  Edge Detect Enable
+    Async Falling Edge Detect Enable
+    Pin Pull-up/down  (is write-only?)
+
+See:  p.90-104  6. General Purpose I/O (GPIO)
+
+    There are 54 general-purpose I/O (GPIO) lines, but only the first 28 are
+    available on the RPi3.  The compute module can access the first 45.
+    Be aware that some may be used for features on the RPi board itself.
+
+    Each register has a low word for bits 31..0, and a high word for
+    bits 53..32.  We provide access to both.
+    Possibly have a user configurable range check to catch access outside
+    of desired bit range.
+
+The basic configuration cycle is:  (maybe not!)
+    x.read_regs();		read IO registers into object
+
+    x.set_Func( .. );		modify object config
+    x.set_Redge_Den( .. );
+    x.set_Fedge_Den( .. );
+    x.set_High_Den( .. );
+    x.set_Low_Den( .. );
+    x.set_ARedge_Den( .. );
+    x.set_AFedge_Den( .. );
+    ...
+    x.write_regs();		update IO registers
+
+	But this is not Atomic.
+
+Data read/write:
+    The Read/Set/Clear of pin values is handled by giving direct access to
+    the correspondig address.  User code then can read/write as necessary
+    to provides the fastest access.
+
+    Possibly also provide accessor functions to operate on a single pin.
+
+Levels of access:
+    1) Just provide the register address.  User does all bit twiddling.
+
+    2) Accessor operations for similar registers - e.g. Function Select,
+	Detect Enable, Detect Status.
+	Operate on small groups of registers.
+	Multiple pin operation, since each register is multiple pins.
+
+    3) Single pin operation - modify only one pin of the register.
+	Use a pin number instead of a word mask.
+
+    4) Operate on full set of registers - i.e. read/write all registers
+	from object data.
+
+    These could mix-and-match, but be aware of both the pin state and object
+    state.
+
+Object Data Structure:
+
+    Most registers have one-bit per pin.
+	unit32_t	EventStatus
+
+    The Function Select registers have 3-bits per pin.
+	Note only FselReg[0..3] are used on RPi.
+
+ >  A) Use register layout directly.
+	unit32_t	FselReg[0..5]
+	+ Direct access to register values.
+	- Must map user abstraction to these.
+
+    B) Abstract into an array of pins.
+	uint8_t		FselPin[0..27]
+	- Must map into register values for read/write.
+	+ Nice user abstraction.
+
+    C) Store both forms.
+	+ Conceptually nice.
+	- Accessors must update both.
+
+ >  D) Store one form, let the other be Virtual thru accessors.
+	+ Probably safest.
+
+    The mapping function needs to be well tested.
+    It looks like the mapping can be algorithmic.
+    Possibly Fsel is its own object, possibly inherited.
+
+    It is useful to see pin mode with all pins layed out as a 32-bit register.
+    Use one char for for each pin, encoded with the pin-mode.  This helps
+    see what mask values are needed when doing direct read/write.
+    e.g.
+	.... iiii iiii iiii oooo 0001 1000 iiii
+	    i    = input
+	    o    = output
+	    0..5 = Alt0 .. Alt5
+
+    get_Fsel()		Return array FselPin[0..27] of mode values.
+
+  x put_Fsel( uint8_t mode[0..27] )	Set mode on all pins.
+		Not really useful, unless you read first and modify.
+
+    set_FselMask( uint8_t mode, uint32_t mask )
+	mode = the function select mode (3-bit) enum
+	mask = one bit per pin, 1= active, 0= not changed
+	This should be read-modify-write update.
+
+    get_FselMask( uint8_t mode )	Return mask of pins with that mode.
+
+  ? get_FselReg( reg_number )
+  ? put_FselReg( reg_number )
+
+    Mode values:
+	1) The raw 3-bit value. { 00, 01, 04,05,06,07,03,02 }
+	2) Abstracted Enum.	{ In, Out, Alt0, .. Alt5 }
+	3) Character encoding.  { i, o, 0, 1, 2, 3, 4, 5 }
+
+    enum rgFsel_enum {
+	fselIN   = 'i',
+	fselOUT  = 'o',
+	fselAlt0 = '0',
+	fselAlt5 = '5',
+    }
+	Naming these enum with char constants may help in per-bit display.
+	Essentially allows using the char constant as the enum value.
+
+    enum rgFsel_enum {
+	f_IN   = 00,
+	f_OUT  = 01,
+	f_Alt0 = 04,
+	f_Alt5 = 05,
+    }
+ >	Naming with raw 3-bit value helps putting the value in the control
+	register.
+
+Multiple register update:  Not Atomic.
+
+    Update is by read-modify-write, in order to preserve previous values
+    when only some bits change.
+    How atomic does this need to be?
+
+    The Function Select registers are shared data.  Multiple independent
+    programs each need to set the mode for their pins.  (We assume the pins
+    are different in each seperate program.)
+    Independently running programs are asynchronous.
+    Therefore a synchronization problem exists if register update is not
+    atomic.
+
+    In general the synchronization problem cannot be avoided.  The user
+    must provide synchronization.  This is OK, and expected.
+    [Possibly use mmap() MAP_PRIVATE? - no.  Copy-on-write makes private
+    copy and updates are not carried through to the underlying file.]
+
+    Writing only the register modified helps.
+    Making the read-modify-write window small helps.
+    Thus it might be better to let a single library function call do the
+    read-modify-write, instead of seperate calls.
+    The set_FselMask() could do this, possibly even isolating to one of
+    the 5 registers depending on which mask bits are used.
+
+    I like letting such shared access be done by only a central user utility
+    program, run directly by the user.  Then there is no shared resource
+    between independent applications.
+
+    Note the Event Dectect registers are shared over all bits, and must
+    must be updated by read-modify-write.  Sharing different pins among
+    processes seems problematic.
+
+    Consider adding semmaphore capability to help solve synchronization
+    problems.  For now, single function read-modify-write seems pretty
+    good.
+
+Register update methods:
+
+ >  A) Use a bit mask.
+	set_High_Den( mask )
+	clr_High_Den( mask )
+	+ Operate on all pins at once.
+	+ Is close to the programming side.
+
+    B) Use a bit number.  Per-pin update.
+	set_High_Den_pin( pin )
+	clr_High_Den_pin( pin )
+	- Must repeat call for each pin to change.
+	- Not as flexible.
+
+    Class data could still be updated in passing.
+
+    It is nice to have one function that reads everything at once, to get
+    a snapshot in time.  Just not good to write that to registers, since it
+    may have externally changed.
+
+Register access function naming:
+    Many config registers are read/write.  Reading all bits is fine.
+	read_detect_Rising()
+
+    Writing the register should change only the desired bits according to
+    a mask, doing a read/modify/write.  Model as:
+
+    A) Seperate set/clear functions.  1-argument
+	set_detect_Rising( mask )
+	clr_detect_Rising( mask )
+	+ Mimic the set/clr PinLevel registers.
+	- Takes two calls to set some bits and clear others.
+
+ >  B) Single function with value and mask.  2-arguments
+	put_detect_Rising( value, mask )
+	+ One call to both set and clear bits.
+	+ Fewer functions.
+	- More arguments.
+
+	Maybe name modify_*() to distinguish hardware register access from
+	simple data structure access put_*().
+
+Register access enums:
+    Use enums for the register offset addresses.
+    Defined in the class to provide context.
+
+    Generic functions can use an enum argument.
+    Functions named by the register seem clearer in user code.
+    Probably provide both.
+
+Register pair naming:
+    The Broadcom names are short, but a bit too cryptic (e.g. GPAFEN0).
+    The suffix '0' and '1' is not that all obvious out of context.
+    Using A/B seems a little better.
+    The seperating underscore helps.
+
+    A)  HighDetect0	bits 31..0
+	HighDetect1	bits 53..32
+
+    B)  HighDetect	bits 31..0
+	HighDetect32	bits 53..32
+
+    C)  HighDetectA	bits 31..0
+	HighDetectB	bits 53..32
+
+    D)  HighDetect_A	bits 31..0
+	HighDetect_B	bits 53..32
+
+    E)  HighDetect_0	bits 31..0
+	HighDetect_1	bits 53..32
+
+ >  F)  HighDetect_w0	bits 31..0
+	HighDetect_w1	bits 53..32
+	+ Give the 0/1 a little more meaning.
+
+    G)  HighDetect	bits 31..0
+	HighDetect_B	bits 53..32
+	+ Nice for low bits, no suffix.
+	- Is asymetric when both ranges are used.
+
+    Possibly use uint64_t bit values and treat like one register.
+	+ Nice abstraction.
+	- Not very close to the hardware.
+	- Longer words for bit twiddleing.
+
+    Possibly dual functions with a uint32_t mode and uint64_t mode.
+
+
+Methods:
+    (Need high/low register designation)
+
+    read_all_regs()	read all IO registers into object
+  x write_all_regs()	write object to IO registers - not recommended.
+
+		read-modify-write update:  (updates object)
+    put_FselMask( mode, mask )
+
+    clr_EventStatus( mask )
+
+    put_detect_Rising( value, mask )
+    set_detect_Rising( mask )
+    clr_detect_Rising( mask )
+
+    set_detect_Falling( mask )
+    clr_detect_Falling( mask )
+
+    set_detect_High( mask )
+    clr_detect_High( mask )
+
+    set_detect_Low( mask )
+    clr_detect_Low( mask )
+
+    set_detect_AsyncRising( mask )
+    clr_detect_AsyncRising( mask )
+
+    set_detect_AsyncFalling( mask )
+    clr_detect_AsyncFalling( mask )
+
+    set_PullUpDown_mode( mode, mask )
+
+		immediate write:  (no copy in object)
+    set_PinLevel( mask )
+    clr_PinLevel( mask )
+
+		immediate read:  (also puts copy in object)
+    read_FselMask( mode )
+    read_EventStatus()
+    read_detect_Rising()
+    read_detect_Falling()
+    ...
+    read_PinLevel()		all pins
+
+		object accessor:
+    get_FselMask( mode )
+    get_EventStatus()
+    get_detect_Rising()
+    get_detect_Falling()
+    ...
+    get_PinLevel()		all pins
+
+		register address:
+    addr_PinRead()
+    addr_PinSet()
+    addr_PinClear()
+    addr_EventStatus()
+
+		generic functions:  use register identifier enum R
+    set_reg( R, mask )
+    clr_reg( R, mask )
+    read_reg( R )
+    get_reg( R )
+    addr_reg( R )
+
+
+Object data:
+    (Need high/low register designation)
+    All uint32_t.
+{
+		Config registers:
+    FselReg[0..5]
+
+    DetRising
+    DetFalling
+    DetHigh
+    DetLow
+    DetAsyncRising
+    DetAsyncFalling
+
+		Data registers:
+    EventStatus
+    ReadLevel			PinLevel
+}
+
+enum IoReg_enum {		? IoPin_enum,  GpReg_enum
+    detect_Rising      = 0x4c,
+    detect_Rising32    = 0x50,
+    detect_FallingA    = 0x58,
+    detect_FallingB    = 0x5c,
+    detect_High0       = 0x64,
+    detect_High1       = 0x68,
+    ...
+    rgcEventStatus     = 0x..,
+    rgcPinLevel        = 0x..,
+    rgcDetectHigh0     = 0x64,
+    rgcDetectAsyncFallingA
+
+    rgPinLevel_w0      = 0x..,
+    rgPinLevel_w1      = 0x..,
+
+				FuncSel registers for low-level access only.
+    rgFsel_r0          = 0x..,
+    rgFsel_r1          = 0x..,
+    rgFsel_r2          = 0x..,
+    rgFsel_r5          = 0x..,
+
+    rgFsel0            = 0x..,
+
+}
+    Enum names need to be distict from object data names.
+    Data names could be private.
+
+----
+
+    set_Redge_Den( mask )
+    clr_Redge_Den( mask )
+    set_Fedge_Den( mask )
+    clr_Fedge_Den( mask )
+    set_High_Den( mask )
+    set_Low_Den( mask )
+    set_ARedge_Den( mask )
+    set_AFedge_Den( mask )
+    ...
+
+    set_Den_Redge( mask )
+    set_Den_Fedge( mask )
+    set_Den_High( mask )
+    set_Den_Low( mask )
+    set_Den_ARedge( mask )
+    set_Den_AFedge( mask )
+    ...
+
+    set_Den_Rising( mask )
+    set_Den_Falling( mask )
+    set_Den_High( mask )
+    set_Den_Low( mask )
+    set_Den_AsyncRising( mask )
+    set_Den_AsyncRising( mask )
+    ...
+
+    set_det_Rising( mask )
+    set_detect_Rising( mask )
+    set_detect_AsyncRising( mask )
+
+Long names with full words seem helpful.
 
