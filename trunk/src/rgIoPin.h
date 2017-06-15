@@ -9,7 +9,7 @@
 
 class rgIoPin {
   private:
-    volatile unsigned	*GpioBase;	// IO base address
+    volatile uint32_t	*GpioBase;	// IO base address
 
     uint32_t		FselReg[6];	// Function Select
 
@@ -80,14 +80,14 @@ class rgIoPin {
 
     void		init_addr( rgAddrMap  *xx );
 
-    inline volatile unsigned*	get_base_addr()
+    inline volatile uint32_t*	get_base_addr()
     {
 	return  GpioBase;
     }
 
 		// Generic registor access
 
-    volatile unsigned*	addr_reg(
+    volatile uint32_t*	addr_reg(
 			    rgIoReg_enum	reg
 			);
 

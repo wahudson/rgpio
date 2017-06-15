@@ -78,7 +78,7 @@ rgIoPin			Tx;
 
   CASE( "19", "get_base_addr()" );
     try {
-//	volatile void*		aa;
+//	volatile uint32_t*	aa;
 //	aa = Tx.get_base_addr();
 //	cout << "GpioBase=0x" <<hex << (long int)aa <<endl;
 	PASS( "get_base_addr()" );

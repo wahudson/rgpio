@@ -51,7 +51,7 @@ rgIoPin::init_addr(
     GpioBase = xx->get_mem_block( 0x7e200000 );
 }
 
-// inline volatile unsigned*   get_base_addr()
+// inline volatile uint32_t*   get_base_addr()
 
 
 //--------------------------------------------------------------------------
@@ -61,7 +61,7 @@ rgIoPin::init_addr(
 /*
 * Get raw register address.
 */
-volatile unsigned*
+volatile uint32_t*
 rgIoPin::addr_reg(
     rgIoReg_enum	reg
 )

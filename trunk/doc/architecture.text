@@ -124,6 +124,36 @@ Debug:
 
 
 ----------------------------------------------------------------------------
+## IO Address Map
+----------------------------------------------------------------------------
+
+Addresses:
+    The peripheral addresses specified in the BCM document are bus addresses.
+    (1.2.4 p.6)
+
+    Addresses are byte addresses, and word (4-byte) aligned.
+    Read/Write to periperal address are 32-bits (word size).
+    Not sure what happens with a non-word aligned address, or a byte-size
+    load/store.
+
+    C address pointers could be:
+ >  A) Word address
+	uint32_t	*ptr;
+	+ Alignment handled by compiler (i.e. is implied).
+	+ Seems to be used by wiringPi and bcm2835 libraries.
+	- BCM documentation address need to be divided by 4.
+
+    B) Byte address
+	uint8_t		*ptr;
+	+ Matches BCM documentation.
+	- Possible alignment error.
+	-- Dereference pointer is a byte access, NOT what we want.
+
+    Use "volatile uint32_t" for register address pointers to be specific
+    about word size.  (Also used by wiringPi and bcm2835 libraries.)
+
+
+----------------------------------------------------------------------------
 ## Naming of code objects.
 ----------------------------------------------------------------------------
 

@@ -17,7 +17,7 @@ class rgAddrMap {
     int			Prot;		// mmap() prot field
     bool		Debug;		// debug trace on stderr
 
-    volatile unsigned	FakeBlock[4096];
+    volatile uint32_t	FakeBlock[4096];
 
 
   public:
@@ -40,7 +40,7 @@ class rgAddrMap {
     void		close_dev();
 
 
-    volatile unsigned*	get_mem_block( int p_addr );
+    volatile uint32_t*	get_mem_block( int p_addr );
 
     void		drop_capabilities();
 

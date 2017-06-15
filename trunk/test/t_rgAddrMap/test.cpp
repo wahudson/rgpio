@@ -257,7 +257,7 @@ int main()
   CASE( "34", "get_mem_block() read write fake" );
     try {
 	rgAddrMap		bx;
-	volatile unsigned*	vadd;
+	volatile uint32_t*	vadd;
 	int			vv;
 	bx.use_fake_mem();
 	vadd = bx.get_mem_block( 0x7e200000 );

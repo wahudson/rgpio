@@ -234,7 +234,7 @@ rgAddrMap::close_dev()
 *    p_addr = peripheral address, as in BCM datasheet,  block aligned.
 *		e.g. 0x7e200000 is GPIO pins
 */
-volatile unsigned*
+volatile uint32_t*
 rgAddrMap::get_mem_block(
     int			p_addr
 )
@@ -253,7 +253,7 @@ rgAddrMap::get_mem_block(
     r_addr = bcm2rpi_addr( p_addr );
 
     if ( FakeMem ) {
-	return (volatile unsigned*)FakeBlock;
+	return (volatile uint32_t*)FakeBlock;
     }
 
     // Check Device file still open.
@@ -281,8 +281,8 @@ rgAddrMap::get_mem_block(
 
 //#!! cache mem_block
 
-    cerr << "    mem_block= " << (unsigned *)mem_block << endl;
+    cerr << "    mem_block= " << (uint32_t *)mem_block << endl;
 
-    return (volatile unsigned*)mem_block;
+    return (volatile uint32_t*)mem_block;
 }
 
