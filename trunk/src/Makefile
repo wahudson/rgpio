@@ -12,17 +12,17 @@ OJ         = ../obj
 INCS       = \
         rgAddrMap.h \
         rgIoPin.h \
-        gGpClock.h
-#        Error.h \
-#        yOption.h \
+        Error.h \
+        yOption.h
+#        gGpClock.h \
 
 		# objects not including main()
 OBJS       = \
 	$(OJ)/rgAddrMap.o \
 	$(OJ)/rgIoPin.o \
-	$(OJ)/gGpClock.o
-#	$(OJ)/Error.o \
-#	$(OJ)/yOption.o \
+	$(OJ)/Error.o \
+	$(OJ)/yOption.o
+#	$(OJ)/gGpClock.o \
 
 		# compiler flags
 	# -std=c++11  needed for std::stoi

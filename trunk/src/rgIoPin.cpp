@@ -58,6 +58,8 @@ rgIoPin::init_addr(
 // Generic Register access
 //--------------------------------------------------------------------------
 
+//#!! Need to ensure GpioBase is initialized before use.
+
 /*
 * Get raw register address.
 */
@@ -79,7 +81,7 @@ rgIoPin::addr_reg(
 
 /*
 * Read raw register value.
-*    No copy in the object.
+*    No copy in the object.  #!!
 *    No check for write-only registers.
 */
 uint32_t
@@ -94,7 +96,7 @@ rgIoPin::read_reg(
 /*
 * Modify register.
 *    Does read/modify/write.
-*    No copy in the object.
+*    No copy in the object.  #!!
 *    Not applicable for write-only registers.
 */
 void
