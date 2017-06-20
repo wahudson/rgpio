@@ -23,6 +23,7 @@ class yOption {
   public:
     yOption();
     yOption( int argc,  char* argv[] );	// constructor
+    yOption( yOption  *opx );		// constructor
 
     int			get_argc();
     char*		next_arg();

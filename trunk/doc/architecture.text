@@ -73,7 +73,7 @@ This is much like the library itself.
 
 This is a utility command based on the library.
 
-usage:  rgpio [feature] [options..]
+usage:  rgpio [common_opts..] [feature] [options..]
   feature:
     io              IO pins
     clock           GpClock generators

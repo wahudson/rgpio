@@ -13,6 +13,8 @@ using namespace std;
 #include "rgAddrMap.h"
 #include "rgIoPin.h"
 
+#include "y_io.h"
+
 #include "Error.h"
 #include "yOption.h"
 
@@ -111,9 +113,6 @@ yOptLong::parse_options()
 	npix_n = stoi( npix_s );
     }
 
-    if ( get_argc() > 0 ) {
-	Error::err( "extra arguments:  ", next_arg() );
-    }
 }
 
 
@@ -231,31 +230,12 @@ main( int	argc,
 //	Amx.use_dev_gpiomem();
 	Amx.use_fake_mem();
 
-	rgIoPin			Gpx;	// constructor
+	y_io			iox  ( &Opx, &Amx );	// constructor
 
-	uint32_t		val;
-	volatile uint32_t	*vp;
-
-	Gpx.init_addr( &Amx );
-
-	cout.fill( '0' );
-
-	vp = Gpx.addr_reg( rgIoPin::rgEventStatus_w0 );
-//	cout << "rgEventStatus_w0= 0x" <<hex <<setw(8) << (void*)vp <<endl;
-	cout << "rgEventStatus_w0= " << (void*)vp <<endl;
-
-	Gpx.mod_reg( rgIoPin::rgEventStatus_w0, 0xcccc3333, 0x00ffff00 );
-
-	val = Gpx.read_reg( rgIoPin::rgEventStatus_w0 );
-	cout << "rgEventStatus_w0= 0x" <<hex <<setw(8) << val <<endl;
-
-	if ( Opx.debug ) {
-//	    cout << "    gpio_read= " << (unsigned *)gpio_read << endl;
-	}
+	iox.doit();
 
     }
     catch ( std::exception& e ) {
-//	cerr << "Error:  exception:  " << e.what() <<endl;
 	Error::err( "exception caught:  ", e.what() );
     }
     catch (...) {

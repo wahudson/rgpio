@@ -48,6 +48,21 @@ yOption::yOption( int argc,  char* argv[] )
 
 
 /*
+* Copy Constructor.
+*    Pass in an existing option object.
+* call:
+*    yOption	Opx  ( &MainOpx );
+*/
+yOption::yOption( yOption  *opx )
+{
+    Argc     = opx->Argc;
+    Argv     = opx->Argv;
+    Vp       = NULL;
+    ProgName = opx->ProgName;
+}
+
+
+/*
 * Get current argument count.
 * call:
 *    self.get_argc()
