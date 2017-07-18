@@ -248,6 +248,17 @@ y_io::doit()
 //	    cout << "    gpio_read= " << (unsigned *)gpio_read << endl;
 	}
 
+	rgIoPin::rgIoReg_enum	list_w0[] = {
+	    rgIoPin::rgPinLevel_w0,
+	    rgIoPin::rgEventStatus_w0,
+	    rgIoPin::rgDetectRising_w0,
+	    rgIoPin::rgDetectFalling_w0,
+	    rgIoPin::rgDetectHigh_w0,
+	    rgIoPin::rgDetectLow_w0,
+	    rgIoPin::rgDetectAsyncRising_w0,
+	    rgIoPin::rgDetectAsyncFalling_w0,
+	};
+
 	// Show status of all registers
 	if ( Opx.hex ) {
 	    cout <<hex;
@@ -259,6 +270,18 @@ y_io::doit()
 	    cout << "0x" <<setw(8)
 		 << Gpx.read_reg( rgIoPin::rgEventStatus_w0 )
 		 <<                       "  EventStatus_w0" <<endl;
+
+	    int	list_w0_N = sizeof( list_w0 ) / sizeof( rgIoPin::rgIoReg_enum);
+	    cout << "list_w0_N= " << list_w0_N << endl;
+	    for ( int k=0;  k < list_w0_N;  k++ )
+	    {
+		rgIoPin::rgIoReg_enum	rr;
+		rr = list_w0[k];
+		cout << "0x" <<setw(8)
+		     << Gpx.read_reg( rr )
+		     << "  0x" <<  rr*4
+		     << "  " << Gpx.str_IoReg_enum( rr ) <<endl;
+	    }
 
 	}
 

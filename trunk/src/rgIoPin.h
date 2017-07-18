@@ -16,6 +16,9 @@ class rgIoPin {
 //    uint32_t		PinLevel_w0;	// read only
 //    uint32_t		PinLevel_w1;
 
+  private:
+    static const char*	RegStr[];	// Register string names,
+					//     indexed by rgIoReg_enum.
 
   public:
     enum rgFsel_enum {		// Function select values, 3-bit octal
@@ -76,8 +79,6 @@ class rgIoPin {
   public:
     rgIoPin();			// constructor
 
-//    void		show_debug();
-
     void		init_addr( rgAddrMap  *xx );
 
     inline volatile uint32_t*	get_base_addr()
@@ -119,6 +120,12 @@ class rgIoPin {
     {
 	return  read_reg( rgEventStatus_w0 );
     }
+
+		// Enum string conversion
+
+    static const char*	str_IoReg_enum(
+			    rgIoReg_enum        reg
+			);
 
 };
 

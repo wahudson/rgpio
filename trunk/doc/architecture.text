@@ -804,9 +804,34 @@ Register access function naming:
 	Maybe name modify_*() to distinguish hardware register access from
 	simple data structure access put_*().
 
-Register access enums:
-    Use enums for the register offset addresses.
-    Defined in the class to provide context.
+Register access enums:  rgIoReg_enum
+    Use enums for the register offset addresses.  The enum value is the
+    offset value, which can work even with widely seperated values.
+
+    The enums are defined in the class to provide context.  Thus the class
+    name is required on the enum name e.g.
+	rgIoPin::rgPinLevel_w0
+    Seems a bit long, but very specific.
+
+    Enum name strings are provided by a lookup table indexed by rgIoReg_enum.
+    The enum values are close enough together to make this practical, and
+    have one less mapping.
+	static const char*  RegStr[];
+
+    Use accessor functions for enum name string mapping.
+	str_IoReg_enum( enum )
+	find_IoReg_enum( str )
+
+    String for an enum will throw an exception if the enum is invalid.  This
+    is reasonable since the compiler checks the enum.
+
+    Finding enum for a string should not throw an exception if enum is not
+    found.  In this case we generally have an unknown string and are trying
+    to see what enum it represents, if any.
+
+    Decided enum string names should be identical to the enum name, at least
+    in the library.  This makes less mappings, and is close to the library
+    code (i.e. can cut/paste names between code and external user interface).
 
     Generic functions can use an enum argument.
     Functions named by the register seem clearer in user code.
@@ -848,6 +873,9 @@ Register pair naming:
 	- Longer words for bit twiddleing.
 
     Possibly dual functions with a uint32_t mode and uint64_t mode.
+    Dealing with 64-bit values, which must be decomposed into 32-bit words
+    for IO register access, seems too complex.
+    ==> Use only 32-bit words, with register pairs.
 
 
 Methods:

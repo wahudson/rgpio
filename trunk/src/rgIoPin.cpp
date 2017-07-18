@@ -117,3 +117,83 @@ rgIoPin::mod_reg(
 // IO Register read/write
 //--------------------------------------------------------------------------
 
+
+//--------------------------------------------------------------------------
+// Enum string conversion
+//--------------------------------------------------------------------------
+
+// Register string names, indexed by rgIoReg_enum.  (Private)
+//    Entry order must match enum value order, verify by testing.
+const char*        rgIoPin::RegStr[] = {
+    "rgFsel0",
+    "rgFsel1",
+    "rgFsel2",
+    "rgFsel3",
+    "rgFsel4",
+    "rgFsel5",
+    NULL,
+    "rgOutSet_w0",
+    "rgOutSet_w1",
+    NULL,
+    "rgOutClr_w0",
+    "rgOutClr_w1",
+    NULL,
+    "rgPinLevel_w0",
+    "rgPinLevel_w1",
+    NULL,
+    "rgEventStatus_w0",
+    "rgEventStatus_w1",
+    NULL,
+    "rgDetectRising_w0",
+    "rgDetectRising_w1",
+    NULL,
+    "rgDetectFalling_w0",
+    "rgDetectFalling_w1",
+    NULL,
+    "rgDetectHigh_w0",
+    "rgDetectHigh_w1",
+    NULL,
+    "rgDetectLow_w0",
+    "rgDetectLow_w1",
+    NULL,
+    "rgDetectAsyncRising_w0",
+    "rgDetectAsyncRising_w1",
+    NULL,
+    "rgDetectAsyncFalling_w0",
+    "rgDetectAsyncFalling_w1",
+    NULL,
+    "rgPullUpDown",
+    "rgPullUpDownClk_w0",
+    "rgPullUpDownClk_w1",
+    NULL
+};
+
+
+/*
+* Get string name of an rgIoReg_enum register enum.
+*    Compiler checks type of enum.
+* call:
+*    rgIoPin::str_IoReg_enum( rgIoPin::rgPinLevel_w0 )	class method
+*           x.str_IoReg_enum( rgIoPin::rgPinLevel_w0 )	object method
+* return:
+*    () = char string
+* exception:
+*    Throw range_error if enum is invalid.
+*/
+const char*
+rgIoPin::str_IoReg_enum(
+    rgIoReg_enum	reg
+)
+{
+    const char		*name;
+    name = rgIoPin::RegStr[ reg ];
+
+    if ( name == NULL ) {
+	std::ostringstream	css;
+	css << "rgIoPin::  bad rgIoReg_enum in:  str_IoReg_enum()";
+	throw std::range_error ( css.str() );
+    }
+
+    return  name;
+}
+
