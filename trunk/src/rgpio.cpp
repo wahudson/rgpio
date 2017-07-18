@@ -36,10 +36,8 @@ class yOptLong : public yOption {
 
   public:	// option values
 
-    const char*		npix;
-    const char*		prefix;
-    bool		hex;
-    bool		raw;
+    const char*		dev;
+    bool		ro;
 
     bool		verbose;
     bool		debug;
@@ -47,7 +45,7 @@ class yOptLong : public yOption {
 
   public:	// data values
 
-    int			npix_n;			// number of pixels
+    std::string		feature;
 
   public:
     yOptLong( int argc,  char* argv[] );	// constructor
@@ -69,16 +67,14 @@ class yOptLong : public yOption {
 yOptLong::yOptLong( int argc,  char* argv[] )
     : yOption( argc, argv )
 {
-    npix        = "";
-    prefix      = "";
-    hex         = 0;
-    raw         = 0;
+    dev         = "";
+    ro          = 0;
 
     verbose     = 0;
     debug       = 0;
     TESTOP      = 0;
 
-    npix_n      = 64;
+    feature     = "";
 }
 
 
@@ -90,10 +86,8 @@ yOptLong::parse_options()
 {
     while ( this->next() )
     {
-	if      ( is( "--npix="      )) { npix       = this->val(); }
-	else if ( is( "--prefix="    )) { prefix     = this->val(); }
-	else if ( is( "--hex"        )) { hex        = 1; }
-	else if ( is( "--raw"        )) { raw        = 1; }
+	if      ( is( "--dev="       )) { dev        = this->val(); }
+	else if ( is( "--ro"         )) { ro         = 1; }
 
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
@@ -107,12 +101,9 @@ yOptLong::parse_options()
 	}
     }
 
-    string	npix_s    ( npix );
-
-    if ( npix_s.length() ) {
-	npix_n = stoi( npix_s );
+    if ( this->get_argc() > 0 ) {
+	feature = this->current_option();	// no advance for next level
     }
-
 }
 
 
@@ -123,12 +114,11 @@ void
 yOptLong::print_option_flags()
 {
 
-    cout << "--npix        = " << npix         << endl;
-    cout << "--prefix      = " << prefix       << endl;
-    cout << "--hex         = " << hex          << endl;
-    cout << "--raw         = " << raw          << endl;
+    cout << "--dev         = " << dev          << endl;
+    cout << "--ro          = " << ro           << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
+    cout << "feature       = " << feature      << endl;
 
     char*	arg;
     while ( ( arg = next_arg() ) )
@@ -136,7 +126,6 @@ yOptLong::print_option_flags()
 	cout << "arg:          = " << arg          << endl;
     }
 
-    cout << "npix_n        = " << npix_n       << endl;
 }
 
 
@@ -148,12 +137,13 @@ yOptLong::print_usage()
 {
     cout <<
     "    Raspberry Pi GPIO utility\n"
-    "usage:  " << ProgName << " [options]\n"
-    "  output forms:  (default is none)\n"
-    "    --hex               hex data dump\n"
-    "    --raw               raw hex data\n"
-    "  options:\n"
-    "    --npix=N            number of pixel to collect\n"
+    "usage:  " << ProgName << " [common_opts..]  feature  [options..]\n"
+    "  feature:\n"
+    "    io           General Purpose IO pins\n"
+    "    clock        Clock generator\n"
+    "  common options:\n"
+    "    --dev=m|g|f         device file type\n"
+    "    --ro                read only\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
@@ -162,42 +152,6 @@ yOptLong::print_usage()
 
 // Hidden options:
 //       --TESTOP       test mode show all options
-}
-
-
-//--------------------------------------------------------------------------
-// yMain object class
-//--------------------------------------------------------------------------
-
-class yMain {
-  private:
-
-  public:
-    yOptLong		*opx;
-
-  public:
-    yMain();					// constructor
-    yMain( yOptLong *optx );			// constructor
-};
-
-
-/*
-* Constructor.
-*/
-yMain::yMain()
-{
-}
-
-
-/*
-* Constructor.
-*    Pass in reference to option object.
-*    !! Probably refactor this class to build the option object.
-*/
-yMain::yMain( yOptLong *optx )
-{
-    opx          = optx;
-
 }
 
 
@@ -215,8 +169,6 @@ main( int	argc,
 
 	Opx.parse_options();
 
-//	yMain			Mnx  ( &Opx );	// constructor
-
 	if ( Opx.TESTOP ) {
 	    Opx.print_option_flags();
 	    return ( Error::err() ? 1 : 0 );
@@ -227,12 +179,28 @@ main( int	argc,
 	rgAddrMap		Amx;	// constructor
 	//#!! better name?
 
+	//#!! --dev=  --ro
 //	Amx.use_dev_gpiomem();
 	Amx.use_fake_mem();
 
-	y_io			iox  ( &Opx, &Amx );	// constructor
+	if (      Opx.feature == "io"       ) {
+	    cout << "do io" << endl;
 
-	iox.doit();
+	    y_io		iox  ( &Opx, &Amx );	// constructor
+	    return  iox.doit();
+	}
+	else if ( Opx.feature == "clock"    ) {
+	    cout << "do clock" << endl;
+	    return( 0 );
+	}
+	else if ( Opx.feature == ""         ) {
+	    cout << "do nothing" << endl;
+	    return( 0 );
+	}
+	else {
+	    Error::err( "unknown feature:  ", Opx.feature.c_str() );
+	    return( 1 );
+	}
 
     }
     catch ( std::exception& e ) {

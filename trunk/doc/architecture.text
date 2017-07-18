@@ -86,20 +86,24 @@ usage:  rgpio [common_opts..] [feature] [options..]
     --ro            read-only
 
   io              IO pins
-    format:
-      -c,--column     show one bit per line	--col
-  ?   -w,--word       show horizontal in word format
-      --hex           word format hexadecimal
-      --bin           word format binary
+    output format:
+      -c,--column     show register columns, one bit per line	--col
+      --hex           show word format hexadecimal
+      --bin           show word format binary
     selection:
       --w0            register word 0
       --w1            register word 1
-      --reg=R         register to access, R= byte offset or enum
-      --bit=P         gpio bit number to access
-    modify:  (need all)
-      --reg=R         register to access, R= byte offset or enum
+      --reg=R         register to access, enum or byte offset
+      --bit=N         gpio bit number to access
+    observe:
+      --read          show register values
+    modify:  --reg
       --value=0x00    bit value, 32-bits
       --mask=0xff     mask select bits to change, 32-bits
+      --set=0xff      set bits
+      --clr=0xff      clear bits
+    modify:  --bit
+      --fsel=F        function select - In, Out, Alt0 .. Alt5	--mode
 
   clock            GpClock generators
 	--set
@@ -206,7 +210,7 @@ Exceptions:
     a capability.  There are many possible exceptions, and they are not
     specific enough, and their meaning may change.
 
-    We are using the C++ library <stdexcpt> to classify and throw exceptions.
+    We are using the C++ library <stdexcept> to classify and throw exceptions.
 
 Error Reporting:
     Is the process of getting an error message to the user.

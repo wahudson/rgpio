@@ -248,6 +248,20 @@ y_io::doit()
 //	    cout << "    gpio_read= " << (unsigned *)gpio_read << endl;
 	}
 
+	// Show status of all registers
+	if ( Opx.hex ) {
+	    cout <<hex;
+
+	    cout << "0x" <<setw(8)
+		 << Gpx.read_reg( rgIoPin::rgPinLevel_w0 )
+		 <<                       "  PinLevel_w0" <<endl;
+
+	    cout << "0x" <<setw(8)
+		 << Gpx.read_reg( rgIoPin::rgEventStatus_w0 )
+		 <<                       "  EventStatus_w0" <<endl;
+
+	}
+
     }
     catch ( std::exception& e ) {
 //	cerr << "Error:  exception:  " << e.what() <<endl;
