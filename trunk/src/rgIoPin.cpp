@@ -12,6 +12,7 @@
 #include <sstream>	// std::ostringstream
 #include <string>
 #include <stdexcept>
+#include <string.h>	// strcmp()
 
 using namespace std;
 
@@ -195,5 +196,51 @@ rgIoPin::str_IoReg_enum(
     }
 
     return  name;
+}
+
+
+/*
+* Find rgIoReg_enum for the corresponding string name.
+*    Currently is a linear search, good enough for the typical single lookup.
+*    #!! Use std::map for multiple lookups.
+* call:
+*    rgIoPin::find_IoReg_enum( "rgPinLevel_w0" )	class method
+*           x.find_IoReg_enum( "rgPinLevel_w0" )	object method
+* return:
+*    () = rgIoReg_enum
+* exception:
+*    Throw range_error if enum string is not found.
+*    Throw logic_error if string pointer is NULL.
+*/
+rgIoPin::rgIoReg_enum
+rgIoPin::find_IoReg_enum(
+    const char		*name
+)
+{
+    if ( name == NULL ) {
+	std::ostringstream	css;
+	css << "rgIoPin::  NULL string pointer in:  find_IoReg_enum()";
+	throw std::logic_error ( css.str() );
+    }
+
+    // Walk the string array not relying on a maximum enum.
+
+    int			max = (sizeof( rgIoPin::RegStr ) / sizeof( char * ));
+
+    for ( int key=0;  key<max;  key++ )
+    {
+	const char*	reg = rgIoPin::RegStr[key];
+
+	if ( reg == NULL ) { continue; }
+
+	if ( strcmp( reg, name ) == 0 ) {
+	    return  (rgIoPin::rgIoReg_enum) key;
+	}
+    }
+
+    // Not found
+    std::ostringstream	css;
+    css << "rgIoPin::  str_IoReg_enum() no enum for string:  " << name;
+    throw std::range_error ( css.str() );
 }
 

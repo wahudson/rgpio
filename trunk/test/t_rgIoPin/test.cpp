@@ -296,6 +296,180 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
+//--------------------------------------------------------------------------
+//## find_IoReg_enum()
+//--------------------------------------------------------------------------
+
+  CASE( "80a", "find_IoReg_enum() object call" );
+    try {
+	rgIoPin::rgIoReg_enum	v;
+	v = Tx.find_IoReg_enum( "rgFsel3" );
+	CHECK( rgIoPin::rgFsel3, v );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "80b", "find_IoReg_enum() class call" );
+    try {
+	rgIoPin::rgIoReg_enum	v;
+	v = rgIoPin::find_IoReg_enum( "rgFsel3" );
+	CHECK( rgIoPin::rgFsel3, v );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "81", "find_IoReg_enum() null string" );
+    try {
+	rgIoPin::find_IoReg_enum( "" );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgIoPin::  str_IoReg_enum() no enum for string:  ",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "82", "find_IoReg_enum() bad string" );
+    try {
+	rgIoPin::find_IoReg_enum( "bad_string" );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgIoPin::  str_IoReg_enum() no enum for string:  bad_string",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "83", "find_IoReg_enum() NULL pointer" );
+    try {
+	rgIoPin::find_IoReg_enum( NULL );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "rgIoPin::  NULL string pointer in:  find_IoReg_enum()",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "84", "find_IoReg_enum() all strings" );
+    try {
+
+	CHECK(                rgIoPin::rgFsel0,
+	    rgIoPin::find_IoReg_enum( "rgFsel0" )
+	);
+	CHECK(                rgIoPin::rgFsel1,
+	    rgIoPin::find_IoReg_enum( "rgFsel1" )
+	);
+	CHECK(                rgIoPin::rgFsel2,
+	    rgIoPin::find_IoReg_enum( "rgFsel2" )
+	);
+	CHECK(                rgIoPin::rgFsel3,
+	    rgIoPin::find_IoReg_enum( "rgFsel3" )
+	);
+	CHECK(                rgIoPin::rgFsel4,
+	    rgIoPin::find_IoReg_enum( "rgFsel4" )
+	);
+	CHECK(                rgIoPin::rgFsel5,
+	    rgIoPin::find_IoReg_enum( "rgFsel5" )
+	);
+
+	CHECK(                rgIoPin::rgOutSet_w0,
+	    rgIoPin::find_IoReg_enum( "rgOutSet_w0" )
+	);
+	CHECK(                rgIoPin::rgOutSet_w1,
+	    rgIoPin::find_IoReg_enum( "rgOutSet_w1" )
+	);
+
+	CHECK(                rgIoPin::rgOutClr_w0,
+	    rgIoPin::find_IoReg_enum( "rgOutClr_w0" )
+	);
+	CHECK(                rgIoPin::rgOutClr_w1,
+	    rgIoPin::find_IoReg_enum( "rgOutClr_w1" )
+	);
+
+	CHECK(                rgIoPin::rgPinLevel_w0,
+	    rgIoPin::find_IoReg_enum( "rgPinLevel_w0" )
+	);
+	CHECK(                rgIoPin::rgPinLevel_w1,
+	    rgIoPin::find_IoReg_enum( "rgPinLevel_w1" )
+	);
+
+	CHECK(                rgIoPin::rgEventStatus_w0,
+	    rgIoPin::find_IoReg_enum( "rgEventStatus_w0" )
+	);
+	CHECK(                rgIoPin::rgEventStatus_w1,
+	    rgIoPin::find_IoReg_enum( "rgEventStatus_w1" )
+	);
+
+	CHECK(                rgIoPin::rgDetectRising_w0,
+	    rgIoPin::find_IoReg_enum( "rgDetectRising_w0" )
+	);
+	CHECK(                rgIoPin::rgDetectRising_w1,
+	    rgIoPin::find_IoReg_enum( "rgDetectRising_w1" )
+	);
+
+	CHECK(                rgIoPin::rgDetectFalling_w0,
+	    rgIoPin::find_IoReg_enum( "rgDetectFalling_w0" )
+	);
+	CHECK(                rgIoPin::rgDetectFalling_w1,
+	    rgIoPin::find_IoReg_enum( "rgDetectFalling_w1" )
+	);
+
+	CHECK(                rgIoPin::rgDetectHigh_w0,
+	    rgIoPin::find_IoReg_enum( "rgDetectHigh_w0" )
+	);
+	CHECK(                rgIoPin::rgDetectHigh_w1,
+	    rgIoPin::find_IoReg_enum( "rgDetectHigh_w1" )
+	);
+
+	CHECK(                rgIoPin::rgDetectLow_w0,
+	    rgIoPin::find_IoReg_enum( "rgDetectLow_w0" )
+	);
+	CHECK(                rgIoPin::rgDetectLow_w1,
+	    rgIoPin::find_IoReg_enum( "rgDetectLow_w1" )
+	);
+
+	CHECK(                rgIoPin::rgDetectAsyncRising_w0,
+	    rgIoPin::find_IoReg_enum( "rgDetectAsyncRising_w0" )
+	);
+	CHECK(                rgIoPin::rgDetectAsyncRising_w1,
+	    rgIoPin::find_IoReg_enum( "rgDetectAsyncRising_w1" )
+	);
+
+	CHECK(                rgIoPin::rgDetectAsyncFalling_w0,
+	    rgIoPin::find_IoReg_enum( "rgDetectAsyncFalling_w0" )
+	);
+	CHECK(                rgIoPin::rgDetectAsyncFalling_w1,
+	    rgIoPin::find_IoReg_enum( "rgDetectAsyncFalling_w1" )
+	);
+
+	CHECK(                rgIoPin::rgPullUpDown,
+	    rgIoPin::find_IoReg_enum( "rgPullUpDown" )
+	);
+
+	CHECK(                rgIoPin::rgPullUpDownClk_w0,
+	    rgIoPin::find_IoReg_enum( "rgPullUpDownClk_w0" )
+	);
+	CHECK(                rgIoPin::rgPullUpDownClk_w1,
+	    rgIoPin::find_IoReg_enum( "rgPullUpDownClk_w1" )
+	);
+
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
   CASE( "99", "Done" );
 }
 

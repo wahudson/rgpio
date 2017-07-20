@@ -127,6 +127,10 @@ class rgIoPin {
 			    rgIoReg_enum        reg
 			);
 
+    static rgIoPin::rgIoReg_enum	find_IoReg_enum(
+					    const char		*name
+					);
+
 };
 
 

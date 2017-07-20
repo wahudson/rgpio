@@ -825,7 +825,7 @@ Register access enums:  rgIoReg_enum
     String for an enum will throw an exception if the enum is invalid.  This
     is reasonable since the compiler checks the enum.
 
-    Finding enum for a string should not throw an exception if enum is not
+    Finding enum for a string will throw an exception if enum is not
     found.  In this case we generally have an unknown string and are trying
     to see what enum it represents, if any.
 
@@ -836,6 +836,20 @@ Register access enums:  rgIoReg_enum
     Generic functions can use an enum argument.
     Functions named by the register seem clearer in user code.
     Probably provide both.
+
+find_IoReg_enum() methods for handling "string not found:
+    A)  Return a special value, rgIoReg_INVALID.
+	+ This is the traditional approach.
+	- Requires another enum value.
+	- User may not check return value for INVALID.
+	- The INVALID enum then becomes a problem for other functions, which
+	    then require an additional check.
+	- The enum space is no longer uniform.
+
+  > B)  Throw an exception.
+	+ Is the C++ way.
+	+ Use a local try/catch block if you want evasive action.
+	+ Top level try/catch block covers case when you don't care.
 
 Register pair naming:
     The Broadcom names are short, but a bit too cryptic (e.g. GPAFEN0).
@@ -937,12 +951,14 @@ Methods:
     addr_EventStatus()
 
 		generic functions:  use register identifier enum R
-    set_reg( R, mask )
-    clr_reg( R, mask )
-    read_reg( R )
-    get_reg( R )
-    addr_reg( R )
+    addr_reg( R )			address of register
+    read_reg( R )			read register
+    get_reg( R )			get object value, no read
+    modify_reg( R, mask, value )	modify register
+    set_reg( R, mask )			set bits in register
+    clr_reg( R, mask )			clear bits in register
 
+    Argument order with mask before value for consistancy.
 
 Object data:
     (Need high/low register designation)
