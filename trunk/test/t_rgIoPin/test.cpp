@@ -114,26 +114,85 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "22", "mod_reg()" );
+  CASE( "22", "modify_reg()" );
     try {
 	uint32_t		v;
-	Tx.mod_reg( rgIoPin::rgPinLevel_w0, 0x55554444, 0x000ff000 );
+	Tx.modify_reg( rgIoPin::rgPinLevel_w0, 0x000ff000, 0x55554444 );
 	v = Tx.read_reg( rgIoPin::rgPinLevel_w0 );
         CHECK( 0x00054000, v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+    //#!! Not sensitive to mask/value swap since x=0.
 
   CASE( "23", "addr_reg() uninitialized" );
     try {
 	rgIoPin			tx;
-	volatile uint32_t	*vp;
-	vp = tx.addr_reg( rgIoPin::rgPinLevel_w0 );
-	cout << "0x" <<hex << (vp - Tx.get_base_addr())*4 <<endl;
+	tx.addr_reg( rgIoPin::rgPinLevel_w0 );
+	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
         CHECK( "rgIoPin:: not initialized in:  addr_reg( 0x34/4 )",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+//## modify_reg() write-only registers
+
+  CASE( "24a", "modify_reg() write-only reg" );
+    try {
+	Tx.modify_reg( rgIoPin::rgOutSet_w0, 0x000ff000, 0x55554444 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutSet_w0",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24b", "modify_reg() write-only reg" );
+    try {
+	Tx.modify_reg( rgIoPin::rgOutSet_w1, 0x000ff000, 0x55554444 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutSet_w1",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24c", "modify_reg() write-only reg" );
+    try {
+	Tx.modify_reg( rgIoPin::rgOutClr_w0, 0x000ff000, 0x55554444 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutClr_w0",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24c", "modify_reg() write-only reg" );
+    try {
+	Tx.modify_reg( rgIoPin::rgOutClr_w1, 0x000ff000, 0x55554444 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutClr_w1",
 	    e.what()
 	);
     }

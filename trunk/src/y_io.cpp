@@ -269,7 +269,7 @@ y_io::doit()
 	// Set register value
 	if ( *Opx.mask && *Opx.value && *Opx.reg ) {
 	    cout << "Modify:" << endl;
-	    Gpx.mod_reg( Opx.reg_e, Opx.value_n, Opx.mask_n );
+	    Gpx.modify_reg( Opx.reg_e, Opx.mask_n, Opx.value_n );
 	}
 
 	if ( *Opx.reg ) {

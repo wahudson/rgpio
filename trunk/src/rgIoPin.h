@@ -96,10 +96,10 @@ class rgIoPin {
 			    rgIoReg_enum	reg
 			);
 
-    void		mod_reg(
+    void		modify_reg(
 			    rgIoReg_enum	reg,
-			    uint32_t		value,
-			    uint32_t		mask
+			    uint32_t		mask,
+			    uint32_t		value
 			);
 
 		// immediate write:  (no copy in object)

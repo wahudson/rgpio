@@ -99,16 +99,28 @@ rgIoPin::read_reg(
 *    Does read/modify/write.
 *    No copy in the object.  #!!
 *    Not applicable for write-only registers.
-* #!! CAUTION!  Almost certain to write bad bits to the set/clr rgOutSet_w0...
+* exception:
+*    Throw  logic_error  on write-only registers.
 */
 void
-rgIoPin::mod_reg(
+rgIoPin::modify_reg(
     rgIoReg_enum	reg,
-    uint32_t		value,
-    uint32_t		mask
+    uint32_t		mask,
+    uint32_t		value
 )
 {
     uint32_t		x;
+
+    if ( (reg == rgOutSet_w0) ||
+	 (reg == rgOutSet_w1) ||
+	 (reg == rgOutClr_w0) ||
+	 (reg == rgOutClr_w1)
+    ) {
+	std::ostringstream	css;
+	css << "write-only register in rgIoPin::modify_reg():  "
+	    << this->str_IoReg_enum( reg );
+	throw std::logic_error ( css.str() );
+    }
 
     x = *(GpioBase + reg);
     x = (x & (~ mask) ) | (value & mask);
