@@ -244,11 +244,15 @@ y_io::doit()
 
 	rgIoPin			Gpx;	// constructor
 
-	uint32_t		val;
-
 	Gpx.init_addr( AddrMap );
 
 	if ( Opx.debug ) {
+	    cout.fill('0');
+	    cout <<hex;
+	    cout <<setw(8) << (void*) Gpx.get_base_addr()
+		 << "  GpioBase" <<endl;
+	    cout <<setw(8) << (void*) Gpx.addr_reg( rgIoPin::rgPinLevel_w0 )
+		 << "  addr rgPinLevel_w0" <<endl;
 	}
 
 	rgIoPin::rgIoReg_enum	list_w0[] = {
@@ -289,6 +293,7 @@ y_io::doit()
 		rr = list_w0[k];
 		cout << "0x" <<setw(8) << Gpx.read_reg( rr )
 		     << "  0x"         << rr*4
+		     << "  " <<setw(8) << (void*) Gpx.addr_reg( rr )
 		     << "  "           << Gpx.str_IoReg_enum( rr ) <<endl;
 	    }
 

@@ -99,6 +99,7 @@ rgIoPin::read_reg(
 *    Does read/modify/write.
 *    No copy in the object.  #!!
 *    Not applicable for write-only registers.
+* #!! CAUTION!  Almost certain to write bad bits to the set/clr rgOutSet_w0...
 */
 void
 rgIoPin::mod_reg(

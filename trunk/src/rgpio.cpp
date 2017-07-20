@@ -180,8 +180,8 @@ main( int	argc,
 	//#!! better name?
 
 	//#!! --dev=  --ro
-//	Amx.use_dev_gpiomem();
-	Amx.use_fake_mem();
+	Amx.use_dev_gpiomem();
+//	Amx.use_fake_mem();
 
 	if (      Opx.feature == "io"       ) {
 	    cout << "do io" << endl;

@@ -265,8 +265,8 @@ rgAddrMap::get_mem_block(
     mem_block = mmap(
 	NULL,			// Any adddress in our space will do
 	BLOCK_SIZE,		// Map length
-//	PROT_READ|PROT_WRITE,	// Enable reading & writing to mapped memory
-	PROT_READ,
+	PROT_READ|PROT_WRITE,	// Enable reading & writing to mapped memory
+//	PROT_READ,
 	MAP_SHARED,		// Shared with other processes
 	Dev_fd,			// File descriptor to map
 	r_addr			// Offset to GPIO peripheral, page aligned
@@ -281,7 +281,7 @@ rgAddrMap::get_mem_block(
 
 //#!! cache mem_block
 
-    cerr << "    mem_block= " << (uint32_t *)mem_block << endl;
+//    cerr << "    mem_block= " << (uint32_t *)mem_block << endl;
 
     return (volatile uint32_t*)mem_block;
 }
