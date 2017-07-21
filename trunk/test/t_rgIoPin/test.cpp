@@ -49,6 +49,42 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "11", "constructor with rgAddrMap" );
+    try {
+	rgIoPin			tx  ( &Bx );
+	PASS( "constructor" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "12", "constructor uninit addr map" );
+    try {
+	rgAddrMap		bx;
+	rgIoPin			tx  ( &bx );
+	FAIL( "no throw" );
+    }
+    catch ( exception& e ) {
+	CHECK( "get_mem_block() device not open",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "13", "constructor with rgAddrMap" );
+    try {
+	rgAddrMap		bx;
+	bx.use_fake_mem();
+	rgIoPin			tx  ( &bx );
+	PASS( "constructor" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
   CASE( "15", "init_addr()" );
     try {
 	rgAddrMap		bx;
@@ -61,11 +97,12 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "16", "device not open" );
+  CASE( "16", "init_addr() device not open" );
     try {
 	rgAddrMap		bx;
 	rgIoPin			tx;
 	tx.init_addr( &bx );
+	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
 	CHECK( "get_mem_block() device not open",
@@ -75,13 +112,24 @@ rgIoPin			Tx;
     catch (...) {
 	FAIL( "unexpected exception" );
     }
-
-  CASE( "19", "get_base_addr()" );
+//--------------------------------------
+  CASE( "19a", "get_base_addr()" );
     try {
-//	volatile uint32_t*	aa;
-//	aa = Tx.get_base_addr();
+	volatile uint32_t*	aa;
+	aa = Tx.get_base_addr();
 //	cout << "GpioBase=0x" <<hex << (long int)aa <<endl;
-	PASS( "get_base_addr()" );
+	if ( aa ) { PASS( "not null" ); } else { FAIL( "NULL" ); }
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "19b", "get_base_addr()" );
+    try {
+	rgIoPin			tx;
+	volatile uint32_t*	aa;
+	aa = tx.get_base_addr();
+	if ( aa ) { FAIL( "not null" ); } else { PASS( "NULL" ); }
     }
     catch (...) {
 	FAIL( "unexpected exception" );

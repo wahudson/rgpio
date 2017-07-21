@@ -242,9 +242,7 @@ y_io::doit()
 
 	if ( Error::err() )  return 1;
 
-	rgIoPin			Gpx;	// constructor
-
-	Gpx.init_addr( AddrMap );
+	rgIoPin			Gpx  ( AddrMap );	// constructor
 
 	if ( Opx.debug ) {
 	    cout.fill('0');

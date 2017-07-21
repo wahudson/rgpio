@@ -22,11 +22,36 @@ using namespace std;
 
 
 /*
-* Constructor.
+* Bare naked Constructor.
+*    Does not initialize GpioBase, use init_addr().
+*    Intended for development.
 */
 rgIoPin::rgIoPin()
 {
     GpioBase   = NULL;
+
+    FselReg[0] = 0;
+    FselReg[1] = 0;
+    FselReg[2] = 0;
+    FselReg[3] = 0;
+    FselReg[4] = 0;
+    FselReg[5] = 0;
+}
+
+
+/*
+* Constructor with GpioBase initialized.
+* call:
+*    rgAddrMap	amx;		// address map object
+*    amx.use_dev_gpiomem();	// select and open device file
+*    rgIoPin	gpx  ( &amx );	// this constructor
+*/
+rgIoPin::rgIoPin(
+    rgAddrMap		*xx
+)
+{
+    GpioBase   = NULL;
+    this->init_addr( xx );
 
     FselReg[0] = 0;
     FselReg[1] = 0;
@@ -43,6 +68,7 @@ rgIoPin::rgIoPin()
 
 /*
 * Init GpioBase address.
+*    The class knows its BCM documentation base address.
 */
 void
 rgIoPin::init_addr(
@@ -95,7 +121,7 @@ rgIoPin::read_reg(
 
 
 /*
-* Modify register.
+* Modify raw register.
 *    Does read/modify/write.
 *    No copy in the object.  #!!
 *    Not applicable for write-only registers.

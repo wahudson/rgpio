@@ -78,6 +78,7 @@ class rgIoPin {
 
   public:
     rgIoPin();			// constructor
+    rgIoPin( rgAddrMap  *xx );	// constructor
 
     void		init_addr( rgAddrMap  *xx );
 
@@ -102,19 +103,34 @@ class rgIoPin {
 			    uint32_t		value
 			);
 
-		// immediate write:  (no copy in object)
+		// PinLevel registers
 
-    inline void		set_PinLevel_w0( uint32_t mask )
-    {
+    inline volatile uint32_t*	addr_PinRead_w0() {
+	return         (GpioBase + rgPinLevel_w0);
+    }
+
+    inline volatile uint32_t*	addr_PinSet_w0() {
+	return         (GpioBase + rgOutSet_w0);
+    }
+
+    inline volatile uint32_t*	addr_PinClr_w0() {
+	return         (GpioBase + rgOutClr_w0);
+    }
+
+
+    inline uint32_t	read_PinLevel_w0() {
+	return  *(GpioBase + rgPinLevel_w0);
+    }
+
+    inline void		set_PinLevel_w0( uint32_t mask ) {
 	*(GpioBase + rgOutSet_w0) = mask;
     }
 
-		// immediate read:  (also puts copy in object)
-
-    inline uint32_t	read_PinLevel_w0()
-    {
-	return  *(GpioBase + rgPinLevel_w0);
+    inline void		clr_PinLevel_w0( uint32_t mask ) {
+	*(GpioBase + rgOutClr_w0) = mask;
     }
+
+		// Event Status register
 
     inline uint32_t	read_EventStatus_w0()
     {
