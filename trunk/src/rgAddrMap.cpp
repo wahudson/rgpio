@@ -49,7 +49,7 @@ rgAddrMap::bcm2rpi_addr(
 	css << "rgAddrMap:: address range check:  0x"
 	    <<hex << addr <<endl
 	    << "    not in 'BCM2835 ARM Peripherals' IO space" ;
-    	throw std::range_error ( css.str() );
+	throw std::range_error ( css.str() );
     }
 
     return  (addr - BCM2835_IO_PERI + BCM2708_PERI_BASE);
@@ -95,7 +95,7 @@ rgAddrMap::rgAddrMap( int	init )
     }
 
     if ( init != 1 ) {
-    	throw std::invalid_argument ( "rgAddrMap() bad init arg" );
+	throw std::invalid_argument ( "rgAddrMap() bad init arg" );
     }
 
   // Heuristic to select memory device mode:
@@ -122,8 +122,8 @@ rgAddrMap::text_debug()
     if ( ModeStr != NULL ) { mode = ModeStr; }
 
     css << "ModeStr= "    << mode
-        << "  Dev_fd= "   << Dev_fd
-        << "  FakeMem= "  << FakeMem;
+	<< "  Dev_fd= "   << Dev_fd
+	<< "  FakeMem= "  << FakeMem;
 
     return css.str();
 }
@@ -136,7 +136,7 @@ void
 rgAddrMap::use_fake_mem()
 {
     if ( ModeStr != NULL ) {
-    	throw std::runtime_error ( "use_fake_mem() mode already specified" );
+	throw std::runtime_error ( "use_fake_mem() mode already specified" );
     }
 
     ModeStr = "fake_mem";
@@ -154,11 +154,11 @@ rgAddrMap::use_dev_gpiomem()
     struct stat			statbuf;
 
     if ( ModeStr != NULL ) {
-    	throw std::runtime_error ( "use_dev_gpiomem() mode already specified" );
+	throw std::runtime_error ( "use_dev_gpiomem() mode already specified" );
     }
 
     if ( stat( "/dev/gpiomem", &statbuf ) != 0 ) {	// not exist
-    	cerr << "rgAddrMap:  Using fake memory" <<endl;
+	cerr << "rgAddrMap:  Using fake memory" <<endl;
 	this->use_fake_mem();
 	return;
     }
@@ -169,7 +169,7 @@ rgAddrMap::use_dev_gpiomem()
 	int		errv = errno;
 	std::string	ss ( "use_dev_gpiomem() cannot open /dev/gpiomem:  " );
 	ss += strerror( errv );
-    	throw std::runtime_error ( ss );
+	throw std::runtime_error ( ss );
     }
 }
 
@@ -187,11 +187,11 @@ rgAddrMap::use_dev_mem()
     struct stat			statbuf;
 
     if ( ModeStr != NULL ) {
-    	throw std::runtime_error ( "use_dev_mem() mode already specified" );
+	throw std::runtime_error ( "use_dev_mem() mode already specified" );
     }
 
     if ( stat( "/dev/gpiomem", &statbuf ) != 0 ) {	// not exist
-    	cerr << "rgAddrMap:  Using fake memory" <<endl;
+	cerr << "rgAddrMap:  Using fake memory" <<endl;
 	this->use_fake_mem();
 	return;
     }
@@ -202,7 +202,7 @@ rgAddrMap::use_dev_mem()
 	int		errv = errno;
 	std::string	ss ( "use_dev_mem() cannot open /dev/mem:  " );
 	ss += strerror( errv );
-    	throw std::runtime_error ( ss );
+	throw std::runtime_error ( ss );
     }
 }
 
@@ -247,7 +247,7 @@ rgAddrMap::get_mem_block(
 	std::ostringstream	css;
 	css << "get_mem_block() address not aligned:  0x"
 	    <<hex << p_addr;
-    	throw std::range_error ( css.str() );
+	throw std::range_error ( css.str() );
     }
 
     r_addr = bcm2rpi_addr( p_addr );
@@ -258,9 +258,9 @@ rgAddrMap::get_mem_block(
 
     // Check Device file still open.
     if ( Dev_fd == -1 ) {
-    	throw std::runtime_error ( "get_mem_block() device not open" );
+	throw std::runtime_error ( "get_mem_block() device not open" );
     }
- 
+
     // map GPIO into our memory
     mem_block = mmap(
 	NULL,			// Any adddress in our space will do
@@ -276,7 +276,7 @@ rgAddrMap::get_mem_block(
 	int		errv = errno;
 	std::string	ss ( "get_mem_block() MAP_FAILED:  " );
 	ss += strerror( errv );
-    	throw std::runtime_error ( ss );
+	throw std::runtime_error ( ss );
     }
 
 //#!! cache mem_block

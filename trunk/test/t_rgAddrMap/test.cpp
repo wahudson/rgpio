@@ -10,9 +10,9 @@
 #include "rgAddrMap.h"
 
 using namespace std;
- 
+
 //--------------------------------------------------------------------------
- 
+
 int main()
 {
 
@@ -81,7 +81,7 @@ int main()
 	CHECK( 0x3f000000, radd );
     }
     catch ( range_error& e ) {
-        CHECK( "rgAddrMap:: address range check:  0x7f000000\n"
+	CHECK( "rgAddrMap:: address range check:  0x7f000000\n"
 	       "    not in 'BCM2835 ARM Peripherals' IO space",
 	    e.what()
 	);
@@ -97,7 +97,7 @@ int main()
 	CHECK( 0x3f000000, radd );
     }
     catch ( range_error& e ) {
-        CHECK( "rgAddrMap:: address range check:  0x7dffffff\n"
+	CHECK( "rgAddrMap:: address range check:  0x7dffffff\n"
 	       "    not in 'BCM2835 ARM Peripherals' IO space",
 	    e.what()
 	);
@@ -134,7 +134,7 @@ int main()
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
-        CHECK( "use_fake_mem() mode already specified",
+	CHECK( "use_fake_mem() mode already specified",
 	    e.what()
 	);
     }
@@ -169,7 +169,7 @@ int main()
 	);
     }
     catch ( runtime_error& e ) {
-        CHECK( "use_dev_gpiomem() cannot open /dev/gpiomem:  No such file or directory",
+	CHECK( "use_dev_gpiomem() cannot open /dev/gpiomem:  No such file or directory",
 	    e.what()
 	);
     }
@@ -202,7 +202,7 @@ int main()
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
-        CHECK( "get_mem_block() device not open",
+	CHECK( "get_mem_block() device not open",
 	    e.what()
 	);
     }
@@ -229,7 +229,7 @@ int main()
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-        CHECK( "get_mem_block() address not aligned:  0x7f200004",
+	CHECK( "get_mem_block() address not aligned:  0x7f200004",
 	    e.what()
 	);
     }
@@ -245,7 +245,7 @@ int main()
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-        CHECK( "rgAddrMap:: address range check:  0x7f000000\n"
+	CHECK( "rgAddrMap:: address range check:  0x7f000000\n"
 	       "    not in 'BCM2835 ARM Peripherals' IO space",
 	    e.what()
 	);

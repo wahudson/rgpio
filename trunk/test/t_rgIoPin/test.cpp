@@ -12,9 +12,9 @@
 #include "rgIoPin.h"
 
 using namespace std;
- 
+
 //--------------------------------------------------------------------------
- 
+
 int main()
 {
 
@@ -68,7 +68,7 @@ rgIoPin			Tx;
 	tx.init_addr( &bx );
     }
     catch ( runtime_error& e ) {
-        CHECK( "get_mem_block() device not open",
+	CHECK( "get_mem_block() device not open",
 	    e.what()
 	);
     }
@@ -95,7 +95,7 @@ rgIoPin			Tx;
     try {
 	volatile uint32_t	*vp;
 	vp = Tx.addr_reg( rgIoPin::rgPinLevel_w0 );
-        CHECK( 0x34,
+	CHECK( 0x34,
 	    (vp - Tx.get_base_addr())*4
 	);
 //	cout << "0x" <<hex << (vp - Tx.get_base_addr())*4 <<endl;
@@ -108,7 +108,7 @@ rgIoPin			Tx;
     try {
 	uint32_t		v;
 	v = Tx.read_reg( rgIoPin::rgPinLevel_w0 );
-        CHECK( 0, v );
+	CHECK( 0, v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -119,7 +119,7 @@ rgIoPin			Tx;
 	uint32_t		v;
 	Tx.modify_reg( rgIoPin::rgPinLevel_w0, 0x000ff000, 0x55554444 );
 	v = Tx.read_reg( rgIoPin::rgPinLevel_w0 );
-        CHECK( 0x00054000, v );
+	CHECK( 0x00054000, v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -133,7 +133,7 @@ rgIoPin			Tx;
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-        CHECK( "rgIoPin:: not initialized in:  addr_reg( 0x34/4 )",
+	CHECK( "rgIoPin:: not initialized in:  addr_reg( 0x34/4 )",
 	    e.what()
 	);
     }
@@ -208,7 +208,7 @@ rgIoPin			Tx;
     try {
 	const char		*v;
 	v = Tx.str_IoReg_enum( rgIoPin::rgFsel2 );
-        CHECK( "rgFsel2", v );
+	CHECK( "rgFsel2", v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -218,7 +218,7 @@ rgIoPin			Tx;
     try {
 	const char		*v;
 	v = rgIoPin::str_IoReg_enum( rgIoPin::rgFsel3 );
-        CHECK( "rgFsel3", v );
+	CHECK( "rgFsel3", v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -228,7 +228,7 @@ rgIoPin			Tx;
     try {
 	const char		*v;
 	v = rgIoPin::str_IoReg_enum( (rgIoPin::rgIoReg_enum) 3 );
-        CHECK( "rgFsel3", v );
+	CHECK( "rgFsel3", v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -240,7 +240,7 @@ rgIoPin			Tx;
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-        CHECK( "rgIoPin::  bad rgIoReg_enum in:  str_IoReg_enum()",
+	CHECK( "rgIoPin::  bad rgIoReg_enum in:  str_IoReg_enum()",
 	    e.what()
 	);
     }
@@ -250,103 +250,103 @@ rgIoPin			Tx;
 
   CASE( "72", "str_IoReg_enum() all enum" );
     try {
-        CHECK(                               "rgFsel0",
+	CHECK(                               "rgFsel0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgFsel0 )
 	);
-        CHECK(                               "rgFsel1",
+	CHECK(                               "rgFsel1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgFsel1 )
 	);
-        CHECK(                               "rgFsel2",
+	CHECK(                               "rgFsel2",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgFsel2 )
 	);
-        CHECK(                               "rgFsel3",
+	CHECK(                               "rgFsel3",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgFsel3 )
 	);
-        CHECK(                               "rgFsel4",
+	CHECK(                               "rgFsel4",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgFsel4 )
 	);
-        CHECK(                               "rgFsel5",
+	CHECK(                               "rgFsel5",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgFsel5 )
 	);
 
-        CHECK(                               "rgOutSet_w0",
+	CHECK(                               "rgOutSet_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutSet_w0 )
 	);
-        CHECK(                               "rgOutSet_w1",
+	CHECK(                               "rgOutSet_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutSet_w1 )
 	);
 
-        CHECK(                               "rgOutClr_w0",
+	CHECK(                               "rgOutClr_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutClr_w0 )
 	);
-        CHECK(                               "rgOutClr_w1",
+	CHECK(                               "rgOutClr_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutClr_w1 )
 	);
 
-        CHECK(                               "rgPinLevel_w0",
+	CHECK(                               "rgPinLevel_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinLevel_w0 )
 	);
-        CHECK(                               "rgPinLevel_w1",
+	CHECK(                               "rgPinLevel_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinLevel_w1 )
 	);
 
-        CHECK(                               "rgEventStatus_w0",
+	CHECK(                               "rgEventStatus_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgEventStatus_w0 )
 	);
-        CHECK(                               "rgEventStatus_w1",
+	CHECK(                               "rgEventStatus_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgEventStatus_w1 )
 	);
 
-        CHECK(                               "rgDetectRising_w0",
+	CHECK(                               "rgDetectRising_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectRising_w0 )
 	);
-        CHECK(                               "rgDetectRising_w1",
+	CHECK(                               "rgDetectRising_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectRising_w1 )
 	);
 
-        CHECK(                               "rgDetectFalling_w0",
+	CHECK(                               "rgDetectFalling_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectFalling_w0 )
 	);
-        CHECK(                               "rgDetectFalling_w1",
+	CHECK(                               "rgDetectFalling_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectFalling_w1 )
 	);
 
-        CHECK(                               "rgDetectHigh_w0",
+	CHECK(                               "rgDetectHigh_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectHigh_w0 )
 	);
-        CHECK(                               "rgDetectHigh_w1",
+	CHECK(                               "rgDetectHigh_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectHigh_w1 )
 	);
 
-        CHECK(                               "rgDetectLow_w0",
+	CHECK(                               "rgDetectLow_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectLow_w0 )
 	);
-        CHECK(                               "rgDetectLow_w1",
+	CHECK(                               "rgDetectLow_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectLow_w1 )
 	);
 
-        CHECK(                               "rgDetectAsyncRising_w0",
+	CHECK(                               "rgDetectAsyncRising_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectAsyncRising_w0 )
 	);
-        CHECK(                               "rgDetectAsyncRising_w1",
+	CHECK(                               "rgDetectAsyncRising_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectAsyncRising_w1 )
 	);
 
-        CHECK(                               "rgDetectAsyncFalling_w0",
+	CHECK(                               "rgDetectAsyncFalling_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectAsyncFalling_w0 )
 	);
-        CHECK(                               "rgDetectAsyncFalling_w1",
+	CHECK(                               "rgDetectAsyncFalling_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgDetectAsyncFalling_w1 )
 	);
 
-        CHECK(                               "rgPullUpDown",
+	CHECK(                               "rgPullUpDown",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgPullUpDown )
 	);
 
-        CHECK(                               "rgPullUpDownClk_w0",
+	CHECK(                               "rgPullUpDownClk_w0",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgPullUpDownClk_w0 )
 	);
-        CHECK(                               "rgPullUpDownClk_w1",
+	CHECK(                               "rgPullUpDownClk_w1",
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgPullUpDownClk_w1 )
 	);
 

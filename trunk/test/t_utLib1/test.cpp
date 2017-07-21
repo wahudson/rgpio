@@ -10,16 +10,16 @@
 #include <stdexcept>	// std::stdexcept
 
 using namespace std;
- 
+
 //--------------------------------------------------------------------------
- 
+
 int main()
 {
 
     utLib1::ut_CASE( "10", "bare functions" );
     try {
 	utLib1::ut_FAIL( __LINE__, "test fail" );
-        utLib1::ut_PASS( "pass2" );
+	utLib1::ut_PASS( "pass2" );
     }
     catch (...) {
 	cerr << "caught something" << endl;
