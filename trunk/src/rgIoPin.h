@@ -77,8 +77,7 @@ class rgIoPin {
     };
 
   public:
-    rgIoPin();			// constructor
-    rgIoPin( rgAddrMap  *xx );	// constructor
+    rgIoPin( rgAddrMap  *xx = NULL );	// constructor
 
     void		init_addr( rgAddrMap  *xx );
 
