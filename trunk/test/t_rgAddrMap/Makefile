@@ -10,7 +10,7 @@ IC         = ../../src
 		# all include files for test program dependency
 INCS       = \
 	../src/utLib1.h \
-        $(IC)/rgAddrMap.h
+	$(IC)/rgAddrMap.h
 
 		# objects not including main()
 OBJS       = \
@@ -21,12 +21,12 @@ OBJS       = \
 CXXFLAGS   = -Wall -std=c++11  -I ../src
 
 
-test	: test.exe
+test:	test.exe
 	./test.exe
 
-clean: 
+clean:
 	rm -f  test.exe
 
-test.exe	: test.cpp  $(OBJS)  $(INCS)
+test.exe:	test.cpp  $(OBJS)  $(INCS)
 	g++ $(CXXFLAGS) -I $(IC) -o $@  test.cpp  $(OBJS)
 
