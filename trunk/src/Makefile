@@ -60,7 +60,7 @@ $(BINDIR)/rgpio:	$(OJ)/rgpio.o  $(OBJS)
 $(OJ)/rgpio.o:	rgpio.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c rgpio.cpp
 
-$(OJ)/y_io.o:		y_io.cpp  y_io.h  Error.h  yOption.h  rgAddrMap.h
+$(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_io.cpp
 
 $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h

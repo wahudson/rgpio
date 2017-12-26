@@ -41,14 +41,14 @@ class rgIoPin {
 	rgFsel4                  = 0x10 /4,	// rw GPFSEL4
 	rgFsel5                  = 0x14 /4,	// rw GPFSEL5
 
-	rgOutSet_w0              = 0x1c /4,	// -w GPSET0
-	rgOutSet_w1              = 0x20 /4,	// -w GPSET1
+	rgPinSet_w0              = 0x1c /4,	// -w GPSET0
+	rgPinSet_w1              = 0x20 /4,	// -w GPSET1
 
-	rgOutClr_w0              = 0x28 /4,	// -w GPCLR0
-	rgOutClr_w1              = 0x2c /4,	// -w GPCLR1
+	rgPinClr_w0              = 0x28 /4,	// -w GPCLR0
+	rgPinClr_w1              = 0x2c /4,	// -w GPCLR1
 
-	rgPinLevel_w0            = 0x34 /4,	// r- GPLEV0
-	rgPinLevel_w1            = 0x38 /4,	// r- GPLEV1
+	rgPinRead_w0             = 0x34 /4,	// r- GPLEV0
+	rgPinRead_w1             = 0x38 /4,	// r- GPLEV1
 
 	rgEventStatus_w0         = 0x40 /4,	// rw GPEDS0
 	rgEventStatus_w1         = 0x44 /4,	// rw GPEDS1
@@ -105,28 +105,28 @@ class rgIoPin {
 		// PinLevel registers
 
     inline volatile uint32_t*	addr_PinRead_w0() {
-	return         (GpioBase + rgPinLevel_w0);
+	return         (GpioBase + rgPinRead_w0);
     }
 
     inline volatile uint32_t*	addr_PinSet_w0() {
-	return         (GpioBase + rgOutSet_w0);
+	return         (GpioBase + rgPinSet_w0);
     }
 
     inline volatile uint32_t*	addr_PinClr_w0() {
-	return         (GpioBase + rgOutClr_w0);
+	return         (GpioBase + rgPinClr_w0);
     }
 
 
     inline uint32_t	read_PinLevel_w0() {
-	return  *(GpioBase + rgPinLevel_w0);
+	return  *(GpioBase + rgPinRead_w0);
     }
 
     inline void		set_PinLevel_w0( uint32_t mask ) {
-	*(GpioBase + rgOutSet_w0) = mask;
+	*(GpioBase + rgPinSet_w0) = mask;
     }
 
     inline void		clr_PinLevel_w0( uint32_t mask ) {
-	*(GpioBase + rgOutClr_w0) = mask;
+	*(GpioBase + rgPinClr_w0) = mask;
     }
 
 		// Event Status register

@@ -300,6 +300,19 @@ are lost in the common conversion from int.
 Possibly use int32_t, so negative values could be passed as some kind of
 flag - e.g. -1 could mean set to default.
 
+Object data:
+    Feature objects could store a copy of register data.
+    The idea is to provide a place to collect and organize the data when
+    relationships between register values is important.  For example, the
+    whole set of registers could be read at one point in time, and then
+    individual accessor functions could extract and interpret data fields.
+
+    Not all object methods would update this cached copy, especially those
+    providing direct access with low execution overhead.
+
+    Keep in mind that other parallel processes may update register values,
+    and that accessing a group of registers is not atomic.
+
 Exceptions:
     Throw an error object containing an error message.
     This would be most useful where continuing with some fallback condition
@@ -402,7 +415,7 @@ Base Address Checking:
     Each Feature (Peripheral) has registers in a seperate 4Kbyte block.
     Thus multiple mmap() blocks are needed.
 
-Names
+Possible class names:
     rgPMap
     rgPerMap
     rgPerpMap
@@ -421,7 +434,7 @@ Names
     rgRegMap
     rgMemMap
 
-    rgAddrMap
+  > rgAddrMap
     rgGpClock
     rgSpi
     rgI2c
@@ -609,6 +622,9 @@ Methods:
 ----------------------------------------------------------------------------
 
 This is the GPIO pins and alternate function select.
+
+See:  p.89-104  6. General Purpose I/O (GPIO)
+
 Features include:
     Function select - In, Out, Alt0 .. Alt5
     Output Set
@@ -622,8 +638,6 @@ Features include:
     Async Rising  Edge Detect Enable
     Async Falling Edge Detect Enable
     Pin Pull-up/down  (is write-only?)
-
-See:  p.90-104  6. General Purpose I/O (GPIO)
 
     There are 54 general-purpose I/O (GPIO) lines, but only the first 28 are
     available on the RPi3.  The compute module can access the first 45.
@@ -749,6 +763,24 @@ Object Data Structure:
  >	Naming with raw 3-bit value helps putting the value in the control
 	register.
 
+Object register data as individual members or array:
+ >  A) Data members named by register, e.g.
+	EventStatus_w0
+	ReadLevel_w0
+	+ Better identification of registers, not indirect thru enum.
+	+ Registers are NOT uniform in their properties.
+	- More member names.
+	- Access thru enum may be more complex.
+	+ Best for individual register accessor functions.
+
+    B) Data array indexed by register Enum, e.g.
+	RegVal[0..]		// index by IoReg_enum
+	+ Single array, less member names.
+	+ Direct mapping access by enum.
+	- Sparce arry when enum is the IO register offset.
+	- Relies on enum too much.
+	- Implies registers are uniform when they are not.
+
 Multiple register update:  Not Atomic.
 
     Update is by read-modify-write, in order to preserve previous values
@@ -861,7 +893,7 @@ Register access enums:  rgIoReg_enum
     Functions named by the register seem clearer in user code.
     Probably provide both.
 
-find_IoReg_enum() methods for handling "string not found:
+find_IoReg_enum() methods for handling "string not found":
     A)  Return a special value, rgIoReg_INVALID.
 	+ This is the traditional approach.
 	- Requires another enum value.
@@ -909,65 +941,93 @@ Register pair naming:
 	+ Nice abstraction.
 	- Not very close to the hardware.
 	- Longer words for bit twiddleing.
+	- Implies operating on two registers.
 
     Possibly dual functions with a uint32_t mode and uint64_t mode.
     Dealing with 64-bit values, which must be decomposed into 32-bit words
     for IO register access, seems too complex.
     ==> Use only 32-bit words, with register pairs.
 
-PinLevel registers:
-    The IO pin levels are accessed by 3 registers - read, set, and clear.
-    The read register is read-only.  The set/clear registers are write-only.
-    The generic modify_reg() read/modify/write will not work for these.
-
-    It is most useful to abstract this as a single PinLevel object, and
-    not as 3 registers.
-
-  > A) PinLevel operations are:  (same for _w1)
+Accessor Register pair naming:
+  > A) Use suffix _w0, _w1:
 	read_PinLevel_w0()
+	read_PinLevel_w1()
 	set_PinLevel_w0( mask )
-	clr_PinLevel_w0( mask )
+	set_PinLevel_w1( mask )
 	+ Very clear naming.
 	- More functions.
 	+ Simple functions, easily inline.
 
-    B) Maybe have another argument for word number, defaulting to 0.
-	read_PinLevel( w=0 )
-	set_PinLevel( mask, w=0 )
-	clr_PinLevel( mask, w=0 )
+    B) Optional argument for word number, defaulting to 0.
+	read_PinLevel( 0 )
+	read_PinLevel( 1 )
+	set_PinLevel( mask )
+	set_PinLevel( mask, 1 )
 	+ Fewer functions.
 	- Optional arguments are not very obvious.
+	-- Very confusing with Value or Mask arguments.  Ugh!
 	- More complex function, but can still inline.
 
-    PinLevel register names:
-  - A) old
+PinLevel registers:
+    The IO pin levels are accessed by 3 registers - read, set, and clear.
+    The read register is read-only.  The set/clear registers are write-only.
+
+    A generic modify_reg() read/modify/write function will not work for these
+    individual registers.  It might be most useful to abstract this as a
+    single PinLevel "virtual register", and not as 3 registers.  But this
+    would loose closeness to the hardware.
+
+    Direct PinLevel operations are:
+	read_PinLevel_w0()
+	set_PinLevel_w0( mask )
+	clr_PinLevel_w0( mask )
+    These names make operations clear on an abstract PinLevel register, and
+    are one-to-one with physical registers.
+
+    Thus "PinLevel" can be an abstraction for the collection of 3 registers.
+    We want different names for the abstraction and the actual registers.
+    Do NOT put an abstraction in the register enums (rgIoReg_enum), as that
+    introduces a non-uniformity.
+
+    PinLevel register enum names:
+    A) old idea, initially implemented
       rgPinLevel_w0
       rgOutSet_w0
       rgOutClr_w0
-	- not so obviously related
-	+ PinLevel matches the BCM register GPLEV0.
+	+ Names similar to the BCM documentation.
+	- Not obvious these registers are related.
 	- Not clear PinLevel is a read-only register.
- ?> B) new
+ >> B) new, improves on BCM naming
       rgPinRead_w0
       rgPinSet_w0
       rgPinClr_w0
 	+ Common prefix groups them together.
 	+ More clear which are read and which are write.
 	+ Not confused with abstration PinLevl.
-    C)
-      rgPinRead_w0
+	- Not match BCM naming.
+    C) hybrid
+      rgPinLevel_w0
+      rgPinSet_w0
+      rgPinClr_w0
+	+ PinLevel matches the BCM name.
+	- Not clear PinLevel is read-only.
+    D) trying to incorporate BCM name in the name
+      rgPinLevelRead_w0
       rgPinOutSet_w0
       rgPinOutClr_w0
 	- A little longer.
+    E) longer
+      rgPinlevRead_w0
+      rgPinlevSet_w0
+      rgPinlevClr_w0
 
   > Address function names:  correlate with register enum names
 	addr_PinRead_w0()
 	addr_PinSet_w0()
 	addr_PinClr_w0()
 
-    Let PinLevel be an abstraction for the 3 seperate registers
-    PinRead, PinSet, and PinClr.
-
+    Note that all the GPIO registers are "pins", and we are narrowing the
+    meaning of "Pin" to just the pin level registers in this case.
 
 PullUpDown registers:
     These should be abstracted also.
@@ -1037,7 +1097,7 @@ Methods:
     get_PinLevel()		all pins
 
 		register address:
-    addr_PinRead()
+    addr_PinRead_w0()			addr_PinLevel_w0()
     addr_PinSet()
     addr_PinClear()
     addr_EventStatus()
@@ -1045,35 +1105,51 @@ Methods:
 		generic functions:  use register identifier enum R
     addr_reg( R )			address of register
     read_reg( R )			read register
-    get_reg( R )			get object value, no read
+ ?  get_reg( R )			get object value, no read
     modify_reg( R, mask, value )	modify register
     set_reg( R, mask )			set bits in register
     clr_reg( R, mask )			clear bits in register
 
-    Argument order with mask before value for consistancy.
+    Argument order with mask before value for consistancy.  Maybe??
 
 Object data:
-    (Need high/low register designation)
+    Evolve members to work with object methods.
     All uint32_t.
 {
-    RegVal[0..]		// register value indexed by IoReg_enum
-				Sparse, easy mapping.
+  - RegVal[0..]		// register value indexed by IoReg_enum
+				Sparse array, easy mapping.  Not favored.
 
 		Config registers:
     FselReg[0..5]
 
-    DetRising
-    DetFalling
-    DetHigh
-    DetLow
-    DetAsyncRising
-    DetAsyncFalling
+    DetRising_w0
+    DetRising_w1
+
+    DetFalling_w0
+    DetFalling_w1
+
+    DetHigh_w0
+    DetHigh_w1
+
+    DetLow_w0
+    DetLow_w1
+
+    DetAsyncRising_w0
+    DetAsyncRising_w1
+
+    DetAsyncFalling_w0
+    DetAsyncFalling_w1
 
 		Data registers:
-    EventStatus
-    ReadLevel			PinLevel
+    PinLevel_w0			(ReadLevel)
+    PinLevel_w1
+	Note the member is read/write, the register is read-only.
+
+    EventStatus_w0
+    EventStatus_w1
 }
 
+IO register enum name ideas:
 enum IoReg_enum {		? IoPin_enum,  GpReg_enum
     detect_Rising      = 0x4c,
     detect_Rising32    = 0x50,
@@ -1099,10 +1175,12 @@ enum IoReg_enum {		? IoPin_enum,  GpReg_enum
     rgFsel0            = 0x..,
 
 }
-    Enum names need to be distict from object data names.
+    Enum names need to be distinct from object data names.
     Data names could be private.
 
 ----
+
+Accessor method name ideas:
 
     set_Redge_Den( mask )
     clr_Redge_Den( mask )

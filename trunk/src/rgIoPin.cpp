@@ -125,10 +125,10 @@ rgIoPin::modify_reg(
 {
     uint32_t		x;
 
-    if ( (reg == rgOutSet_w0) ||
-	 (reg == rgOutSet_w1) ||
-	 (reg == rgOutClr_w0) ||
-	 (reg == rgOutClr_w1)
+    if ( (reg == rgPinSet_w0) ||
+	 (reg == rgPinSet_w1) ||
+	 (reg == rgPinClr_w0) ||
+	 (reg == rgPinClr_w1)
     ) {
 	std::ostringstream	css;
 	css << "write-only register in rgIoPin::modify_reg():  "
@@ -160,14 +160,14 @@ const char*        rgIoPin::RegStr[] = {
     "rgFsel4",
     "rgFsel5",
     NULL,
-    "rgOutSet_w0",
-    "rgOutSet_w1",
+    "rgPinSet_w0",
+    "rgPinSet_w1",
     NULL,
-    "rgOutClr_w0",
-    "rgOutClr_w1",
+    "rgPinClr_w0",
+    "rgPinClr_w1",
     NULL,
-    "rgPinLevel_w0",
-    "rgPinLevel_w1",
+    "rgPinRead_w0",
+    "rgPinRead_w1",
     NULL,
     "rgEventStatus_w0",
     "rgEventStatus_w1",
@@ -201,8 +201,8 @@ const char*        rgIoPin::RegStr[] = {
 * Get string name of an rgIoReg_enum register enum.
 *    Compiler checks type of enum.
 * call:
-*    rgIoPin::str_IoReg_enum( rgIoPin::rgPinLevel_w0 )	class method
-*           x.str_IoReg_enum( rgIoPin::rgPinLevel_w0 )	object method
+*    rgIoPin::str_IoReg_enum( rgIoPin::rgPinRead_w0 )	class method
+*           x.str_IoReg_enum( rgIoPin::rgPinRead_w0 )	object method
 * return:
 *    () = char string
 * exception:
@@ -231,8 +231,8 @@ rgIoPin::str_IoReg_enum(
 *    Currently is a linear search, good enough for the typical single lookup.
 *    #!! Use std::map for multiple lookups.
 * call:
-*    rgIoPin::find_IoReg_enum( "rgPinLevel_w0" )	class method
-*           x.find_IoReg_enum( "rgPinLevel_w0" )	object method
+*    rgIoPin::find_IoReg_enum( "rgPinRead_w0" )		class method
+*           x.find_IoReg_enum( "rgPinRead_w0" )		object method
 * return:
 *    () = rgIoReg_enum
 * exception:

@@ -142,7 +142,7 @@ rgIoPin			Tx;
   CASE( "20", "addr_reg()" );
     try {
 	volatile uint32_t	*vp;
-	vp = Tx.addr_reg( rgIoPin::rgPinLevel_w0 );
+	vp = Tx.addr_reg( rgIoPin::rgPinRead_w0 );
 	CHECK( 0x34,
 	    (vp - Tx.get_base_addr())*4
 	);
@@ -155,7 +155,7 @@ rgIoPin			Tx;
   CASE( "21", "read_reg()" );
     try {
 	uint32_t		v;
-	v = Tx.read_reg( rgIoPin::rgPinLevel_w0 );
+	v = Tx.read_reg( rgIoPin::rgPinRead_w0 );
 	CHECK( 0, v );
     }
     catch (...) {
@@ -165,8 +165,8 @@ rgIoPin			Tx;
   CASE( "22", "modify_reg()" );
     try {
 	uint32_t		v;
-	Tx.modify_reg( rgIoPin::rgPinLevel_w0, 0x000ff000, 0x55554444 );
-	v = Tx.read_reg( rgIoPin::rgPinLevel_w0 );
+	Tx.modify_reg( rgIoPin::rgPinRead_w0, 0x000ff000, 0x55554444 );
+	v = Tx.read_reg( rgIoPin::rgPinRead_w0 );
 	CHECK( 0x00054000, v );
     }
     catch (...) {
@@ -177,7 +177,7 @@ rgIoPin			Tx;
   CASE( "23", "addr_reg() uninitialized" );
     try {
 	rgIoPin			tx;
-	tx.addr_reg( rgIoPin::rgPinLevel_w0 );
+	tx.addr_reg( rgIoPin::rgPinRead_w0 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
@@ -194,11 +194,11 @@ rgIoPin			Tx;
 
   CASE( "24a", "modify_reg() write-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgOutSet_w0, 0x000ff000, 0x55554444 );
+	Tx.modify_reg( rgIoPin::rgPinSet_w0, 0x000ff000, 0x55554444 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutSet_w0",
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinSet_w0",
 	    e.what()
 	);
     }
@@ -208,11 +208,11 @@ rgIoPin			Tx;
 
   CASE( "24b", "modify_reg() write-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgOutSet_w1, 0x000ff000, 0x55554444 );
+	Tx.modify_reg( rgIoPin::rgPinSet_w1, 0x000ff000, 0x55554444 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutSet_w1",
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinSet_w1",
 	    e.what()
 	);
     }
@@ -222,11 +222,11 @@ rgIoPin			Tx;
 
   CASE( "24c", "modify_reg() write-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgOutClr_w0, 0x000ff000, 0x55554444 );
+	Tx.modify_reg( rgIoPin::rgPinClr_w0, 0x000ff000, 0x55554444 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutClr_w0",
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinClr_w0",
 	    e.what()
 	);
     }
@@ -236,11 +236,11 @@ rgIoPin			Tx;
 
   CASE( "24c", "modify_reg() write-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgOutClr_w1, 0x000ff000, 0x55554444 );
+	Tx.modify_reg( rgIoPin::rgPinClr_w1, 0x000ff000, 0x55554444 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgOutClr_w1",
+	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinClr_w1",
 	    e.what()
 	);
     }
@@ -317,25 +317,25 @@ rgIoPin			Tx;
 	    rgIoPin::str_IoReg_enum( rgIoPin::rgFsel5 )
 	);
 
-	CHECK(                               "rgOutSet_w0",
-	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutSet_w0 )
+	CHECK(                               "rgPinSet_w0",
+	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinSet_w0 )
 	);
-	CHECK(                               "rgOutSet_w1",
-	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutSet_w1 )
-	);
-
-	CHECK(                               "rgOutClr_w0",
-	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutClr_w0 )
-	);
-	CHECK(                               "rgOutClr_w1",
-	    rgIoPin::str_IoReg_enum( rgIoPin::rgOutClr_w1 )
+	CHECK(                               "rgPinSet_w1",
+	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinSet_w1 )
 	);
 
-	CHECK(                               "rgPinLevel_w0",
-	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinLevel_w0 )
+	CHECK(                               "rgPinClr_w0",
+	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinClr_w0 )
 	);
-	CHECK(                               "rgPinLevel_w1",
-	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinLevel_w1 )
+	CHECK(                               "rgPinClr_w1",
+	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinClr_w1 )
+	);
+
+	CHECK(                               "rgPinRead_w0",
+	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinRead_w0 )
+	);
+	CHECK(                               "rgPinRead_w1",
+	    rgIoPin::str_IoReg_enum( rgIoPin::rgPinRead_w1 )
 	);
 
 	CHECK(                               "rgEventStatus_w0",
@@ -491,25 +491,25 @@ rgIoPin			Tx;
 	    rgIoPin::find_IoReg_enum( "rgFsel5" )
 	);
 
-	CHECK(                rgIoPin::rgOutSet_w0,
-	    rgIoPin::find_IoReg_enum( "rgOutSet_w0" )
+	CHECK(                rgIoPin::rgPinSet_w0,
+	    rgIoPin::find_IoReg_enum( "rgPinSet_w0" )
 	);
-	CHECK(                rgIoPin::rgOutSet_w1,
-	    rgIoPin::find_IoReg_enum( "rgOutSet_w1" )
-	);
-
-	CHECK(                rgIoPin::rgOutClr_w0,
-	    rgIoPin::find_IoReg_enum( "rgOutClr_w0" )
-	);
-	CHECK(                rgIoPin::rgOutClr_w1,
-	    rgIoPin::find_IoReg_enum( "rgOutClr_w1" )
+	CHECK(                rgIoPin::rgPinSet_w1,
+	    rgIoPin::find_IoReg_enum( "rgPinSet_w1" )
 	);
 
-	CHECK(                rgIoPin::rgPinLevel_w0,
-	    rgIoPin::find_IoReg_enum( "rgPinLevel_w0" )
+	CHECK(                rgIoPin::rgPinClr_w0,
+	    rgIoPin::find_IoReg_enum( "rgPinClr_w0" )
 	);
-	CHECK(                rgIoPin::rgPinLevel_w1,
-	    rgIoPin::find_IoReg_enum( "rgPinLevel_w1" )
+	CHECK(                rgIoPin::rgPinClr_w1,
+	    rgIoPin::find_IoReg_enum( "rgPinClr_w1" )
+	);
+
+	CHECK(                rgIoPin::rgPinRead_w0,
+	    rgIoPin::find_IoReg_enum( "rgPinRead_w0" )
+	);
+	CHECK(                rgIoPin::rgPinRead_w1,
+	    rgIoPin::find_IoReg_enum( "rgPinRead_w1" )
 	);
 
 	CHECK(                rgIoPin::rgEventStatus_w0,

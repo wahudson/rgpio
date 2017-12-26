@@ -84,7 +84,7 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     debug       = 0;
     TESTOP      = 0;
 
-    reg_e       = rgIoPin::rgPinLevel_w0;
+    reg_e       = rgIoPin::rgPinRead_w0;
     mask_n      = 0;
     value_n     = 0;
 }
@@ -249,12 +249,12 @@ y_io::doit()
 	    cout <<hex;
 	    cout <<setw(8) << (void*) Gpx.get_base_addr()
 		 << "  GpioBase" <<endl;
-	    cout <<setw(8) << (void*) Gpx.addr_reg( rgIoPin::rgPinLevel_w0 )
-		 << "  addr rgPinLevel_w0" <<endl;
+	    cout <<setw(8) << (void*) Gpx.addr_reg( rgIoPin::rgPinRead_w0 )
+		 << "  addr rgPinRead_w0" <<endl;
 	}
 
 	rgIoPin::rgIoReg_enum	list_w0[] = {
-	    rgIoPin::rgPinLevel_w0,
+	    rgIoPin::rgPinRead_w0,
 	    rgIoPin::rgEventStatus_w0,
 	    rgIoPin::rgDetectRising_w0,
 	    rgIoPin::rgDetectFalling_w0,
