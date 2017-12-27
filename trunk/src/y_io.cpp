@@ -112,7 +112,7 @@ io_yOptLong::parse_options()
 	else if ( is( "-"            )) {                break; }
 	else if ( is( "--"           )) { this->next();  break; }
 	else {
-	    Error::err( "unknown option:  ", this->current_option() );
+	    Error::msg( "unknown option:  " ) << this->current_option() <<endl;
 	}
     }
 
@@ -121,8 +121,8 @@ io_yOptLong::parse_options()
 	    reg_e = rgIoPin::find_IoReg_enum( reg );
 	}
 	catch ( range_error& e ) {
-	    Error::err( "unknown register in --reg=", reg,
-		"\n    ",  e.what() );
+	    Error::msg( "unknown register in --reg=" ) << reg <<endl
+		<< "    " <<  e.what() << endl;
 	}
     }
 
@@ -136,12 +136,12 @@ io_yOptLong::parse_options()
 
     if ( *mask || *value ) {
 	if ( ! (*mask && *value && *reg) ) {
-	    Error::err( "modify requires --reg --mask --value" );
+	    Error::msg( "modify requires --reg --mask --value\n" );
 	}
     }
 
     if ( get_argc() > 0 ) {
-	Error::err( "extra arguments:  ", next_arg() );
+	Error::msg( "extra arguments:  " ) << next_arg() <<endl;
     }
 }
 
@@ -237,10 +237,10 @@ y_io::doit()
 
 	if ( Opx.TESTOP ) {
 	    Opx.print_option_flags();
-	    return ( Error::err() ? 1 : 0 );
+	    return ( Error::has_err() ? 1 : 0 );
 	}
 
-	if ( Error::err() )  return 1;
+	if ( Error::has_err() )  return 1;
 
 	rgIoPin			Gpx  ( AddrMap );	// constructor
 
@@ -299,13 +299,13 @@ y_io::doit()
 
     }
     catch ( std::exception& e ) {
-	Error::err( "exception caught:  ", e.what() );
+	Error::msg( "exception caught:  " ) << e.what() <<endl;
     }
     catch (...) {
-	Error::err( "unexpected exception" );
+	Error::msg( "unexpected exception\n" );
     }
 
-    return ( Error::err() ? 1 : 0 );
+    return ( Error::has_err() ? 1 : 0 );
     //#!! return value?
 }
 

@@ -154,7 +154,7 @@ char*
 yOption::val()
 {
     if ( ! Vp ) {
-	Error::err( "internal:  option has no value" );
+	Error::msg( "internal:  option has no value\n" );
     }
     return( Vp );
 }
