@@ -31,14 +31,12 @@ OBJS       = \
 CXXFLAGS   = -Wall  -std=c++11
 
 
-run	: compile
+run:	compile
 	$(BINDIR)/rgpio --TESTOP
 
-mkdirs	:
-	mkdir -p $(BINDIR)
-	mkdir -p $(OJ)
+mkdirs:   $(BINDIR)  $(OJ)
 
-compile	: $(BINDIR)/rgpio  $(OBJS)
+compile:  $(BINDIR)  $(OJ)  $(BINDIR)/rgpio  $(OBJS)
 
 x1	: x1.cpp  rgAddrMap.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp
@@ -49,6 +47,13 @@ clean:
 
 clobber:
 	rm -f  $(BINDIR)/rgpio  $(OJ)/*
+
+$(BINDIR):
+	mkdir -p  $(BINDIR)
+
+$(OJ):
+	mkdir -p  $(OJ)
+
 
 $(BINDIR)/main:	main.cpp Error.cpp Error.h
 	g++ -o $@       main.cpp   Error.cpp
