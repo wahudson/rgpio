@@ -236,6 +236,53 @@ Debug:
 
 
 ----------------------------------------------------------------------------
+## Validate on Raspberry Pi
+----------------------------------------------------------------------------
+
+    Device file /dev/mem exists on most Linux machines.
+    Want to be sure we are on an RPi before diddling with it.  Fail safe!
+
+See also:  lscpu(1) proc(5)
+
+On my RaspberryPi-3 I get:
+
+    % uname -a
+    Linux raspberrypi 4.9.35-v7+ #1014 SMP Fri Jun 30 14:47:43 BST 2017 armv7l GNU/Linux
+
+    % cat /proc/cpuinfo
+    ...
+  > Hardware        : BCM2835
+  > Revision        : a22082
+    Serial          : 000000009c13731b
+
+    % lscpu
+    Architecture:          armv7l
+    Byte Order:            Little Endian
+    CPU(s):                4
+    On-line CPU(s) list:   0-3
+    Thread(s) per core:    1
+    Core(s) per socket:    4
+    Socket(s):             1
+    Model name:            ARMv7 Processor rev 4 (v7l)
+    CPU max MHz:           1200.0000
+    CPU min MHz:           600.0000
+
+    The 'uname --nodename' can be most anything, e.g. 'raspberrypi', and
+    is not useful here.
+
+    The 'uname --machine' as "armv7l" could be helpful, but the processor
+    architecture is not definitive of the hardware.
+
+    The cpuinfo "Hardware : BCM2835" looks most meaningfull.  It also matches
+    the "BCM2835 ARM Peripherals" documentation title.
+
+    WiringPi decodes the cpuinfo "Revision : a22082" field.
+
+  > Existance of /dev/gpiomem seems like a reasonable descriminator, but
+    still is no guarantee.
+
+
+----------------------------------------------------------------------------
 ## IO Address Map
 ----------------------------------------------------------------------------
 
@@ -407,6 +454,23 @@ Base Address Checking:
 	+ Helps the user and makes one less step.
 	+ Can still provied uninit constructor for development.
 
+Offset Address Range Checking:
+    Feature addresses should all fall within the feature memory block,
+    which is generally one memory page in size.  Register access should not
+    be outside this range.  Ways to ensure this:
+
+    A) Accessor functions only accept enums that are guaranteed to be
+	within the feature memory block.
+	+ The accessor and enum is the guarantee, no overhead.
+	- Must keep enum address range clean - good practice anyway.
+
+    B) Accessor functions provide a range check.
+	e.g.  require  ((offset && 0xfffff000) == 0)
+	+ Provide extra coverage where needed.
+	- Overhead on low latency functions.
+
+    Some libraries use #define instead of enum, and thus are not type safe -
+    any integer can be substituted.  We want to do better.
 
 ----------------------------------------------------------------------------
 ## rgAddrMap Object - IO Register Memory Map
@@ -452,7 +516,18 @@ Access mode:
     2)  read-only		for read-only intent
 
     Want simple, obvious ways to specify particular modes.
+    Want to avoid user mistakes in device name.
+    Want to allow testing.
 
+Specifying memory device:
+    A) Seperate functions for each device.
+	+ User cannot get wrong device file name.
+	- Function per device file.
+    B) open_dev_file( "/dev/mem" )
+	+ Very clear what file is opened.
+	+ User can specify alternate files.
+	- Rely on user not supplying a wrong name.
+  > C) Do both.
 
 Object data:
 {
@@ -1213,4 +1288,106 @@ Accessor method name ideas:
     set_detect_AsyncRising( mask )
 
 Long names with full words seem helpful.
+
+
+----------------------------------------------------------------------------
+## Object Summary
+----------------------------------------------------------------------------
+    Summary of object data and methods for each class.
+    Not intended to be an exact declaration, see *.h files for that.
+    Use as a catalog to track implementation.
+
+    key:
+	+ = implemented
+
+class rgAddrMap		IO Address Memory Map
+{
+ +  int		Dev_fd;		device file descriptor
+ +  bool	FakeMem;        1= using fake memory, 0= not
+
+ +  char	*ModeStr;	user file string, NULL= unset,
+				    "/dev/mem", "/dev/gpiomem", "fake_mem"
+
+ +  int		Prot;		mmap() prot field,
+				    default (PROT_READ|PROT_WRITE)
+
+ +  bool	Debug;		enable debug trace on stderr
+
+ +  uint32_t	FakeBlock[4096];	simulate address block
+    uint32_t	PageMap[]		track mapped blocks
+
+		Constructor:
+ +  rgAddrMap()			Construct uninitialized object.
+ ?  rgAddrMap( 1 )		Construct and initialize.
+
+ +  bcm2rpi_addr( addr )	Convert BCM offset address to RPi.
+ +  text_debug()		Get debug text.
+
+ +  use_dev_mem()		Use /dev/mem
+ +  use_dev_gpiomem()		Use /dev/gpiomem
+ +  use_fake_mem()		Use fake memory.
+
+    prot_readonly()
+    prot_readwrite()
+
+ +  close_dev()			Close the device file.
+
+ +  get_mem_block( p_addr )	Get peripheral memory block for BCM address.
+    drop_capabilities()		Drop root access capability.
+ +  is_fake_mem()		TRUE if using fake memory
+}
+
+
+class rgIoPin		GPIO IO Pin control
+{
+ +  *GpioBase;		base address
+
+		Config registers:
+ +  FselReg[0..5]	function select registers
+
+    DetRising_w0
+    DetRising_w1
+
+		Data registers:
+    PinLevel_w0
+    PinLevel_w1
+
+    EventStatus_w0
+    EventStatus_w1
+
+		Enumerations:
+  + enum rgFsel_enum		Function select values, 3-bit octal
+  + enum rgIoReg_enum		Register address offset, word address
+
+		Constructor:
+  + rgIoPin()			construct empty object
+  + rgIoPin( rgAddrMap )	construct and initialize
+
+  + init_addr( rgAddrMap )	init base address
+  + get_base_addr()		get  base address
+
+		Generic register access:  R= rgIoReg_enum
+  + addr_reg( R )			address of register
+  + read_reg( R )			read register
+  + modify_reg( R, mask, value )	modify register
+    set_reg( R, mask )			set bits in register
+    clr_reg( R, mask )			clear bits in register
+
+		PinLevel register access:
+  + addr_PinRead_w0()
+  + addr_PinSet_w0()
+  + addr_PinClr_w0()
+
+  + read_PinLevel_w0()
+  + set_PinLevel_w0( mask )
+  + clr_PinLevel_w0( mask )
+
+		Event Status register access:
+  + read_EventStatus_w0()
+
+		rgIoReg_enum string conversion:
+  + str_IoReg_enum( R )			return cstring
+  + find_IoReg_enum( cstring )		return enum
+
+}
 

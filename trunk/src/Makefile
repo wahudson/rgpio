@@ -34,9 +34,9 @@ CXXFLAGS   = -Wall  -std=c++11
 run:	compile
 	$(BINDIR)/rgpio --TESTOP
 
-mkdirs:   $(BINDIR)  $(OJ)
+mkdirs:   $(OJ)  $(BINDIR)
 
-compile:  $(BINDIR)  $(OJ)  $(BINDIR)/rgpio  $(OBJS)
+compile:  $(OJ)  $(BINDIR)  $(BINDIR)/rgpio
 
 x1	: x1.cpp  rgAddrMap.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp
