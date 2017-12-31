@@ -107,13 +107,13 @@ int main()
     }
 
 //--------------------------------------------------------------------------
-//## use_fake_mem()
+//## open_fake_mem()
 //--------------------------------------------------------------------------
 
-  CASE( "21", "use_fake_mem()" );
+  CASE( "21", "open_fake_mem()" );
     try {
 	rgAddrMap		bx;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	std::string		ss;
 	ss = bx.text_debug();
 	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
@@ -124,17 +124,17 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "21b", "use_fake_mem() already" );
+  CASE( "21b", "open_fake_mem() already" );
     try {
 	rgAddrMap		bx;
-	bx.use_fake_mem();
-	bx.use_fake_mem();
+	bx.open_fake_mem();
+	bx.open_fake_mem();
 	std::string		ss;
 	ss = bx.text_debug();
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
-	CHECK( "use_fake_mem() mode already specified",
+	CHECK( "rgAddrMap:  already opened",
 	    e.what()
 	);
     }
@@ -145,7 +145,7 @@ int main()
   CASE( "23", "is_fake_mem()" );
     try {
 	rgAddrMap		bx;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	CHECK( 1,
 	    bx.is_fake_mem()
 	);
@@ -155,13 +155,13 @@ int main()
     }
 
 //--------------------------------------------------------------------------
-//## use_dev_*mem()  Fallback to fake_mem.  Non-RPi
+//## open_dev_*mem()  Fallback to fake_mem.  Non-RPi
 //--------------------------------------------------------------------------
 
-  CASE( "24", "use_dev_gpiomem()" );
+  CASE( "24", "open_dev_gpiomem()" );
     try {
 	rgAddrMap		bx;
-	bx.use_dev_gpiomem();
+	bx.open_dev_gpiomem();
 	std::string		ss;
 	ss = bx.text_debug();
 	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
@@ -169,7 +169,8 @@ int main()
 	);
     }
     catch ( runtime_error& e ) {
-	CHECK( "use_dev_gpiomem() cannot open /dev/gpiomem:  No such file or directory",
+	FAIL( "runtime_error" );
+	CHECK( "open_dev_gpiomem() cannot open /dev/gpiomem:  No such file or directory",
 	    e.what()
 	);
     }
@@ -177,10 +178,10 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "25", "use_dev_mem()" );
+  CASE( "25", "open_dev_mem()" );
     try {
 	rgAddrMap		bx;
-	bx.use_dev_mem();
+	bx.open_dev_mem();
 	std::string		ss;
 	ss = bx.text_debug();
 	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
@@ -213,7 +214,7 @@ int main()
   CASE( "31", "get_mem_block() good" );
     try {
 	rgAddrMap		bx;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	bx.get_mem_block( 0x7e200000 );
 	PASS( "ok" );
     }
@@ -224,7 +225,7 @@ int main()
   CASE( "32", "get_mem_block() page alignment" );
     try {
 	rgAddrMap		bx;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	bx.get_mem_block( 0x7f200004 );
 	FAIL( "no throw" );
     }
@@ -240,7 +241,7 @@ int main()
   CASE( "33", "get_mem_block() address range" );
     try {
 	rgAddrMap		bx;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	bx.get_mem_block( 0x7f000000 );
 	FAIL( "no throw" );
     }
@@ -259,7 +260,7 @@ int main()
 	rgAddrMap		bx;
 	volatile uint32_t*	vadd;
 	int			vv;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	vadd = bx.get_mem_block( 0x7e200000 );
 	vv   = *vadd;
 	CHECK( 0, vv );

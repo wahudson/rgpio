@@ -64,6 +64,7 @@ rgAddrMap::rgAddrMap()
 {
     Dev_fd  = -1;		// not open
     FakeMem = 0;		// using real memory
+    FakeNoPi = 1;		// 1= fake mem, 0= throw error, when not on RPi
     ModeStr = NULL;
     Prot    = PROT_READ | PROT_WRITE;
     Debug   = 0;
@@ -129,6 +130,80 @@ rgAddrMap::text_debug()
 }
 
 
+/*
+* Configure fall-back action when not on a RPi.
+*    Applies only when open_dev_file() is opening a real file.
+* call:
+*    config_FakeNoPi( 1 )	fake memory
+*    config_FakeNoPi( 0 )	throw error
+*/
+void
+rgAddrMap::config_FakeNoPi( const bool v )
+{
+    FakeNoPi = v;
+}
+
+
+/*
+* Open device file for IO memory map.
+*    Generic device file access, user wrappers can hide device file name.
+*    May require CAP_DAC_OVERRIDE capability (or root) for access.
+*    Safety check if not on RPi - use fake memory if FakeNoPi is true, else
+*    throw error.
+*    #!! Possibly make this simple safety check more robust.
+* call:
+*    open_dev_file( "/dev/mem" )	full access, need root
+*    open_dev_file( "/dev/gpiomem" )	only GPIO pins, normal user
+*    open_dev_file( "" )		use fake memory block
+*    User applications should use the corresponding wrapper functions.
+*/
+void
+rgAddrMap::open_dev_file( const char *file )
+{
+    struct stat			statbuf;
+
+    if ( ModeStr != NULL ) {
+	throw std::runtime_error ( "rgAddrMap:  already opened" );
+    }
+
+    if ( (file == NULL) || (*file == '\0') ) {
+	ModeStr = "fake_mem";
+	FakeMem = 1;
+	return;
+    }
+
+    // Check if on RPi, make safe on other machines.
+    if ( stat( "/dev/gpiomem", &statbuf ) != 0 ) {	// not exist
+	if ( FakeNoPi ) {
+	    this->open_dev_file( NULL );
+	    return;
+	}
+	else {
+	    throw std::runtime_error ( "rgAddrMap:  not on a RaspberryPi" );
+	}
+    }
+
+    if ( stat( file, &statbuf ) != 0 ) {	// not exist
+	std::string	ss ( "rgAddrMap:  file not found:  " );
+	ss += file;
+	throw std::runtime_error ( ss );
+    }
+
+    ModeStr = file;
+
+    Dev_fd = open( ModeStr, O_RDWR|O_SYNC );
+    if ( Dev_fd < 0) {
+	int		errv = errno;
+	std::string	ss ( "rgAddrMap:  cannot open " );
+	ss += ModeStr;
+	ss += ":  ";
+	ss += strerror( errv );
+	throw std::runtime_error ( ss );
+    }
+}
+
+
+//#!! Obsolete
 /*
 * Init to use fake memory.
 */

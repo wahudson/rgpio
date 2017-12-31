@@ -25,7 +25,7 @@ using namespace std;
 * Constructor.
 * Optional address map initialization.
 *    rgAddrMap	amx;		// address map object
-*    amx.use_dev_gpiomem();	// select and open device file
+*    amx.open_dev_gpiomem();	// select and open device file
 * call:
 *    rgIoPin	gpx;		// no GpioBase init, use seperate init
 *    gpx.init_addr( &amx );
