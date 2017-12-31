@@ -1,6 +1,8 @@
 // 2017-06-01  William A. Hudson
 //
 // Testing:  rgAddrMap  rGPIO Address Map class for Raspberry Pi.
+// Env:  TESTONRPI  set when on an RPi.
+// Run tests as a normal user.
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -107,10 +109,132 @@ int main()
     }
 
 //--------------------------------------------------------------------------
+//## open_dev_file()
+//--------------------------------------------------------------------------
+
+//----------------------------------------
+  CASE( "20a", "open_dev_file() fake_mem" );
+    try {
+	rgAddrMap		bx;
+	bx.open_dev_file( NULL );
+	std::string		ss;
+	ss = bx.text_debug();
+	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
+	    ss.c_str()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "20b", "open_dev_file() fake_mem" );
+    try {
+	rgAddrMap		bx;
+	bx.open_dev_file( "" );
+	std::string		ss;
+	ss = bx.text_debug();
+	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
+	    ss.c_str()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "20c", "open_dev_file() fake_mem, throw enabled, not taken" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 0 );	// throw
+	bx.open_dev_file( "" );
+	std::string		ss;
+	ss = bx.text_debug();
+	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
+	    ss.c_str()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//----------------------------------------
+if ( ! getenv( "TESTONRPI" ) ) {
+
+  CASE( "21a", "open_dev_file() NoPi fallback" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 1 );
+	bx.open_dev_file( "/dev/gpiomem" );
+	std::string		ss;
+	ss = bx.text_debug();
+	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
+	    ss.c_str()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "21b", "open_dev_file() NoPi throw" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 0 );
+	bx.open_dev_file( "/dev/gpiomem" );
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap:  not on a RaspberryPi",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+}
+
+//----------------------------------------
+if ( getenv( "TESTONRPI" ) ) {
+
+  CASE( "22a", "open_dev_file() missing file" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 1 );
+	bx.open_dev_file( "./missing" );
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap:  file not found:  ./missing",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "23a", "open_dev_file() no write" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 1 );
+	bx.open_dev_file( "/etc/passwd" );
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap:  cannot open /etc/passwd:  Permission denied",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+}
+
+
+//--------------------------------------------------------------------------
 //## open_fake_mem()
 //--------------------------------------------------------------------------
 
-  CASE( "21", "open_fake_mem()" );
+  CASE( "31", "open_fake_mem()" );
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
@@ -124,7 +248,7 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "21b", "open_fake_mem() already" );
+  CASE( "31b", "open_fake_mem() already" );
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
@@ -142,7 +266,7 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "23", "is_fake_mem()" );
+  CASE( "32", "is_fake_mem()" );
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
@@ -155,48 +279,89 @@ int main()
     }
 
 //--------------------------------------------------------------------------
-//## open_dev_*mem()  Fallback to fake_mem.  Non-RPi
+//## open_dev_gpiomem()
 //--------------------------------------------------------------------------
 
-  CASE( "24", "open_dev_gpiomem()" );
+if ( ! getenv( "TESTONRPI" ) ) {
+  CASE( "41a", "open_dev_gpiomem()" );
     try {
 	rgAddrMap		bx;
+	bx.config_FakeNoPi( 0 );	// throw
 	bx.open_dev_gpiomem();
-	std::string		ss;
-	ss = bx.text_debug();
-	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
-	    ss.c_str()
-	);
+	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
-	FAIL( "runtime_error" );
-	CHECK( "open_dev_gpiomem() cannot open /dev/gpiomem:  No such file or directory",
+	CHECK( "rgAddrMap:  not on a RaspberryPi",
 	    e.what()
 	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+}
 
-  CASE( "25", "open_dev_mem()" );
+if ( getenv( "TESTONRPI" ) ) {
+  CASE( "41b", "open_dev_gpiomem()" );
     try {
 	rgAddrMap		bx;
-	bx.open_dev_mem();
+	bx.config_FakeNoPi( 0 );	// throw
+	bx.open_dev_gpiomem();
 	std::string		ss;
 	ss = bx.text_debug();
-	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1",
+	CHECK( "ModeStr= /dev/gpiomem  Dev_fd= 3  FakeMem= 0",
 	    ss.c_str()
 	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+}
+
+//--------------------------------------------------------------------------
+//## open_dev_mem()
+//--------------------------------------------------------------------------
+
+if ( ! getenv( "TESTONRPI" ) ) {
+  CASE( "51a", "open_dev_mem()" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 0 );	// throw
+	bx.open_dev_mem();
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap:  not on a RaspberryPi",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+}
+
+if ( getenv( "TESTONRPI" ) ) {
+  CASE( "51b", "open_dev_mem()" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 0 );	// throw
+	bx.open_dev_mem();
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap:  cannot open /dev/mem:  Permission denied",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+}
 
 //--------------------------------------------------------------------------
 //## get_mem_block() Fake memory
 //--------------------------------------------------------------------------
 
-  CASE( "30", "get_mem_block() no mode" );
+  CASE( "60", "get_mem_block() no mode" );
     try {
 	rgAddrMap		bx;
 	bx.get_mem_block( 0x7e200000 );
@@ -211,7 +376,7 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "31", "get_mem_block() good" );
+  CASE( "61", "get_mem_block() good" );
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
@@ -222,7 +387,7 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "32", "get_mem_block() page alignment" );
+  CASE( "62", "get_mem_block() page alignment" );
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
@@ -238,7 +403,7 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "33", "get_mem_block() address range" );
+  CASE( "63", "get_mem_block() address range" );
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
@@ -255,7 +420,7 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "34", "get_mem_block() read write fake" );
+  CASE( "64", "get_mem_block() read write fake" );
     try {
 	rgAddrMap		bx;
 	volatile uint32_t*	vadd;

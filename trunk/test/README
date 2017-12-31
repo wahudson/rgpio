@@ -70,6 +70,13 @@ Run Tests:
     % cd t_<dir>/
     % make test
 
+Environment variable 'TESTONRPI' switch in some tests.
+    # When running on an RPi
+    % TESTONRPI=1  make test
+
+    # When on another platform
+    % make test
+
 
 Git:
 ----
