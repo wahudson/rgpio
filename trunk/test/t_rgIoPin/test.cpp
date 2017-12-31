@@ -28,7 +28,7 @@ rgIoPin			Tx;
 
   CASE( "00", "Common object" );
     try {
-	Bx.use_fake_mem();
+	Bx.open_fake_mem();
 	Tx.init_addr( &Bx );
 	PASS( "Common object" );
     }
@@ -76,7 +76,7 @@ rgIoPin			Tx;
   CASE( "13", "constructor with rgAddrMap" );
     try {
 	rgAddrMap		bx;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	rgIoPin			tx  ( &bx );
 	PASS( "constructor" );
     }
@@ -89,7 +89,7 @@ rgIoPin			Tx;
     try {
 	rgAddrMap		bx;
 	rgIoPin			tx;
-	bx.use_fake_mem();
+	bx.open_fake_mem();
 	tx.init_addr( &bx );
 	PASS( "init_addr()" );
     }

@@ -1308,8 +1308,10 @@ class rgAddrMap		IO Address Memory Map
  +  char	*ModeStr;	user file string, NULL= unset,
 				    "/dev/mem", "/dev/gpiomem", "fake_mem"
 
+		ProtMmap
  +  int		Prot;		mmap() prot field,
 				    default (PROT_READ|PROT_WRITE)
+		Or pass in get_mem_block()?
 
  +  bool	Debug;		enable debug trace on stderr
 
@@ -1323,9 +1325,11 @@ class rgAddrMap		IO Address Memory Map
  +  bcm2rpi_addr( addr )	Convert BCM offset address to RPi.
  +  text_debug()		Get debug text.
 
- +  use_dev_mem()		Use /dev/mem
- +  use_dev_gpiomem()		Use /dev/gpiomem
- +  use_fake_mem()		Use fake memory.
+ +  open_dev_file( file )	Open file for mmap().
+			    User wrappers:
+ +  open_dev_mem()		Open /dev/mem
+ +  open_dev_gpiomem()		Open /dev/gpiomem
+ +  open_fake_mem()		Open fake memory.
 
     prot_readonly()
     prot_readwrite()

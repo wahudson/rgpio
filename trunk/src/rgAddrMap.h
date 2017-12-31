@@ -49,10 +49,6 @@ class rgAddrMap {
 	this->open_dev_file( "" );
     };
 
-    void		use_dev_mem();
-    void		use_dev_gpiomem();
-    void		use_fake_mem();
-
 //    void		prot_readonly();
 //    void		prot_readwrite();
 
