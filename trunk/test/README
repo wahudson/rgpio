@@ -47,6 +47,7 @@ Test suites:  (2017-05-20)
 ------  --------------
  u   s  t_Error/	Error		Error message class.
  u   s  t_rgAddrMap/	rgAddrMap	Address Map class.
+ u   s  t_rgFselPin/	rgFselPin	Pin Function Select class.
  u   s  t_rgIoPin/	rgIoPin		GPIO IO Pin control class.
  u   s  t_utLib1/	utLib1		Unit Test Library.
 
