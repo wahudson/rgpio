@@ -1111,6 +1111,9 @@ Function Select registers:
     Probably abstract to per-bit manipulation, as whole words is fairly
     complex and not that useful.
 
+    Bit manipulation is provided in a seperate rgFselPin class.
+    Whole register access is still provided here.
+
 Generic Register access:
     Provides the same operations for all registers, but some may not be
     appropriate (e.g. write-only registers).
@@ -1291,6 +1294,52 @@ Long names with full words seem helpful.
 
 
 ----------------------------------------------------------------------------
+## rgFselPin  Class
+----------------------------------------------------------------------------
+    Function Select register manipulation class.
+
+    It seemed best to put the Fsel bit manipulation here, along with any
+    register storage, and let the rgIoPin class focus on whole word register
+    operations.
+
+    It has a pointer to an rgIoPin object to do the actual register access.
+
+Function Select registers:
+    Modification of all Fsel pins at once is a bit risky.  An accident could
+    affect all pins.  It also aggrevates the synchronization problem with
+    other processes.  Thus bit level modification is more useful, and probably
+    sufficient.
+
+    Read and save of all Fsel0..Fsel5 registers might be useful.  They would
+    be all read at one point in time, and then accessors could get single
+    bit values as needed.
+    An equivalent could be read all registers and return an array of Fsel
+    pin values with no saving.
+
+    Possibly use an Fsel object to hold and manipulate values.
+    An Fsel class could be a good container for the various transformation
+    methods, things like:  Bit number to register and field position.
+    Mode enum translations.
+
+Data members:
+    *IoPinX		rgIoPin register object
+    FselReg[0..5]	Function Select register values
+
+Methods:
+				save state:
+    grab_Fsel()				read and save all Fsel0..Fsel5 reg
+    get_Fsel_bit( N )			get saved Fsel mode for bit N
+  x get_Fsel_array( &A )		get saved Fsel mode for all bits
+				direct access (no save):
+    read_Fsel_bit( N )			read mode
+    modify_Fsel_bit( N, mode )		modify mode
+  x read_Fsel_array( &A )		read all fsel bits
+
+    Not sure the array access is that useful.  Probably better to let
+    the user do his own loop.
+
+
+----------------------------------------------------------------------------
 ## Object Summary
 ----------------------------------------------------------------------------
     Summary of object data and methods for each class.
@@ -1347,7 +1396,7 @@ class rgIoPin		GPIO IO Pin control
  +  *GpioBase;		base address
 
 		Config registers:
- +  FselReg[0..5]	function select registers
+    FselReg[0..5]	function select registers
 
     DetRising_w0
     DetRising_w1
@@ -1360,8 +1409,8 @@ class rgIoPin		GPIO IO Pin control
     EventStatus_w1
 
 		Enumerations:
-  + enum rgFsel_enum		Function select values, 3-bit octal
-  + enum rgIoReg_enum		Register address offset, word address
+  + rgFsel_enum		Function select values, 3-bit octal
+  + rgIoReg_enum	Register address offset, word address
 
 		Constructor:
   + rgIoPin()			construct empty object
@@ -1392,6 +1441,34 @@ class rgIoPin		GPIO IO Pin control
 		rgIoReg_enum string conversion:
   + str_IoReg_enum( R )			return cstring
   + find_IoReg_enum( cstring )		return enum
+
+}
+
+
+class rgFselPin		GPIO Pin Function Select class
+{
+ +  *IoPinX		rgIoPin register object
+
+    FselReg[0..5]	Function Select register values
+
+		Class Data:
+  + ModeStr[]		Fsel mode string names, indexed by rgFsel_enum.
+
+		Enumerations:
+  + rgFsel_enum		Function select values, 3-bit octal
+
+		Constructor:
+  + rgFselPin( rgIoPin* )		construct and initialize
+
+		Direct access:
+  + read_Fsel_bit( N )			read, return rgFsel_enum
+  + modify_Fsel_bit( N, mode )  	modify
+
+  + fselreg_bit( N, &pos )		Register field position
+
+		rgFsel_enum string conversion:
+  + str_rgFsel_enum( mode )		return cstring
+  + find_rgFsel_enum( cstring )		return enum
 
 }
 
