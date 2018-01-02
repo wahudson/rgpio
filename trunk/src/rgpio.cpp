@@ -67,7 +67,7 @@ class yOptLong : public yOption {
 yOptLong::yOptLong( int argc,  char* argv[] )
     : yOption( argc, argv )
 {
-    dev         = "";
+    dev         = "g";
     ro          = 0;
 
     verbose     = 0;
@@ -103,6 +103,10 @@ yOptLong::parse_options()
 
     if ( this->get_argc() > 0 ) {
 	feature = this->current_option();	// no advance for next level
+    }
+
+    if ( !((*dev == 'm') || (*dev == 'g') || (*dev == 'f')) ) {
+	Error::msg( "require --dev=m|g|f" ) <<endl;
     }
 }
 
@@ -179,9 +183,25 @@ main( int	argc,
 	rgAddrMap		Amx;	// constructor
 	//#!! better name?
 
-	//#!! --dev=  --ro
-	Amx.open_dev_gpiomem();
-//	Amx.open_fake_mem();
+	Amx.config_FakeNoPi( 1 );	// when not on RPi
+
+	//#!! --ro
+	if (      *Opx.dev == 'g' ) {
+	    Amx.open_dev_gpiomem();
+	}
+	else if ( *Opx.dev == 'm' ) {
+	    Amx.open_dev_mem();
+	}
+	else if ( *Opx.dev == 'f' ) {
+	    Amx.open_fake_mem();
+	}
+
+	if ( Amx.is_fake_mem() ) {
+	    cout << "Using Fake memory" <<endl;
+	}
+
+	//#!! close_dev()
+	//#!! drop_capabilities()
 
 	if (      Opx.feature == "io"       ) {
 	    cout << "do io" << endl;
