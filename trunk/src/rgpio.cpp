@@ -13,6 +13,7 @@ using namespace std;
 #include "rgAddrMap.h"
 #include "rgIoPin.h"
 
+#include "y_fsel.h"
 #include "y_io.h"
 
 #include "Error.h"
@@ -208,6 +209,12 @@ main( int	argc,
 
 	    y_io		iox  ( &Opx, &Amx );	// constructor
 	    return  iox.doit();
+	}
+	else if ( Opx.feature == "fsel"    ) {
+	    cout << "do fsel" << endl;
+
+	    y_fsel		fx  ( &Opx, &Amx );	// constructor
+	    return  fx.doit();
 	}
 	else if ( Opx.feature == "clock"    ) {
 	    cout << "do clock" << endl;

@@ -14,6 +14,7 @@ INCS       = \
         rgFselPin.h \
         rgIoPin.h \
         Error.h \
+        y_fsel.h \
         y_io.h \
         yOption.h
 #        gGpClock.h \
@@ -24,6 +25,7 @@ OBJS       = \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIoPin.o \
 	$(OJ)/Error.o \
+	$(OJ)/y_fsel.o \
 	$(OJ)/y_io.o \
 	$(OJ)/yOption.o
 #	$(OJ)/gGpClock.o \
@@ -67,8 +69,12 @@ $(BINDIR)/rgpio:	$(OJ)/rgpio.o  $(OBJS)
 $(OJ)/rgpio.o:	rgpio.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c rgpio.cpp
 
+$(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_fsel.cpp
+
 $(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_io.cpp
+
 
 $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgAddrMap.cpp
