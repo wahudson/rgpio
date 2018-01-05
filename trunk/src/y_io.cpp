@@ -39,7 +39,11 @@ class io_yOptLong : public yOption {
 
     bool		hex;
     bool		bin;
-    const char*		reg;
+
+    bool		fsel;
+    bool		w0;
+    bool		w1;
+
     const char*		mask;
     const char*		value;
 
@@ -49,7 +53,6 @@ class io_yOptLong : public yOption {
 
   public:	// data values
 
-    rgIoPin::rgIoReg_enum	reg_e;
     uint32_t		mask_n;
     uint32_t		value_n;
 
@@ -76,7 +79,11 @@ io_yOptLong::io_yOptLong( yOption  *opx )
 {
     hex         = 0;
     bin         = 0;
-    reg         = "";
+
+    fsel        = 0;
+    w0          = 0;
+    w1          = 0;
+
     mask        = "";
     value       = "";
 
@@ -84,7 +91,6 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     debug       = 0;
     TESTOP      = 0;
 
-    reg_e       = rgIoPin::rgPinRead_w0;
     mask_n      = 0;
     value_n     = 0;
 }
@@ -100,7 +106,11 @@ io_yOptLong::parse_options()
     {
 	     if ( is( "--hex"        )) { hex        = 1; }
 	else if ( is( "--bin"        )) { bin        = 1; }
-	else if ( is( "--reg="       )) { reg        = this->val(); }
+
+	else if ( is( "--fsel"       )) { fsel       = 1; }
+	else if ( is( "--w0"         )) { w0         = 1; }
+	else if ( is( "--w1"         )) { w1         = 1; }
+
 	else if ( is( "--mask="      )) { mask       = this->val(); }
 	else if ( is( "--value="     )) { value      = this->val(); }
 
@@ -116,14 +126,8 @@ io_yOptLong::parse_options()
 	}
     }
 
-    if ( *reg ) {
-	try {
-	    reg_e = rgIoPin::find_IoReg_enum( reg );
-	}
-	catch ( range_error& e ) {
-	    Error::msg( "unknown register in --reg=" ) << reg <<endl
-		<< "    " <<  e.what() << endl;
-	}
+    if ( !( (get_argc() > 0) || w0 || w1 || fsel ) ) {	// no reg specified
+	w0 = 1;
     }
 
     if ( *mask ) {
@@ -135,13 +139,9 @@ io_yOptLong::parse_options()
     }
 
     if ( *mask || *value ) {
-	if ( ! (*mask && *value && *reg) ) {
-	    Error::msg( "modify requires --reg --mask --value\n" );
+	if ( ! (*mask && *value) ) {
+	    Error::msg( "modify requires --mask --value\n" );
 	}
-    }
-
-    if ( get_argc() > 0 ) {
-	Error::msg( "extra arguments:  " ) << next_arg() <<endl;
     }
 }
 
@@ -156,7 +156,9 @@ io_yOptLong::print_option_flags()
 
     cout << "--hex         = " << hex          << endl;
     cout << "--bin         = " << bin          << endl;
-    cout << "--reg         = " << reg          << endl;
+    cout << "--fsel        = " << fsel         << endl;
+    cout << "--w0          = " << w0           << endl;
+    cout << "--w1          = " << w1           << endl;
     cout << "--mask        = " << mask         << endl;
     cout << "--value       = " << value        << endl;
     cout << "--verbose     = " << verbose      << endl;
@@ -167,8 +169,6 @@ io_yOptLong::print_option_flags()
     {
 	cout << "arg:          = " << arg          << endl;
     }
-
-    cout << "reg_e         = " << rgIoPin::str_IoReg_enum( reg_e ) << endl;
 
     cout.fill('0');
     cout <<std::hex;
@@ -187,16 +187,19 @@ io_yOptLong::print_usage()
 {
     cout <<
     "    IO pin operations\n"
-    "usage:  " << ProgName << " io [options..]\n"
-    "  output format:  (default is --col)\n"
-    " #  -c,--col            show one bit per line\n"
-    "    --hex               word format hexadecimal\n"
-    " #  --bin               word format binary\n"
-    "  selection:\n"
-    "    --reg=R             register to access, R= enum\n"
-    "  modify:  --reg\n"
-    "    --mask=0xff         mask select bits to change, 32-bits\n"
-    "    --value=0x00        bit value, 32-bits\n"
+    "usage:  " << ProgName << " io [options..]  [reg]\n"
+    "    reg                 register name, plus virtual 'fsel'\n"
+//  "  output format:  (one of)\n"
+//  "    --hex               word format hexadecimal (default)\n"
+//  " #  --bin               word format binary\n"
+    "  register groups:  (accumulate)\n"
+    "    --fsel              Fsel registers\n"
+    "    --w0                register word 0 (default)\n"
+    "    --w1                register word 1\n"
+    "  modify:\n"
+    "    --mask=0xff..       mask select bits to change, 32-bits\n"
+    "    --value=0x00..      bit value, 32-bits\n"
+//  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --help              show this usage\n"
     " #  -v, --verbose       verbose output\n"
@@ -253,48 +256,81 @@ y_io::doit()
 		 << "  addr rgPinRead_w0" <<endl;
 	}
 
-	rgIoPin::rgIoReg_enum	list_w0[] = {
-	    rgIoPin::rgPinRead_w0,
-	    rgIoPin::rgEventStatus_w0,
-	    rgIoPin::rgDetectRising_w0,
-	    rgIoPin::rgDetectFalling_w0,
-	    rgIoPin::rgDetectHigh_w0,
-	    rgIoPin::rgDetectLow_w0,
-	    rgIoPin::rgDetectAsyncRising_w0,
-	    rgIoPin::rgDetectAsyncFalling_w0,
-	};
+	const int		RegLimit = 30;
+	rgIoPin::rgIoReg_enum	regarg[RegLimit];	// arg registers
+	int			regcnt = 0;
+	char			*arg;
 
-	// Set register value
-	if ( *Opx.mask && *Opx.value && *Opx.reg ) {
+    // Register groups
+	if ( Opx.fsel ) {
+	    regarg[regcnt++] = rgIoPin::rgFsel0;
+	    regarg[regcnt++] = rgIoPin::rgFsel1;
+	    regarg[regcnt++] = rgIoPin::rgFsel2;
+	    regarg[regcnt++] = rgIoPin::rgFsel3;
+	    regarg[regcnt++] = rgIoPin::rgFsel4;
+	    regarg[regcnt++] = rgIoPin::rgFsel5;
+	}
+
+	if ( Opx.w0 ) {
+	    regarg[regcnt++] = rgIoPin::rgPinRead_w0;
+	    regarg[regcnt++] = rgIoPin::rgEventStatus_w0;
+	    regarg[regcnt++] = rgIoPin::rgDetectRising_w0;
+	    regarg[regcnt++] = rgIoPin::rgDetectFalling_w0;
+	    regarg[regcnt++] = rgIoPin::rgDetectHigh_w0;
+	    regarg[regcnt++] = rgIoPin::rgDetectLow_w0;
+	    regarg[regcnt++] = rgIoPin::rgDetectAsyncRising_w0;
+	    regarg[regcnt++] = rgIoPin::rgDetectAsyncFalling_w0;
+	}
+
+	if ( Opx.w1 ) {
+	    regarg[regcnt++] = rgIoPin::rgPinRead_w1;
+	    regarg[regcnt++] = rgIoPin::rgEventStatus_w1;
+	    regarg[regcnt++] = rgIoPin::rgDetectRising_w1;
+	    regarg[regcnt++] = rgIoPin::rgDetectFalling_w1;
+	    regarg[regcnt++] = rgIoPin::rgDetectHigh_w1;
+	    regarg[regcnt++] = rgIoPin::rgDetectLow_w1;
+	    regarg[regcnt++] = rgIoPin::rgDetectAsyncRising_w1;
+	    regarg[regcnt++] = rgIoPin::rgDetectAsyncFalling_w1;
+	}
+
+    // Argument register list
+	while ( (arg = Opx.next_arg()) )
+	{
+	    try {
+		regarg[regcnt] = rgIoPin::find_IoReg_enum( arg );
+		regcnt++;
+	    }
+	    catch ( range_error& e ) {
+		Error::msg( "unknown register:  " ) << arg <<endl
+		    << "    " <<  e.what() << endl;
+	    }
+	    if ( regcnt > RegLimit ) {
+		Error::msg( "max register args:  " ) << RegLimit <<endl;
+		break;
+	    }
+	}
+//	cout << "regcnt=" << regcnt <<endl;
+	if ( Error::has_err() )  return 1;
+
+    // Process registers
+	if ( *Opx.mask && *Opx.value ) {	// Modify
 	    cout << "Modify:" << endl;
-	    Gpx.modify_reg( Opx.reg_e, Opx.mask_n, Opx.value_n );
 	}
 
-	if ( *Opx.reg ) {
-	    cout.fill('0');
-	    cout <<hex;
-	    cout << "0x" <<setw(8) << Gpx.read_reg( Opx.reg_e )
-		 << "  "           << Gpx.str_IoReg_enum( Opx.reg_e ) <<endl;
-	}
+	for ( int ii=0;  ii<regcnt;  ii++ )
+	{
+	    rgIoPin::rgIoReg_enum	reg;
+	    reg = regarg[ii];
 
-	// Show status of all registers
-	if ( ! *Opx.reg ) {
-	    cout.fill('0');
-	    cout <<hex;
-
-	    int	list_w0_N = sizeof( list_w0 ) / sizeof( rgIoPin::rgIoReg_enum);
-//	    cout << "list_w0_N= " << list_w0_N << endl;
-
-	    for ( int k=0;  k < list_w0_N;  k++ )
-	    {
-		rgIoPin::rgIoReg_enum	rr;
-		rr = list_w0[k];
-		cout << "0x" <<setw(8) << Gpx.read_reg( rr )
-		     << "  0x"         << rr*4
-		     << "  " <<setw(8) << (void*) Gpx.addr_reg( rr )
-		     << "  "           << Gpx.str_IoReg_enum( rr ) <<endl;
+	    if ( *Opx.mask && *Opx.value ) {	// Modify
+		Gpx.modify_reg( reg, Opx.mask_n, Opx.value_n );
 	    }
 
+	    cout.fill('0');
+	    cout <<hex;
+	    cout << "0x" <<setw(8) << Gpx.read_reg( reg )
+		 << "  "           << Gpx.str_IoReg_enum( reg )
+		 <<endl;
 	}
 
     }

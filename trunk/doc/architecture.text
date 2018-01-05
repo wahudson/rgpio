@@ -84,6 +84,7 @@ This is a utility command based on the library.
 usage:  rgpio [common_opts..] [feature] [options..]
   feature:
     io              IO pins
+    fsel            Function Select
     clock           GpClock generators
     ...
   common options:
@@ -92,26 +93,41 @@ usage:  rgpio [common_opts..] [feature] [options..]
     --status        show status, default
     --dev=m|g|f     device file type
     --ro            read-only
+    --reset         reset feature to the power-up state
 
-  io              IO pins
+  io  [options..] [reg..]		IO pins
+      reg             register name, plus virtual 'fsel'
     output format:
-      -c,--column     show register columns, one bit per line	--col
+ ?    -c,--column     show register columns, one bit per line	--col
       --hex           show word format hexadecimal
       --bin           show word format binary
-    selection:
+    register groups:  (read only)
       --w0            register word 0
       --w1            register word 1
-      --reg=R         register to access, enum or byte offset
-      --bit=N         gpio bit number to access
-    observe:
-      --read          show register values
-    modify:  --reg
+      --ww            register word 0 and 1
+      --fsel          function select
+    modify:  (single register)
       --value=0x00    bit value, 32-bits
       --mask=0xff     mask select bits to change, 32-bits
-      --set=0xff      set bits
-      --clr=0xff      clear bits
-    modify:  --bit
-      --fsel=F        function select - In, Out, Alt0 .. Alt5	--mode
+      --setmask=0xff  set   bits in mask
+      --clrmask=0xff  clear bits in mask
+      --setbit=N      set   bit position
+      --clrbit=N      clear bit position
+      --reset         reset registers to power-up state
+
+  fsel  [options..]			Function Select
+      --show_alts     show alternate function table
+    output format:
+      --bin           show one line binary
+      -c,--col        show one bit per line
+    selection:  (bit range)
+      --w0            register word 0
+      --w1            register word 1
+      --ww            register word 0 and 1
+    modify:
+      --bit=N         bit number to access
+      --mode=F        set mode {In, Out, Alt0, .. Alt5}
+      --reset         reset all bits to power-up state (mode=In)
 
   clock            GpClock generators
 	--set
@@ -203,6 +219,46 @@ IO pins
 	A nice user aid.  Is static data.
 
     Pin number on header depends on model of RPi or Compute Module.
+
+    Column format --col implies all _w0 or _w1 registers.  Not much value
+    in customizing which registers to show, and it makes variable columns.
+
+ >  Possibly Fsel bit setting could be made a seperate sub-command, which
+    would avoid awkwardness of an --fsel option in the 'io' sub-command.
+    The Fsel registers would still be available as plain 32-bit registers
+    in the 'io' command.  Maybe 'io' read of Fsel would still decode the
+    mode in --bin or --col formats.
+
+IO option combinations:
+	word select:  also select bits for column mode
+    --w0	word 0, bit=0..31
+    --w1	word 1, bit=0..31
+    --ww	both,   bit=0..53
+
+    --all			read all registers
+    --all  --w0			read only _w0 registers
+    --all  --ww			read _w1 _w0 side-by-side
+
+    --col  --w0			read all _w0, column format, 0..31
+    --col  --ww			read all registers, column format, 0..53
+
+    --reg=R			read
+    --reg=R  --ww		read _w1 _w0 side-by-side
+
+    --reg=R  --mask=M  --value=V	modify value
+    --reg=R  --setmask=M		set   bits in mask
+    --reg=R  --clrmask=M		clear bits in mask
+
+    --reg=R  --bit=N			read single bit N  ??
+    --reg=R  --setbit=N			set   bit N, 0..53
+    --reg=R  --clrbit=N			clear bit N, 0..53
+
+    --fsel  --bit=N			read Fsel bit N  ??
+    --fsel  --bit=N  --mode=F		modify Fsel bit N
+    --fsel=F  --bit=N			modify Fsel bit N
+
+    fsel  --bit=N			Fsel bit read
+    fsel  --bit=N  --mode=F		Fsel bit write
 
 
 ----------------------------------------------------------------------------
@@ -1106,6 +1162,7 @@ PinLevel registers:
 
 PullUpDown registers:
     These should be abstracted also.
+    Make a seperate class, maybe called rgPud or rgPads.
 
 Function Select registers:
     Probably abstract to per-bit manipulation, as whole words is fairly
@@ -1384,6 +1441,7 @@ class rgAddrMap		IO Address Memory Map
     prot_readwrite()
 
  +  close_dev()			Close the device file.
+    is_dev_open()		Query.
 
  +  get_mem_block( p_addr )	Get peripheral memory block for BCM address.
     drop_capabilities()		Drop root access capability.
