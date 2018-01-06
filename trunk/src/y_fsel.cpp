@@ -18,6 +18,8 @@ using namespace std;
 #include "rgIoPin.h"
 #include "rgFselPin.h"
 
+#include "rgAltFuncName.h"
+
 #include "y_fsel.h"
 
 
@@ -55,7 +57,6 @@ class fsel_yOptLong : public yOption {
     rgFselPin::rgFsel_enum	mode_e;
 
   public:
-//    fsel_yOptLong( int argc,  char* argv[] );	// constructor
     fsel_yOptLong( yOption  *opx );	// constructor
 
     void		parse_options();
@@ -287,7 +288,7 @@ y_fsel::doit()
 	    cout << "Modify:" << endl;
 	}
 
-	cout << "Bit  Mode" <<endl;
+	cout << "Bit  Mode  Function" <<endl;
 
 	for ( int ii=0;  ii<bitcnt;  ii++ )
 	{
@@ -302,10 +303,11 @@ y_fsel::doit()
 
 	    mode = Fpx.read_Fsel_bit( bit );
 
-	    cout.fill('0');
+	    cout.fill(' ');
 	    cout <<dec;
-	    cout << " "  <<setw(2) << bit
-		 << "  "           << Fpx.str_rgFsel_enum( mode )
+	    cout << " "  <<setw(2) <<right << bit
+		 << "  " <<setw(4) <<left  << Fpx.str_rgFsel_enum( mode )
+		 << "  " << rgAltFuncName::str_altfunc_bit( mode, bit )
 		 <<endl;
 	}
 

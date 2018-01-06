@@ -11,6 +11,7 @@ OJ         = ../obj
 		# all include files for main program dependency
 INCS       = \
         rgAddrMap.h \
+        rgAltFuncName.h \
         rgFselPin.h \
         rgIoPin.h \
         Error.h \
@@ -22,6 +23,7 @@ INCS       = \
 		# objects not including main()
 OBJS       = \
 	$(OJ)/rgAddrMap.o \
+	$(OJ)/rgAltFuncName.o \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIoPin.o \
 	$(OJ)/Error.o \
@@ -78,6 +80,10 @@ $(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
 
 $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgAddrMap.cpp
+
+$(OJ)/rgAltFuncName.o:	rgAltFuncName.cpp  rgAltFuncName.h \
+			rgAddrMap.h  rgIoPin.h  rgFselPin.h
+	g++ $(CXXFLAGS) -o $@  -c rgAltFuncName.cpp
 
 $(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPin.h
 	g++ $(CXXFLAGS) -o $@  -c rgFselPin.cpp
