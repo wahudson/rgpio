@@ -12,6 +12,7 @@ OJ         = ../obj
 INCS       = \
         rgAddrMap.h \
         rgAltFuncName.h \
+        rgClock.h \
         rgFselPin.h \
         rgIoPin.h \
         Error.h \
@@ -24,6 +25,7 @@ INCS       = \
 OBJS       = \
 	$(OJ)/rgAddrMap.o \
 	$(OJ)/rgAltFuncName.o \
+	$(OJ)/rgClock.o \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIoPin.o \
 	$(OJ)/Error.o \
@@ -84,6 +86,9 @@ $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
 $(OJ)/rgAltFuncName.o:	rgAltFuncName.cpp  rgAltFuncName.h \
 			rgAddrMap.h  rgIoPin.h  rgFselPin.h
 	g++ $(CXXFLAGS) -o $@  -c rgAltFuncName.cpp
+
+$(OJ)/rgClock.o:	rgClock.cpp  rgClock.h  rgAddrMap.h
+	g++ $(CXXFLAGS) -o $@  -c rgClock.cpp
 
 $(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPin.h
 	g++ $(CXXFLAGS) -o $@  -c rgFselPin.cpp

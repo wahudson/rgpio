@@ -501,14 +501,27 @@ Base Address Checking:
 
     A) Each access checks initialization.
 	+ Defers initialzation to sometime after construction.
-	- Each access must do the check.
+	- Each access must do the check.  Overhead.
 	- Or risk bad address, e.g. *(GpioBase+reg).
 	+ May help in development.
+	- Is more stuff to test.
 
   > B) Constructor does initialization with a given rgAddrMap.
 	+ Now the object is guareanteed initialized.
 	+ Helps the user and makes one less step.
-	+ Can still provied uninit constructor for development.
+	+ Can still provied uninit constructor for development.  How?
+	- Constructor requires initialized rgAddrMap object.
+
+    The main use of deferred initialzation would be to allow construction and
+    partial use of feature objects before the address map is selected.
+    e.g.  enum string conversion.
+
+    Another use is to allow construction of Feature objects before the
+    Address Map object is initialized.  This may help with the ordering of
+    things.
+
+    As development progresses, I find more complexity with deferred
+    initialization and not much use for an unitialized feature object.
 
 Offset Address Range Checking:
     Feature addresses should all fall within the feature memory block,
@@ -667,10 +680,30 @@ Heuristic to select mfd mode:
 
 
 ----------------------------------------------------------------------------
-## GpClock Object
+## rgClock Object
 ----------------------------------------------------------------------------
 
 See:  p.105-108  6.3 General Purpose GPIO Clocks
+
+See:  https://pinout.xyz/pinout/gpclk
+
+    The following clock sources are available:
+    0     0 Hz     Ground
+    1     19.2 MHz oscillator
+    2     0 Hz     testdebug0
+    3     0 Hz     testdebug1
+    4     0 Hz     PLLA
+    5     1000 MHz PLLC (changes with overclock settings)
+    6     500 MHz  PLLD
+    7     216 MHz  HDMI auxiliary
+    8-15  0 Hz     Ground
+
+Output frequency:
+    Fout = Fsource / DIVI			with no MASH
+    Fout = Fsource / (DIVI + (DIVF / 4096))	average with MASH
+
+    [Note BCM doc error (DIVF / 1024), is wrong as DIVF is a 12-bit value.]
+
 
 The basic operation cycle is:
     x.read_regs();		read IO registers into object
@@ -680,25 +713,22 @@ The basic operation cycle is:
     ...
     x.write_regs();		safely update IO registers
 
-There are restrictions on when IO register fields may change in order to
-avoid glitches and potential lock-up of the clock generator.
-Generally, the clock must be disabled, and have have become not busy
-(BUSY=0) before changing any config.
+    There are restrictions on when IO register fields may change in order to
+    avoid glitches and potential lock-up of the clock generator.
+    Generally, the clock must be disabled, and have have become not busy
+    (BUSY=0) before changing any config.
 
-Methods:
-
-
-Output format:
+Output format:  (rgpio)
     ctl[31:0] = 0xfabc0000   control register
     div[31:0] = 0xfabc0000   divider register
 
     Field         Value     English          R/W Register
     -----------   -----   ----------------   --- ---------
     Clock0.Mash   = 3     integer division   rw  ctl[10:9]
-    Clock0.Flip   = 1     not inverted
+    Clock0.Flip   = 1     not inverted       rw  ctl[8]
     Clock0.Busy   = 1     running            r   ctl[7]
-    Clock0.Enable = 1     disabled
-    Clock0.Source = 15    oscillator
+    Clock0.Enable = 1     disabled           rw  ctl[4]
+    Clock0.Source = 15    oscillator         rw  ctl[3:0]
     Clock0.DivI   = 4095                     rw  div[23:12]
     Clock0.DivF   = 4095                     rw  div[11:0]
 
@@ -724,28 +754,61 @@ Object data:
 
     uint32_t		CtlReg;		// Control  register value
     uint32_t		DivReg;		// Divisior register value
-
 }
 
 
 Methods:
 
-    init_io_addr( rgAddrMap );
+    init_addr( rgAddrMap )
 
-    read_regs();
-    write_regs();
-    raw_write_regs();
+    get_clock_num()		Get clock number
 
-    get_Mash();
-    put_Mash( bit2 );
+			Direct low-level access:
+    addr_Ctl()			Address of register..
+    addr_Div()
 
-    get_Enable();
-    put_Enable( bit1 );
+    read_Ctl()			Read register..
+    read_Div()
 
-    text_status();		All register values.
+    write_Ctl(V)		Write register, no safety check..
+    write_Div(V)
 
-    get_bcm_address();		Get the "BCM2835 ARM Peripherals" address.
-				    Debug.  A simple accessor.
+    read_Busy()			Read-only selected bits..
+    read_Enable()
+
+			Direct control:  (modify register fields)
+    enable()			Set Enable=1	set_Enable()
+    disable()			Set Enable=0	clr_Enable()
+    wait_disable()		Set Enable=0, wait for not Busy.
+
+    wait_while_Busy()		Wait for not Busy.  Handle Enable=1
+
+    kill_generator()		Kill the clock generator.  modify_Kill(V)?
+					set_Kill(), clr_Kill()?
+
+			Object state operations:
+    grab_regs()			Read all regs into obj.
+    grab_default_regs()		Init default values into obj.
+
+    apply_regs()		Safe apply obj to registers - disable,
+					wait for not Busy, write.
+
+				Field accessors of object state:
+  ? get_Kill()		put_Kill(V)
+    get_Mash()		put_Mash(V)
+    get_Flip()		put_Flip(V)
+    get_Source()	put_Source(V)
+    get_DivI()		put_DivI(V)
+    get_DivF()		put_DivF(V)
+    get_Enable()	put_Enable(V)
+    get_Busy()		--
+
+			Test/Debug accessors:
+    get_CtlReg()
+    get_DivReg()
+
+    put_CtlReg(V)
+    put_DivReg(V)
 
 
 ----------------------------------------------------------------------------
