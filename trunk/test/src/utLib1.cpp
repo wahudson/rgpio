@@ -177,3 +177,35 @@ utLib1::ut_CHECK(
     }
 }
 
+
+/*
+* Check comparison -- hex output
+*    Note:  Overload of ut_CHECK() could be made to work (and was kind of
+*    cool), but seemed to have too many problems with overload ambiguity
+*    due to integral conversions.  The overload ambiguity also had backward
+*    compatibility problems.
+* call:
+*    utLib1::ut_CHECKX( line, 0x16, exp )
+*/
+void
+utLib1::ut_CHECKX(
+    int			line,
+    unsigned int	ref,
+    unsigned int	exp
+)
+{
+    GotAssert  = 1;
+
+    if ( exp != ref ) {
+	IsOk = 0;
+	utLib1::output_case();
+	cout << "CHECKX hex (line " << line << ")" <<endl;
+	cout.fill('0');
+	cout <<hex;
+	cout << "< 0x" <<setw(8) << ref <<endl;
+	cout << "> 0x" <<setw(8) << exp <<endl;
+	cout.fill(' ');
+	cout <<dec;
+    }
+}
+

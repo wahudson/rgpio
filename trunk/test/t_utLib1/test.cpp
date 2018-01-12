@@ -4,10 +4,10 @@
 * Note:  Tests fail to show capability.
 */
 
-#include "utLib1.h"
-
 #include <iostream>	// std::cerr
 #include <stdexcept>	// std::stdexcept
+
+#include "utLib1.h"
 
 using namespace std;
 
@@ -67,14 +67,30 @@ int main()
     catch (...) {
     }
 
-    CASE( "17", "fail int check" );
+    CASE( "16b", "fail int check" );
     try {
 	CHECK( 42, 43 );
     }
     catch (...) {
     }
 
-    CASE( "18", "pass check" );
+    CASE( "17", "pass hex check" );
+    try {
+	int		jj = 0xaaaa5555;
+	CHECKX( 0xaaaa5555, jj );
+    }
+    catch (...) {
+    }
+
+    CASE( "17b", "fail hex check" );
+    try {
+	int		jj = -1;
+	CHECKX( 0x00000001, jj );
+    }
+    catch (...) {
+    }
+
+    CASE( "18", "pass str check" );
     try {
 	CHECK( "hello", "hello" );
     }

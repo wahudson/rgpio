@@ -48,6 +48,12 @@ class utLib1 {
 			    int			ref,
 			    int			exp
 			);
+
+    static void		ut_CHECKX(
+			    int                 line,
+			    unsigned int	ref,
+			    unsigned int	exp
+			);
 };
 
 
@@ -61,6 +67,7 @@ class utLib1 {
 #define  PASS(T)	utLib1::ut_PASS( T )
 
 #define  CHECK(REF,EXP)	utLib1::ut_CHECK( __LINE__, (REF), (EXP) )
+#define  CHECKX(REF,EXP)  utLib1::ut_CHECKX( __LINE__, (REF), (EXP) )
 
 
 #endif
