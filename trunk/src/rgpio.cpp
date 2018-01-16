@@ -13,6 +13,7 @@ using namespace std;
 #include "rgAddrMap.h"
 #include "rgIoPin.h"
 
+#include "y_clock.h"
 #include "y_fsel.h"
 #include "y_io.h"
 
@@ -218,7 +219,8 @@ main( int	argc,
 	}
 	else if ( Opx.feature == "clock"    ) {
 	    cout << "do clock" << endl;
-	    return( 0 );
+	    y_clock		cx  ( &Opx, &Amx );	// constructor
+	    return  cx.doit();
 	}
 	else if ( Opx.feature == ""         ) {
 	    cout << "do nothing" << endl;
