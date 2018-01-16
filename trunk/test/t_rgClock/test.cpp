@@ -155,7 +155,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	volatile uint32_t	*vp;
 	vp = Tx.addr_CtlReg();
-	CHECKX( 0x00000070, (vp - Tx.get_base_addr()) );
+	CHECKX( 0x00000070, (vp - Tx.get_base_addr())*4 );
 	CHECK(  0,                Tx.get_clock_num() );
     }
     catch (...) {
@@ -166,7 +166,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	volatile uint32_t	*vp;
 	vp = Tx1.addr_CtlReg();
-	CHECKX( 0x00000078, (vp - Tx1.get_base_addr()) );
+	CHECKX( 0x00000078, (vp - Tx1.get_base_addr())*4 );
 	CHECK(  1,                Tx1.get_clock_num() );
     }
     catch (...) {
@@ -177,7 +177,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	volatile uint32_t	*vp;
 	vp = Tx2.addr_CtlReg();
-	CHECKX( 0x00000080, (vp - Tx2.get_base_addr()) );
+	CHECKX( 0x00000080, (vp - Tx2.get_base_addr())*4 );
 	CHECK(  2,                Tx2.get_clock_num() );
     }
     catch (...) {
@@ -189,7 +189,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	volatile uint32_t	*vp;
 	vp = Tx.addr_DivReg();
-	CHECKX( 0x00000074, (vp - Tx.get_base_addr()) );
+	CHECKX( 0x00000074, (vp - Tx.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -199,7 +199,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	volatile uint32_t	*vp;
 	vp = Tx1.addr_DivReg();
-	CHECKX( 0x0000007c, (vp - Tx1.get_base_addr()) );
+	CHECKX( 0x0000007c, (vp - Tx1.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -209,7 +209,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	volatile uint32_t	*vp;
 	vp = Tx2.addr_DivReg();
-	CHECKX( 0x00000084, (vp - Tx2.get_base_addr()) );
+	CHECKX( 0x00000084, (vp - Tx2.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
