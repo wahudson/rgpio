@@ -130,14 +130,13 @@ usage:  rgpio [common_opts..] [feature] [options..]
       --reset         reset all bits to power-up state (mode=In)
 
   clock            GpClock generators
-	--set
-	--mash=N	enum
+	--mash=N	set Mash, {0..3}
 	--flip=0
+	--kill=0	set kill the clock generator
 	--enable=0
-	--source=N	enum
-	--divi=N
-	--divf=N
-	--div=N.N
+	--source=N	set clock Source, {0..15}
+	--divi=N	set Divisior integer, {0..4095}
+	--divf=N	set Divisior fraction for MASH, {0..4095}
 
 Major operations:
     1) Show configuration values.
@@ -366,6 +365,41 @@ Addresses:
 
     Use "volatile uint32_t" for register address pointers to be specific
     about word size.  (Also used by wiringPi and bcm2835 libraries.)
+
+Pointers and Addresses:
+    Pointers are byte addresses (the underlying architecture address).
+
+    Pointers are aligned according to the type of object they point to,
+	e.g. a (uint32_t*) pointer is word aligned.
+
+    The documentation is in terms of 32-bit registers, and presumably must
+    be accessed as 32-bit words (not byte accessed).
+
+    We use word pointers because we want to read/write 32-bit values
+    (one word) to the peripheral registers.  Byte pointers (uint8_t*) would
+    read/write only one byte to the register, assuming that byte size
+    load/store is supported by the architecture.
+
+    Pointer arithmetic is in terms of the size of object pointed to, the
+    standard rules of C.
+	e.g. incrementing a (uint32_t*) pointer adds 4 bytes to the pointer
+	value.
+
+	uint32_t*	p1;
+	uint32_t*	p2 = p1 + 1;	// adds 4 bytes
+	int		i = p2 - p1;	// difference is i=1 word
+
+    Byte offsets in the BCM documentation must be converted into word
+    offsets for (uint32_t*) pointers.
+    Often offset enum and constants are defined as a byte offset divided
+    by 4 to make this more explicit.
+
+    I say all this, because confusion can happen when you print out pointer
+    values (byte addresses), yet their difference is a word offset, not
+    a byte offset as might be expected.  (Yes, it happend to me :-)
+
+    Note:  C++ printing pointer values with 'cout << ptr' will show the
+    value in hex with a leading "0x".  Quite convenient.
 
 
 ----------------------------------------------------------------------------

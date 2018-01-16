@@ -19,9 +19,9 @@ class rgClock {
   private:
     const uint32_t	FeatureAddr  = 0x7e101000;	// BCM doc
 
-				// Register offset in Page, Clock0
-    const uint32_t	Ctl_offset   = 0x70;
-    const uint32_t	Div_offset   = 0x74;
+				// Register word offset in Page, Clock0
+    const uint32_t	Ctl_offset   = 0x70 /4;
+    const uint32_t	Div_offset   = 0x74 /4;
 
 				// Bit field positions
     const uint32_t	Mash_pos     = 9;	// ctl[10:9]
@@ -84,6 +84,9 @@ class rgClock {
 
     uint32_t		get_Flip();
     void		put_Flip( uint32_t  bit1 );
+
+    uint32_t		get_Busy();
+    void		put_Busy( uint32_t  bit1 );
 
     uint32_t		get_Kill();
     void		put_Kill( uint32_t  bit1 );

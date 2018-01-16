@@ -85,7 +85,7 @@ rgClock::addr_CtlReg()
     if ( GpioBase == NULL ) {
 	throw std::logic_error ( "rgClock:  not initialized" );
     }
-    return  (GpioBase + Ctl_offset + (ClkNum * 0x8));
+    return  (GpioBase + Ctl_offset + (ClkNum * 2));	// word offsets
 }
 
 /*
@@ -97,7 +97,7 @@ rgClock::addr_DivReg()
     if ( GpioBase == NULL ) {
 	throw std::logic_error ( "rgClock:  not initialized" );
     }
-    return  (GpioBase + Div_offset + (ClkNum * 0x8));
+    return  (GpioBase + Div_offset + (ClkNum * 2));	// word offsets
 }
 
 
@@ -353,7 +353,7 @@ rgClock::put_Mash( uint32_t  bit2 )
 uint32_t
 rgClock::get_Flip()
 {
-    return  ( (CtlReg >> Flip_pos) & 0x3 );
+    return  ( (CtlReg >> Flip_pos) & 0x1 );
 }
 
 void
@@ -371,12 +371,58 @@ rgClock::put_Flip( uint32_t  bit1 )
 
 
 /*
+* Busy field 1-bit value.  (Read-only)
+*/
+uint32_t
+rgClock::get_Busy()
+{
+    return  ( (CtlReg >> Busy_pos) & 0x1 );
+}
+
+void
+rgClock::put_Busy( uint32_t  bit1 )
+{
+    if ( bit1 > 0x1 ) {
+	std::ostringstream	css;
+	css << "rgClock::put_Busy():  require 1-bit arg:  " << bit1;
+	throw std::range_error ( css.str() );
+    }
+
+    CtlReg &= ~( 0x1  << Busy_pos );
+    CtlReg |=  ( bit1 << Busy_pos );
+}
+
+
+/*
+* Kill field 1-bit value.
+*/
+uint32_t
+rgClock::get_Kill()
+{
+    return  ( (CtlReg >> Kill_pos) & 0x1 );
+}
+
+void
+rgClock::put_Kill( uint32_t  bit1 )
+{
+    if ( bit1 > 0x1 ) {
+	std::ostringstream	css;
+	css << "rgClock::put_Kill():  require 1-bit arg:  " << bit1;
+	throw std::range_error ( css.str() );
+    }
+
+    CtlReg &= ~( 0x1  << Kill_pos );
+    CtlReg |=  ( bit1 << Kill_pos );
+}
+
+
+/*
 * Enable field 1-bit value.
 */
 uint32_t
 rgClock::get_Enable()
 {
-    return  ( (CtlReg >> Enable_pos) & 0x3 );
+    return  ( (CtlReg >> Enable_pos) & 0x1 );
 }
 
 void
@@ -399,7 +445,7 @@ rgClock::put_Enable( uint32_t  bit1 )
 uint32_t
 rgClock::get_Source()
 {
-    return  ( (CtlReg >> Source_pos) & 0x3 );
+    return  ( (CtlReg >> Source_pos) & 0xf );
 }
 
 void
@@ -448,7 +494,7 @@ rgClock::put_DivI( uint32_t  bit12 )
 uint32_t
 rgClock::get_DivF()
 {
-    return  ( (DivReg >> DivF_pos) & 0x3 );
+    return  ( (DivReg >> DivF_pos) & 0xfff );
 }
 
 void
