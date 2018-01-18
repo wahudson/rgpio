@@ -312,6 +312,7 @@ rgClock::apply_regs()
     raw_write_regs();
 
     if ( enab ) {		// enable only after reg update
+	put_Enable( enab );	// restore enable
 	enable_clock();
     }
 }
@@ -345,7 +346,7 @@ rgClock::put_PasswdCtl( uint32_t  bit8 )
 
 
 /*
-* Get the MASH field 2-bit value.
+* MASH field 2-bit value.
 */
 uint32_t
 rgClock::get_Mash()

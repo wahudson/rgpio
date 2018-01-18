@@ -147,8 +147,16 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "19", "get_bcm_address() Feature Address" );
+    try {
+	CHECKX( 0x7e101000, Tx.get_bcm_address() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
-//## Direct Register access
+//## Direct low-level access
 //--------------------------------------------------------------------------
 
   CASE( "20a", "addr_CtlReg() clock0" );
@@ -229,7 +237,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
   CASE( "22b", "raw_write_CtlReg()" );
     try {
 	uint32_t	vv;
-	Tx.raw_write_CtlReg( 0xf2345678);
+	Tx.raw_write_CtlReg( 0xf2345678 );
 	vv = Tx.read_CtlReg();
 	CHECKX( 0xf2345678, vv );
     }
@@ -237,8 +245,143 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	FAIL( "unexpected exception" );
     }
 
+//--------------------------------------
+  CASE( "23a", "read_DivReg()" );
+    try {
+	uint32_t	vv;
+	vv = Tx.read_DivReg();
+	CHECKX( 0x00000000, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "23b", "raw_write_DivReg()" );
+    try {
+	uint32_t	vv;
+	Tx.raw_write_DivReg( 0xf7654321 );
+	vv = Tx.read_DivReg();
+	CHECKX( 0xf7654321, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "24a", "read_Busy()" );
+    try {
+	uint32_t	vv;
+	Tx.raw_write_CtlReg( 0x00000080 );
+	vv = Tx.read_Busy();
+	CHECK( 1, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24b", "read_Busy()" );
+    try {
+	uint32_t	vv;
+	Tx.raw_write_CtlReg( 0xffffff7f );
+	vv = Tx.read_Busy();
+	CHECK( 0, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "25a", "read_Enable()" );
+    try {
+	uint32_t	vv;
+	Tx.raw_write_CtlReg( 0x00000010 );
+	vv = Tx.read_Enable();
+	CHECK( 1, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "25b", "read_Enable()" );
+    try {
+	uint32_t	vv;
+	Tx.raw_write_CtlReg( 0xffffffef );
+	vv = Tx.read_Enable();
+	CHECK( 0, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
-//## Field Accessor functions  get_() put_()
+//## Object state operations  grab_regs(), raw_write_regs(), apply_regs()
+//--------------------------------------------------------------------------
+
+//--------------------------------------
+  CASE( "40", "grab_regs()" );
+    try {
+	Tx.raw_write_CtlReg( 0xaa55cc33 );
+	Tx.raw_write_DivReg( 0xff008877 );
+	Tx.grab_regs();
+	CHECKX( 0xaa55cc33, Tx.get_CtlReg() );
+	CHECKX( 0xff008877, Tx.get_DivReg() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "41", "raw_write_regs()" );
+    try {
+	Tx.put_CtlReg( 0x55aa33cc );
+	Tx.put_DivReg( 0x00ff7788 );
+	Tx.raw_write_regs();
+	CHECKX( 0x55aa33cc, Tx.get_CtlReg() );
+	CHECKX( 0x00ff7788, Tx.get_DivReg() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "42a", "apply_regs() enable=0" );
+    try {
+	Tx.raw_write_DivReg( 0xff008877 );
+	Tx.raw_write_CtlReg( 0xaa55cc93 );	// Busy=1, Enable=1
+	Tx.put_CtlReg(       0x55aa336c );	// Enable=0
+	Tx.put_DivReg(       0x00ff7788 );
+	Tx.apply_regs();
+	CHECKX( 0x00ff7788, Tx.read_DivReg() );
+	CHECKX( 0x55aa336c, Tx.read_CtlReg() );
+	CHECKX( 0x55aa336c, Tx.get_CtlReg() );
+	CHECK( 0, Tx.get_Enable() );
+	CHECK( 0, Tx.read_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "42b", "apply_regs() enable=1" );
+    try {
+	Tx.raw_write_DivReg( 0xff008877 );
+	Tx.raw_write_CtlReg( 0xaa55cc63 );	// Busy=0, Enable=0
+	Tx.put_CtlReg(       0x55aa339c );	// Enable=1
+	Tx.put_DivReg(       0x00ff7788 );
+	Tx.apply_regs();
+	CHECKX( 0x00ff7788, Tx.read_DivReg() );
+	CHECKX( 0x55aa339c, Tx.read_CtlReg() );
+	CHECKX( 0x55aa339c, Tx.get_CtlReg() );
+	CHECK( 1, Tx.get_Enable() );
+	CHECK( 1, Tx.read_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+    // Note:  Cannot test internal actions of apply_regs().
+
+
+//--------------------------------------------------------------------------
+//## Object Field Accessors  get_() put_()
 //--------------------------------------------------------------------------
 
 //--------------------------------------
