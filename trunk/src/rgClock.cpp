@@ -322,6 +322,29 @@ rgClock::apply_regs()
 //--------------------------------------------------------------------------
 
 /*
+* Control Password field 8-bit value.  (Write-only)
+*/
+uint32_t
+rgClock::get_PasswdCtl()
+{
+    return  ( (CtlReg >> Passwd_pos) & 0xff );
+}
+
+void
+rgClock::put_PasswdCtl( uint32_t  bit8 )
+{
+    if ( bit8 > 0xff ) {
+	std::ostringstream	css;
+	css << "rgClock::put_PasswdCtl():  require 8-bit arg:  " << bit8;
+	throw std::range_error ( css.str() );
+    }
+
+    CtlReg &= ~( 0xff << Passwd_pos );
+    CtlReg |=  ( bit8 << Passwd_pos );
+}
+
+
+/*
 * Get the MASH field 2-bit value.
 */
 uint32_t
@@ -330,9 +353,6 @@ rgClock::get_Mash()
     return  ( (CtlReg >> Mash_pos) & 0x3 );
 }
 
-/*
-* Set the MASH field 2-bit value.
-*/
 void
 rgClock::put_Mash( uint32_t  bit2 )
 {
@@ -459,6 +479,29 @@ rgClock::put_Source( uint32_t  bit4 )
 
     CtlReg &= ~( 0xf  << Source_pos );
     CtlReg |=  ( bit4 << Source_pos );
+}
+
+
+/*
+* Divider Password field 8-bit value.  (Write-only)
+*/
+uint32_t
+rgClock::get_PasswdDiv()
+{
+    return  ( (DivReg >> Passwd_pos) & 0xff );
+}
+
+void
+rgClock::put_PasswdDiv( uint32_t  bit8 )
+{
+    if ( bit8 > 0xff ) {
+	std::ostringstream	css;
+	css << "rgClock::put_PasswdDiv():  require 8-bit arg:  " << bit8;
+	throw std::range_error ( css.str() );
+    }
+
+    DivReg &= ~( 0xff << Passwd_pos );
+    DivReg |=  ( bit8 << Passwd_pos );
 }
 
 

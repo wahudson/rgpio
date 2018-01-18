@@ -24,6 +24,7 @@ class rgClock {
     const uint32_t	Div_offset   = 0x74 /4;
 
 				// Bit field positions
+    const uint32_t	Passwd_pos   = 24;	// ctl[31:24], div[31:24]
     const uint32_t	Mash_pos     = 9;	// ctl[10:9]
     const uint32_t	Flip_pos     = 8;	// ctl[8]
     const uint32_t	Busy_pos     = 7;	// ctl[7]
@@ -77,7 +78,10 @@ class rgClock {
     void		raw_write_regs();
     void		apply_regs();
 
-		// Field Accessor functions
+		// Object Field Accessors
+
+    uint32_t		get_PasswdCtl();
+    void		put_PasswdCtl( uint32_t  bit2 );
 
     uint32_t		get_Mash();
     void		put_Mash( uint32_t  bit2 );
@@ -96,6 +100,9 @@ class rgClock {
 
     uint32_t		get_Source();
     void		put_Source( uint32_t  bit4 );
+
+    uint32_t		get_PasswdDiv();
+    void		put_PasswdDiv( uint32_t  bit2 );
 
     uint32_t		get_DivI();
     void		put_DivI( uint32_t  bit12 );
