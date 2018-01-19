@@ -86,7 +86,7 @@ class rgClock {
 		// Object Field Accessors
 
     uint32_t		get_PasswdCtl();
-    void		put_PasswdCtl( uint32_t  bit2 );
+    void		put_PasswdCtl( uint32_t  bit8 );
 
     uint32_t		get_Mash();
     void		put_Mash( uint32_t  bit2 );
@@ -107,7 +107,7 @@ class rgClock {
     void		put_Source( uint32_t  bit4 );
 
     uint32_t		get_PasswdDiv();
-    void		put_PasswdDiv( uint32_t  bit2 );
+    void		put_PasswdDiv( uint32_t  bit8 );
 
     uint32_t		get_DivI();
     void		put_DivI( uint32_t  bit12 );

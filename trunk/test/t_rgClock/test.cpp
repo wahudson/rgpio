@@ -5,7 +5,8 @@
 //    20-29  Direct low-level access
 //    30-39  Direct control enable_clock(), kill_generator(), wait_while_Busy()
 //    40-49  Object state operations grab_regs(), raw_write_regs(), apply_regs()
-//    50-69  Object Field Accessors  get_() put_()
+//    50-59  Object Field Accessors  CtlReg  get_() put_()
+//    60-69  Object Field Accessors  DivReg  get_() put_()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -488,8 +489,47 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 
 
 //--------------------------------------------------------------------------
-//## Object Field Accessors  get_() put_()
+//## Object Field Accessors  CtlReg  get_() put_()
 //--------------------------------------------------------------------------
+
+//--------------------------------------
+  CASE( "51a", "get_PasswdCtl()" );
+    try {
+	Tx.put_CtlReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_CtlReg() );
+	Tx.put_PasswdCtl(   0xff );
+	CHECKX(        0xff000000, Tx.get_CtlReg() );
+	CHECKX(        0xff,       Tx.get_PasswdCtl()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "51b", "get_PasswdCtl()" );
+    try {
+	Tx.put_CtlReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_CtlReg() );
+	Tx.put_PasswdCtl(   0x00 );
+	CHECKX(        0x00ffffff, Tx.get_CtlReg() );
+	CHECKX(        0x00,       Tx.get_PasswdCtl()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "51c", "put_PasswdCtl() bad value" );
+    try {
+	Tx.put_PasswdCtl( 0x100 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_PasswdCtl():  require 8-bit arg:  0x100",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
 
 //--------------------------------------
   CASE( "52a", "get_Mash()" );
@@ -523,6 +563,244 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     }
     catch ( range_error& e ) {
 	CHECK( "rgClock::put_Mash():  require 2-bit arg:  4",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "53a", "get_Flip()" );
+    try {
+	Tx.put_CtlReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_CtlReg() );
+	Tx.put_Flip(   0x1 );
+	CHECKX(        0x00000100, Tx.get_CtlReg() );
+	CHECK(         0x1,        Tx.get_Flip()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "53b", "get_Flip()" );
+    try {
+	Tx.put_CtlReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_CtlReg() );
+	Tx.put_Flip(   0x0 );
+	CHECKX(        0xfffffeff, Tx.get_CtlReg() );
+	CHECK(         0x0,        Tx.get_Flip()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "53c", "put_Flip() bad value" );
+    try {
+	Tx.put_Flip( 0x2 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_Flip():  require 1-bit arg:  2",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "54a", "get_Busy()" );
+    try {
+	Tx.put_CtlReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_CtlReg() );
+	Tx.put_Busy(   0x1 );
+	CHECKX(        0x00000080, Tx.get_CtlReg() );
+	CHECK(         0x1,        Tx.get_Busy()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "54b", "get_Busy()" );
+    try {
+	Tx.put_CtlReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_CtlReg() );
+	Tx.put_Busy(   0x0 );
+	CHECKX(        0xffffff7f, Tx.get_CtlReg() );
+	CHECK(         0x0,        Tx.get_Busy()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "54c", "put_Busy() bad value" );
+    try {
+	Tx.put_Busy( 0x2 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_Busy():  require 1-bit arg:  2",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "55a", "get_Kill()" );
+    try {
+	Tx.put_CtlReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_CtlReg() );
+	Tx.put_Kill(   0x1 );
+	CHECKX(        0x00000020, Tx.get_CtlReg() );
+	CHECK(         0x1,        Tx.get_Kill()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "55b", "get_Kill()" );
+    try {
+	Tx.put_CtlReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_CtlReg() );
+	Tx.put_Kill(   0x0 );
+	CHECKX(        0xffffffdf, Tx.get_CtlReg() );
+	CHECK(         0x0,        Tx.get_Kill()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "55c", "put_Kill() bad value" );
+    try {
+	Tx.put_Kill( 0x2 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_Kill():  require 1-bit arg:  2",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "56a", "get_Enable()" );
+    try {
+	Tx.put_CtlReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_CtlReg() );
+	Tx.put_Enable( 0x1 );
+	CHECKX(        0x00000010, Tx.get_CtlReg() );
+	CHECK(         0x1,        Tx.get_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "56b", "get_Enable()" );
+    try {
+	Tx.put_CtlReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_CtlReg() );
+	Tx.put_Enable( 0x0 );
+	CHECKX(        0xffffffef, Tx.get_CtlReg() );
+	CHECK(         0x0,        Tx.get_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "56c", "put_Enable() bad value" );
+    try {
+	Tx.put_Enable( 0x2 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_Enable():  require 1-bit arg:  2",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "57a", "get_Source()" );
+    try {
+	Tx.put_CtlReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_CtlReg() );
+	Tx.put_Source( 0xf );
+	CHECKX(        0x0000000f, Tx.get_CtlReg() );
+	CHECKX(        0xf,        Tx.get_Source() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "57b", "get_Source()" );
+    try {
+	Tx.put_CtlReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_CtlReg() );
+	Tx.put_Source( 0x0 );
+	CHECKX(        0xfffffff0, Tx.get_CtlReg() );
+	CHECKX(        0x0,        Tx.get_Source() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "57c", "put_Source() bad value" );
+    try {
+	Tx.put_Source( 0x10 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_Source():  require 4-bit arg:  0x10",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Object Field Accessors  DivReg  get_() put_()
+//--------------------------------------------------------------------------
+
+//--------------------------------------
+  CASE( "61a", "get_PasswdDiv()" );
+    try {
+	Tx.put_DivReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_DivReg() );
+	Tx.put_PasswdDiv(   0xff );
+	CHECKX(        0xff000000, Tx.get_DivReg() );
+	CHECKX(        0xff,       Tx.get_PasswdDiv()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "61b", "get_PasswdDiv()" );
+    try {
+	Tx.put_DivReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_DivReg() );
+	Tx.put_PasswdDiv(  0x00 );
+	CHECKX(        0x00ffffff, Tx.get_DivReg() );
+	CHECKX(        0x00,       Tx.get_PasswdDiv()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "61c", "put_PasswdDiv() bad value" );
+    try {
+	Tx.put_PasswdDiv( 0x100 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_PasswdDiv():  require 8-bit arg:  0x100",
 	    e.what()
 	);
     }
@@ -568,6 +846,46 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+
+//--------------------------------------
+  CASE( "63a", "get_DivF()" );
+    try {
+	Tx.put_DivReg( 0x00000000 );
+	CHECKX(        0x00000000, Tx.get_DivReg() );
+	Tx.put_DivF(   0xfff );
+	CHECKX(        0x00000fff, Tx.get_DivReg() );
+	CHECKX(        0xfff,      Tx.get_DivF()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "63b", "get_DivF()" );
+    try {
+	Tx.put_DivReg( 0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_DivReg() );
+	Tx.put_DivF(   0x000 );
+	CHECKX(        0xfffff000, Tx.get_DivReg() );
+	CHECKX(        0x000,      Tx.get_DivF()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "63c", "put_DivF() bad value" );
+    try {
+	Tx.put_DivF( 0x1000 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClock::put_DivF():  require 12-bit arg:  0x1000",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 
 //--------------------------------------------------------------------------
 //## Debug

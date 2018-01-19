@@ -345,7 +345,7 @@ rgClock::put_PasswdCtl( uint32_t  bit8 )
 {
     if ( bit8 > 0xff ) {
 	std::ostringstream	css;
-	css << "rgClock::put_PasswdCtl():  require 8-bit arg:  " << bit8;
+	css << "rgClock::put_PasswdCtl():  require 8-bit arg:  0x" << hex << bit8;
 	throw std::range_error ( css.str() );
     }
 
@@ -483,7 +483,7 @@ rgClock::put_Source( uint32_t  bit4 )
 {
     if ( bit4 > 0xf ) {
 	std::ostringstream	css;
-	css << "rgClock::put_Source():  require 4-bit arg:  " << bit4;
+	css << "rgClock::put_Source():  require 4-bit arg:  0x" <<hex << bit4;
 	throw std::range_error ( css.str() );
     }
 
@@ -506,7 +506,7 @@ rgClock::put_PasswdDiv( uint32_t  bit8 )
 {
     if ( bit8 > 0xff ) {
 	std::ostringstream	css;
-	css << "rgClock::put_PasswdDiv():  require 8-bit arg:  " << bit8;
+	css << "rgClock::put_PasswdDiv():  require 8-bit arg:  0x" << hex << bit8;
 	throw std::range_error ( css.str() );
     }
 
