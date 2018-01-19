@@ -5,6 +5,7 @@
 //    20-29  Direct low-level access
 //    30-39  Direct control enable_clock(), kill_generator(), wait_while_Busy()
 //    40-49  Object state operations grab_regs(), raw_write_regs(), apply_regs()
+//    50-69  Object Field Accessors  get_() put_()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -491,7 +492,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 //--------------------------------------------------------------------------
 
 //--------------------------------------
-  CASE( "31a", "get_Mash()" );
+  CASE( "52a", "get_Mash()" );
     try {
 	Tx.put_CtlReg( 0x00000000 );
 	CHECKX(        0x00000000, Tx.get_CtlReg() );
@@ -503,7 +504,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "31b", "get_Mash()" );
+  CASE( "52b", "get_Mash()" );
     try {
 	Tx.put_CtlReg( 0xffffffff );
 	CHECKX(        0xffffffff, Tx.get_CtlReg() );
@@ -515,7 +516,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "31c", "put_Mash() bad value" );
+  CASE( "52c", "put_Mash() bad value" );
     try {
 	Tx.put_Mash( 0x4 );
 	FAIL( "no throw" );
@@ -530,7 +531,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     }
 
 //--------------------------------------
-  CASE( "38a", "get_DivI()" );
+  CASE( "62a", "get_DivI()" );
     try {
 	Tx.put_DivReg( 0x00000000 );
 	CHECKX(        0x00000000, Tx.get_DivReg() );
@@ -542,7 +543,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "38b", "get_DivI()" );
+  CASE( "62b", "get_DivI()" );
     try {
 	Tx.put_DivReg( 0xffffffff );
 	CHECKX(        0xffffffff, Tx.get_DivReg() );
@@ -554,7 +555,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "38c", "put_DivI() bad value" );
+  CASE( "62c", "put_DivI() bad value" );
     try {
 	Tx.put_DivI( 0x1000 );
 	FAIL( "no throw" );
