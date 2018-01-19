@@ -1,6 +1,9 @@
 // 2018-01-01  William A. Hudson
 //
 // Testing:  rgClock  Clock class.
+//    10-19  Constructor
+//    20-29  Direct low-level access
+//    40-49  Object state operations grab_regs(), raw_write_regs(), apply_regs()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -308,6 +311,54 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	Tx.raw_write_CtlReg( 0xffffffef );
 	vv = Tx.read_Enable();
 	CHECK( 0, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Direct control  enable_clock(), wait_while_Busy(), kill_generator()
+//--------------------------------------------------------------------------
+
+  CASE( "30", "enable_clock()" );
+    try {
+	Tx.raw_write_CtlReg( 0x00000000 );
+	Tx.enable_clock();
+	CHECKX( 0x00000010, Tx.read_CtlReg() );
+	CHECK( 1, Tx.read_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "31", "disable_clock()" );
+    try {
+	Tx.raw_write_CtlReg( 0xffffffff );
+	Tx.disable_clock();
+	CHECKX( 0xffffffef, Tx.read_CtlReg() );
+	CHECK( 0, Tx.read_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "32a", "kill_generator()" );
+    try {
+	Tx.raw_write_CtlReg( 0x00000000 );
+	Tx.kill_generator();
+	CHECKX( 0x00000020, Tx.read_CtlReg() );		// Kill=1
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "32b", "kill_generator()" );
+    try {
+	Tx.raw_write_CtlReg( 0xffffffdf );
+	Tx.kill_generator();
+	CHECKX( 0xffffffff, Tx.read_CtlReg() );		// Kill=1
     }
     catch (...) {
 	FAIL( "unexpected exception" );

@@ -253,7 +253,7 @@ rgClock::kill_generator()
     uint32_t		cr;
 
     cr = read_CtlReg();
-    cr |= ( 0x1 << Enable_pos );
+    cr |= ( 0x1 << Kill_pos );
     raw_write_CtlReg( cr );
 }
 
