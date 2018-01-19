@@ -69,8 +69,13 @@ class rgClock {
 		// Direct control:  (modify register fields)
     void		enable_clock();
     void		disable_clock();
+
     bool		wait_disable();
-    bool		wait_while_Busy();
+    bool		wait_while_Busy(
+			    uint32_t            wait_ns,
+			    int                 num_times
+			);
+
     void		kill_generator();
 
 		// Object state operations

@@ -3,6 +3,7 @@
 // Testing:  rgClock  Clock class.
 //    10-19  Constructor
 //    20-29  Direct low-level access
+//    30-39  Direct control enable_clock(), kill_generator(), wait_while_Busy()
 //    40-49  Object state operations grab_regs(), raw_write_regs(), apply_regs()
 //--------------------------------------------------------------------------
 
@@ -317,7 +318,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     }
 
 //--------------------------------------------------------------------------
-//## Direct control  enable_clock(), wait_while_Busy(), kill_generator()
+//## Direct control  enable_clock(), kill_generator(), wait_while_Busy()
 //--------------------------------------------------------------------------
 
   CASE( "30", "enable_clock()" );
@@ -359,6 +360,60 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	Tx.raw_write_CtlReg( 0xffffffdf );
 	Tx.kill_generator();
 	CHECKX( 0xffffffff, Tx.read_CtlReg() );		// Kill=1
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "33a", "wait_disable()" );
+    try {
+	bool		rv;
+	Tx.raw_write_CtlReg( 0x00000010 );		// Busy=0, Enable=1
+	CHECK( 1, Tx.read_Enable() );
+	rv = Tx.wait_disable();
+	CHECK( 0, rv );
+	CHECKX( 0x00000000, Tx.read_CtlReg() );		// Busy=0, Enable=0
+	CHECK( 0, Tx.read_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "33b", "wait_disable()" );
+    try {
+	bool		rv;
+	Tx.raw_write_CtlReg( 0xffffffff );		// Busy=1, Enable=1
+	CHECK( 1, Tx.read_Enable() );
+	rv = Tx.wait_disable();
+	CHECK( 1, rv );
+	CHECKX( 0xffffffef, Tx.read_CtlReg() );		// Busy=1, Enable=0
+	CHECK( 0, Tx.read_Enable() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "34a", "wait_while_Busy()" );
+    try {
+	bool		rv;
+	Tx.raw_write_CtlReg( 0x00000000 );		// Busy=0, Enable=0
+	rv = Tx.wait_while_Busy( 1000, 1 );
+	CHECK( 0, rv );
+	CHECKX( 0x00000000, Tx.read_CtlReg() );		// Busy=0, Enable=0
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "34b", "wait_while_Busy()" );
+    try {
+	bool		rv;
+	Tx.raw_write_CtlReg( 0xffffffff );		// Busy=1, Enable=1
+	rv = Tx.wait_while_Busy( 1000, 1 );
+	CHECK( 1, rv );
+	CHECKX( 0xffffffff, Tx.read_CtlReg() );		// Busy=1, Enable=1
     }
     catch (...) {
 	FAIL( "unexpected exception" );

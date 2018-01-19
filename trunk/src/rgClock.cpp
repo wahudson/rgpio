@@ -192,52 +192,61 @@ rgClock::disable_clock()
 
 /*
 * Disable the clock and wait until not Busy.
-*    Uses an internal time-out.
+*    Uses an internal time-out sized so a normal clock should be stopped.
+*    Intended as a simple combined operation.
+*    Use disable_clock() and wait_while_Busy() for more control.
+* #!! Needs tuning for appropriate wait duration.
 * call:
 *    wait_disable()
 * return:
-*    () = status, 0= success, 1= failure
+*    () = busy status, 0= success clock stopped, 1= still busy
 */
 bool
 rgClock::wait_disable()
 {
+    uint32_t		busy;
+
     disable_clock();
 
-    for ( int i=10;  i>0;  i-- )
+    for ( int i=100;  i>0;  i-- )
     {
-	if ( read_Busy() == 0 ) { break; }
+	busy = read_Busy();
+	if ( busy == 0 ) { break; }
     }
-    //#!! sleep
-    return( 0 );
+    //#!! sleep?
+
+    return  busy;
 }
 
 
 /*
 * Wait for not Busy.
+*    Does not disable the clock or write the CtlReg.
+*    Will time out if clock is still enabled.
+*    Use with disable_clock() or raw_write_regs() to do your own timing.
+* #!! Needs more complete definition.
 * call:
 *    wait_while_Busy( wait_ns )
 *    wait_ns = number of nanoseconds to wait, < 1e9
 * return:
-*    () = status, 0= success, 1= failure
+*    () = busy status, 0= success clock stopped, 1= still busy
 */
 bool
-rgClock::wait_while_Busy()
+rgClock::wait_while_Busy(
+    uint32_t		wait_ns,
+    int			num_times
+)
 {
     uint32_t		busy;
 
-    busy = read_Busy();
-
-    if ( read_Enable() == 1 ) {
-	return 1;
-	// error, not disabled
+    while ( (num_times--) > 0 )
+    {
+	busy = read_Busy();
+	if ( busy == 0 ) { break; }
+	//#!! nanosleep( wait_ns );
     }
 
-    if ( busy ) {
-	return 1;
-    }
-    //#!! sleep
-
-    return 0;
+    return  busy;
 }
 
 
