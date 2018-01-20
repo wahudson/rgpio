@@ -34,6 +34,10 @@ src/		    Source code
     y_io.cpp		rgpio io -- IO pins subcommand
     y_io.h
 
+perf/		    Source code Performance Test Programs
+    Makefile		for building programs
+    clock_perf.cpp	Clock system read/write times.
+
 bin/		    Commands
     rgpio		Raspberry Pi GPIO utility
 ?   rgpio.pod		manpage pod documentation
