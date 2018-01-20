@@ -327,7 +327,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	Tx.raw_write_CtlReg( 0x00000000 );
 	Tx.enable_clock();
-	CHECKX( 0x00000010, Tx.read_CtlReg() );
+	CHECKX( 0x5a000010, Tx.read_CtlReg() );
 	CHECK( 1, Tx.read_Enable() );
     }
     catch (...) {
@@ -339,7 +339,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	Tx.raw_write_CtlReg( 0xffffffff );
 	Tx.disable_clock();
-	CHECKX( 0xffffffef, Tx.read_CtlReg() );
+	CHECKX( 0x5affffef, Tx.read_CtlReg() );
 	CHECK( 0, Tx.read_Enable() );
     }
     catch (...) {
@@ -351,7 +351,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	Tx.raw_write_CtlReg( 0x00000000 );
 	Tx.kill_generator();
-	CHECKX( 0x00000020, Tx.read_CtlReg() );		// Kill=1
+	CHECKX( 0x5a000020, Tx.read_CtlReg() );		// Kill=1
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -361,7 +361,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     try {
 	Tx.raw_write_CtlReg( 0xffffffdf );
 	Tx.kill_generator();
-	CHECKX( 0xffffffff, Tx.read_CtlReg() );		// Kill=1
+	CHECKX( 0x5affffff, Tx.read_CtlReg() );		// Kill=1
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -375,7 +375,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	CHECK( 1, Tx.read_Enable() );
 	rv = Tx.wait_disable();
 	CHECK( 0, rv );
-	CHECKX( 0x00000000, Tx.read_CtlReg() );		// Busy=0, Enable=0
+	CHECKX( 0x5a000000, Tx.read_CtlReg() );		// Busy=0, Enable=0
 	CHECK( 0, Tx.read_Enable() );
     }
     catch (...) {
@@ -389,7 +389,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	CHECK( 1, Tx.read_Enable() );
 	rv = Tx.wait_disable();
 	CHECK( 1, rv );
-	CHECKX( 0xffffffef, Tx.read_CtlReg() );		// Busy=1, Enable=0
+	CHECKX( 0x5affffef, Tx.read_CtlReg() );		// Busy=1, Enable=0
 	CHECK( 0, Tx.read_Enable() );
     }
     catch (...) {
@@ -459,9 +459,9 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	Tx.put_CtlReg(       0x55aa336c );	// Enable=0
 	Tx.put_DivReg(       0x00ff7788 );
 	Tx.apply_regs();
-	CHECKX( 0x00ff7788, Tx.read_DivReg() );
-	CHECKX( 0x55aa336c, Tx.read_CtlReg() );
-	CHECKX( 0x55aa336c, Tx.get_CtlReg() );
+	CHECKX( 0x5aff7788, Tx.read_DivReg() );
+	CHECKX( 0x5aaa336c, Tx.read_CtlReg() );
+	CHECKX( 0x5aaa336c, Tx.get_CtlReg() );
 	CHECK( 0, Tx.get_Enable() );
 	CHECK( 0, Tx.read_Enable() );
     }
@@ -476,9 +476,9 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	Tx.put_CtlReg(       0x55aa339c );	// Enable=1
 	Tx.put_DivReg(       0x00ff7788 );
 	Tx.apply_regs();
-	CHECKX( 0x00ff7788, Tx.read_DivReg() );
-	CHECKX( 0x55aa339c, Tx.read_CtlReg() );
-	CHECKX( 0x55aa339c, Tx.get_CtlReg() );
+	CHECKX( 0x5aff7788, Tx.read_DivReg() );
+	CHECKX( 0x5aaa339c, Tx.read_CtlReg() );
+	CHECKX( 0x5aaa339c, Tx.get_CtlReg() );
 	CHECK( 1, Tx.get_Enable() );
 	CHECK( 1, Tx.read_Enable() );
     }

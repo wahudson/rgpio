@@ -63,6 +63,9 @@ class rgClock {
     void		raw_write_CtlReg( uint32_t  vv );
     void		raw_write_DivReg( uint32_t  vv );
 
+    void		write_CtlReg( uint32_t  vv );
+    void		write_DivReg( uint32_t  vv );
+
     uint32_t		read_Busy();
     uint32_t		read_Enable();
 

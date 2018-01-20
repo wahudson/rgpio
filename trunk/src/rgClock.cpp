@@ -121,7 +121,8 @@ rgClock::read_DivReg()
 
 
 /*
-* Write Control register, no Busy check.
+* Raw Write registers, no Busy check.
+*    Is a no-op unless the password field reg[31:24] = 0x5a
 *    Intended for internal use and Test.
 */
 void
@@ -133,6 +134,24 @@ rgClock::raw_write_CtlReg( uint32_t  vv )
 void
 rgClock::raw_write_DivReg( uint32_t  vv )
 {
+    *( addr_DivReg() ) = vv;
+}
+
+
+/*
+* Write registers, no Busy check, password applied.
+*/
+void
+rgClock::write_CtlReg( uint32_t  vv )
+{
+    vv = (vv & 0x00ffffff) | 0x5a000000;
+    *( addr_CtlReg() ) = vv;
+}
+
+void
+rgClock::write_DivReg( uint32_t  vv )
+{
+    vv = (vv & 0x00ffffff) | 0x5a000000;
     *( addr_DivReg() ) = vv;
 }
 
@@ -172,7 +191,7 @@ rgClock::enable_clock()
 
     cr = read_CtlReg();
     cr |= ( 0x1 << Enable_pos );
-    raw_write_CtlReg( cr );
+    write_CtlReg( cr );
 }
 
 
@@ -186,7 +205,7 @@ rgClock::disable_clock()
 
     cr = read_CtlReg();
     cr &= ~( 0x1 << Enable_pos );
-    raw_write_CtlReg( cr );
+    write_CtlReg( cr );
 }
 
 
@@ -208,7 +227,7 @@ rgClock::wait_disable()
 
     disable_clock();
 
-    for ( int i=100;  i>0;  i-- )
+    for ( int i=1000;  i>0;  i-- )
     {
 	busy = read_Busy();
 	if ( busy == 0 ) { break; }
@@ -263,7 +282,7 @@ rgClock::kill_generator()
 
     cr = read_CtlReg();
     cr |= ( 0x1 << Kill_pos );
-    raw_write_CtlReg( cr );
+    write_CtlReg( cr );
 }
 
 
@@ -296,33 +315,41 @@ rgClock::raw_write_regs()
 
 /*
 * Safely write control registers from the object.
+*    Password is always replaced with 0x5a.
 *    First read the control register.
 *    If not (ENAB=0 and BUSY=0), then set ENAB=0 and wait for BUSY=0.
 *    Then write the registers with ENAB=0.
 *    Then enable the clock if Enable=1.
-* #!! NOT done
+* #!! NOT done.  Passwd?
 */
 void
 rgClock::apply_regs()
 {
-//    uint32_t		cr;
-//    uint32_t		busy;
+    uint32_t		cr;
     uint32_t		enab;
+    bool		rv;
 
-//    cr = read_CtlReg();
-//    if ( cr & (BUSY | ENABLE) ) {
-//	wait_disable();
-//    }
+    cr = read_CtlReg();
+    if ( cr & 0x00000090 ) {	// Busy=1 or Enable=1
+	rv = wait_disable();
+	if ( rv ) {
+	    cerr << "Error:  rgClock::apply_regs() still busy" <<endl;
+	}
+    }
+    //#!! What if still Busy?  Throw?  Kill?
 
     enab = get_Enable();	// save desired state
 
     put_Enable( 0 );
+    put_PasswdCtl( 0x5a );
+    put_PasswdDiv( 0x5a );
 
     raw_write_regs();
 
     if ( enab ) {		// enable only after reg update
-	put_Enable( enab );	// restore enable
-	enable_clock();
+	put_Enable( enab );		// restore enable
+	raw_write_CtlReg( CtlReg );	// enable clock
+//	enable_clock();
     }
 }
 
