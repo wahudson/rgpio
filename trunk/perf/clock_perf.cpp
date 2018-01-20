@@ -12,6 +12,7 @@
 using namespace std;
 
 #include "rgAddrMap.h"
+#include "rgIoPin.h"
 #include "rgClock.h"
 
 #include "Error.h"
@@ -225,9 +226,20 @@ main( int	argc,
 	    cout << "Using Fake memory" <<endl;
 	}
 
+	rgIoPin			Gpx  ( &Amx );		// constructor
 	rgClock			Ckx  ( 0, &Amx );	// constructor
+	uint32_t		vv;
+
+	volatile uint32_t*	pinread = Gpx.addr_PinRead_w0();
+	volatile uint32_t*	pinset  = Gpx.addr_PinSet_w0();
 
 	volatile uint32_t*	ck0ctl = Ckx.addr_CtlReg();
+
+    // Make vars used
+	vv = *pinread;
+	*pinset = 0x00000000;
+	vv = *ck0ctl;
+	rv = vv;	// used
 
 	if ( Opx.debug ) {
 	    cout << "    ck0ctl= " << (uint32_t*)ck0ctl << endl;
@@ -253,10 +265,15 @@ main( int	argc,
 //		memDat[ sample_cnt ] = tpL.tv_nsec - tpold;
 //		tpold = tpL.tv_nsec;
 
-		Ckx.read_CtlReg();
+//		Ckx.read_CtlReg();
 //		Ckx.grab_regs();
-//		Ckx.read_Busy();
-//		rv = *ck0ctl;
+//		vv = Ckx.read_Busy();
+//		vv = *ck0ctl;
+//		*ck0ctl = 0x00000000;
+
+//		*pinset = 0x00000000;
+//		vv = *pinread;
+//		vv = Gpx.read_PinLevel_w0();
 
 		sample_cnt++;
 	    }

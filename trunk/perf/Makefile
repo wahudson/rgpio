@@ -12,6 +12,7 @@ IH         = ../src
 		# all include files for main program dependency
 INCS       = \
         $(IH)/rgAddrMap.h \
+        $(IH)/rgIoPin.h \
         $(IH)/rgClock.h \
         $(IH)/Error.h \
         $(IH)/yOption.h
@@ -19,6 +20,7 @@ INCS       = \
 		# objects not including main()
 OBJS       = \
 	$(OJ)/rgAddrMap.o \
+	$(OJ)/rgIoPin.o \
 	$(OJ)/rgClock.o \
 	$(OJ)/Error.o \
 	$(OJ)/yOption.o
