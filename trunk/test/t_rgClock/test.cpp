@@ -4,7 +4,7 @@
 //    10-19  Constructor
 //    20-29  Direct low-level access
 //    30-39  Direct control enable_clock(), kill_generator(), wait_while_Busy()
-//    40-49  Object state operations grab_regs(), raw_write_regs(), apply_regs()
+//    40-49  Object state operations grab_regs(), write_regs(), apply_regs()
 //    50-59  Object Field Accessors  CtlReg  get_() put_()
 //    60-69  Object Field Accessors  DivReg  get_() put_()
 //--------------------------------------------------------------------------
@@ -251,6 +251,18 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "22c", "write_CtlReg()" );
+    try {
+	uint32_t	vv;
+	Tx.raw_write_CtlReg( 0xff00cc33 );
+	Tx.write_CtlReg( 0x00ff33cc );
+	vv = Tx.read_CtlReg();
+	CHECKX( 0x5aff33cc, vv );	// passwd 0x5a
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
   CASE( "23a", "read_DivReg()" );
     try {
@@ -268,6 +280,18 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 	Tx.raw_write_DivReg( 0xf7654321 );
 	vv = Tx.read_DivReg();
 	CHECKX( 0xf7654321, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "23c", "write_DivReg()" );
+    try {
+	uint32_t	vv;
+	Tx.raw_write_DivReg( 0xff00cc33 );
+	Tx.write_DivReg( 0x00ff33cc );
+	vv = Tx.read_DivReg();
+	CHECKX( 0x5aff33cc, vv );	// passwd 0x5a
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -422,7 +446,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     }
 
 //--------------------------------------------------------------------------
-//## Object state operations  grab_regs(), raw_write_regs(), apply_regs()
+//## Object state operations  grab_regs(), write_regs(), apply_regs()
 //--------------------------------------------------------------------------
 
 //--------------------------------------
@@ -439,13 +463,15 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     }
 
 //--------------------------------------
-  CASE( "41", "raw_write_regs()" );
+  CASE( "41", "write_regs()" );
     try {
-	Tx.put_CtlReg( 0x55aa33cc );
+	Tx.put_CtlReg( 0xffaa33cc );
 	Tx.put_DivReg( 0x00ff7788 );
-	Tx.raw_write_regs();
-	CHECKX( 0x55aa33cc, Tx.get_CtlReg() );
+	Tx.write_regs();
+	CHECKX( 0xffaa33cc, Tx.get_CtlReg() );
 	CHECKX( 0x00ff7788, Tx.get_DivReg() );
+	CHECKX( 0x5aaa33cc, Tx.read_CtlReg() );
+	CHECKX( 0x5aff7788, Tx.read_DivReg() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

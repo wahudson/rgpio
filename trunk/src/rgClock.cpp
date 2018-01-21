@@ -308,14 +308,14 @@ rgClock::grab_regs()
 
 
 /*
-* Raw write control registers from the object.
+* Write control registers from the object.
 *    May glitch or hang the clock generator, unless ENAB=0 and BUSY=0.
 */
 void
-rgClock::raw_write_regs()
+rgClock::write_regs()
 {
-    raw_write_CtlReg( CtlReg );
-    raw_write_DivReg( DivReg );
+    write_CtlReg( CtlReg );
+    write_DivReg( DivReg );
 }
 
 

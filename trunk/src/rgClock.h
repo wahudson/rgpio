@@ -86,8 +86,8 @@ class rgClock {
 
 		// Object state operations
     void		grab_regs();
-    void		raw_write_regs();
-    bool		apply_regs();
+    void		write_regs();	// apply password
+    bool		apply_regs();	// disable/wait for Busy=0
 
 		// Object Field Accessors
 
