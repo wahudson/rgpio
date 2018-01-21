@@ -166,8 +166,6 @@ clock_yOptLong::parse_options()
 void
 clock_yOptLong::print_option_flags()
 {
-    // Beware namespace clash with 'hex'.
-
     cout << "--mash        = " << mash         << endl;
     cout << "--flip        = " << flip         << endl;
     cout << "--kill        = " << kill         << endl;
@@ -203,7 +201,7 @@ clock_yOptLong::print_usage()
 {
     cout <<
     "    Clock generator control\n"
-    "usage:  " << ProgName << " clock [options..]  [N..]\n"
+    "usage:  " << ProgName << " clock [options..]  N..\n"
     "    N                   clock number 0,1,2\n"
     "  modify:\n"
     "    --mash=0            Mash mode {0..3}, 0= integer divison\n"
@@ -216,7 +214,7 @@ clock_yOptLong::print_usage()
 //  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --help              show this usage\n"
-    " #  -v, --verbose       verbose output\n"
+//  " #  -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -237,6 +235,8 @@ y_clock::y_clock(
     AddrMap = rgx;
     MainOpx = opx;
 }
+//#!! Note:  Passing in main program MainOpx as the base class yOption
+// does not give access to all main program arguments.  Not quite what we want.
 
 
 //--------------------------------------------------------------------------
@@ -332,7 +332,9 @@ y_clock::doit()
 		continue;
 	    }
 
-	    cout << "Grab regs" <<endl;
+	    if ( Opx.debug ) {
+		cout << "  Grab regs" <<endl;
+	    }
 	    clk->grab_regs();
 	    n = clk->get_clock_num();
 
@@ -344,8 +346,10 @@ y_clock::doit()
 	    if ( *Opx.divi   ) { clk->put_DivI(   Opx.divi_n   );  md = 1; }
 	    if ( *Opx.divf   ) { clk->put_DivF(   Opx.divf_n   );  md = 1; }
 
-	    if ( md ) {
-		cout << "Modify" <<endl;
+	    if ( md ) {			// modify registers
+		if ( Opx.debug ) {
+		    cout << "  Modify regs" <<endl;
+		}
 		rv = clk->apply_regs();
 
 		if ( Opx.debug ) {
@@ -356,7 +360,9 @@ y_clock::doit()
 		    Error::msg( "rgClock::apply_regs() still busy\n" );
 		}
 
-		cout << "Grab regs" <<endl;
+		if ( Opx.debug ) {
+		    cout << "  Grab regs" <<endl;
+		}
 		clk->grab_regs();
 	    }
 

@@ -788,6 +788,9 @@ Object data:
 
     uint32_t		CtlReg;		// Control  register value
     uint32_t		DivReg;		// Divisior register value
+
+    int			BusyCount;	// Number of read_Busy() calls in last
+					//    wait_disable() or apply_regs().
 }
 
 

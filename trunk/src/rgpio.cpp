@@ -146,13 +146,14 @@ yOptLong::print_usage()
     "usage:  " << ProgName << " [common_opts..]  feature  [options..]\n"
     "  feature:\n"
     "    io           General Purpose IO pins\n"
+    "    fsel         Pin Function Select\n"
     "    clock        Clock generator\n"
     "  common options:\n"
     "    --dev=m|g|f         device file type\n"
-    "    --ro                read only\n"
+    "  # --ro                read only\n"
     "    --help              show this usage\n"
-    "    -v, --verbose       verbose output\n"
-    "    --debug             debug output\n"
+//  "    -v, --verbose       verbose output\n"
+//  "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
 
@@ -183,7 +184,6 @@ main( int	argc,
 	if ( Error::has_err() )  return 1;
 
 	rgAddrMap		Amx;	// constructor
-	//#!! better name?
 
 	Amx.config_FakeNoPi( 1 );	// when not on RPi
 
@@ -206,24 +206,23 @@ main( int	argc,
 	//#!! drop_capabilities()
 
 	if (      Opx.feature == "io"       ) {
-	    cout << "do io" << endl;
-
+	    cout << "IO Pin Registers:" << endl;
 	    y_io		iox  ( &Opx, &Amx );	// constructor
 	    return  iox.doit();
 	}
 	else if ( Opx.feature == "fsel"    ) {
-	    cout << "do fsel" << endl;
-
+	    cout << "Pin Function Select:" << endl;
 	    y_fsel		fx  ( &Opx, &Amx );	// constructor
 	    return  fx.doit();
 	}
 	else if ( Opx.feature == "clock"    ) {
-	    cout << "do clock" << endl;
+	    cout << "Clock Controls:" << endl;
 	    y_clock		cx  ( &Opx, &Amx );	// constructor
 	    return  cx.doit();
 	}
 	else if ( Opx.feature == ""         ) {
-	    cout << "do nothing" << endl;
+	    cout << "Do nothing.  Try '" << Opx.ProgName << " --help'" << endl;
+	    // Useful to verify device file access.
 	    return( 0 );
 	}
 	else {
