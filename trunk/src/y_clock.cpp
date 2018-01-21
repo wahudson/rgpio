@@ -324,6 +324,7 @@ y_clock::doit()
 	    rgClock		*clk;
 	    int			n;
 	    bool		md = 0;
+	    bool		rv;
 
 	    clk = Cpx[ii];
 
@@ -345,11 +346,14 @@ y_clock::doit()
 
 	    if ( md ) {
 		cout << "Modify" <<endl;
-		clk->apply_regs();
+		rv = clk->apply_regs();
 
 		if ( Opx.debug ) {
 		    cout << "    Busy wait count= " << clk->get_BusyCount()
 			 <<endl;
+		}
+		if ( rv ) {
+		    Error::msg( "rgClock::apply_regs() still busy\n" );
 		}
 
 		cout << "Grab regs" <<endl;

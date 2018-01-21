@@ -326,21 +326,22 @@ rgClock::raw_write_regs()
 *    If not (ENAB=0 and BUSY=0), then set ENAB=0 and wait for BUSY=0.
 *    Then write the registers with ENAB=0.
 *    Then enable the clock if Enable=1.
+* return:
+*    () = Busy status, 0= ok, 1= still busy when registers were written, i.e.
+*             wait_disable() timed out.
 */
-void
+bool
 rgClock::apply_regs()
 {
     uint32_t		cr;
     uint32_t		enab;
-    bool		rv;
+    bool		rv    = 0;
 
     cr = read_CtlReg();
     if ( cr & 0x00000090 ) {	// Busy=1 or Enable=1
 	rv = wait_disable();
-	if ( rv ) {
-	    cerr << "Error:  rgClock::apply_regs() still busy" <<endl;
-	}
     }
+    // Continue if still Busy
     //#!! What if still Busy?  Throw?  Kill?
 
     enab = get_Enable();	// save desired state
@@ -356,6 +357,8 @@ rgClock::apply_regs()
 	put_Enable( enab );		// restore enable
 	raw_write_CtlReg( CtlReg );	// enable clock
     }
+
+    return  rv;
 }
 
 

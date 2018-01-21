@@ -87,7 +87,7 @@ class rgClock {
 		// Object state operations
     void		grab_regs();
     void		raw_write_regs();
-    void		apply_regs();
+    bool		apply_regs();
 
 		// Object Field Accessors
 

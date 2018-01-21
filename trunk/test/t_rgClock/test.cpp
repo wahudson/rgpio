@@ -454,11 +454,13 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 //--------------------------------------
   CASE( "42a", "apply_regs() enable=0" );
     try {
+	bool		rv;
 	Tx.raw_write_DivReg( 0xff008877 );
 	Tx.raw_write_CtlReg( 0xaa55cc93 );	// Busy=1, Enable=1
 	Tx.put_CtlReg(       0x55aa336c );	// Enable=0
 	Tx.put_DivReg(       0x00ff7788 );
-	Tx.apply_regs();
+	rv = Tx.apply_regs();
+	CHECK( 1, rv );
 	CHECKX( 0x5aff7788, Tx.read_DivReg() );
 	CHECKX( 0x5aaa336c, Tx.read_CtlReg() );
 	CHECKX( 0x5aaa336c, Tx.get_CtlReg() );
@@ -471,11 +473,13 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
 
   CASE( "42b", "apply_regs() enable=1" );
     try {
+	bool		rv;
 	Tx.raw_write_DivReg( 0xff008877 );
 	Tx.raw_write_CtlReg( 0xaa55cc63 );	// Busy=0, Enable=0
 	Tx.put_CtlReg(       0x55aa339c );	// Enable=1
 	Tx.put_DivReg(       0x00ff7788 );
-	Tx.apply_regs();
+	rv = Tx.apply_regs();
+	CHECK( 0, rv );
 	CHECKX( 0x5aff7788, Tx.read_DivReg() );
 	CHECKX( 0x5aaa339c, Tx.read_CtlReg() );
 	CHECKX( 0x5aaa339c, Tx.get_CtlReg() );
