@@ -16,6 +16,9 @@ class rgClock {
     uint32_t		CtlReg;		// Control  register value
     uint32_t		DivReg;		// Divisior register value
 
+    int			BusyCount;	// Number of read_Busy() calls in last
+					//    wait_disable() or apply_regs().
+
   private:
     const uint32_t	FeatureAddr  = 0x7e101000;	// BCM doc
 
@@ -138,6 +141,12 @@ class rgClock {
     inline uint32_t		get_bcm_address()
     {
 	return FeatureAddr;
+    }
+
+    // Number of read_Busy() calls in last wait_disable().
+    inline int			get_BusyCount()
+    {
+	return BusyCount;
     }
 
 };

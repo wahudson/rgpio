@@ -346,6 +346,12 @@ y_clock::doit()
 	    if ( md ) {
 		cout << "Modify" <<endl;
 		clk->apply_regs();
+
+		if ( Opx.debug ) {
+		    cout << "    Busy wait count= " << clk->get_BusyCount()
+			 <<endl;
+		}
+
 		cout << "Grab regs" <<endl;
 		clk->grab_regs();
 	    }

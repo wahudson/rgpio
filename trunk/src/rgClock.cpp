@@ -49,6 +49,7 @@ rgClock::rgClock(
     ClkNum   = clknum;
     CtlReg   = 0;
     DivReg   = 0;
+    BusyCount  = 0;
 }
 
 
@@ -214,25 +215,30 @@ rgClock::disable_clock()
 *    Uses an internal time-out sized so a normal clock should be stopped.
 *    Intended as a simple combined operation.
 *    Use disable_clock() and wait_while_Busy() for more control.
-* #!! Needs tuning for appropriate wait duration.
+* Timeout - read_Busy() takes about 370 ns on RPi3, so 10,000 counts is
+*    about 3.7 ms.  Sleep may not be worthwhile?
 * call:
 *    wait_disable()
 * return:
 *    () = busy status, 0= success clock stopped, 1= still busy
+*    BusyCount = number of read_Busy() calls taken
 */
 bool
 rgClock::wait_disable()
 {
     uint32_t		busy;
+    int			i;
 
     disable_clock();
 
-    for ( int i=1000;  i>0;  i-- )
+    for ( i=1;  i<=10000;  i++ )	//#!! tuning?
     {
 	busy = read_Busy();
 	if ( busy == 0 ) { break; }
     }
-    //#!! sleep?
+    BusyCount = i;		// save count in object
+
+    // cerr << "wait_disable() loop i= " << i <<endl;
 
     return  busy;
 }
@@ -320,7 +326,6 @@ rgClock::raw_write_regs()
 *    If not (ENAB=0 and BUSY=0), then set ENAB=0 and wait for BUSY=0.
 *    Then write the registers with ENAB=0.
 *    Then enable the clock if Enable=1.
-* #!! NOT done.  Passwd?
 */
 void
 rgClock::apply_regs()
@@ -344,12 +349,12 @@ rgClock::apply_regs()
     put_PasswdCtl( 0x5a );
     put_PasswdDiv( 0x5a );
 
-    raw_write_regs();
+    raw_write_CtlReg( CtlReg );
+    raw_write_DivReg( DivReg );
 
     if ( enab ) {		// enable only after reg update
 	put_Enable( enab );		// restore enable
 	raw_write_CtlReg( CtlReg );	// enable clock
-//	enable_clock();
     }
 }
 
