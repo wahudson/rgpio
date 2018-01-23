@@ -9,6 +9,7 @@
 #include <sstream>	// std::ostringstream
 #include <string>
 #include <stdexcept>
+#include <map>
 
 #include <unistd.h>
 #include <fcntl.h>	// open()
@@ -236,7 +237,7 @@ rgAddrMap::get_mem_block(
 )
 {
     int			r_addr;		// RPi real addr
-    void		*mem_block;
+    void*		mem_block;
 
     // Check page alignment.
     if ( (p_addr & 0x0fff) != 0 ) {
@@ -246,9 +247,18 @@ rgAddrMap::get_mem_block(
 	throw std::range_error ( css.str() );
     }
 
+    // Convert BCM document address to RPi address.
     r_addr = bcm2rpi_addr( p_addr );
 
+    // Check cache to see if it is previously mapped.
+    void*&		cache_ref = BlkCache[r_addr];
+
+    if ( cache_ref != NULL ) {
+	return  (volatile uint32_t*)cache_ref;
+    }
+
     if ( FakeMem ) {
+	cache_ref = (void*)FakeBlock;
 	return (volatile uint32_t*)FakeBlock;
     }
 
@@ -275,7 +285,8 @@ rgAddrMap::get_mem_block(
 	throw std::runtime_error ( ss );
     }
 
-//#!! cache mem_block
+    // Insert memory block into cache.
+    cache_ref = mem_block;
 
 //    cerr << "    mem_block= " << (uint32_t *)mem_block << endl;
 

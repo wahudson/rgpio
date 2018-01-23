@@ -3,6 +3,8 @@
 #ifndef rgAddrMap_P
 #define rgAddrMap_P
 
+#include <map>
+
 //--------------------------------------------------------------------------
 // rGPIO Address Map class
 //--------------------------------------------------------------------------
@@ -17,6 +19,9 @@ class rgAddrMap {
 
     const char		*ModeStr;	// memory mode string, NULL= unset,
 					// "/dev/mem", "/dev/gpiomem", "fake_mem"
+
+    std::map<uint32_t,void*>  BlkCache;	// cache of mapped memory blocks
+
     int			Prot;		// mmap() prot field
     bool		Debug;		// debug trace on stderr
 
@@ -62,6 +67,12 @@ class rgAddrMap {
     inline bool		is_fake_mem() {		// TRUE if using fake memory
 	return FakeMem;
     };
+
+				// Test and Debug
+    inline int		size_BlkCache() {
+	return  BlkCache.size();
+    };
+
 };
 
 
