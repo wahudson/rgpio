@@ -81,6 +81,7 @@ int main()
 	rgAddrMap		bx;
 	uint32_t		radd = bx.bcm2rpi_addr( 0x7f000000 );
 	CHECK( 0x3f000000, radd );
+	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x7f000000\n"
@@ -97,6 +98,7 @@ int main()
 	rgAddrMap		bx;
 	uint32_t		radd = bx.bcm2rpi_addr( 0x7dffffff );
 	CHECK( 0x3f000000, radd );
+	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x7dffffff\n"
@@ -361,7 +363,7 @@ if ( getenv( "TESTONRPI" ) ) {
 //## get_mem_block() Fake memory
 //--------------------------------------------------------------------------
 
-  CASE( "60", "get_mem_block() no mode" );
+  CASE( "60", "get_mem_block() no device open" );
     try {
 	rgAddrMap		bx;
 	bx.get_mem_block( 0x7e200000 );
@@ -436,6 +438,81 @@ if ( getenv( "TESTONRPI" ) ) {
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+
+//--------------------------------------------------------------------------
+//## get_mem_block() Cache
+//--------------------------------------------------------------------------
+
+  CASE( "71a", "get_mem_block() same addr" );
+    try {
+	rgAddrMap		bx;
+	volatile uint32_t*	v1;
+	volatile uint32_t*	v2;
+	bx.open_fake_mem();
+	CHECK( 0, bx.size_BlkCache() );
+	v1 = bx.get_mem_block( 0x7e200000 );
+	CHECK( 1, bx.size_BlkCache() );
+	v2 = bx.get_mem_block( 0x7e200000 );
+	CHECK( 1, bx.size_BlkCache() );
+	CHECK( 1, (v1 == v2) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "71b", "get_mem_block() different addr" );
+    try {
+	rgAddrMap		bx;
+	volatile uint32_t*	v1;
+	volatile uint32_t*	v2;
+	bx.open_fake_mem();
+	v1 = bx.get_mem_block( 0x7e200000 );
+	CHECK( 1, bx.size_BlkCache() );
+	v2 = bx.get_mem_block( 0x7e210000 );
+	CHECK( 2, bx.size_BlkCache() );
+	CHECK( 1, (v1 == v2) );		// fake memory block
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+if ( getenv( "TESTONRPI" ) ) {
+
+  CASE( "72a", "get_mem_block() same addr" );
+    try {
+	rgAddrMap		bx;
+	volatile uint32_t*	v1;
+	volatile uint32_t*	v2;
+	bx.open_dev_gpiomem();
+	CHECK( 0, bx.size_BlkCache() );
+	v1 = bx.get_mem_block( 0x7e200000 );
+	CHECK( 1, bx.size_BlkCache() );
+	v2 = bx.get_mem_block( 0x7e200000 );
+	CHECK( 1, bx.size_BlkCache() );
+	CHECK( 1, (v1 == v2) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "72b", "get_mem_block() different addr" );
+    try {
+	rgAddrMap		bx;
+	volatile uint32_t*	v1;
+	volatile uint32_t*	v2;
+	bx.open_dev_gpiomem();
+	v1 = bx.get_mem_block( 0x7e200000 );
+	CHECK( 1, bx.size_BlkCache() );
+	v2 = bx.get_mem_block( 0x7e210000 );
+	CHECK( 2, bx.size_BlkCache() );
+	CHECK( 0, (v1 == v2) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+}
+
 
   CASE( "99", "Done" );
 }
