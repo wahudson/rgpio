@@ -1,0 +1,265 @@
+2018-01-21
+		rgpio - SPI Design Architecure
+		------------------------------
+
+Raspberry Pi GPIO Tool and Library
+
+See also:  doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    Referenced by RaspberryPi.
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
+
+https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
+
+https://elinux.org/RPi_SPI
+
+https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
+
+
+----------------------------------------------------------------------------
+## Discussion
+----------------------------------------------------------------------------
+
+There are 3 SPI masters, of two different flavors:
+
+1)  SPI1, SPI2 -- ch 2.3  Universal SPI Master  (p. 20-27) also
+			    referred to as Auxiliary peripherals.
+
+2)  SPI0       -- ch 10.  SPI  (p. 148-159)
+		Less general, but has DMA.
+		This seems to be the mainline SPI used by many things
+		on RPi.
+
+The Universal SPI Master seems much more flexible, and seems to be better
+described.
+
+They are pretty unrelated in control structure.
+
+Possible Class Names:
+ >  rgSpi0		Spi0 DMA
+    rgSpi
+
+    rgSpiAux		Universal SPI Master Spi1, Spi2
+    rgSpiA
+    rgSpiU
+    rgSpiUniv
+    rgSpiM
+    rgSpiMs
+    rgSpiMaster
+    rgSpiMr
+    rgUnivSpi
+ >  rgUniSpi
+    rgUSpi
+    rgAuxSpi
+
+ >  rgMiniUart		Mini Uart
+    rgMUart
+    rgAuxUart
+
+    rgAux		The Auxilliary registers
+ >  rgAuxCon
+    rgAuxEn
+
+    The Auxilliary enable and IRQ registers have only 3-bits each.
+    Probably replicate them in both the Universal SPI Master and
+    Mini Uart classes.
+
+
+----------------------------------------------------------------------------
+## Universal SPI Master
+----------------------------------------------------------------------------
+
+Shares two Auxiliary registers which controls the MiniUart and the
+two Universal SPI Masters.
+
+    AUXIRQ Register
+    AUXENB Register
+
+    "If the enable bits are clear you will have no access to a peripheral.
+    You can not even read or write the registers!"
+
+BCM documentation confusion:
+    Confustion on width of fifo.  The intro clearly states
+    "4 entries 32-bit wide transmit and receive FIFOs."
+    While the fifo access register shows valid "Data[15:0]".
+    The Variable Width section refers to [23:0] as the transmitted data.
+
+    The addresses at the begining of chapter 2 are different than those
+    in the Universal SPI Master section.
+
+Register names:
+    Cntl0Reg	-
+    Cntl1Reg	- these two combine for all control fields
+    StatReg
+    PeekReg
+    FifoReg
+    FifoHoldReg
+
+    Register names in the object have suffix "Reg" to make it more unique.
+    Names in the full register access functions drop the "Reg" suffix, since
+    the rest of the function name, e.g. addr_, read_, write_ make it clear
+    that it is a full register.
+
+    Only the control and status registers are copied in the object for
+    field manipulation.  The Fifo data access registers are always direct
+    read/write access, since they have side effects on the Spi state.
+    Also they are full word accesses, so no bit twiddleing needed.
+
+BCM Register names:
+    rgUniSpi	BCM
+    --------	------
+    Cntl0	CNTL0
+    Cntl1	CNTL1
+    Stat	STAT
+    Peek	PEEK
+    Fifo	IO
+    FifoH	TXHOLD
+
+    BCM prefix these names with "AUXSPI0_".
+    No global prefix is needed here because the use is qualified by the class.
+    The Fifo registers were renamed to be a little more explicit, as "IO" is
+    too generic.
+
+    The Fifo and FifoH registers differ only in side effect of holding CS (chip
+    select) lines.  These names hopefully make that a little more apparent.
+    FifoH was choosen, instead of FifoHold, to keep it shorter.
+
+Naming functions:
+    Need a method to help user know wheather a whole register is acted on,
+    or is it a bit field.
+
+    read_REG()		Read whole register.
+    read_FIELD_1()	Read a bit field.  The number is size of field.
+
+    The numeric suffix, e.g. "_1" indicates that it is a field access, and
+    is the field width.
+    I really like the number suffix, e.g. "_1" to indicate number of bits in
+    the field.  This makes it very explicit at the user call point.
+
+    The intent is to make the use of the library functions as clear as
+    possible, and somewhat match the documentation.
+ >  It is NOT intended to abstract the Feature or make it so the user
+ >  interface does not change when porting to another machine.
+
+
+----------------------------------------------------------------------------
+## rgUniSpi Object - Universal SPI Master
+----------------------------------------------------------------------------
+
+See:  p.20-27  2.3 Universal SPI Master
+
+
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
+
+    uint32_t		SpiNum;		// SPI number {1,2}
+
+    uint32_t		Cntl0Reg;	// Control register
+    uint32_t		Cntl1Reg;	// Control register
+    uint32_t		StatReg;	// Status register
+
+}
+
+
+Methods:
+
+    get_base_addr()		GpioBase address
+    get_spi_num()		Get SPI number {1,2}
+
+			Enable/IRQ bits in shared Aux register:
+    read_Spi_IRQ_1()		interrupt request bit, read-only
+    read_Spi_Enable_1()		SPI module enable bit
+    write_Spi_Enable_1(V)	SPI module enable bit
+
+    addr_AuxIrq()		whole register
+    addr_AuxEnable()
+
+			Direct low-level access:
+    addr_Cntl0()		Address of register..
+    addr_Cntl1()
+    addr_Stat()
+    addr_Peek()
+    addr_Fifo()
+    addr_FifoH()
+
+    read_Cntl0()		Read register..
+    read_Cntl1()
+    read_Stat()
+    read_Peek()
+    read_Fifo()
+    read_FifoH()		read_FifoHold() read_Fiho()  read_FiHo()
+
+    write_Cntl0(V)		Write register..
+    write_Cntl1(V)
+    write_Stat(V)
+    write_Peek(V)
+    write_Fifo(V)
+    write_FifoH(V)
+
+    read_TxFull_1()		Read-only selected bits..
+    read_Busy_1()
+
+
+			Direct control:  (modify register fields)
+    clear_fifos()
+  ? enable_spi()
+
+			Object state operations:
+    grab_regs()			Read all Cntl/Status regs into obj.
+    write_regs()		Write object to registers.
+
+			Generic Field accessors:  (private)
+    get_field(  Reg, Pos, Len )
+    put_field( &Reg, Pos, Len, Val )
+
+			Field accessors of object state:
+    get_()
+    put_(V)
+    ...
+    			Cntl0 fields
+    get_Speed_12()
+    get_ChipSelects_3()
+    get_PostInMode_1()
+    get_VariableCS_1()
+    get_VariableWidth_1()
+    get_DoutHoldTime_2()
+    get_EnableSerial_1()
+    get_InRising_1()
+    get_ClearFifos_1()
+    get_OutRising_1()
+    get_InvertClk_1()
+    get_OutMsbFirst_1()		get_OutBigEndian_1()	Shift out MS bit first
+    get_ShiftLength_1()
+
+    			Cntl1 fields
+    get_CsHighTime_3()
+    get_TxEmptyIRQ_1()
+    get_DoneIRQ_1()
+    get_InMsbFirst_1()		get_InBigEndian_1()	Shift in MS bit first
+    get_KeepInput_1()
+
+			Status Fields
+    get_TxFifoLevel_8()		[31:24] really?
+    get_RxFifoLevel_12()	[23:12] really?
+    get_TxFull_1()
+    get_TxEmpty_1()
+    get_RxEmpty_1()
+    get_Busy_1()
+    get_BitCount_6()
+
+
+			Test/Debug accessors of object:
+    get_Cntl0()
+    get_Cntl1()
+    get_Stat()
+
+    put_Cntl0(V)
+    put_Cntl1(V)
+    put_Stat(V)
+
