@@ -12,6 +12,7 @@ test:
 	cd t_rgClock          && make test
 	cd t_rgFselPin        && make test
 	cd t_rgIoPin          && make test
+	cd t_rgUniSpi         && make test
 #	cd t_utLib1           && make test
 
 clean:
@@ -20,5 +21,6 @@ clean:
 	cd t_rgClock          && make clean
 	cd t_rgFselPin        && make clean
 	cd t_rgIoPin          && make clean
+	cd t_rgUniSpi        && make clean
 #	cd t_utLib1           && make clean
 
