@@ -15,12 +15,14 @@ INCS       = \
         rgClock.h \
         rgFselPin.h \
         rgIoPin.h \
+        rgUniSpi.h \
         Error.h \
         y_clock.h \
         y_fsel.h \
         y_io.h \
+        y_uspi.h \
+        yOpVal.h \
         yOption.h
-#        gGpClock.h \
 
 		# objects not including main()
 OBJS       = \
@@ -29,12 +31,14 @@ OBJS       = \
 	$(OJ)/rgClock.o \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIoPin.o \
+	$(OJ)/rgUniSpi.o \
 	$(OJ)/Error.o \
 	$(OJ)/y_clock.o \
 	$(OJ)/y_fsel.o \
 	$(OJ)/y_io.o \
+	$(OJ)/y_uspi.o \
+	$(OJ)/yOpVal.o \
 	$(OJ)/yOption.o
-#	$(OJ)/gGpClock.o \
 
 		# compiler flags
 	# -std=c++11  needed for std::stoi
@@ -84,6 +88,9 @@ $(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
 $(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_io.cpp
 
+$(OJ)/y_uspi.o:		y_uspi.cpp  y_uspi.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_uspi.cpp
+
 
 $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgAddrMap.cpp
@@ -101,11 +108,15 @@ $(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPin.h
 $(OJ)/rgIoPin.o:	rgIoPin.cpp  rgIoPin.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgIoPin.cpp
 
-$(OJ)/gGpClock.o:	gGpClock.cpp  gGpClock.h
-	g++ $(CXXFLAGS) -o $@  -c gGpClock.cpp
+$(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
+	g++ $(CXXFLAGS) -o $@  -c rgUniSpi.cpp
+
 
 $(OJ)/Error.o:		Error.cpp  Error.h
 	g++ $(CXXFLAGS) -o $@  -c Error.cpp
+
+$(OJ)/yOpVal.o:		yOpVal.cpp  yOpVal.h
+	g++ $(CXXFLAGS) -o $@  -c yOpVal.cpp
 
 $(OJ)/yOption.o:	yOption.cpp  yOption.h  Error.h
 	g++ $(CXXFLAGS) -o $@  -c yOption.cpp

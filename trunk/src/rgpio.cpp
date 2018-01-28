@@ -16,6 +16,7 @@ using namespace std;
 #include "y_clock.h"
 #include "y_fsel.h"
 #include "y_io.h"
+#include "y_uspi.h"
 
 #include "Error.h"
 #include "yOption.h"
@@ -219,6 +220,11 @@ main( int	argc,
 	    cout << "Clock Controls:" << endl;
 	    y_clock		cx  ( &Opx, &Amx );	// constructor
 	    return  cx.doit();
+	}
+	else if ( Opx.feature == "uspi"    ) {
+	    cout << "Universal SPI Master:" << endl;
+	    y_uspi		usx  ( &Opx, &Amx );	// constructor
+	    return  usx.doit();
 	}
 	else if ( Opx.feature == ""         ) {
 	    cout << "Do nothing.  Try '" << Opx.ProgName << " --help'" << endl;
