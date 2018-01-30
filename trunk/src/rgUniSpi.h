@@ -69,6 +69,9 @@ class rgUniSpi {
     inline uint32_t	read_Cntl0()      { return *(addr_Cntl0());     }
     inline uint32_t	read_Cntl1()      { return *(addr_Cntl1());     }
     inline uint32_t	read_Stat()       { return *(addr_Stat());      }
+    inline uint32_t	read_Peek()       { return *(addr_Peek());      }
+    inline uint32_t	read_Fifo()       { return *(addr_Fifo());      }
+    inline uint32_t	read_FifoH()      { return *(addr_FifoH());     }
 
     inline void		write_AuxIrq(    uint32_t reg ) {
 		       *(addr_AuxIrq())    = reg;
@@ -85,6 +88,12 @@ class rgUniSpi {
     }
     inline void		write_Stat(      uint32_t reg ) {
 		       *(addr_Stat())      = reg;
+    }
+    inline void		write_Fifo(      uint32_t reg ) {
+		       *(addr_Fifo())      = reg;
+    }
+    inline void		write_FifoH(     uint32_t reg ) {
+		       *(addr_FifoH())     = reg;
     }
 
 		// Direct control:  (modify register fields)
@@ -112,6 +121,56 @@ class rgUniSpi {
 
     uint32_t		get_Speed_12();
     void		put_Speed_12( uint32_t  val );
+
+    inline uint32_t	get_ChipSelects_3() {
+				return  get_field(  Cntl0Reg, 17, 0x3 );
+    }
+    inline void		put_ChipSelects_3( uint32_t fv ) {
+					put_field( &Cntl0Reg, 17, 0x3, fv );
+    }
+
+    inline uint32_t	get_VariableCS_1() {
+				return  get_field(  Cntl0Reg, 15, 0x1 );
+    }
+    inline void		put_VariableCS_1( uint32_t fv ) {
+					put_field( &Cntl0Reg, 15, 0x1, fv );
+    }
+
+    inline uint32_t	get_VariableWidth_1() {
+				return  get_field(  Cntl0Reg, 14, 0x1 );
+    }
+    inline void		put_VariableWidth_1( uint32_t fv ) {
+					put_field( &Cntl0Reg, 14, 0x1, fv );
+    }
+
+    inline uint32_t	get_EnableSerial_1() {
+				return  get_field(  Cntl0Reg, 11, 0x1 );
+    }
+    inline void		put_EnableSerial_1( uint32_t fv ) {
+					put_field( &Cntl0Reg, 11, 0x1, fv );
+    }
+
+    inline uint32_t	get_ClearFifos_1() {
+				return  get_field(  Cntl0Reg,  9, 0x1 );
+    }
+    inline void		put_ClearFifos_1( uint32_t fv ) {
+					put_field( &Cntl0Reg,  9, 0x1, fv );
+    }
+
+    inline uint32_t	get_OutMsbFirst_1() {
+				return  get_field(  Cntl0Reg,  6, 0x1 );
+    }
+    inline void		put_OutMsbFirst_1( uint32_t fv ) {
+					put_field( &Cntl0Reg,  6, 0x1, fv );
+    }
+
+    inline uint32_t	get_ShiftLength_6() {
+				return  get_field(  Cntl0Reg,  0, 0x3f );
+    }
+    inline void		put_ShiftLength_6( uint32_t fv ) {
+					put_field( &Cntl0Reg,  0, 0x3f, fv );
+    }
+
 
 		// Test/Debug accessors
 

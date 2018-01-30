@@ -191,14 +191,14 @@ Methods:
     read_Cntl0()		Read register..
     read_Cntl1()
     read_Stat()
-    read_Peek()
+    read_Peek()			(read-only)
     read_Fifo()
     read_FifoH()		read_FifoHold() read_Fiho()  read_FiHo()
 
     write_Cntl0(V)		Write register..
     write_Cntl1(V)
     write_Stat(V)
-    write_Peek(V)
+    write_Peek(V)		(read-only)
     write_Fifo(V)
     write_FifoH(V)
 
@@ -235,7 +235,7 @@ Methods:
     get_OutRising_1()
     get_InvertClk_1()
     get_OutMsbFirst_1()		get_OutBigEndian_1()	Shift out MS bit first
-    get_ShiftLength_1()
+    get_ShiftLength_6()
 
     			Cntl1 fields
     get_CsHighTime_3()

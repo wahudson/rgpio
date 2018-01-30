@@ -382,6 +382,92 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
+//--------------------------------------------------------------------------
+//## Direct register access
+//--------------------------------------------------------------------------
+
+//--------------------------------------------------------------------------
+//## Object Field Accessors
+//--------------------------------------------------------------------------
+
+//--------------------------------------
+  CASE( "60a", "get_Speed_12()" );
+    try {
+	Tx.put_Cntl0(  0x00000000 );
+	CHECKX(        0x00000000, Tx.get_Cntl0() );
+	Tx.put_Speed_12( 0xfff );
+	CHECKX(        0xfff00000, Tx.get_Cntl0() );
+	CHECK(         0xfff,      Tx.get_Speed_12() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "60b", "get_Speed_12()" );
+    try {
+	Tx.put_Cntl0(  0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_Cntl0() );
+	Tx.put_Speed_12( 0x000 );
+	CHECKX(        0x000fffff, Tx.get_Cntl0() );
+	CHECK(         0x000,      Tx.get_Speed_12() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "60c", "put_Speed_12() bad value" );
+    try {
+	Tx.put_Speed_12( 0x1000 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgUniSpi::put_field():  value exceeds 0xfff:  0x1000",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "66a", "get_EnableSerial_1()" );
+    try {
+	Tx.put_Cntl0(  0x00000000 );
+	CHECKX(        0x00000000, Tx.get_Cntl0() );
+	Tx.put_EnableSerial_1( 0x1 );
+	CHECKX(        0x00000800, Tx.get_Cntl0() );
+	CHECK(         0x1,        Tx.get_EnableSerial_1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "66b", "get_EnableSerial_1()" );
+    try {
+	Tx.put_Cntl0(  0xffffffff );
+	CHECKX(        0xffffffff, Tx.get_Cntl0() );
+	Tx.put_EnableSerial_1( 0x0 );
+	CHECKX(        0xfffff7ff, Tx.get_Cntl0() );
+	CHECK(         0x0,        Tx.get_EnableSerial_1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "66c", "put_EnableSerial_1() bad value" );
+    try {
+	Tx.put_EnableSerial_1( 0x2 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgUniSpi::put_field():  value exceeds 0x1:  0x2",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 
   CASE( "99", "Done" );
 }
