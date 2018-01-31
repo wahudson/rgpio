@@ -475,6 +475,15 @@ y_uspi::doit()
 	     << ns << ".ClearFifos_1   = " << spi->get_ClearFifos_1()    <<endl
 	     << ns << ".OutMsbFirst_1  = " << spi->get_OutMsbFirst_1()   <<endl
 	     << ns << ".ShiftLength_6  = " << spi->get_ShiftLength_6()   <<endl
+	     << "  status" <<endl
+	     << ns << ".TxLevel_3      = " << spi->get_TxLevel_3()   <<endl
+	     << ns << ".RxLevel_3      = " << spi->get_RxLevel_3()   <<endl
+	     << ns << ".TxFull_1       = " << spi->get_TxFull_1()    <<endl
+	     << ns << ".TxEmpty_1      = " << spi->get_TxEmpty_1()   <<endl
+	     << ns << ".RxFull_1       = " << spi->get_RxFull_1()    <<endl
+	     << ns << ".RxEmpty_1      = " << spi->get_RxEmpty_1()   <<endl
+	     << ns << ".Busy_1         = " << spi->get_Busy_1()      <<endl
+	     << ns << ".BitCount_6     = " << spi->get_BitCount_6()  <<endl
 	     <<endl;
 
 	    cout.fill('0');
