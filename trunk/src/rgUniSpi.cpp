@@ -199,7 +199,7 @@ rgUniSpi::write_regs()
 {
     write_Cntl0( Cntl0Reg );
     write_Cntl1( Cntl1Reg );
-    write_Stat(  StatReg );
+    write_Stat(  StatReg );	//#!! read-only?
 }
 
 
@@ -264,21 +264,178 @@ rgUniSpi::put_field(
 // Object Field Accessors
 //--------------------------------------------------------------------------
 
-//#!! Probably make all inline.
-
 /*
-* SPI clock speed.  Freq = system_clock_freq/(2*(speed+1))
+* Cntl0 fields.
 */
-uint32_t
-rgUniSpi::get_Speed_12()
-{
-    return  get_field( Cntl0Reg, 20, 0xfff );
+
+uint32_t  rgUniSpi::get_Speed_12() {
+			return  get_field(  Cntl0Reg, 20, 0xfff    );
+}
+void      rgUniSpi::put_Speed_12( uint32_t  v ) {
+				put_field( &Cntl0Reg, 20, 0xfff, v );
 }
 
-void
-rgUniSpi::put_Speed_12( uint32_t  val )
-{
-    put_field( &Cntl0Reg, 20, 0xfff, val );
+uint32_t  rgUniSpi::get_ChipSelects_3() {
+			return  get_field(  Cntl0Reg, 17, 0x7    );
+}
+void      rgUniSpi::put_ChipSelects_3( uint32_t  v ) {
+				put_field( &Cntl0Reg, 17, 0x7, v );
+}
+
+uint32_t  rgUniSpi::get_PostInMode_1() {
+			return  get_field(  Cntl0Reg, 16, 0x1    );
+}
+void      rgUniSpi::put_PostInMode_1( uint32_t  v ) {
+				put_field( &Cntl0Reg, 16, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_VariableCS_1() {
+			return  get_field(  Cntl0Reg, 15, 0x1    );
+}
+void      rgUniSpi::put_VariableCS_1( uint32_t  v ) {
+				put_field( &Cntl0Reg, 15, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_VariableWidth_1() {
+			return  get_field(  Cntl0Reg, 14, 0x1    );
+}
+void      rgUniSpi::put_VariableWidth_1( uint32_t  v ) {
+				put_field( &Cntl0Reg, 14, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_DoutHoldTime_2() {
+			return  get_field(  Cntl0Reg, 12, 0x3    );
+}
+void      rgUniSpi::put_DoutHoldTime_2( uint32_t  v ) {
+				put_field( &Cntl0Reg, 12, 0x3, v );
+}
+
+uint32_t  rgUniSpi::get_EnableSerial_1() {
+			return  get_field(  Cntl0Reg, 11, 0x1    );
+}
+void      rgUniSpi::put_EnableSerial_1( uint32_t  v ) {
+				put_field( &Cntl0Reg, 11, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_InRising_1() {
+			return  get_field(  Cntl0Reg, 10, 0x1    );
+}
+void      rgUniSpi::put_InRising_1( uint32_t  v ) {
+				put_field( &Cntl0Reg, 10, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_ClearFifos_1() {
+			return  get_field(  Cntl0Reg,  9, 0x1    );
+}
+void      rgUniSpi::put_ClearFifos_1( uint32_t  v ) {
+				put_field( &Cntl0Reg,  9, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_OutRising_1() {
+			return  get_field(  Cntl0Reg,  8, 0x1    );
+}
+void      rgUniSpi::put_OutRising_1( uint32_t  v ) {
+				put_field( &Cntl0Reg,  8, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_InvertClk_1() {
+			return  get_field(  Cntl0Reg,  7, 0x1    );
+}
+void      rgUniSpi::put_InvertClk_1( uint32_t  v ) {
+				put_field( &Cntl0Reg,  7, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_OutMsbFirst_1() {
+			return  get_field(  Cntl0Reg,  6, 0x1    );
+}
+void      rgUniSpi::put_OutMsbFirst_1( uint32_t  v ) {
+				put_field( &Cntl0Reg,  6, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_ShiftLength_6() {
+			return  get_field(  Cntl0Reg,  0, 0x3f    );
+}
+void      rgUniSpi::put_ShiftLength_6( uint32_t  v ) {
+				put_field( &Cntl0Reg,  0, 0x3f, v );
+}
+
+
+/*
+* Cntl1 fields.
+*/
+
+uint32_t  rgUniSpi::get_CsHighTime_3() {
+			return  get_field(  Cntl1Reg,  8, 0x7    );
+}
+void      rgUniSpi::put_CsHighTime_3( uint32_t  v ) {
+				put_field( &Cntl1Reg,  8, 0x7, v );
+}
+
+uint32_t  rgUniSpi::get_TxEmptyIRQ_1() {
+			return  get_field(  Cntl1Reg,  7, 0x1    );
+}
+void      rgUniSpi::put_TxEmptyIRQ_1( uint32_t  v ) {
+				put_field( &Cntl1Reg,  7, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_DoneIRQ_1() {
+			return  get_field(  Cntl1Reg,  6, 0x1    );
+}
+void      rgUniSpi::put_DoneIRQ_1( uint32_t  v ) {
+				put_field( &Cntl1Reg,  6, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_InMsbFirst_1() {
+			return  get_field(  Cntl1Reg,  1, 0x1    );
+}
+void      rgUniSpi::put_InMsbFirst_1( uint32_t  v ) {
+				put_field( &Cntl1Reg,  1, 0x1, v );
+}
+
+uint32_t  rgUniSpi::get_KeepInput_1() {
+			return  get_field(  Cntl1Reg,  0, 0x1    );
+}
+void      rgUniSpi::put_KeepInput_1( uint32_t  v ) {
+				put_field( &Cntl1Reg,  0, 0x1, v );
+}
+
+
+/*
+* Status fields.  Read-only?
+*    Field positions determined by experiment.
+*    The BCM doc seems incompletely adapted from another version of SPI.
+*/
+
+uint32_t  rgUniSpi::get_TxLevel_3() {
+			return  get_field( StatReg, 28, 0x7 );
+}
+
+uint32_t  rgUniSpi::get_RxLevel_3() {
+			return  get_field( StatReg, 20, 0x7 );
+}
+
+uint32_t  rgUniSpi::get_TxFull_1() {
+			return  get_field( StatReg, 10, 0x1 );
+}
+
+uint32_t  rgUniSpi::get_TxEmpty_1() {
+			return  get_field( StatReg,  9, 0x1 );
+}
+
+uint32_t  rgUniSpi::get_RxFull_1() {
+			return  get_field( StatReg,  8, 0x1 );
+}
+
+uint32_t  rgUniSpi::get_RxEmpty_1() {
+			return  get_field( StatReg,  7, 0x1 );
+}
+
+uint32_t  rgUniSpi::get_Busy_1() {
+			return  get_field( StatReg,  6, 0x1 );
+}
+
+uint32_t  rgUniSpi::get_BitCount_6() {
+			return  get_field( StatReg,  0, 0x3f );
 }
 
 

@@ -117,60 +117,74 @@ class rgUniSpi {
 	const uint32_t		val
     );
 
-		// Object Field Accessors
+		// Object Cntl0 Field Accessors
 
     uint32_t		get_Speed_12();
-    void		put_Speed_12( uint32_t  val );
+    void		put_Speed_12(        uint32_t  v );
 
-    inline uint32_t	get_ChipSelects_3() {
-				return  get_field(  Cntl0Reg, 17, 0x3 );
-    }
-    inline void		put_ChipSelects_3( uint32_t fv ) {
-					put_field( &Cntl0Reg, 17, 0x3, fv );
-    }
+    uint32_t		get_ChipSelects_3();
+    void		put_ChipSelects_3(   uint32_t  v );
 
-    inline uint32_t	get_VariableCS_1() {
-				return  get_field(  Cntl0Reg, 15, 0x1 );
-    }
-    inline void		put_VariableCS_1( uint32_t fv ) {
-					put_field( &Cntl0Reg, 15, 0x1, fv );
-    }
+    uint32_t		get_PostInMode_1();
+    void		put_PostInMode_1(    uint32_t  v );
 
-    inline uint32_t	get_VariableWidth_1() {
-				return  get_field(  Cntl0Reg, 14, 0x1 );
-    }
-    inline void		put_VariableWidth_1( uint32_t fv ) {
-					put_field( &Cntl0Reg, 14, 0x1, fv );
-    }
+    uint32_t		get_VariableCS_1();
+    void		put_VariableCS_1(    uint32_t  v );
 
-    inline uint32_t	get_EnableSerial_1() {
-				return  get_field(  Cntl0Reg, 11, 0x1 );
-    }
-    inline void		put_EnableSerial_1( uint32_t fv ) {
-					put_field( &Cntl0Reg, 11, 0x1, fv );
-    }
+    uint32_t		get_VariableWidth_1();
+    void		put_VariableWidth_1( uint32_t  v );
 
-    inline uint32_t	get_ClearFifos_1() {
-				return  get_field(  Cntl0Reg,  9, 0x1 );
-    }
-    inline void		put_ClearFifos_1( uint32_t fv ) {
-					put_field( &Cntl0Reg,  9, 0x1, fv );
-    }
+    uint32_t		get_DoutHoldTime_2();
+    void		put_DoutHoldTime_2(  uint32_t  v );
 
-    inline uint32_t	get_OutMsbFirst_1() {
-				return  get_field(  Cntl0Reg,  6, 0x1 );
-    }
-    inline void		put_OutMsbFirst_1( uint32_t fv ) {
-					put_field( &Cntl0Reg,  6, 0x1, fv );
-    }
+    uint32_t		get_EnableSerial_1();
+    void		put_EnableSerial_1(  uint32_t  v );
 
-    inline uint32_t	get_ShiftLength_6() {
-				return  get_field(  Cntl0Reg,  0, 0x3f );
-    }
-    inline void		put_ShiftLength_6( uint32_t fv ) {
-					put_field( &Cntl0Reg,  0, 0x3f, fv );
-    }
+    uint32_t		get_InRising_1();
+    void		put_InRising_1(      uint32_t  v );
 
+    uint32_t		get_ClearFifos_1();
+    void		put_ClearFifos_1(    uint32_t  v );
+
+    uint32_t		get_OutRising_1();
+    void		put_OutRising_1(     uint32_t  v );
+
+    uint32_t		get_InvertClk_1();
+    void		put_InvertClk_1(     uint32_t  v );
+
+    uint32_t		get_OutMsbFirst_1();
+    void		put_OutMsbFirst_1(   uint32_t  v );
+
+    uint32_t		get_ShiftLength_6();
+    void		put_ShiftLength_6(   uint32_t  v );
+
+		// Object Cntl1 Field Accessors
+
+    uint32_t		get_CsHighTime_3();
+    void		put_CsHighTime_3(    uint32_t  v );
+
+    uint32_t		get_TxEmptyIRQ_1();
+    void		put_TxEmptyIRQ_1(    uint32_t  v );
+
+    uint32_t		get_DoneIRQ_1();
+    void		put_DoneIRQ_1(       uint32_t  v );
+
+    uint32_t		get_InMsbFirst_1();
+    void		put_InMsbFirst_1(    uint32_t  v );
+
+    uint32_t		get_KeepInput_1();
+    void		put_KeepInput_1(     uint32_t  v );
+
+		// Object Status Field Accessors (Read-only?)
+
+    uint32_t		get_TxLevel_3();
+    uint32_t		get_RxLevel_3();
+    uint32_t		get_TxFull_1();
+    uint32_t		get_TxEmpty_1();
+    uint32_t		get_RxFull_1();
+    uint32_t		get_RxEmpty_1();
+    uint32_t		get_Busy_1();
+    uint32_t		get_BitCount_6();
 
 		// Test/Debug accessors
 

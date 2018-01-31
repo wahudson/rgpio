@@ -146,6 +146,60 @@ Naming functions:
  >  It is NOT intended to abstract the Feature or make it so the user
  >  interface does not change when porting to another machine.
 
+Field accessor functions:
+    There are a lot of them!  Total 25.
+
+    Decided on individual function for each field.  This gives best
+    robustness, helping to guard against user call errors.  Compile time
+    checks for existance of the function.  Individual functions can later
+    customize with extra checks on a particular field if necessary.
+    Down side is a lot of functions.
+
+    Underlying bit twiddleing functions - get_field(..), put_field(..) -
+    were used to do the actual work, so the accessor functions are really a
+    table of argument values.
+
+    Explored 'inline' functions in the header file.  This is more compact,
+    since a corresponding definition is not needed in the .cpp file.
+    Downside is the header file is more bloated with function bodies, and
+    does not seem as tidey.  Any change to the body means re-compiling
+    the files using it (not really a big deal).  Customizing a function
+    probably means taking it out of 'inline', which makes things less
+    uniform.  The 'inline' can save a little execution time, but probably
+    is a don't-care for configuration operations, which are not time critical.
+
+    Decided against 'inline' for field accessor functions.  More important
+    to keep the headers and code clean to avoid mistakes.
+
+    Considered using enum for field names, indexing a table of structures
+    containing the bit twiddleing parameters.  This is attractive to reduce
+    code in the library by making the tables more compact.  It also would
+    be good for operating on lists of bit fields.  It would make the header
+    'inline' functions more streamlined, and thus more acceptable.  e.g.
+
+	uint32_t  rgUniSpi::get_Speed_12() { return get_field( rgcSpeed_12 ); }
+
+    But it still gets quite long.
+    Still want to avoid users slinging enums.
+    Enum implementation under the hood would be acceptable.
+
+Documentation:
+    Where to put detailed documentation on Spi operation and configuration?
+
+    Probably want a seperate source describing operation.  The Library, and
+    the utility 'rgpio' command both do the same operations, and thus have
+    a lot of overlap.
+
+SPI clock frequency:  (see BCM p.21)
+    Freq = system_clock_freq/(2*(speed+1))
+
+Operation with rgpio:
+    # run like this
+    sudo ../bin/rgpio --dev=m uspi -1  --debug
+
+    # Enable Spi1, now can observe
+    rgpio uspi -1 --Spi_Enable_1=1  --debug
+
 
 ----------------------------------------------------------------------------
 ## rgUniSpi Object - Universal SPI Master
@@ -213,6 +267,7 @@ Methods:
 			Object state operations:
     grab_regs()			Read all Cntl/Status regs into obj.
     write_regs()		Write object to registers.
+    reset_regs()		Reset object registers, generally to zero.
 
 			Generic Field accessors:  (private)
     get_field(  Reg, Pos, Len )
@@ -244,15 +299,15 @@ Methods:
     get_InMsbFirst_1()		get_InBigEndian_1()	Shift in MS bit first
     get_KeepInput_1()
 
-			Status Fields
-    get_TxFifoLevel_8()		[31:24] really?
-    get_RxFifoLevel_12()	[23:12] really?
-    get_TxFull_1()
-    get_TxEmpty_1()
-    get_RxEmpty_1()
-    get_Busy_1()
-    get_BitCount_6()
-
+			Status fields (deduced by experiment)
+    get_TxLevel_3()		[30:28] 4-bits?  get_TxFifoLevel_3()
+    get_RxLevel_3()		[22:20] 4-bits?  get_RxFifoLevel_3()
+    get_TxFull_1()		[10]
+    get_TxEmpty_1()		[9]
+    get_RxFull_1()		[8]
+    get_RxEmpty_1()		[7]
+    get_Busy_1()		[6]
+    get_BitCount_6()		[5:0]
 
 			Test/Debug accessors of object:
     get_Cntl0()
