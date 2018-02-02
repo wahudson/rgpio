@@ -53,12 +53,23 @@ class uspi_yOptLong : public yOption {
 					// Cntl0 fields
     yOpVal		Speed_12;
     yOpVal		ChipSelects_3;
+    yOpVal		PostInMode_1;
     yOpVal		VariableCS_1;
     yOpVal		VariableWidth_1;
+    yOpVal		DoutHoldTime_2;
     yOpVal		EnableSerial_1;
+    yOpVal		InRising_1;
     yOpVal		ClearFifos_1;
+    yOpVal		OutRising_1;
+    yOpVal		InvertClk_1;
     yOpVal		OutMsbFirst_1;
     yOpVal		ShiftLength_6;
+					// Cntl1 fields
+    yOpVal		CsHighTime_3;
+    yOpVal		TxEmptyIRQ_1;
+    yOpVal		DoneIRQ_1;
+    yOpVal		InMsbFirst_1;
+    yOpVal		KeepInput_1;
 
     bool		tx;
 
@@ -130,16 +141,27 @@ uspi_yOptLong::parse_options()
 
 	else if ( is( "--Speed_12="        )) { Speed_12.set(        val() ); }
 	else if ( is( "--ChipSelects_3="   )) { ChipSelects_3.set(   val() ); }
+	else if ( is( "--PostInMode_1="    )) { PostInMode_1.set(    val() ); }
 	else if ( is( "--VariableCS_1="    )) { VariableCS_1.set(    val() ); }
 	else if ( is( "--VariableWidth_1=" )) { VariableWidth_1.set( val() ); }
+	else if ( is( "--DoutHoldTime_2="  )) { DoutHoldTime_2.set(  val() ); }
 	else if ( is( "--EnableSerial_1="  )) { EnableSerial_1.set(  val() ); }
+	else if ( is( "--InRising_1="      )) { InRising_1.set(      val() ); }
 	else if ( is( "--ClearFifos_1="    )) { ClearFifos_1.set(    val() ); }
+	else if ( is( "--OutRising_1="     )) { OutRising_1.set(     val() ); }
+	else if ( is( "--InvertClk_1="     )) { InvertClk_1.set(     val() ); }
 	else if ( is( "--OutMsbFirst_1="   )) { OutMsbFirst_1.set(   val() ); }
 	else if ( is( "--ShiftLength_6="   )) { ShiftLength_6.set(   val() ); }
 
 	else if ( is( "-1"           )) { spi_ch[1]  = 1; }
 	else if ( is( "-2"           )) { spi_ch[2]  = 1; }
 	else if ( is( "--tx"         )) { tx         = 1; }
+
+	else if ( is( "--CsHighTime_3="    )) { CsHighTime_3.set(    val() ); }
+	else if ( is( "--TxEmptyIRQ_1="    )) { TxEmptyIRQ_1.set(    val() ); }
+	else if ( is( "--DoneIRQ_1="       )) { DoneIRQ_1.set(       val() ); }
+	else if ( is( "--InMsbFirst_1="    )) { InMsbFirst_1.set(    val() ); }
+	else if ( is( "--KeepInput_1="     )) { KeepInput_1.set(     val() ); }
 
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
@@ -153,6 +175,7 @@ uspi_yOptLong::parse_options()
 	}
     }
 
+    // Cntl0 bits
     if (                       Speed_12.Val > 0xfff ) {
 	Error::msg( "require --Speed_12={0..4095}:  " ) <<
 			       Speed_12.Val <<endl;
@@ -161,6 +184,11 @@ uspi_yOptLong::parse_options()
     if (                       ChipSelects_3.Val > 0x7 ) {
 	Error::msg( "require --ChipSelects_3={0..7}:  " ) <<
 			       ChipSelects_3.Val <<endl;
+    }
+
+    if (                       PostInMode_1.Val > 1 ) {
+	Error::msg( "require --PostInMode_1={0,1}:  " ) <<
+			       PostInMode_1.Val <<endl;
     }
 
     if (                       VariableCS_1.Val > 1 ) {
@@ -173,14 +201,34 @@ uspi_yOptLong::parse_options()
 			       VariableWidth_1.Val <<endl;
     }
 
+    if (                       DoutHoldTime_2.Val > 0x3 ) {
+	Error::msg( "require --DoutHoldTime_2={0,3}:  " ) <<
+			       DoutHoldTime_2.Val <<endl;
+    }
+
     if (                       EnableSerial_1.Val > 1 ) {
 	Error::msg( "require --EnableSerial_1={0,1}:  " ) <<
 			       EnableSerial_1.Val <<endl;
     }
 
+    if (                       InRising_1.Val > 1 ) {
+	Error::msg( "require --InRising_1={0,1}:  " ) <<
+			       InRising_1.Val <<endl;
+    }
+
     if (                       ClearFifos_1.Val > 1 ) {
 	Error::msg( "require --ClearFifos_1={0,1}:  " ) <<
 			       ClearFifos_1.Val <<endl;
+    }
+
+    if (                       OutRising_1.Val > 1 ) {
+	Error::msg( "require --OutRising_1={0,1}:  " ) <<
+			       OutRising_1.Val <<endl;
+    }
+
+    if (                       InvertClk_1.Val > 1 ) {
+	Error::msg( "require --InvertClk_1={0,1}:  " ) <<
+			       InvertClk_1.Val <<endl;
     }
 
     if (                       OutMsbFirst_1.Val > 1 ) {
@@ -191,6 +239,32 @@ uspi_yOptLong::parse_options()
     if (                       ShiftLength_6.Val > 0x3f ) {
 	Error::msg( "require --ShiftLength_6={0..63}:  " ) <<
 			       ShiftLength_6.Val <<endl;
+    }
+
+    // Cntl1 bits
+    if (                       CsHighTime_3.Val > 0x7 ) {
+	Error::msg( "require --CsHighTime_3={0..7}:  " ) <<
+			       CsHighTime_3.Val <<endl;
+    }
+
+    if (                       TxEmptyIRQ_1.Val > 0x1 ) {
+	Error::msg( "require --TxEmptyIRQ_1={0..1}:  " ) <<
+			       TxEmptyIRQ_1.Val <<endl;
+    }
+
+    if (                       DoneIRQ_1.Val > 1 ) {
+	Error::msg( "require --DoneIRQ_1={0..1}:  " ) <<
+			       DoneIRQ_1.Val <<endl;
+    }
+
+    if (                       InMsbFirst_1.Val > 1 ) {
+	Error::msg( "require --InMsbFirst_1={0..1}:  " ) <<
+			       InMsbFirst_1.Val <<endl;
+    }
+
+    if (                       KeepInput_1.Val > 1 ) {
+	Error::msg( "require --KeepInput_1={0..1}:  " ) <<
+			       KeepInput_1.Val <<endl;
     }
 
     if ( ! tx && (get_argc() > 0) ) {
@@ -256,21 +330,32 @@ uspi_yOptLong::print_usage()
     "    --stat=V            Status reg\n"
     "    --AuxEnable=V       AuxEnable reg\n"
     "  data transfer:\n"
-//  "  ? --peek              read word from Peek register\n"
     "    --rx=N              read {1:4} words from Fifo\n"
     "    --rxh=N             read {1:4} words from FifoH\n"
     "    --tx                write args to Fifo\n"
     "    --txh               write args to FifoH\n"
-    "  modify bit fields:\n"
-    "    --Spi_Enable_1=0    Aux Enable\n"
+    "  modify Aux bit fields:\n"
+    "    --Spi_Enable_1=0    1= Spi access enabled\n"
+    "  modify Cntl0 bits:\n"
     "    --Speed_12=0xfff    clock speed, freq=f0/(2*(speed+1))\n"
     "    --ChipSelects_3=0x7 pattern on active CS pins\n"
+    "    --PostInMode_1=0    1= Post-Input mode, skip first clk\n"
     "    --VariableCS_1=0    1= CS pattern   from TX fifo [31:29]\n"
     "    --VariableWidth_1=0 1= shift length from TX fifo [28:24]\n"
+    "    --DoutHoldTime_2=0  extra data out hold encoded {0..3}\n"
     "    --EnableSerial_1=0  1= enable shifting\n"
+    "    --InRising_1=0      1= data In on clk rising, 0= falling\n"
     "    --ClearFifos_1=0    1= hold RX and TX fifos in reset\n"
-    "    --OutMsbFirst_1=0   1= data out start with MSB\n"
-    "    --ShiftLength_6=32  number of bits to shift\n"
+    "    --OutRising_1=0     1= data Out on clk rising, 0= falling\n"
+    "    --InvertClk_1=0     1= idle clk is high, 0= low\n"
+    "    --OutMsbFirst_1=0   1= data Out start with MSB, 0= LSB\n"
+    "    --ShiftLength_6=32  number of bits to shift {0..32}\n"
+    "  modify Cntl1 bits:\n"
+    "    --CsHighTime_3=0    additional clock cycles with CS high\n"
+    "    --TxEmptyIRQ_1=0    1= interrupt when Tx fifo is empty\n"
+    "    --DoneIRQ_1=0       1= interrupt when Spi is idle\n"
+    "    --InMsbFirst_1=0    1= data In start with MSB, 0= LSB\n"
+    "    --KeepInput_1=0     1= concatenate into receiver shift register\n"
     "  options:\n"
     "    --help              show this usage\n"
 //  " #  -v, --verbose       verbose output\n"
@@ -394,12 +479,18 @@ y_uspi::doit()
 	    if ( Opx.cntl1.Given ) { spi->put_Cntl1( Opx.cntl1.Val );  md = 1; }
 	    if ( Opx.stat.Given  ) { spi->put_Stat(  Opx.stat.Val  );  md = 1; }
 
+	// Cntl0 bits
+
 	    if (     Opx.Speed_12.Given ) {
 		spi->put_Speed_12(        Opx.Speed_12.Val );         md = 1;
 	    }
 
 	    if (     Opx.ChipSelects_3.Given ) {
 		spi->put_ChipSelects_3(   Opx.ChipSelects_3.Val );    md = 1;
+	    }
+
+	    if (     Opx.PostInMode_1.Given ) {
+		spi->put_PostInMode_1(    Opx.PostInMode_1.Val );     md = 1;
 	    }
 
 	    if (     Opx.VariableCS_1.Given ) {
@@ -410,12 +501,28 @@ y_uspi::doit()
 		spi->put_VariableWidth_1( Opx.VariableWidth_1.Val );  md = 1;
 	    }
 
+	    if (     Opx.DoutHoldTime_2.Given ) {
+		spi->put_DoutHoldTime_2(  Opx.DoutHoldTime_2.Val );   md = 1;
+	    }
+
 	    if (     Opx.EnableSerial_1.Given ) {
 		spi->put_EnableSerial_1(  Opx.EnableSerial_1.Val );   md = 1;
 	    }
 
+	    if (     Opx.InRising_1.Given ) {
+		spi->put_InRising_1(      Opx.InRising_1.Val );       md = 1;
+	    }
+
 	    if (     Opx.ClearFifos_1.Given ) {
 		spi->put_ClearFifos_1(    Opx.ClearFifos_1.Val );     md = 1;
+	    }
+
+	    if (     Opx.OutRising_1.Given ) {
+		spi->put_OutRising_1(     Opx.OutRising_1.Val );      md = 1;
+	    }
+
+	    if (     Opx.InvertClk_1.Given ) {
+		spi->put_InvertClk_1(     Opx.InvertClk_1.Val );      md = 1;
 	    }
 
 	    if (     Opx.OutMsbFirst_1.Given ) {
@@ -424,6 +531,28 @@ y_uspi::doit()
 
 	    if (     Opx.ShiftLength_6.Given ) {
 		spi->put_ShiftLength_6(   Opx.ShiftLength_6.Val );    md = 1;
+	    }
+
+	// Cntl1 bits
+
+	    if (     Opx.CsHighTime_3.Given ) {
+		spi->put_CsHighTime_3(    Opx.CsHighTime_3.Val );     md = 1;
+	    }
+
+	    if (     Opx.TxEmptyIRQ_1.Given ) {
+		spi->put_TxEmptyIRQ_1(    Opx.TxEmptyIRQ_1.Val );     md = 1;
+	    }
+
+	    if (     Opx.DoneIRQ_1.Given ) {
+		spi->put_DoneIRQ_1(       Opx.DoneIRQ_1.Val );        md = 1;
+	    }
+
+	    if (     Opx.InMsbFirst_1.Given ) {
+		spi->put_InMsbFirst_1(    Opx.InMsbFirst_1.Val );     md = 1;
+	    }
+
+	    if (     Opx.KeepInput_1.Given ) {
+		spi->put_KeepInput_1(     Opx.KeepInput_1.Val );      md = 1;
 	    }
 
 	    if ( md ) {			// modify registers
@@ -445,7 +574,7 @@ y_uspi::doit()
 		}
 		cout << dec;
 	    }
-	    // Note --tx works for only one Spi.
+	    //#!! Note --tx works for only one Spi.
 
 	    if ( md || Opx.tx ) {	// modify registers
 		if ( Opx.debug ) {
@@ -466,16 +595,29 @@ y_uspi::doit()
 	    cout.fill(' ');
 	    cout <<dec
 	     << ns << ".Spi_Enable_1   = " << spi->read_Spi_Enable_1()   <<endl
+	     << ns << ".Spi_IRQ_1      = " << spi->read_Spi_IRQ_1()      <<endl
 
+	     << " Cntl0" <<endl
 	     << ns << ".Speed_12       = " << spi->get_Speed_12()        <<endl
 	     << ns << ".ChipSelects_3  = " << spi->get_ChipSelects_3()   <<endl
+	     << ns << ".PostInMode_1   = " << spi->get_PostInMode_1()    <<endl
 	     << ns << ".VariableCS_1   = " << spi->get_VariableCS_1()    <<endl
 	     << ns << ".VariableWidth_1= " << spi->get_VariableWidth_1() <<endl
+	     << ns << ".DoutHoldTime_2 = " << spi->get_DoutHoldTime_2()  <<endl
 	     << ns << ".EnableSerial_1 = " << spi->get_EnableSerial_1()  <<endl
+	     << ns << ".InRising_1     = " << spi->get_InRising_1()      <<endl
 	     << ns << ".ClearFifos_1   = " << spi->get_ClearFifos_1()    <<endl
+	     << ns << ".OutRising_1    = " << spi->get_OutRising_1()     <<endl
+	     << ns << ".InvertClk_1    = " << spi->get_InvertClk_1()     <<endl
 	     << ns << ".OutMsbFirst_1  = " << spi->get_OutMsbFirst_1()   <<endl
 	     << ns << ".ShiftLength_6  = " << spi->get_ShiftLength_6()   <<endl
-	     << "  status" <<endl
+	     << " Cntl1" <<endl
+	     << ns << ".CsHighTime_3   = " << spi->get_CsHighTime_3()    <<endl
+	     << ns << ".TxEmptyIRQ_1   = " << spi->get_TxEmptyIRQ_1()    <<endl
+	     << ns << ".DoneIRQ_1      = " << spi->get_DoneIRQ_1()       <<endl
+	     << ns << ".InMsbFirst_1   = " << spi->get_InMsbFirst_1()    <<endl
+	     << ns << ".KeepInput_1    = " << spi->get_KeepInput_1()     <<endl
+	     << " Status" <<endl
 	     << ns << ".TxLevel_3      = " << spi->get_TxLevel_3()   <<endl
 	     << ns << ".RxLevel_3      = " << spi->get_RxLevel_3()   <<endl
 	     << ns << ".TxFull_1       = " << spi->get_TxFull_1()    <<endl
@@ -497,7 +639,6 @@ y_uspi::doit()
 	    cout <<dec;
 
 	}
-	cout << "done" <<endl;
 
     }
     catch ( std::exception& e ) {
