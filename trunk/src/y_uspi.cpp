@@ -447,7 +447,7 @@ y_uspi::doit()
 	}
 
 
-    // Process each clock
+    // Process each device
 
 	for ( int ii=1;  ii<=SpiMax;  ii++ )
 	{
