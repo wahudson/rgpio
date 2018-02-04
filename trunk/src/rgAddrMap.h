@@ -22,15 +22,14 @@ class rgAddrMap {
 
     std::map<uint32_t,void*>  BlkCache;	// cache of mapped memory blocks
 
-    int			Prot;		// mmap() prot field
+//  int			Prot;		// mmap() prot field
     bool		Debug;		// debug trace on stderr
 
     volatile uint32_t	FakeBlock[4096];
 
 
   public:
-    rgAddrMap();
-    rgAddrMap( int init );
+    rgAddrMap();			// constructor
 
     uint32_t		bcm2rpi_addr(
 			    uint32_t            addr
@@ -39,7 +38,7 @@ class rgAddrMap {
     std::string		text_debug();
 
     inline void		config_Debug(    bool v ) { Debug = v; };
-    void		config_FakeNoPi( const bool v );
+    void		config_FakeNoPi( bool v );
 
     void		open_dev_file(
 	const char*		file,

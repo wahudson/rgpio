@@ -68,47 +68,8 @@ rgAddrMap::rgAddrMap()
     FakeMem = 0;		// using real memory
     FakeNoPi = 1;		// 1= fake mem, 0= throw error, when not on RPi
     ModeStr = NULL;
-    Prot    = PROT_READ | PROT_WRITE;
+//  Prot    = PROT_READ | PROT_WRITE;
     Debug   = 0;
-}
-
-
-/*
-*#!! not used
-* Constructor.
-*    Check if on RPi and select appropriate kernel memory device.
-*    Open memory device.
-*    Lower capabilities so remainder of process is normal user privelege.
-*
-*    Access thru /dev/gpiomem, for normal users belonging to group 'gpio'.
-*    If it did not exist, use a fake memory region for testing.
-* call:
-*    rgAddrMap		object with full heuristic initialization
-*    rgAddrMap  (0)	object with no initialization
-*/
-rgAddrMap::rgAddrMap( int	init )
-{
-    Dev_fd  = -1;		// not open
-    ModeStr = NULL;
-    Prot    = PROT_READ | PROT_WRITE;
-    Debug   = 0;
-
-    if ( init == 0 ) {
-	return;
-    }
-
-    if ( init != 1 ) {
-	throw std::invalid_argument ( "rgAddrMap() bad init arg" );
-    }
-
-  // Heuristic to select memory device mode:
-//    if ( ! is_this_RPi() ) {
-//	ModeStr = "fake_mem";
-//    }
-//    if ( stat( devfile, &statbuf ) == 0 ) {	// exists
-//	ModeStr = "/dev/gpiomem";
-//    }
-
 }
 
 
@@ -140,7 +101,7 @@ rgAddrMap::text_debug()
 *    config_FakeNoPi( 0 )	throw error
 */
 void
-rgAddrMap::config_FakeNoPi( const bool v )
+rgAddrMap::config_FakeNoPi( bool v )
 {
     FakeNoPi = v;
 }
@@ -324,7 +285,6 @@ rgAddrMap::get_mem_block(
 	NULL,			// Any adddress in our space will do
 	BLOCK_SIZE,		// Map length
 	PROT_READ|PROT_WRITE,	// Enable reading & writing to mapped memory
-//	PROT_READ,
 	MAP_SHARED,		// Shared with other processes
 	Dev_fd,			// File descriptor to map
 	r_addr			// Offset to GPIO peripheral, page aligned
