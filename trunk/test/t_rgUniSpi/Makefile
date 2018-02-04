@@ -19,6 +19,8 @@ OBJS       = \
 	$(OJ)/rgAddrMap.o \
 	$(OJ)/rgUniSpi.o
 
+LIBS       = -lcap
+
 		# compiler flags
 CXXFLAGS   = -Wall -std=c++11  -I ../src
 
@@ -30,5 +32,5 @@ clean:
 	rm -f  test.exe
 
 test.exe:	test.cpp  $(OBJS)  $(INCS)
-	g++ $(CXXFLAGS) -I $(IC) -o $@  test.cpp  $(OBJS)
+	g++ $(CXXFLAGS) -I $(IC) -o $@  test.cpp  $(OBJS)  $(LIBS)
 

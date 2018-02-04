@@ -38,16 +38,20 @@ class rgAddrMap {
 
     std::string		text_debug();
 
+    inline void		config_Debug(    bool v ) { Debug = v; };
     void		config_FakeNoPi( const bool v );
 
-    void		open_dev_file( const char *file );
+    void		open_dev_file(
+	const char*		file,
+	bool			drop_cap = 1
+    );
 
     inline void		open_dev_mem() {
 	this->open_dev_file( "/dev/mem" );
     };
 
     inline void		open_dev_gpiomem() {
-	this->open_dev_file( "/dev/gpiomem" );
+	this->open_dev_file( "/dev/gpiomem", 0 );
     };
 
     inline void		open_fake_mem() {
@@ -62,7 +66,7 @@ class rgAddrMap {
 
     volatile uint32_t*	get_mem_block( int p_addr );
 
-    void		drop_capabilities();
+//    void		drop_capabilities();
 
     inline bool		is_fake_mem() {		// TRUE if using fake memory
 	return FakeMem;

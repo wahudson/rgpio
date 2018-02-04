@@ -54,14 +54,17 @@ See:  capabilities(7)
 	  setreuid(2),  setresuid(2),  setfsuid(2));  make forged UID when
 	  passing socket credentials via UNIX domain sockets.
     CAP_SETPCAP
-	  ... Change callers process Capabilities.
-
+	  Modify inheritable capability set.
+	  Drop capabilities from the bounding set.
+    CAP_SYS_RAWIO
+	  * open /dev/mem and /dev/kmem;
 
     The idea is:
-    Put CAP_SETPCAP on the executable program.  The program then adds
-    CAP_DAC_OVERRIDE to open /dev/mem, then removes both CAP for remainder
-    of execution.  This way the code after is only the normal user, and the
-    code before has no extra priveleges other than setcap.
+    Put CAP_DAC_OVERRIDE "permitted" on the executable program.  The program
+    then raises CAP_DAC_OVERRIDE to "effective" in order to open /dev/mem,
+    then removes the it for remainder of execution.  This way the code after
+    is only the normal user, and the code before has permitted priveleges but
+    no effective priveleges.
     Much better than full root.
 
 Packages:
@@ -76,4 +79,117 @@ B)  Process starts as root, then changes to a non-privileged user.
     % man setuid
     % man setgid
 
+
+Programmatically adjusting capability sets:  capabilities(7)
+    capget(2), capset(2) - the basic system calls.
+    cap_get_proc(3), cap_set_proc(3) are recommended.
+
+    libcap(3)  Has a whole set of accessor/manipulation functions.
+
+    cap_get_proc(3), cap_set_proc(3) - access a cap_t structure for a process.
+    cap_get_flag(3), cap_set_flag(3) - manipulates flags in cap_t.
+    cap_from_text(3), cap_to_text(3) - transform cap_t to/from text.
+    cap_free()  - free storage allocated by the other functions.
+
+    The text manipulation is similar to the commands getcap/setcap, and
+    seems a little easier to use than cap_set_flag(3).
+
+Tactics:
+    A couple of ways to apply capabilities to an executable like rgpio.
+
+    The main risk is CAP_DAC_OVERRIDE allows the program to read/write files
+    without access check.
+
+    A) Drop CAP_DAC_OVERRIDE and CAP_SYS_RAWIO after opening /dev/mem.
+	+ Program has needed capability from the beginning, less complexity.
+	- Have risk until capability is dropped.
+
+  > B) Raise/lower CAP_DAC_OVERRIDE, and CAP_SYS_RAWIO.  Essentially
+	1. raise CAP_DAC_OVERRIDE, CAP_SYS_RAWIO
+	2. open /dev/mem
+	3. drop  CAP_DAC_OVERRIDE, CAP_SYS_RAWIO
+	+ File has only permitted capability, no effective.
+	+ No Override capability at beginning, lower risk.
+
+    C) Hybrid to allow either method.  i.e. check what capabilities exist.
+	- More complex.
+
+  > D) Drop all capabilites to cover setuid on file or sudo.
+	+ Safer.
+	+ Still pretty simple.
+	- Might defeat user need for other purposes.
+
+User program capabilities:
+    Consider a user program that may need these or other capabilities for
+    other purposes.  How to handle?
+
+    Possibly rgAddrMap class could have configuration to indicate wheather
+    capabilities should be dropped.
+
+    Most user programs really won't have this problem.
+    Thus keep it simple.
+
+    Maybe just a NO_CHANGE flag to disable any capability change.  Let the
+    user provide raise/lower operation.
+
+    Maybe always require the user to provied raise/lower.
+
+    The idea was for the rgpio library to make it easy for a program to stay
+    in user mode while giving access to /dev/mem at the critical moment.
+    Want to do this as simply as possible.
+    Avoid gross setuid root and sudo.
+
+
+----------------------------------------------------------------------------
+## Set capabilities on rgpio
+----------------------------------------------------------------------------
+
+Need to set both of these:
+    Setting only one is not enough for /dev/mem
+    Inheritable is not required
+    % sudo setcap  'CAP_DAC_OVERRIDE=pe  CAP_SYS_RAWIO=pe'  rgpio
+
+    % getcap -v rgpio
+    rgpio = cap_dac_override,cap_sys_rawio+ep
+
+    % ./rgpio --dev=m
+    Do nothing.  Try 'rgpio --help'
+
+    Fail to open looks like:
+    % ./rgpio --dev=m
+    Error:  exception caught:  rgAddrMap:  cannot open /dev/mem:  Permission denied
+
+
+----------------------------------------------------------------------------
+## Experiments
+----------------------------------------------------------------------------
+
+Programmatically adjusting capability sets:  from capabilities(7)
+    3. The new permitted set must be a subset of the existing permitted set
+      (i.e., it is not possible to acquire permitted capabilities that the
+      thread does not currently have).
+
+    4. The new effective set must be a subset of the new permitted set.
+
+    Thus we must set all permitted capabilities we intend to use on the file.
+    Do not need to put any of these in the effective set.
+    Note CAP_SETPCAP is not required to raise process capabilities.
+
+    % sudo setcap  "CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p"  a.out
+    % getcap   a.out
+    a.out = cap_dac_override,cap_sys_rawio+p
+
+    Now the program can raise any of these into the effective set:
+    cx = cap_from_text( "CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=pe" );
+    cap_set_proc( cx );
+
+    % ./a.out
+    begin cy:  = cap_dac_override,cap_sys_rawio+p	cap_get_proc()
+    cap   cx:  = cap_dac_override,cap_sys_rawio+ep	cap_set_proc()
+    end   cy:  = cap_dac_override,cap_sys_rawio+ep	cap_get_proc()
+
+    Note permitted capabilities must be preserved, once dropped they
+    cannot be regained in the permitted set.
+    It seems cap_set_proc() will fail to set an effective capability if
+    it is not also set permitted.
 

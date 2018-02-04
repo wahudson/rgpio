@@ -155,7 +155,7 @@ yOptLong::print_usage()
 //  "  # --ro                read only\n"
     "    --help              show this usage\n"
 //  "    -v, --verbose       verbose output\n"
-//  "    --debug             debug output\n"
+    "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
 
@@ -188,6 +188,7 @@ main( int	argc,
 	rgAddrMap		Amx;	// constructor
 
 	Amx.config_FakeNoPi( 1 );	// when not on RPi
+	Amx.config_Debug( Opx.debug );
 
 	//#!! --ro
 	if (      *Opx.dev == 'g' ) {
@@ -205,7 +206,6 @@ main( int	argc,
 	}
 
 	//#!! close_dev()
-	//#!! drop_capabilities()
 
 	if (      Opx.feature == "io"       ) {
 	    cout << "IO Pin Registers:" << endl;

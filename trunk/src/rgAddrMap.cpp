@@ -15,6 +15,7 @@
 #include <fcntl.h>	// open()
 #include <sys/mman.h>	// mmap()
 #include <sys/stat.h>	// stat()
+#include <sys/capability.h>	// cap_*()
 
 #include <string.h>	// strerror()
 #include <errno.h>	// errno
@@ -152,16 +153,34 @@ rgAddrMap::config_FakeNoPi( const bool v )
 *    Safety check if not on RPi - use fake memory if FakeNoPi is true, else
 *    throw error.
 *    #!! Possibly make this simple safety check more robust.
+* capabilities:
+*    Require capabilities set on the compiled executable file for access
+*    to /dev/mem  e.g.
+*        sudo setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  ../bin/rgpio
+*    The drop_cap flag indicates that capabilities required for /dev/mem
+*    access should be raised before opening file, and dropped afterward.
+*    This avoids the need for setuid or running as root.
+*    The flag defaults to 1, and is provided to allow disabling the raise/drop
+*    of capabilities in case the user needs to manage it himself.
 * call:
 *    open_dev_file( "/dev/mem" )	full access, need root
 *    open_dev_file( "/dev/gpiomem" )	only GPIO pins, normal user
 *    open_dev_file( "" )		use fake memory block
 *    User applications should use the corresponding wrapper functions.
+* call:
+*    open_dev_file( file, drop_cap )
+*    file     = file name to open
+*    drop_cap = flag, 1= raise/drop capabilities, 0= not
 */
 void
-rgAddrMap::open_dev_file( const char *file )
+rgAddrMap::open_dev_file(
+    const char*		file,
+    bool		drop_cap	// default = 1
+)
 {
     struct stat			statbuf;
+    cap_t			capx;		// capability set
+    int				rv;		// return values
 
     if ( ModeStr != NULL ) {
 	throw std::runtime_error ( "rgAddrMap:  already opened" );
@@ -190,6 +209,22 @@ rgAddrMap::open_dev_file( const char *file )
 	throw std::runtime_error ( ss );
     }
 
+    if ( drop_cap ) {		// raise needed capabilities
+	capx = cap_from_text( "CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=pe" );
+	rv   = cap_set_proc( capx );
+	cap_free( capx );
+	if ( Debug ) {
+	    if ( rv != 0 ) {
+		cerr << "rgAddrMap:  raise cap failed" <<endl;
+		// let open() fail if it is a problem
+	    }
+	    capx = cap_get_proc();
+	    cerr << "rgAddrMap:  raise cap:  "
+		 << cap_to_text( capx, NULL ) <<endl;
+	    cap_free( capx );	//#!! and text
+	}
+    }
+
     ModeStr = file;
 
     Dev_fd = open( ModeStr, O_RDWR|O_SYNC );
@@ -201,6 +236,23 @@ rgAddrMap::open_dev_file( const char *file )
 	ss += strerror( errv );
 	throw std::runtime_error ( ss );
     }
+
+    if ( drop_cap ) {		// drop all capabilities
+	capx = cap_init();
+	rv   = cap_set_proc( capx );
+	cap_free( capx );
+	if ( rv != 0 ) {
+	    std::string	ss ( "rgAddrMap:  failed to drop capabilities\n" );
+	    throw std::runtime_error ( ss );
+	}
+	if ( Debug ) {
+	    capx = cap_get_proc();
+	    cerr << "rgAddrMap:  drop  cap:  "
+		 << cap_to_text( capx, NULL ) <<endl;
+	    cap_free( capx );	//#!! and text
+	}
+    }
+
 }
 
 

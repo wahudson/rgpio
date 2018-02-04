@@ -40,6 +40,8 @@ OBJS       = \
 	$(OJ)/yOpVal.o \
 	$(OJ)/yOption.o
 
+LIBS       = -lcap
+
 		# compiler flags
 	# -std=c++11  needed for std::stoi
 CXXFLAGS   = -Wall  -std=c++11
@@ -51,6 +53,9 @@ run:	compile
 mkdirs:   $(OJ)  $(BINDIR)
 
 compile:  $(OJ)  $(BINDIR)  $(BINDIR)/rgpio
+
+cap:
+	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/rgpio
 
 x1	: x1.cpp  rgAddrMap.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp
@@ -73,7 +78,7 @@ $(BINDIR)/main:	main.cpp Error.cpp Error.h
 	g++ -o $@       main.cpp   Error.cpp
 
 $(BINDIR)/rgpio:	$(OJ)/rgpio.o  $(OBJS)
-	g++ -o $@       $(OJ)/rgpio.o  $(OBJS)
+	g++ -o $@       $(OJ)/rgpio.o  $(OBJS)  $(LIBS)
 
 
 $(OJ)/rgpio.o:	rgpio.cpp  $(INCS)
