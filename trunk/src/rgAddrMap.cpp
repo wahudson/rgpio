@@ -40,21 +40,21 @@ using namespace std;
 */
 uint32_t
 rgAddrMap::bcm2rpi_addr(
-    uint32_t		addr	// "BCM2835 ARM Peripherals" address
+    uint32_t		bcm_addr	// "BCM2835 ARM Peripherals" address
 )
 {
     // Check address is in BCM2835 ARM Peripherals IO space.
-    if ( (addr <   BCM2835_IO_PERI) ||
-	 (addr >= (BCM2835_IO_PERI + 0x01000000)) )
+    if ( (bcm_addr <   BCM2835_IO_PERI) ||
+	 (bcm_addr >= (BCM2835_IO_PERI + 0x01000000)) )
     {
 	std::ostringstream	css;
 	css << "rgAddrMap:: address range check:  0x"
-	    <<hex << addr <<endl
+	    <<hex << bcm_addr <<endl
 	    << "    not in 'BCM2835 ARM Peripherals' IO space" ;
 	throw std::range_error ( css.str() );
     }
 
-    return  (addr - BCM2835_IO_PERI + BCM2708_PERI_BASE);
+    return  (bcm_addr - BCM2835_IO_PERI + BCM2708_PERI_BASE);
 }
 
 
@@ -240,28 +240,28 @@ rgAddrMap::close_dev()
 /*
 * Get peripheral memory block.
 * call:
-*    get_mem_block( p_addr )
-*    p_addr = peripheral address, as in BCM datasheet,  block aligned.
+*    get_mem_block( bcm_addr )
+*    bcm_addr = peripheral address as in BCM datasheet, block aligned.
 *		e.g. 0x7e200000 is GPIO pins
 */
 volatile uint32_t*
 rgAddrMap::get_mem_block(
-    int			p_addr
+    uint32_t		bcm_addr
 )
 {
-    int			r_addr;		// RPi real addr
+    uint32_t		r_addr;		// RPi real addr
     void*		mem_block;
 
     // Check page alignment.
-    if ( (p_addr & 0x0fff) != 0 ) {
+    if ( (bcm_addr & 0x0fff) != 0 ) {
 	std::ostringstream	css;
 	css << "get_mem_block() address not aligned:  0x"
-	    <<hex << p_addr;
+	    <<hex << bcm_addr;
 	throw std::range_error ( css.str() );
     }
 
     // Convert BCM document address to RPi address.
-    r_addr = bcm2rpi_addr( p_addr );
+    r_addr = bcm2rpi_addr( bcm_addr );
 
     // Check cache to see if it is previously mapped.
     void*&		cache_ref = BlkCache[r_addr];

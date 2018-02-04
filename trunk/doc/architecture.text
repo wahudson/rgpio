@@ -11,6 +11,8 @@ BCM2835 ARM Peripherals
     /home/var/ref/BCM2835-ARM-Peripherals.pdf
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
+    https://elinux.org/BCM2835_datasheet_errata
+
 
 ----------------------------------------------------------------------------
 ## Discussion
@@ -1514,8 +1516,9 @@ class rgAddrMap		IO Address Memory Map
  +  char	*ModeStr;	user file string, NULL= unset,
 				    "/dev/mem", "/dev/gpiomem", "fake_mem"
 
-		ProtMmap
- +  int		Prot;		mmap() prot field,
+ +  std::map<>	BlkCache;	cache of mapped memory blocks
+
+    int		ProtMmap;	mmap() prot field,
 				    default (PROT_READ|PROT_WRITE)
 		Or pass in get_mem_block()?
 
@@ -1526,10 +1529,12 @@ class rgAddrMap		IO Address Memory Map
 
 		Constructor:
  +  rgAddrMap()			Construct uninitialized object.
- ?  rgAddrMap( 1 )		Construct and initialize.
 
- +  bcm2rpi_addr( addr )	Convert BCM offset address to RPi.
+ +  bcm2rpi_addr( bcm_addr )	Convert BCM offset address to RPi.
  +  text_debug()		Get debug text.
+
+ +  config_Debug( bool )
+ +  config_FakeNoPi( bool )
 
  +  open_dev_file( file )	Open file for mmap().
 			    User wrappers:
@@ -1537,15 +1542,17 @@ class rgAddrMap		IO Address Memory Map
  +  open_dev_gpiomem()		Open /dev/gpiomem
  +  open_fake_mem()		Open fake memory.
 
-    prot_readonly()
-    prot_readwrite()
+    prot_readonly()		? config_readonly()
+    prot_readwrite()		? config_readwrite()
 
  +  close_dev()			Close the device file.
     is_dev_open()		Query.
 
- +  get_mem_block( p_addr )	Get peripheral memory block for BCM address.
+ +  get_mem_block( bcm_addr )	Get peripheral memory block for BCM address.
     drop_capabilities()		Drop root access capability.
  +  is_fake_mem()		TRUE if using fake memory
+
+ +  size_BlkCache()		Number of entries in page cache.
 }
 
 

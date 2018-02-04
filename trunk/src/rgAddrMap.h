@@ -31,9 +31,7 @@ class rgAddrMap {
   public:
     rgAddrMap();			// constructor
 
-    uint32_t		bcm2rpi_addr(
-			    uint32_t            addr
-    );
+    uint32_t		bcm2rpi_addr( uint32_t  bcm_addr );
 
     std::string		text_debug();
 
@@ -63,7 +61,7 @@ class rgAddrMap {
     void		close_dev();
 
 
-    volatile uint32_t*	get_mem_block( int p_addr );
+    volatile uint32_t*	get_mem_block( uint32_t  bcm_addr );
 
 //    void		drop_capabilities();
 
