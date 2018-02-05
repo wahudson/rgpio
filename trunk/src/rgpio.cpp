@@ -70,7 +70,7 @@ class yOptLong : public yOption {
 yOptLong::yOptLong( int argc,  char* argv[] )
     : yOption( argc, argv )
 {
-    dev         = "g";
+    dev         = "m";
     ro          = 0;
 
     verbose     = 0;
@@ -151,7 +151,8 @@ yOptLong::print_usage()
     "    clock        Clock generator\n"
     "    uspi         Universal SPI Master, Spi1, Spi2\n"
     "  common options:\n"
-    "    --dev=m|g|f         device file type\n"
+    "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
+    "                                          g= /dev/gpiomem, f= fake\n"
 //  "  # --ro                read only\n"
     "    --help              show this usage\n"
 //  "    -v, --verbose       verbose output\n"
