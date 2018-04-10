@@ -2,26 +2,22 @@
 		rgpio -- Raspberry Pi GPIO Tool
 		-------------------------------
 
-This is the "rgpio" tool.
+This is the "rgpio" tool and "librgpio" library.
 
 Content Experts:
-    William Hudson  970-215-8461
+    William Hudson
 
 
 Files:
 ------
 README		this file
 
-trunk/		mainline development
-tags/		release tags
-branches/	development branches
-
-doc/		release notes
+librgpio/	rgpio Library development
+rgpio/		rgpio utility tool development
 
 
 Repository History:  (newest first)
 ----------------------------------------------------------------------------
-(2017-04-22)  Initial development
-
-???
+(2017-05-21)  Initial development
+    Local git.
 
