@@ -2,10 +2,10 @@
 #
 # Compile and run the main program.
 
-# Outputs in $(BINDIR)/ and $(OJ)/
+# Outputs in $(LIBDIR)/ and $(OJ)/
 
 SHELL      = /bin/sh
-BINDIR     = ../bin
+LIBDIR     = ../lib
 OJ         = ../obj
 
 		# all include files for main program dependency
@@ -15,14 +15,7 @@ INCS       = \
         rgClock.h \
         rgFselPin.h \
         rgIoPin.h \
-        rgUniSpi.h \
-        Error.h \
-        y_clock.h \
-        y_fsel.h \
-        y_io.h \
-        y_uspi.h \
-        yOpVal.h \
-        yOption.h
+        rgUniSpi.h
 
 		# objects not including main()
 OBJS       = \
@@ -31,70 +24,41 @@ OBJS       = \
 	$(OJ)/rgClock.o \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIoPin.o \
-	$(OJ)/rgUniSpi.o \
-	$(OJ)/Error.o \
-	$(OJ)/y_clock.o \
-	$(OJ)/y_fsel.o \
-	$(OJ)/y_io.o \
-	$(OJ)/y_uspi.o \
-	$(OJ)/yOpVal.o \
-	$(OJ)/yOption.o
+	$(OJ)/rgUniSpi.o
 
-LIBS       = -lcap
+		# link libraries, required by rgAddrMap
+LIBFLAGS   = -lcap
 
 		# compiler flags
 	# -std=c++11  needed for std::stoi
 CXXFLAGS   = -Wall  -std=c++11
 
 
-run:	compile
-	$(BINDIR)/rgpio --TESTOP
+compile:  $(OJ)  $(LIBDIR)  $(LIBDIR)/librgpio.a
 
-mkdirs:   $(OJ)  $(BINDIR)
-
-compile:  $(OJ)  $(BINDIR)  $(BINDIR)/rgpio
-
-cap:
-	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/rgpio
+mkdirs:   $(OJ)  $(LIBDIR)
 
 x1	: x1.cpp  rgAddrMap.cpp  $(INCS)
-	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp
+	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp  $(LIBFLAGS)
 	./x1
 
 clean: 
 	rm -f  $(OJ)/*
 
 clobber:
-	rm -f  $(BINDIR)/rgpio  $(OJ)/*
+	rm -f  $(OJ)/*
+	rm -f  $(LIBDIR)/librgpio.a
 
-$(BINDIR):
-	mkdir -p  $(BINDIR)
+$(LIBDIR):
+	mkdir -p  $(LIBDIR)
 
 $(OJ):
 	mkdir -p  $(OJ)
 
 
-$(BINDIR)/main:	main.cpp Error.cpp Error.h
-	g++ -o $@       main.cpp   Error.cpp
-
-$(BINDIR)/rgpio:	$(OJ)/rgpio.o  $(OBJS)
-	g++ -o $@       $(OJ)/rgpio.o  $(OBJS)  $(LIBS)
-
-
-$(OJ)/rgpio.o:	rgpio.cpp  $(INCS)
-	g++ $(CXXFLAGS) -o $@  -c rgpio.cpp
-
-$(OJ)/y_clock.o:	y_clock.cpp  y_clock.h  $(INCS)
-	g++ $(CXXFLAGS) -o $@  -c y_clock.cpp
-
-$(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
-	g++ $(CXXFLAGS) -o $@  -c y_fsel.cpp
-
-$(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
-	g++ $(CXXFLAGS) -o $@  -c y_io.cpp
-
-$(OJ)/y_uspi.o:		y_uspi.cpp  y_uspi.h  $(INCS)
-	g++ $(CXXFLAGS) -o $@  -c y_uspi.cpp
+$(LIBDIR)/librgpio.a:	$(OBJS)
+	rm -f    $(LIBDIR)/librgpio.a
+	ar -rcs  $(LIBDIR)/librgpio.a  $(OBJS)
 
 
 $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
@@ -115,14 +79,4 @@ $(OJ)/rgIoPin.o:	rgIoPin.cpp  rgIoPin.h  rgAddrMap.h
 
 $(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgUniSpi.cpp
-
-
-$(OJ)/Error.o:		Error.cpp  Error.h
-	g++ $(CXXFLAGS) -o $@  -c Error.cpp
-
-$(OJ)/yOpVal.o:		yOpVal.cpp  yOpVal.h
-	g++ $(CXXFLAGS) -o $@  -c yOpVal.cpp
-
-$(OJ)/yOption.o:	yOption.cpp  yOption.h  Error.h
-	g++ $(CXXFLAGS) -o $@  -c yOption.cpp
 
