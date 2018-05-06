@@ -130,7 +130,7 @@ fsel_yOptLong::parse_options()
 	    mode_e = rgFselPin::find_rgFsel_enum( mode );
 	}
 	catch ( range_error& e ) {
-	    Error::msg( "unknown Fsel mode:  --fsel=" ) << mode <<endl
+	    Error::msg( "unknown Fsel mode:  --mode=" ) << mode <<endl
 		<< "    " <<  e.what() << endl;
 	}
     }

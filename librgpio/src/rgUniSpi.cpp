@@ -25,7 +25,7 @@ using namespace std;
 *    rgAddrMap	amx;		// address map object
 *    amx.open_dev_mem();	// select and open device file
 * call:
-*    rgIoPin	spx  ( N, &amx );	// constructor with address map
+*    rgUniSpi	spx  ( N, &amx );	// constructor with address map
 *    N     = SPI number {1,2}
 *    &amx  = pointer to address map object with open device file
 */
@@ -192,14 +192,14 @@ rgUniSpi::grab_regs()
 
 
 /*
-* Write control/status registers from the object.
+* Write control registers from the object.
+*     Note the hardware Stat register, is read-only, and is not copied.
 */
 void
 rgUniSpi::write_regs()
 {
     write_Cntl0( Cntl0Reg );
     write_Cntl1( Cntl1Reg );
-    write_Stat(  StatReg );	//#!! read-only?
 }
 
 

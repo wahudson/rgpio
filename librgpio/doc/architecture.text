@@ -439,6 +439,25 @@ are lost in the common conversion from int.
 Possibly use int32_t, so negative values could be passed as some kind of
 flag - e.g. -1 could mean set to default.
 
+Register reserved fields:
+    The BCM documentation identifies some hardware register bit fields as
+    "Reserved, write zero, read as don't care".
+    This is likely intended to help backward compatibility as new hardware
+    features are added.
+
+    Typical operation on configuration register bit-fields is to read the
+    register, modify selected fields, and write the result back to the
+    register.  This way all other fields remain unchanged.
+    This same process should apply to reserved fields.
+    The BCM advice to "write zero" would apply when specifying all
+    register fields from scratch without starting from the current register
+    values.
+
+    This library provides low-level register access, and leaves it up to
+    the user to "write zero" in reserved fields whenever the current register
+    value is not used as the starting point.  This could be aided with a
+    config_reset() or config_clear() function.
+
 Object data:
     Feature objects could store a copy of register data.
     The idea is to provide a place to collect and organize the data when
