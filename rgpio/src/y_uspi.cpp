@@ -559,7 +559,7 @@ y_uspi::doit()
 		if ( Opx.debug ) {
 		    cout << "  Modify regs" <<endl;
 		}
-		spi->write_regs();
+		spi->push_regs();
 	    }
 
 	    if ( Opx.tx ) {

@@ -12,6 +12,8 @@ BCM2835 ARM Peripherals
     Referenced by RaspberryPi.
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
+https://elinux.org/BCM2835_datasheet_errata
+
 https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
 
 https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
@@ -146,6 +148,20 @@ Naming functions:
  >  It is NOT intended to abstract the Feature or make it so the user
  >  interface does not change when porting to another machine.
 
+    Function prefix name indicates over-all operation:
+	addr_()		return address of register
+
+	read_()		direct register/field read
+	write_(V)	direct register/field write
+
+	get_()		get object register/field value
+	put_(V)		set object register/field value
+
+	grab_()		copy register into object
+	push_(V)	copy object into register
+
+    Another name for "grab" is "pull", but I like the quirkyness of "grab".
+
 Field accessor functions:
     There are a lot of them!  Total 25.
 
@@ -261,13 +277,19 @@ Methods:
 
 
 			Direct control:  (modify register fields)
-    clear_fifos()
-  ? enable_spi()
+    clear_fifos()		Set ClearFifos_1, then wait for not busy and
+				    clear it.  Higher-level operation.
+  ? enable_spi()		An alias for write_Spi_Enable_1( 1 )?
 
+			Object transfer to hardware registers:
 			Object state operations:
     grab_regs()			Read all Cntl/Status regs into obj.
-    write_regs()		Write object to registers.
-    reset_regs()		Reset object registers, generally to zero.
+    push_regs()			Write object to registers.
+
+    grab_Stat()			Read just the Status register into obj.
+
+    config_reset()		Object registers set to power-on reset state.
+    config_clear()		Object registers set to zero.
 
 			Generic Field accessors:  (private)
     get_field(  Reg, Pos, Len )

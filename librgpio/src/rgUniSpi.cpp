@@ -196,7 +196,7 @@ rgUniSpi::grab_regs()
 *     Note the hardware Stat register, is read-only, and is not copied.
 */
 void
-rgUniSpi::write_regs()
+rgUniSpi::push_regs()
 {
     write_Cntl0( Cntl0Reg );
     write_Cntl1( Cntl1Reg );

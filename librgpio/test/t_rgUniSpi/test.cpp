@@ -5,7 +5,7 @@
 //    20-29  Address of registers
 //    30-39  Access Enable and IRQ bits
 //    40-49  Direct register access  read_(), write_()
-//    50-59  Object State registers  grab_regs(), write_regs()
+//    50-59  Object State registers  grab_regs(), push_regs()
 //    60-69  Object Field Accessors  #!! incomplete
 //--------------------------------------------------------------------------
 
@@ -512,7 +512,7 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "51a", "write_regs()" );
+  CASE( "51a", "push_regs()" );
     try {
 	Tx.put_Cntl0(   0xaaaaaaaa );
 	Tx.put_Cntl1(   0xcccccccc );
@@ -525,7 +525,7 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	CHECKX(         0x55555555, Tx.read_Cntl0() );
 	CHECKX(         0x33333333, Tx.read_Cntl1() );
 	CHECKX(         0x66666666, Tx.read_Stat()  );
-	Tx.write_regs();
+	Tx.push_regs();
 	CHECKX(         0xaaaaaaaa, Tx.read_Cntl0() );
 	CHECKX(         0xcccccccc, Tx.read_Cntl1() );
 	CHECKX(         0x66666666, Tx.read_Stat()  );	// read-only

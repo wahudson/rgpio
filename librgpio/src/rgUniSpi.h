@@ -101,7 +101,7 @@ class rgUniSpi {
 
 		// Object state operations
     void		grab_regs();
-    void		write_regs();
+    void		push_regs();
 
 		// Generic Field accessors:  (private)
     uint32_t		get_field(
