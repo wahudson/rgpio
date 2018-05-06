@@ -1,12 +1,12 @@
 // 2018-01-01  William A. Hudson
 //
 // Testing:  rgUniSpi  Universal SPI Master class.
-//    10-19  Constructor
+//    10-19  Constructor, get_bcm_address()
 //    20-29  Address of registers
 //    30-39  Access Enable and IRQ bits
-//    40-49  .
-//    50-59  .
-//    60-69  .
+//    40-49  Direct register access  read_(), write_()
+//    50-59  Object State registers  grab_regs(), write_regs()
+//    60-69  Object Field Accessors  #!! incomplete
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -385,6 +385,157 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------------------------------------------
 //## Direct register access
 //--------------------------------------------------------------------------
+// Test read/write to fake memory.
+
+//--------------------------------------
+  CASE( "40a", "read_Cntl0()" );
+    try {
+	Tx.write_Cntl0( 0x00000000 );
+	CHECKX(         0x00000000, Tx.read_Cntl0() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "40b", "read_Cntl0()" );
+    try {
+	Tx.write_Cntl0( 0xffffffff );
+	CHECKX(         0xffffffff, Tx.read_Cntl0() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "41a", "read_Cntl1()" );
+    try {
+	Tx.write_Cntl1( 0x00000000 );
+	CHECKX(         0x00000000, Tx.read_Cntl1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "41b", "read_Cntl1()" );
+    try {
+	Tx.write_Cntl1( 0xffffffff );
+	CHECKX(         0xffffffff, Tx.read_Cntl1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+// Note Stat is a read-only register.
+  CASE( "42a", "read_Stat()" );
+    try {
+	Tx.write_Stat(  0x00000000 );
+	CHECKX(         0x00000000, Tx.read_Stat() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "42b", "read_Stat()" );
+    try {
+	Tx.write_Stat(  0xffffffff );
+	CHECKX(         0xffffffff, Tx.read_Stat() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "43a", "read_Fifo()" );
+    try {
+	Tx.write_Fifo(  0x00000000 );
+	CHECKX(         0x00000000, Tx.read_Fifo() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "43b", "read_Fifo()" );
+    try {
+	Tx.write_Fifo(  0xffffffff );
+	CHECKX(         0xffffffff, Tx.read_Fifo() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "44a", "read_Fifo()" );
+    try {
+	Tx.write_FifoH( 0x00000000 );
+	CHECKX(         0x00000000, Tx.read_FifoH() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "44b", "read_Fifo()" );
+    try {
+	Tx.write_FifoH( 0xffffffff );
+	CHECKX(         0xffffffff, Tx.read_FifoH() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+
+//--------------------------------------------------------------------------
+//## Object State registers
+//--------------------------------------------------------------------------
+
+//--------------------------------------
+  CASE( "50a", "grab_regs()" );
+    try {
+	Tx.write_Cntl0( 0x55555555 );
+	Tx.write_Cntl1( 0x33333333 );
+	Tx.write_Stat(  0x66666666 );
+	Tx.write_Fifo(  0x00000000 );
+	Tx.write_FifoH( 0x00000000 );
+	Tx.put_Cntl0(   0xaaaaaaaa );
+	Tx.put_Cntl1(   0xcccccccc );
+	Tx.put_Stat(    0x99999999 );
+	CHECKX(         0xaaaaaaaa, Tx.get_Cntl0() );
+	CHECKX(         0xcccccccc, Tx.get_Cntl1() );
+	CHECKX(         0x99999999, Tx.get_Stat()  );
+	Tx.grab_regs();
+	CHECKX(         0x55555555, Tx.get_Cntl0() );
+	CHECKX(         0x33333333, Tx.get_Cntl1() );
+	CHECKX(         0x66666666, Tx.get_Stat()  );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "51a", "write_regs()" );
+    try {
+	Tx.put_Cntl0(   0xaaaaaaaa );
+	Tx.put_Cntl1(   0xcccccccc );
+	Tx.put_Stat(    0x99999999 );
+	Tx.write_Cntl0( 0x55555555 );
+	Tx.write_Cntl1( 0x33333333 );
+	Tx.write_Stat(  0x66666666 );
+	Tx.write_Fifo(  0x00000000 );
+	Tx.write_FifoH( 0x00000000 );
+	CHECKX(         0x55555555, Tx.read_Cntl0() );
+	CHECKX(         0x33333333, Tx.read_Cntl1() );
+	CHECKX(         0x66666666, Tx.read_Stat()  );
+	Tx.write_regs();
+	CHECKX(         0xaaaaaaaa, Tx.read_Cntl0() );
+	CHECKX(         0xcccccccc, Tx.read_Cntl1() );
+	CHECKX(         0x66666666, Tx.read_Stat()  );	// read-only
+	CHECKX(         0x00000000, Tx.read_Fifo()  );
+	CHECKX(         0x00000000, Tx.read_FifoH() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 
 //--------------------------------------------------------------------------
 //## Object Field Accessors
