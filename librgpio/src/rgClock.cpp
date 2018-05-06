@@ -310,9 +310,10 @@ rgClock::grab_regs()
 /*
 * Write control registers from the object.
 *    May glitch or hang the clock generator, unless ENAB=0 and BUSY=0.
+*    Password 0x5a is applied.
 */
 void
-rgClock::write_regs()
+rgClock::push_regs()
 {
     write_CtlReg( CtlReg );
     write_DivReg( DivReg );

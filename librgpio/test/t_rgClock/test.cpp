@@ -4,7 +4,7 @@
 //    10-19  Constructor
 //    20-29  Direct low-level access
 //    30-39  Direct control enable_clock(), kill_generator(), wait_while_Busy()
-//    40-49  Object state operations grab_regs(), write_regs(), apply_regs()
+//    40-49  Object state operations grab_regs(), push_regs(), apply_regs()
 //    50-59  Object Field Accessors  CtlReg  get_() put_()
 //    60-69  Object Field Accessors  DivReg  get_() put_()
 //--------------------------------------------------------------------------
@@ -446,7 +446,7 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     }
 
 //--------------------------------------------------------------------------
-//## Object state operations  grab_regs(), write_regs(), apply_regs()
+//## Object state operations  grab_regs(), push_regs(), apply_regs()
 //--------------------------------------------------------------------------
 
 //--------------------------------------
@@ -463,11 +463,11 @@ rgClock			Tx2  ( 2 );	// test object, Clock2
     }
 
 //--------------------------------------
-  CASE( "41", "write_regs()" );
+  CASE( "41", "push_regs()" );
     try {
 	Tx.put_CtlReg( 0xffaa33cc );
 	Tx.put_DivReg( 0x00ff7788 );
-	Tx.write_regs();
+	Tx.push_regs();
 	CHECKX( 0xffaa33cc, Tx.get_CtlReg() );
 	CHECKX( 0x00ff7788, Tx.get_DivReg() );
 	CHECKX( 0x5aaa33cc, Tx.read_CtlReg() );
