@@ -1,8 +1,9 @@
 2017-05-10
-		librgpio -- Raspberry Pi GPIO Library
-		-------------------------------------
+		rgpio -- Raspberry Pi GPIO Tool
+		-------------------------------
 
-A C++ library to manipulate the Raspberry Pi GPIO peripherals.
+This is the "rgpio" command.
+Runs on Raspberry Pi (RPi) to read/control the GPIO configuration.
 
 Revision control:  git
 
@@ -13,31 +14,35 @@ README			this file
 .gitignore		Git ignore transient files
 
 doc/		    Documentation
-    architecture.text	Architecture description
-    privilege.text	Process Privilege Control
-    spi_design.text	rgUniSpi Design Architecure
+?   architecture.text	Architecture description
 
 ? man/man1/		Manpage dir tree (unmanaged)
 
 src/		    Source code
     Makefile		for building the tool
-    rgAddrMap.cpp	Address Map class
-    rgAddrMap.h
-    rgAltFuncName.cpp	Alternate Function Names class
-    rgAltFuncName.h
-    rgClock.cpp		General Purpose Clock class
-    rgClock.h
-    rgFselPin.cpp	GPIO Pin Function Select class
-    rgFselPin.h
-    rgIoPin.cpp		GPIO IO Pin control class
-    rgIoPin.h
-    rgUniSpi.cpp	Universal SPI Master class - SPI1, SPI2
-    rgUniSpi.h
+    Error.cpp		Error handling
+    Error.h
+    rgpio.cpp		main program
+    yOpVal.cpp		Option Argument class
+    yOpVal.h
+    yOption.cpp		Option parsing base class
+    yOption.h
+		      rgpio subcommands:
+    y_clock.cpp		rgpio clock -- Clock control
+    y_clock.h
+    y_fsel.cpp		rgpio fsel -- Function Select pins
+    y_fsel.h
+    y_io.cpp		rgpio io -- IO pins
+    y_io.h
+    y_uspi.cpp		rgpio uspi -- Universal SPI Master
+    y_uspi.h
+
+perf/		    Source code Performance Test Programs
+    Makefile		for building programs
+    clock_perf.cpp	Clock system read/write times.
 
 bin/		    Commands
-
-lib/		    Library
-    librgpio.a		The compiled library
+    rgpio		Raspberry Pi GPIO utility
 
 obj/		    temporary .o object files
     *.o
@@ -55,6 +60,7 @@ Initial Build process:
     % cd src
     % make mkdirs
     % make compile
+    % make cap
 
 The idea is to build/run in the source directory tree, thus avoiding need for
 any package/install process.
