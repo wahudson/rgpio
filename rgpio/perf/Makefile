@@ -9,39 +9,45 @@ BINDIR     = ../bin
 OJ         = ../obj
 IH         = ../src
 
+		# the librgpio library
+INCDIR     = ../../librgpio/src
+LIBDIR     = ../../librgpio/lib
+LIBS       = $(LIBDIR)/librgpio.a
+
 		# all include files for main program dependency
 INCS       = \
-        $(IH)/rgAddrMap.h \
-        $(IH)/rgIoPin.h \
-        $(IH)/rgClock.h \
         $(IH)/Error.h \
         $(IH)/yOption.h
 
 		# objects not including main()
 OBJS       = \
-	$(OJ)/rgAddrMap.o \
-	$(OJ)/rgIoPin.o \
-	$(OJ)/rgClock.o \
 	$(OJ)/Error.o \
 	$(OJ)/yOption.o
 
+		# link libraries, order matters
+LIBFLAGS   = -lrgpio -lcap
+
 		# compiler flags
 	# -std=c++11  needed for std::stoi
-CXXFLAGS   = -Wall  -std=c++11  -I $(IH)
+CXXFLAGS   = -Wall  -std=c++11  -I $(IH)  -I $(INCDIR)
 
 
 run:	compile
 	$(BINDIR)/clock_perf --TESTOP
 
-mkdirs:   $(OJ)  $(BINDIR)
-
 compile:  $(OJ)  $(BINDIR)  $(BINDIR)/clock_perf
+
+cap:
+	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/clock_perf
+
+mkdirs:   $(OJ)  $(BINDIR)
 
 clean: 
 	rm -f  $(OJ)/*
 
 clobber:
-	rm -f  $(BINDIR)/clock_perf  $(OJ)/*
+	rm -f  $(OJ)/*
+	rm -f  $(BINDIR)/clock_perf
 
 $(BINDIR):
 	mkdir -p  $(BINDIR)
@@ -50,6 +56,8 @@ $(OJ):
 	mkdir -p  $(OJ)
 
 
-$(BINDIR)/clock_perf:	       clock_perf.cpp  $(OBJS) $(INCS)
-	g++ $(CXXFLAGS) -o $@  clock_perf.cpp  $(OBJS)
+$(BINDIR)/clock_perf:	 clock_perf.cpp  $(OBJS)  $(INCS)  $(LIBS)
+	g++ $(CXXFLAGS) -o $@ -L $(LIBDIR) \
+			 clock_perf.cpp  $(OBJS)  $(LIBFLAGS)
+
 
