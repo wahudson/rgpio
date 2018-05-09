@@ -97,11 +97,14 @@ class rgUniSpi {
     }
 
 		// Direct control:  (modify register fields)
-    void		clear_fifos();
+//  void		clear_fifos();	#!! not implemented
 
 		// Object state operations
+    void		init_put_reset();
+
     void		grab_regs();
     void		push_regs();
+    void		grab_Stat();
 
 		// Generic Field accessors:  (private)
     uint32_t		get_field(
@@ -175,7 +178,7 @@ class rgUniSpi {
     uint32_t		get_KeepInput_1();
     void		put_KeepInput_1(     uint32_t  v );
 
-		// Object Status Field Accessors (Read-only?)
+		// Object Status Field Accessors (Read-only)
 
     uint32_t		get_TxLevel_3();
     uint32_t		get_RxLevel_3();

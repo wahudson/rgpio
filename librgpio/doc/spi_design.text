@@ -131,6 +131,10 @@ BCM Register names:
     select) lines.  These names hopefully make that a little more apparent.
     FifoH was choosen, instead of FifoHold, to keep it shorter.
 
+    The "Stat" register name is a subset of the common word "Status", and
+    thus maybe not so good.  "StatR" might have been better.
+    "Peek" is sufficiently quirky.
+
 Naming functions:
     Need a method to help user know wheather a whole register is acted on,
     or is it a bit field.
@@ -198,6 +202,80 @@ Field accessor functions:
     But it still gets quite long.
     Still want to avoid users slinging enums.
     Enum implementation under the hood would be acceptable.
+
+Initialize object register state:  Cntl0, Cntl1, Stat
+    An alternative to the "grab/modify/push" method is "init/modify/push".
+
+    Two useful initial states are "power-on reset" and all zero.
+    The "reset" state is more complex.  The zero state could be done by
+    the whole register accessors:
+	put_Cntl0( 0x00000000 );
+	put_Cntl1( 0x00000000 );
+	put_Stat(  0x00000000 );	// read-only, so maybe not set
+
+    Choosing a name:
+	Want a name that clearly indicates an initial state for the put_()
+	field accessors to modify.
+	Want a name not confused with initial object configuration or other
+	types of operation.
+
+    Possible init function names:
+	config_reset()		nice but may confuse with object config
+	control_reset()
+	cntl_reset()
+	conf_reset()
+	init_reset()
+	init_all_reset()
+	set_reset()
+	make_reset()
+	reset_cntl_state()
+	grab_reset_regs()	relates to grab_regs()
+	grab_reset_state()
+	init_state_reset()	is a kind of object init
+	put_all_reset()		relates to the put_() field accessors
+	put_init_reset()
+ >	init_put_reset()
+
+    The word "all" in the name seems to help.
+
+    Thus user operation would be:
+        x.init_put_reset();
+        x.put_Speed_12( 42 );
+        x.put_InRising_1( 1 );
+	...
+	x.push_regs();
+
+    Thus user operation would be:
+        x.put_init_reset();
+        x.put_Speed_12( 42 );
+        x.put_InRising_1( 1 );
+	...
+	x.push_regs();
+
+    Individual register init would look like:
+	x.put_Cntl0( 0x00000000 );
+	x.put_Cntl1( 0x00000000 );
+        x.put_Speed_12( 42 );
+        x.put_InRising_1( 1 );
+	...
+	x.push_regs();
+
+    The "init_" prefix suggests initialization, but by itself may confuse
+    with other object initialization, although it is object initialization.
+    However the "init_put_" prefix helps.
+
+    The "put_" prefix relates nicely to the put_() field accessors, but may
+    blend in and not stand out as the initializer.
+
+    Either the "init_put_" or "put_init_" seems to capture the best of both.
+    The initialization aspect seems slightly more important when looking
+    at the code sequence.
+    Regardless, the user must still know what is actually initialized.
+ >  Choose:  init_put_reset()  init_put_zero()
+
+    Note the reset state is virtually all zero, only ChipSelects= 0x7 (all
+    inactive) are non-zero.  Thus init_put_zero() is probably not worth the
+    effort.
 
 Documentation:
     Where to put detailed documentation on Spi operation and configuration?
@@ -281,15 +359,14 @@ Methods:
 				    clear it.  Higher-level operation.
   ? enable_spi()		An alias for write_Spi_Enable_1( 1 )?
 
-			Object transfer to hardware registers:
 			Object state operations:
-    grab_regs()			Read all Cntl/Status regs into obj.
-    push_regs()			Write object to registers.
+    init_put_reset()		Object registers set to power-on reset state.
+  x init_put_zero()		Object registers set to zero.
 
-    grab_Stat()			Read just the Status register into obj.
+    grab_regs()			Read all Cntl/Status registers into object.
+    push_regs()			Write object to hardware registers.
 
-    config_reset()		Object registers set to power-on reset state.
-    config_clear()		Object registers set to zero.
+    grab_Stat()			Read just the Status register into object.
 
 			Generic Field accessors:  (private)
     get_field(  Reg, Pos, Len )

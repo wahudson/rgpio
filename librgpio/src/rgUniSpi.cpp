@@ -180,6 +180,24 @@ rgUniSpi::addr_FifoH()
 //--------------------------------------------------------------------------
 
 /*
+* Initialize object control/status registers to the power-on reset state.
+* Hardware registers are unchanged.
+* Intended for use with the put_*() field accessor functions, and can be
+* called multiple times.
+* Virtually all fields are zero, or are the inactive state.
+*/
+void
+rgUniSpi::init_put_reset()
+{
+    Cntl0Reg = 0x00000000;
+    Cntl1Reg = 0x00000000;
+    StatReg  = 0x00000280;	// TxEmpty=1, RxEmpty=1
+
+    put_ChipSelects_3( 0x7 );	// all 3 inactive
+}
+
+
+/*
 * Read control/status registers into the object.
 */
 void
@@ -200,6 +218,17 @@ rgUniSpi::push_regs()
 {
     write_Cntl0( Cntl0Reg );
     write_Cntl1( Cntl1Reg );
+}
+
+
+/*
+* Read status registers into the object.
+*     This saves execution time compared to reading all 3 registers.
+*/
+void
+rgUniSpi::grab_Stat()
+{
+    StatReg  = read_Stat();
 }
 
 

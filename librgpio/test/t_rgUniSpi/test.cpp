@@ -5,7 +5,7 @@
 //    20-29  Address of registers
 //    30-39  Access Enable and IRQ bits
 //    40-49  Direct register access  read_(), write_()
-//    50-59  Object State registers  grab_regs(), push_regs()
+//    50-59  Object State registers  init_put_reset(), grab_regs(), push_regs()
 //    60-69  Object Field Accessors  #!! incomplete
 //--------------------------------------------------------------------------
 
@@ -489,7 +489,31 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------------------------------------------
 
 //--------------------------------------
-  CASE( "50a", "grab_regs()" );
+  CASE( "50a", "init_put_reset()" );
+    try {
+	Tx.write_Cntl0( 0xfff1ffff );
+	Tx.write_Cntl1( 0xffffffff );
+	Tx.write_Stat(  0xffffffff );
+	Tx.put_Cntl0(   0xffffffff );
+	Tx.put_Cntl1(   0xffffffff );
+	Tx.put_Stat(    0xffffffff );
+	CHECKX(         0xfff1ffff, Tx.read_Cntl0() );
+	CHECKX(         0xffffffff, Tx.read_Cntl1() );
+	CHECKX(         0xffffffff, Tx.read_Stat() );
+	CHECKX(         0xffffffff, Tx.get_Cntl0() );
+	CHECKX(         0xffffffff, Tx.get_Cntl1() );
+	CHECKX(         0xffffffff, Tx.get_Stat()  );
+	Tx.init_put_reset();
+	CHECKX(         0x000e0000, Tx.get_Cntl0() );
+	CHECKX(         0x00000000, Tx.get_Cntl1() );
+	CHECKX(         0x00000280, Tx.get_Stat()  );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "52a", "grab_regs()" );
     try {
 	Tx.write_Cntl0( 0x55555555 );
 	Tx.write_Cntl1( 0x33333333 );
@@ -512,7 +536,7 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "51a", "push_regs()" );
+  CASE( "54a", "push_regs()" );
     try {
 	Tx.put_Cntl0(   0xaaaaaaaa );
 	Tx.put_Cntl1(   0xcccccccc );
@@ -531,6 +555,30 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	CHECKX(         0x66666666, Tx.read_Stat()  );	// read-only
 	CHECKX(         0x00000000, Tx.read_Fifo()  );
 	CHECKX(         0x00000000, Tx.read_FifoH() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "56a", "grab_Stat()" );
+    try {
+	Tx.write_Cntl0( 0xffffffff );
+	Tx.write_Cntl1( 0xffffffff );
+	Tx.write_Stat(  0xaaaaaaaa );
+	Tx.put_Cntl0(   0x00000000 );
+	Tx.put_Cntl1(   0x00000000 );
+	Tx.put_Stat(    0x55555555 );
+	CHECKX(         0xffffffff, Tx.read_Cntl0() );
+	CHECKX(         0xffffffff, Tx.read_Cntl1() );
+	CHECKX(         0xaaaaaaaa, Tx.read_Stat() );
+	CHECKX(         0x00000000, Tx.get_Cntl0() );
+	CHECKX(         0x00000000, Tx.get_Cntl1() );
+	CHECKX(         0x55555555, Tx.get_Stat()  );
+	Tx.grab_Stat();
+	CHECKX(         0x00000000, Tx.get_Cntl0() );
+	CHECKX(         0x00000000, Tx.get_Cntl1() );
+	CHECKX(         0xaaaaaaaa, Tx.get_Stat()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
