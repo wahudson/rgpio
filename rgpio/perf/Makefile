@@ -2,7 +2,7 @@
 #
 # Compile and run the main program.
 
-# Outputs in $(BINDIR)/ and $(OJ)/
+# Outputs in $(BINDIR)/ and Inputs in $(OJ)/
 
 SHELL      = /bin/sh
 BINDIR     = ../bin
@@ -35,19 +35,22 @@ CXXFLAGS   = -Wall  -std=c++11  -I $(IH)  -I $(INCDIR)
 run:	compile
 	$(BINDIR)/clock_perf --TESTOP
 
-compile:  $(OJ)  $(BINDIR)  $(BINDIR)/clock_perf
+compile:  $(OJ)  $(BINDIR) \
+	$(BINDIR)/clock_perf \
+	$(BINDIR)/uspi_trace
 
 cap:
 	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/clock_perf
+	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/uspi_trace
 
 mkdirs:   $(OJ)  $(BINDIR)
 
 clean: 
-	rm -f  $(OJ)/*
+	# rm -f  $(OJ)/*
 
 clobber:
-	rm -f  $(OJ)/*
 	rm -f  $(BINDIR)/clock_perf
+	rm -f  $(BINDIR)/uspi_trace
 
 $(BINDIR):
 	mkdir -p  $(BINDIR)
@@ -60,4 +63,7 @@ $(BINDIR)/clock_perf:	 clock_perf.cpp  $(OBJS)  $(INCS)  $(LIBS)
 	g++ $(CXXFLAGS) -o $@ -L $(LIBDIR) \
 			 clock_perf.cpp  $(OBJS)  $(LIBFLAGS)
 
+$(BINDIR)/uspi_trace:	 uspi_trace.cpp  $(OBJS)  $(INCS)  $(LIBS)
+	g++ $(CXXFLAGS) -o $@ -L $(LIBDIR) \
+			 uspi_trace.cpp  $(OBJS)  $(LIBFLAGS)
 

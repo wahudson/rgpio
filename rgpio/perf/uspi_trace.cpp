@@ -1,6 +1,13 @@
-// 2018-01-19  William A. Hudson
+// 2018-05-12  William A. Hudson
 //
-// Measure Clock system read/write performance.
+// Trace Universal SPI Master operation.
+//     Use GPIO read in a tight loop to observe Uspi1 signal trace.
+// Provide external configuration:
+//   rgpio fsel --mode=Alt4  16 17 18 19 20 21
+//   rgpio uspi -1 --Spi_Enable_1=1
+//   rgpio uspi -1 --Speed_12=200 --EnableSerial_1=1 --ShiftLength_6=8 ...
+//   rgpio clock --enable=1 --source=5 --mash=0 --divi=1000  0
+//   rgpio fsel --mode=Alt0  4
 //--------------------------------------------------------------------------
 
 #include <iostream>
@@ -53,6 +60,10 @@ class yOptLong : public yOption {
 
     int			nsamp_n;		// number of samples
     int			repeat_n;		// repeat loop
+
+    static const int	TxSize = 4;		// transmit fifo depth
+    uint32_t		txval[TxSize];		// transmit fifo values
+    int			txval_n;		// num elements used
 
   public:
     yOptLong( int argc,  char* argv[] );	// constructor
@@ -124,8 +135,16 @@ yOptLong::parse_options()
 	repeat_n = stoi( repeat_s );
     }
 
-    if ( get_argc() > 0 ) {
-	Error::msg( "extra arguments:  " ) << next_arg() <<endl;
+    txval_n = get_argc();
+    if ( txval_n > TxSize ) {
+	Error::msg( "limit 4 Tx_value args:  " ) << txval_n <<endl;
+	txval_n = TxSize;
+	return;
+    }
+
+    for ( int i=0;  i<txval_n;  i++ )
+    {
+	txval[i] = strtoul( next_arg(), NULL, 0 );
     }
 }
 
@@ -150,6 +169,13 @@ yOptLong::print_option_flags()
 
     cout << "nsamp_n       = " << nsamp_n      << endl;
     cout << "repeat_n      = " << repeat_n     << endl;
+
+    cout.fill('0');
+    for ( int i=0;  i<txval_n;  i++ )
+    {
+	cout << "txval:        = 0x" <<hex <<setw(8) << txval[i]  << endl;
+    }
+    cout.fill(' ');
 }
 
 
@@ -160,8 +186,9 @@ void
 yOptLong::print_usage()
 {
     cout <<
-    "    Measure Raspberry Pi process performance.\n"
-    "usage:  " << ProgName << " [options]\n"
+    "    Trace Universal SPI Master signals.\n"
+    "usage:  " << ProgName << " [options]  [Tx_value ..]\n"
+    "    Tx_value            SPI transmit fifo value, 32-bits\n"
     "  output forms:  (default is none)\n"
     "    --raw               raw data\n"
     "  options:\n"
@@ -215,9 +242,6 @@ main( int	argc,
 	    return ( 0 );
 	}
 
-//	unsigned		ilevel;		// GPIO read value
-	int			sample_cnt;	// total read samples
-
 	if ( Error::has_err() )  return 1;
 
 	rgAddrMap		Amx;			// constructor
@@ -228,25 +252,11 @@ main( int	argc,
 	}
 
 	rgIoPin			Gpx  ( &Amx );		// constructor
-	rgClock			Ckx  ( 0, &Amx );	// constructor
+//	rgClock			Ckx  ( 0, &Amx );	// constructor
 	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
-	uint32_t		vv;
 
 	volatile uint32_t*	pinread = Gpx.addr_PinRead_w0();
-	volatile uint32_t*	pinset  = Gpx.addr_PinSet_w0();
 
-	volatile uint32_t*	ck0ctl     = Ckx.addr_CtlReg();
-	volatile uint32_t*	uspi_Cntl0 = Uspix.addr_Cntl0();
-
-    // Make vars used
-	vv = *pinread;
-	*pinset = 0x00000000;
-	vv = *ck0ctl;
-	rv = vv;	// used
-
-	if ( Opx.debug ) {
-	    cout << "    ck0ctl= " << (uint32_t*)ck0ctl << endl;
-	}
 
     // Main Loop
 	n_samp = Opx.nsamp_n;
@@ -256,29 +266,23 @@ main( int	argc,
 	}
 	cerr << "    n_samp= " << n_samp << endl;
 
+	int			sample_cnt;	// total read samples
+
 	for ( int jj=1;  jj<=Opx.repeat_n;  jj++ )	// repeat loop
 	{
 	    sample_cnt = 0;
 
 	    rv = clock_gettime( CLKID, &tpA );
 
-	    while ( sample_cnt < n_samp )		// inner loop
+	    for ( int i=0;  i < Opx.txval_n;  i++ )
 	    {
-//		rv = clock_gettime( CLKID, &tpL );
-//		memDat[ sample_cnt ] = tpL.tv_nsec - tpold;
-//		tpold = tpL.tv_nsec;
+		Uspix.write_Fifo( Opx.txval[i] );
+	    }
 
-//		Ckx.read_CtlReg();
-//		Ckx.grab_regs();
-//		vv = Ckx.read_Busy();
-//		vv = *ck0ctl;
-//		*ck0ctl = 0x00000000;
-
-//		*pinset = 0x00000000;
-//		vv = *pinread;
-//		vv = Gpx.read_PinLevel_w0();
-
-		vv = *uspi_Cntl0;
+	// Inner loop
+	    while ( sample_cnt < n_samp )
+	    {
+		memDat[ sample_cnt ] = *pinread;
 
 		sample_cnt++;
 	    }
@@ -313,9 +317,38 @@ main( int	argc,
 	}
 
 	if ( Opx.raw ) {
+	    uint32_t		vv;
+	    uint32_t		ce2;
+	    uint32_t		ce1;
+	    uint32_t		ce0;
+	    uint32_t		miso;
+	    uint32_t		mosi;
+	    uint32_t		sclk;
+	    uint32_t		clk0;
+
+	    cout << " index  read        CE   SCLK MOSI MISO Clk0" <<endl;
+
 	    for ( int ii=0;  ii<n_samp;  ii++ )
 	    {
-		cout << setw(6) << ii << setw(10) << memDat[ii] << endl;
+		vv   = memDat[ii];
+		ce2  = (vv >> 16) & 0x1;
+		ce1  = (vv >> 17) & 0x1;
+		ce0  = (vv >> 18) & 0x1;
+		miso = (vv >> 19) & 0x1;
+		mosi = (vv >> 20) & 0x1;
+		sclk = (vv >> 21) & 0x1;
+		clk0 = (vv >>  4) & 0x1;
+
+		cout.fill(' ');
+		cout <<dec <<setw(6) << ii;
+		cout.fill('0');
+		cout << "  0x"  <<hex <<setw(8) << memDat[ii];
+		cout << "  "          <<setw(1) << ce2 << ce1 << ce0;
+		cout << "  "          <<setw(1) << sclk;
+		cout << "    "        <<setw(1) << mosi;
+		cout << "    "        <<setw(1) << miso;
+		cout << "    "        <<setw(1) << clk0;
+		cout <<endl;
 	    }
 	}
 
