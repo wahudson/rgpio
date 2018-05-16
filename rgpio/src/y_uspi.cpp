@@ -72,6 +72,7 @@ class uspi_yOptLong : public yOption {
     yOpVal		KeepInput_1;
 
     bool		tx;
+    bool		txh;
 
     bool		verbose;
     bool		debug;
@@ -104,6 +105,7 @@ uspi_yOptLong::uspi_yOptLong( yOption  *opx )
     spi_ch[2]   = 0;
 
     tx          = 0;
+    txh         = 0;
 
     verbose     = 0;
     debug       = 0;
@@ -156,6 +158,7 @@ uspi_yOptLong::parse_options()
 	else if ( is( "-1"           )) { spi_ch[1]  = 1; }
 	else if ( is( "-2"           )) { spi_ch[2]  = 1; }
 	else if ( is( "--tx"         )) { tx         = 1; }
+	else if ( is( "--txh"        )) { txh        = 1; }
 
 	else if ( is( "--CsHighTime_3="    )) { CsHighTime_3.set(    val() ); }
 	else if ( is( "--TxEmptyIRQ_1="    )) { TxEmptyIRQ_1.set(    val() ); }
@@ -267,7 +270,11 @@ uspi_yOptLong::parse_options()
 			       KeepInput_1.Val <<endl;
     }
 
-    if ( ! tx && (get_argc() > 0) ) {
+    if ( tx && txh ) {
+	Error::msg( "require only one of:  --tx|--txh" ) << endl;
+    }
+
+    if ( ! (tx || txh) && (get_argc() > 0) ) {
 	Error::msg( "extra arguments:  " ) << next_arg() << endl;
     }
 
@@ -301,6 +308,7 @@ uspi_yOptLong::print_option_flags()
 //#!! not complete
 
     cout << "--tx          = " << tx           << endl;
+    cout << "--txh         = " << txh          << endl;
 
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
@@ -322,7 +330,7 @@ uspi_yOptLong::print_usage()
 {
     cout <<
     "    Universal SPI Master control\n"
-    "usage:  " << ProgName << " uspi  -N..  [options..] [--tx V..]\n"
+    "usage:  " << ProgName << " uspi  -N..  [options..] [--tx|--txh V..]\n"
     "    -N                  SPI number {1,2}\n"
     "  modify full register:\n"
     "    --cntl0=V           Control reg 0\n"
@@ -576,7 +584,21 @@ y_uspi::doit()
 	    }
 	    //#!! Note --tx works for only one Spi.
 
-	    if ( md || Opx.tx ) {	// modify registers
+	    if ( Opx.txh ) {
+		char*		cp;
+		uint32_t	vv;
+		while ( (cp = Opx.next_arg()) )
+		{
+		    vv = strtoul( cp, NULL, 0 );
+		    cout.fill('0');
+		    cout << "  put_txh:  0x" <<hex <<setw(8) << vv << endl;
+		    spi->write_FifoH( vv );
+		}
+		cout << dec;
+	    }
+	    //#!! Note --txh works for only one Spi.
+
+	    if ( md || Opx.tx || Opx.txh ) {	// modify registers
 		if ( Opx.debug ) {
 		    cout << "  Grab regs" <<endl;
 		}
