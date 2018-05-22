@@ -23,7 +23,8 @@ INCS       = \
         y_io.h \
         y_uspi.h \
         yOpVal.h \
-        yOption.h
+        yOption.h \
+        yUtil.h
 
 		# objects not including main()
 OBJS       = \
@@ -33,7 +34,8 @@ OBJS       = \
 	$(OJ)/y_io.o \
 	$(OJ)/y_uspi.o \
 	$(OJ)/yOpVal.o \
-	$(OJ)/yOption.o
+	$(OJ)/yOption.o \
+	$(OJ)/yUtil.o
 
 		# link libraries, order matters
 LIBFLAGS   = -lrgpio -lcap
@@ -97,4 +99,7 @@ $(OJ)/yOpVal.o:		yOpVal.cpp  yOpVal.h
 
 $(OJ)/yOption.o:	yOption.cpp  yOption.h  Error.h
 	g++ $(CXXFLAGS) -o $@  -c yOption.cpp
+
+$(OJ)/yUtil.o:		yUtil.cpp  yUtil.h
+	g++ $(CXXFLAGS) -o $@  -c yUtil.cpp
 

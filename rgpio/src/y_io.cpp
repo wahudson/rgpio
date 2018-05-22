@@ -17,6 +17,7 @@ using namespace std;
 #include "rgAddrMap.h"
 #include "rgIoPin.h"
 
+#include "yUtil.h"
 #include "y_io.h"
 
 
@@ -202,7 +203,7 @@ io_yOptLong::print_usage()
 //  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --help              show this usage\n"
-    " #  -v, --verbose       verbose output\n"
+    "    -v, --verbose       verbose output, show registers in binary\n"
     "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -326,12 +327,24 @@ y_io::doit()
 		Gpx.modify_reg( reg, Opx.mask_n, Opx.value_n );
 	    }
 
-	    cout.fill('0');
-	    cout <<hex;
-	    cout << "0x" <<setw(8) << Gpx.read_reg( reg )
-		 << "  "           << Gpx.str_IoReg_enum( reg )
-		 <<endl;
+	    uint32_t	vv = Gpx.read_reg( reg );
+
+	    if ( Opx.verbose ) {
+		cout <<setfill('0')
+		     << "0x" <<setw(8)  <<hex  << vv
+		     <<setfill(' ')
+		     << "  " <<setw(23) <<left << Gpx.str_IoReg_enum( reg )
+		     << "  "                   << cstr_bits32( vv )
+		     <<endl;
+	    }
+	    else {
+		cout <<setfill('0')
+		     << "0x" <<setw(8)  <<hex  << vv
+		     << "  "                   << Gpx.str_IoReg_enum( reg )
+		     <<endl;
+	    }
 	}
+	cout.fill(' ');
 
     }
     catch ( std::exception& e ) {
