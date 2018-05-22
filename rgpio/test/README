@@ -46,6 +46,7 @@ Test suites:  (2017-05-20)
  p      = Program test (command)
 ------  --------------
  u   s  t_Error/	Error		Error message class.
+ u   s  t_yUtil/	yUtil		Utility functions.
 
 
 Test Setup:
