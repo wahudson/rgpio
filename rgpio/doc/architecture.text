@@ -1,0 +1,231 @@
+2017-05-10
+		rgpio - Architecture
+		---------------------
+
+Raspberry Pi GPIO command-line Tool.
+
+See also:  librgpio/doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    Ref by RaspberryPi
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+    https://elinux.org/BCM2835_datasheet_errata
+
+
+----------------------------------------------------------------------------
+## Discussion
+----------------------------------------------------------------------------
+
+The tool provides a seperate sub-command for each Feature (BCM2845 peripheral).
+
+The tool is NOT intended to hide the hardware or to provide a "future proof"
+interface that will allow the hardware to evolve underneath.
+
+Note the utility command may tend to provide more abstraction than the
+low-level library primitives.  Want the inspect-change-inspect cycle to
+be fairly intuitive.  I think be wary of abstracting the tool interface
+too much, i.e. "make beautiful clock" and loose relationship to the real
+hardware.
+
+The command status output should be close to the hardware.  Thus the
+change operation should also speak in the same terms, so it is more
+intuitive how to specify the new value.  Unspecified values are not changed
+and remain as last read.
+
+Should the tool provide all controls?
+Probably not, to keep the interface smaller and more user manageable.
+But could provide advanced options for more display output.
+Idea is keep the simple things simple, and let the lesser needed things
+be harder to do.
+Crude direct access to the full control register in hex might be a good
+way to "do anything", and provide validated options for the common things.
+This is much like the library itself.
+
+
+----------------------------------------------------------------------------
+## rgpio Command
+----------------------------------------------------------------------------
+
+This is a utility command based on the library.
+
+usage:  rgpio [common_opts..] [feature] [options..]
+  feature:
+    io              IO pins
+    fsel            Function Select
+    clock           GpClock generators
+    ...
+  common options:
+    --help
+    --verbose
+    --status        show status, default
+    --dev=m|g|f     device file type
+    --ro            read-only
+    --reset         reset feature to the power-up state
+
+  io  [options..] [reg..]		IO pins
+      reg             register name, plus virtual 'fsel'
+    output format:
+ ?    -c,--column     show register columns, one bit per line	--col
+      --hex           show word format hexadecimal
+      --bin           show word format binary
+    register groups:  (read only)
+      --w0            register word 0
+      --w1            register word 1
+      --ww            register word 0 and 1
+      --fsel          function select
+    modify:  (single register)
+      --value=0x00    bit value, 32-bits
+      --mask=0xff     mask select bits to change, 32-bits
+      --setmask=0xff  set   bits in mask
+      --clrmask=0xff  clear bits in mask
+      --setbit=N      set   bit position
+      --clrbit=N      clear bit position
+      --reset         reset registers to power-up state
+
+  fsel  [options..]			Function Select
+      --show_alts     show alternate function table
+    output format:
+      --bin           show one line binary
+      -c,--col        show one bit per line
+    selection:  (bit range)
+      --w0            register word 0
+      --w1            register word 1
+      --ww            register word 0 and 1
+    modify:
+      --bit=N         bit number to access
+      --mode=F        set mode {In, Out, Alt0, .. Alt5}
+      --reset         reset all bits to power-up state (mode=In)
+
+  clock            GpClock generators
+	--mash=N	set Mash, {0..3}
+	--flip=0
+	--kill=0	set kill the clock generator
+	--enable=0
+	--source=N	set clock Source, {0..15}
+	--divi=N	set Divisior integer, {0..4095}
+	--divf=N	set Divisior fraction for MASH, {0..4095}
+
+Major operations:
+    1) Show configuration values.
+	Read-only.  Show lots of data, multiple registers together.
+    2) Change configuration.
+	Modify, focus on single register or Fsel register set.
+
+    Some things get very complex.  Probably better to keep the tool
+    simple and reliable, and let the user write code for complex things.
+
+    Tool intended mostly as a viewer of status, and able to make reliable
+    focused changes.  NOT to change many things in one call.
+    Even the bit list might be too much?
+
+
+Output format ideas:
+
+IO pins
+-------
+  --bit --w0
+			   3           2            1           0
+    bit                   1098 7654 3210 9876 5432 1098 7654 3210
+
+    Fsel                . .... iiii iiii iiii iiii iiii ooii iiii
+    PinLevel            . 0000 0000 0000 0000 0000 0000 0000 0000
+    EventStatus         . 0000 0000 0000 0000 0000 0000 0000 0000
+    DetectRising        . 0000 0000 0000 0000 0000 0000 0000 0000
+    DetectFalling       . 0000 0000 0000 0000 0000 0000 0000 0000
+    DetectHigh          . 0000 0000 0000 0000 0000 0000 0000 0000
+    DetectLow           . 0000 0000 0000 0000 0000 0000 0000 0000
+    DetectAsyncRising   . 0000 0000 0000 0000 0000 0000 0000 0000
+    DetectAsyncFalling  . 0000 0000 0000 0000 0000 0000 0000 0000
+
+  --hex --w0
+    Fsel                rw  .... iiii oooo iiii iiii iiii ooii iiii
+    Fsel                rw  0xiioiii?i
+    PinLevel            r-  0x00000000
+    EventStatus         rw  0x00000000
+    DetectRising        rw  0x00000000
+    DetectFalling       rw  0x00000000
+    DetectHigh          rw  0x00000000
+    DetectLow           rw  0x00000000
+    DetectAsyncRising   rw  0x00000000
+    DetectAsyncFalling  rw  0x00000000
+
+  --column
+    bit pin  Fsel  lev  ES dR dF dH dL daR daF
+     2   5   In    0    0
+     3   6   Out   0    0
+     4   7   Alt0  0    0
+    14  27   Alt5  0    0
+    ...
+
+    Examples:
+	rgpio io --reg=rgEventStatus_w0 --value=0xffffffff --mask=0x00000004
+
+	rgpio io --reg=Fsel_w0  --mode=i --mask=0x00000004
+		# synthetic enum not a good idea
+
+	rgpio io --Fsel_w0      --mode=i --mask=0x00000ff0
+		# set by mask
+
+	rgpio io --fsel=o --bit=4,5,7,21
+	rgpio io --mode=o --bit=4,5,7,21
+		# set by bits
+
+
+    Pullup is not part of normal output, since it cannot be read.
+    Pullup might be a seperate feature.
+
+    Splitting out sub-features might help clarify operation of tool.
+    Nice to see all registers together in a read-only status.
+    Setting values probably want to focus on single registers.
+
+    --bit=P,P,..  Bit list to focus on useful bits.
+    Probably NOT modify by header pin number (too risky).
+
+    Fsel --column output could also decode the AltN mode for each pin.
+	A nice user aid.  Is static data.
+
+    Pin number on header depends on model of RPi or Compute Module.
+
+    Column format --col implies all _w0 or _w1 registers.  Not much value
+    in customizing which registers to show, and it makes variable columns.
+
+ >  Possibly Fsel bit setting could be made a seperate sub-command, which
+    would avoid awkwardness of an --fsel option in the 'io' sub-command.
+    The Fsel registers would still be available as plain 32-bit registers
+    in the 'io' command.  Maybe 'io' read of Fsel would still decode the
+    mode in --bin or --col formats.
+
+IO option combinations:
+	word select:  also select bits for column mode
+    --w0	word 0, bit=0..31
+    --w1	word 1, bit=0..31
+    --ww	both,   bit=0..53
+
+    --all			read all registers
+    --all  --w0			read only _w0 registers
+    --all  --ww			read _w1 _w0 side-by-side
+
+    --col  --w0			read all _w0, column format, 0..31
+    --col  --ww			read all registers, column format, 0..53
+
+    --reg=R			read
+    --reg=R  --ww		read _w1 _w0 side-by-side
+
+    --reg=R  --mask=M  --value=V	modify value
+    --reg=R  --setmask=M		set   bits in mask
+    --reg=R  --clrmask=M		clear bits in mask
+
+    --reg=R  --bit=N			read single bit N  ??
+    --reg=R  --setbit=N			set   bit N, 0..53
+    --reg=R  --clrbit=N			clear bit N, 0..53
+
+    --fsel  --bit=N			read Fsel bit N  ??
+    --fsel  --bit=N  --mode=F		modify Fsel bit N
+    --fsel=F  --bit=N			modify Fsel bit N
+
+    fsel  --bit=N			Fsel bit read
+    fsel  --bit=N  --mode=F		Fsel bit write
+
