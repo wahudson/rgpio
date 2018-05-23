@@ -1,0 +1,103 @@
+# 2018-05-18  William A. Hudson
+
+# rgpio -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio -- Raspberry Pi GPIO utility
+
+=head1		SYNOPSIS
+
+ rgpio [common_opts..]  feature  [options..]
+  feature:
+    io           General Purpose IO pins
+    fsel         Pin Function Select
+    clock        Clock generator
+    uspi         Universal SPI Master, Spi1, Spi2
+  common options:
+    --dev=m|g|f         device file type, m= /dev/mem (default),
+                                          g= /dev/gpiomem, f= fake
+    --help              show this usage
+    --debug             debug output
+  (options with GNU= only)
+
+
+=head1		DESCRIPTION
+
+This is a low-level utility program for inspecting and modifying the
+BCM2835 ARM Peripheral registers on the Raspberry Pi.
+It uses the librgpio library and naming conventions.
+It is intended to be very close to the hardware interface and not intended to
+provide a high-level abstraction.
+
+It is a cockpit command, with sub-commands for each peripheral feature.
+
+
+=head2			Essential Operation
+
+
+=head1		OPTIONS
+
+=over
+
+=item B<--dev=m|g|f>        - Device file type.
+
+m= /dev/mem (default), g= /dev/gpiomem, f= fake memory.
+This is the device special file used to map blocks of IO memory into the
+process.
+
+=back
+
+
+=head1		COMMANDS
+
+Each feature has its own man page.
+
+=over
+
+=item B<rgpio-fsel>(1)      - Pin Function Select
+
+=item B<rgpio-io>(1)        - General Purpose IO pins
+
+=item B<rgpio-clock>(1)     - Clock generator
+
+=item B<rgpio-uspi>(1)      - Universal SPI Master SPI1, SPI2
+
+=back
+
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ % rgpio --help
+
+ Use /dev/gpiomem
+ % rgpio --dev=g  io
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+ /dev/mem	Kernel memory map.
+    Allows access to all peripheral features.
+
+ /dev/gpiomem	Kernel memory map for parallel GPIO pins.
+    Allows access for normal users belonging to group 'gpio'.
+
+
+=head1		SEE ALSO
+
+B<librgpio>(3)
+
+=cut
+

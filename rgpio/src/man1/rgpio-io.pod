@@ -1,0 +1,192 @@
+# 2018-05-21  William A. Hudson
+
+# rgpio-io -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio-io -- IO pin operations
+
+=head1		SYNOPSIS
+
+ rgpio io [options..]  [reg..]
+    reg                 register enum name
+  register groups:  (accumulate)
+    --w0                word 0 registers (default)
+    --w1                word 1 registers
+    --fsel              Fsel function select registers
+  modify:
+    --mask=0xff..       mask select bits to change, 32-bits
+    --value=0x00..      bit value, 32-bits
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output, show registers in binary
+    --debug             debug output
+  (options with GNU= only)
+
+
+=head1		DESCRIPTION
+
+Access the set of pin GPIO registers.  All registers are 32-bits wide, and
+may contain reserved fields.
+
+Register names are the same as the enumerated type rgIoPin::rgIoReg_enum
+and are used in both input and output (see file librgpio/src/rgIoPin.h).
+The names are a little long, but aid in the use of the librgpio library.
+
+The commonly used register names are enumerated in the Register Group options
+below.  In addition there are:
+
+    rgPinSet_w0		write-only
+    rgPinSet_w1
+    rgPinClr_w0
+    rgPinClr_w1
+
+    rgPullUpDown
+    rgPullUpDownClk_w0
+    rgPullUpDownClk_w1
+
+The default operation is to directly read and display the specified registers.
+Reading these IO registers has no side effects, and so is generally safe.
+
+Register value modification is done with --mask= and --value= options.
+The process for each register is:
+
+    1) Read current hardware register value.
+    2) Modify value according to --mask.
+    3) Write modified value back to hardware register.
+    4) Read hardware register and display resulting value.
+
+Caution:  Pay attention to the special behaivor of some registers.
+This command provides raw access, with no special handling of their
+requirements.
+
+Note:  The IO lines (these registers) are typically a shared resource
+among multiple asynchronous processes, where each process may use only a few
+lines (bits).
+The read-modify-write process of updating registers is not atomic.
+Therefor a synchronization problem exists, and is typically solved by
+externally synchronizing the processes.
+
+
+=head1		OPTIONS
+
+=head2			Register Groups
+
+These options are an alias for a list of registers.
+Multiple register groups can be specified or combined with individual registers.
+There is no check for duplicate registers, which will then be repeated.
+
+=over
+
+=item B<--w0>               - Register set word 0.  (default)
+
+ rgPinRead_w0
+ rgEventStatus_w0
+ rgDetectRising_w0
+ rgDetectFalling_w0
+ rgDetectHigh_w0
+ rgDetectLow_w0
+ rgDetectAsyncRising_w0
+ rgDetectAsyncFalling_w0
+
+Bits [31:0] correspond to IO lines [31:0].
+Note that only bits [27:0] are accessable on Raspberry Pi-3 40-pin header.
+
+=item B<--w1>               - Register set word 1.
+
+ rgPinRead_w1
+ rgEventStatus_w1
+ rgDetectRising_w1
+ rgDetectFalling_w1
+ rgDetectHigh_w1
+ rgDetectLow_w1
+ rgDetectAsyncRising_w1
+ rgDetectAsyncFalling_w1
+
+Bits [21:0] represent IO lines [53:32].
+Bits [31:22] are reserved.
+These lines are accessable on the Raspberry Pi compute module.
+
+=item B<--fsel>             - Fsel function select registers.
+
+ rgFsel0
+ rgFsel1
+ rgFsel2
+ rgFsel3
+ rgFsel4
+ rgFsel5
+
+These are the raw function select registers, which are not very convenient
+to use.  Use rgpio-fsel(1) as a better interface to these registers.
+
+=back
+
+=head2			Modify Register Value
+
+These two options specify a bit mask and value to set into each register of
+the list.
+
+=over
+
+=item B<--mask=0xffffffff>  - Mask select bits to change, 32-bits.
+
+One bits are selected to be changed, zero bits will be unchanged.
+
+=item B<--value=0x00000000> - Bit value, 32-bits.
+
+The bit values to be applied.  Only bits with a corresponding --mask bit value
+of 1 will be modified.
+
+=back
+
+=head2			Options
+
+=over
+
+=item B<-v, --verbose>      - Verbose output, show registers in binary.
+
+Normally register values are shown in hexadecimal.  With --verbose an
+additional column showing the same value in binary is added.
+
+=back
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ Show all registers.
+ % rgpio io --fsel --w0 --w1
+
+ Show registers in binary with --verbose.
+ % rgpio io -v
+
+ Modify a single register to set bits [7:4] to 0x5 (binary 0101).
+ % rgpio io --mask=0x000000f0 --value=0x00000050  rgDetectHigh_w0
+ 0x00000050  rgDetectHigh_w0   0000 0000 0000 0000 0000 0000 0101 0000
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the source directory tree:
+
+ librgpio/src/rgIoPin.h
+
+
+=head1		SEE ALSO
+
+B<rgpio>(1)
+B<rgpio-fsel>(1)
+B<librgpio>(3)
+
+=cut
+

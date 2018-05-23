@@ -9,6 +9,7 @@
 SHELL      = /bin/sh
 BINDIR     = ../bin
 OJ         = ../obj
+MAN        = ../man
 
 		# the librgpio library
 INCDIR     = ../../librgpio/src
@@ -50,10 +51,14 @@ run:	compile
 
 compile:  $(OJ)  $(BINDIR)  $(BINDIR)/rgpio
 
-mkdirs:   $(OJ)  $(BINDIR)
+mkdirs:   $(OJ)  $(BINDIR)  $(MAN)/man1
 
 cap:
 	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/rgpio
+
+man:	$(MAN)/man1 \
+	$(MAN)/man1/rgpio.1 \
+	$(MAN)/man1/rgpio-io.1
 
 clean: 
 	rm -f  $(OJ)/*
@@ -67,6 +72,9 @@ $(BINDIR):
 
 $(OJ):
 	mkdir -p  $(OJ)
+
+$(MAN)/man1:
+	mkdir -p  $(MAN)/man1
 
 
 $(BINDIR)/rgpio:	        $(OJ)/rgpio.o  $(OBJS)  $(LIBS)
@@ -102,4 +110,12 @@ $(OJ)/yOption.o:	yOption.cpp  yOption.h  Error.h
 
 $(OJ)/yUtil.o:		yUtil.cpp  yUtil.h
 	g++ $(CXXFLAGS) -o $@  -c yUtil.cpp
+
+
+$(MAN)/man1/rgpio.1:		rgpio.pod
+	pod2man -s 1 -n rgpio --center='Raspberry Pi GPIO'  rgpio.pod  $@ 
+
+$(MAN)/man1/rgpio-io.1:		man1/rgpio-io.pod
+	pod2man -s 1 -n rgpio-io --center='Raspberry Pi GPIO' \
+		   man1/rgpio-io.pod  $@ 
 
