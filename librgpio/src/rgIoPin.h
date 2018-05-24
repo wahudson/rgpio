@@ -11,8 +11,6 @@ class rgIoPin {
   private:
     volatile uint32_t	*GpioBase;	// IO base address
 
-    uint32_t		FselReg[6];	// Function Select
-
 //    uint32_t		PinLevel_w0;	// read only
 //    uint32_t		PinLevel_w1;
 
@@ -21,17 +19,6 @@ class rgIoPin {
 					//     indexed by rgIoReg_enum.
 
   public:
-    enum rgFsel_enum {		// Function select values, 3-bit octal
-	f_In   = 00,
-	f_Out  = 01,
-	f_Alt0 = 04,
-	f_Alt1 = 05,
-	f_Alt2 = 06,
-	f_Alt3 = 07,
-	f_Alt4 = 03,
-	f_Alt5 = 02
-    };
-
     enum rgIoReg_enum {		// Register address offset, word address
 
 	rgFsel0                  = 0x00 /4,	// rw GPFSEL0

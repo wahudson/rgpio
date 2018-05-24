@@ -702,6 +702,27 @@ Features include:
     Possibly have a user configurable range check to catch access outside
     of desired bit range.
 
+Partitioning:
+    Decided to partition these features into possibly 3 classes:
+
+  + rgIoPin	IO Pin class.
+		    Mostly the PinLevel and Detect register operation.
+		    Raw operation on the full set of GPIO registers as 32-bit
+		    registers.
+
+  + rgFselPin   Function Select class.
+		    Detail operation on the Fsel registers.
+
+  ? rgPads	For special operation of pad pull-up/down resistors.
+
+    The PinLevel registers and Detect registers could be split into two
+    classes, but they seem sufficiently related.
+    It is really the methods of operation that suggest seperate classes.
+    Too many classes is also not helpful.
+
+    The sub-classes use a pointer to the rgIoPin object for register access.
+    Inheritance from rgIoPin does not really seem appropriate(?).
+
 The basic configuration cycle is:  (maybe not!)
     x.read_regs();		read IO registers into object
 
@@ -716,6 +737,10 @@ The basic configuration cycle is:  (maybe not!)
     x.write_regs();		update IO registers
 
 	But this is not Atomic.
+
+    Decided to provide only direct hardware register modification for now.
+    There does not seem to be much value in keeping register values in the
+    object, and not worth the additional complexity.
 
 Data read/write:
     The Read/Set/Clear of pin values is handled by giving direct access to
@@ -1317,6 +1342,9 @@ Methods:
 
     Not sure the array access is that useful.  Probably better to let
     the user do his own loop.
+
+    Decided direct access is best.  Therefore not saving Fsel register state
+    in object.
 
 
 ----------------------------------------------------------------------------

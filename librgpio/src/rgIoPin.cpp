@@ -40,13 +40,6 @@ rgIoPin::rgIoPin(
     if ( xx ) {
 	this->init_addr( xx );
     }
-
-    FselReg[0] = 0;
-    FselReg[1] = 0;
-    FselReg[2] = 0;
-    FselReg[3] = 0;
-    FselReg[4] = 0;
-    FselReg[5] = 0;
 }
 
 
