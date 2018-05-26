@@ -1,6 +1,14 @@
 // 2017-06-12  William A. Hudson
 //
-// Testing:  rgIoPin  rGPIO Address Map class for Raspberry Pi.
+// Testing:  rgIoPin  GPIO IO Pin control class
+//    10-19  Constructor, init_addr(), get_base_addr()
+//    20-29  Generic access {addr, read, write, modify, set, clr}_reg()
+//    30-39  Addresses addr_reg()
+//    40-49  Special access registers.  PinLevel, EventStatus
+//    50-59  .
+//    60-69  .
+//    70-79  rgIoReg_enum string conversion
+//    80-89  find_IoReg_enum()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -36,8 +44,10 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
+// All tests should leave fake memory registers zero 0x00000000.
+
 //--------------------------------------------------------------------------
-//## Constructor
+//## Constructor, init_addr(), get_base_addr()
 //--------------------------------------------------------------------------
 
   CASE( "10", "constructor" );
@@ -112,6 +122,23 @@ rgIoPin			Tx;
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+
+//--------------------------------------
+  CASE( "18", "addr_reg() uninitialized" );
+    try {
+	rgIoPin			tx;
+	tx.addr_reg( rgIoPin::rgPinRead_w0 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "rgIoPin:: not initialized in:  addr_reg( 0x34/4 )",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
   CASE( "19a", "get_base_addr()" );
     try {
@@ -136,14 +163,15 @@ rgIoPin			Tx;
     }
 
 //--------------------------------------------------------------------------
-//## Generic Register access
+//## Generic access {addr, read, write, modify, set, clr}_reg()
 //--------------------------------------------------------------------------
+// Exercise single register as an example.
 
   CASE( "20", "addr_reg()" );
     try {
 	volatile uint32_t	*vp;
 	vp = Tx.addr_reg( rgIoPin::rgPinRead_w0 );
-	CHECK( 0x34,
+	CHECKX( 0x34,
 	    (vp - Tx.get_base_addr())*4
 	);
 //	cout << "0x" <<hex << (vp - Tx.get_base_addr())*4 <<endl;
@@ -155,33 +183,133 @@ rgIoPin			Tx;
   CASE( "21", "read_reg()" );
     try {
 	uint32_t		v;
-	v = Tx.read_reg( rgIoPin::rgPinRead_w0 );
-	CHECK( 0, v );
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgPinRead_w0 );
+	*aa   = 0x12345678;
+	v     = Tx.read_reg(rgIoPin::rgPinRead_w0 );
+	CHECKX( 0x12345678, v );
+	*aa   = 0x00000000;
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "22", "modify_reg()" );
+  CASE( "22", "write_reg()" );
     try {
-	uint32_t		v;
-	Tx.modify_reg( rgIoPin::rgPinRead_w0, 0x000ff000, 0x55554444 );
-	v = Tx.read_reg( rgIoPin::rgPinRead_w0 );
-	CHECK( 0x00054000, v );
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgPinRead_w0 );
+	CHECKX( 0x00000000, *aa );
+	Tx.write_reg(   rgIoPin::rgPinRead_w0, 0x11223344 );
+	CHECKX( 0x11223344, *aa );
+	*aa   = 0x00000000;
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
-    //#!! Not sensitive to mask/value swap since x=0.
 
-  CASE( "23", "addr_reg() uninitialized" );
+//--------------------------------------
+  CASE( "23a", "modify_reg()" );
     try {
-	rgIoPin			tx;
-	tx.addr_reg( rgIoPin::rgPinRead_w0 );
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgDetectHigh_w0 );
+	CHECKX( 0x00000000, *aa );
+	Tx.modify_reg( rgIoPin::rgDetectHigh_w0, 0x00ffff00, 0x55554444 );
+	CHECKX( 0x00554400, *aa );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "23b", "modify_reg()" );
+    try {
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgDetectHigh_w0 );
+	*aa   = 0xffffffff;
+	CHECKX( 0xffffffff, *aa );
+	Tx.modify_reg( rgIoPin::rgDetectHigh_w0, 0x00ffff00, 0x55554444 );
+	CHECKX( 0xff5544ff, *aa );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "24a", "set_reg()" );
+    try {
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgDetectHigh_w0 );
+	CHECKX( 0x00000000, *aa );
+	Tx.set_reg( rgIoPin::rgDetectHigh_w0, 0x71111117 );
+	CHECKX( 0x71111117, *aa );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24b", "set_reg()" );
+    try {
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgDetectHigh_w0 );
+	*aa   = 0xffffffff;
+	CHECKX( 0xffffffff, *aa );
+	Tx.set_reg( rgIoPin::rgDetectHigh_w0, 0x71111117 );
+	CHECKX( 0xffffffff, *aa );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "24a", "clr_reg()" );
+    try {
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgDetectHigh_w0 );
+	CHECKX( 0x00000000, *aa );
+	Tx.clr_reg( rgIoPin::rgDetectHigh_w0, 0x71111117 );
+	CHECKX( 0x00000000, *aa );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24b", "clr_reg()" );
+    try {
+	volatile uint32_t*	aa= Tx.addr_reg( rgIoPin::rgDetectHigh_w0 );
+	*aa   = 0xffffffff;
+	CHECKX( 0xffffffff, *aa );
+	Tx.clr_reg( rgIoPin::rgDetectHigh_w0, 0x71111117 );
+	CHECKX( 0x8eeeeee8, *aa );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Generic access Exceptions on non-normal read/write registers.
+//--------------------------------------------------------------------------
+// Mix modify_reg(), set_reg(), and clr_reg() -- all are read/modify/write.
+
+//--------------------------------------
+  CASE( "25a", "set_reg( rgPinSet_w0 ) write-only reg" );
+    try {
+	Tx.set_reg( rgIoPin::rgPinSet_w0, 0x000ff000 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "rgIoPin:: not initialized in:  addr_reg( 0x34/4 )",
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinSet_w0",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "25b", "clr_reg( rgPinSet_w1 ) write-only reg" );
+    try {
+	Tx.clr_reg( rgIoPin::rgPinSet_w1, 0x000ff000 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinSet_w1",
 	    e.what()
 	);
     }
@@ -190,15 +318,13 @@ rgIoPin			Tx;
     }
 
 //--------------------------------------
-//## modify_reg() write-only registers
-
-  CASE( "24a", "modify_reg() write-only reg" );
+  CASE( "26a", "set_reg( rgPinClr_w0 ) write-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgPinSet_w0, 0x000ff000, 0x55554444 );
+	Tx.set_reg( rgIoPin::rgPinClr_w0, 0x000ff000 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinSet_w0",
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinClr_w0",
 	    e.what()
 	);
     }
@@ -206,13 +332,13 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "24b", "modify_reg() write-only reg" );
+  CASE( "26b", "clr_reg( rgPinClr_w1 ) write-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgPinSet_w1, 0x000ff000, 0x55554444 );
+	Tx.set_reg( rgIoPin::rgPinClr_w1, 0x000ff000 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinSet_w1",
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinClr_w1",
 	    e.what()
 	);
     }
@@ -220,13 +346,14 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "24c", "modify_reg() write-only reg" );
+//--------------------------------------
+  CASE( "27a", "modify_reg( rgPinRead_w0 ) read-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgPinClr_w0, 0x000ff000, 0x55554444 );
+	Tx.modify_reg( rgIoPin::rgPinRead_w0, 0x000ff000, 0x55554444 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinClr_w0",
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinRead_w0",
 	    e.what()
 	);
     }
@@ -234,19 +361,251 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "24c", "modify_reg() write-only reg" );
+  CASE( "27b", "modify_reg( rgPinRead_w1 ) read-only reg" );
     try {
-	Tx.modify_reg( rgIoPin::rgPinClr_w1, 0x000ff000, 0x55554444 );
+	Tx.modify_reg( rgIoPin::rgPinRead_w1, 0x000ff000, 0x55554444 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "write-only register in rgIoPin::modify_reg():  rgPinClr_w1",
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinRead_w1",
 	    e.what()
 	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+
+//--------------------------------------
+  CASE( "28a", "set_reg( rgEventStatus_w0 ) read-clear reg" );
+    try {
+	Tx.set_reg( rgIoPin::rgEventStatus_w0, 0x000ff000 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgEventStatus_w0",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "28b", "clr_reg( rgEventStatus_w1 ) read-clear reg" );
+    try {
+	Tx.clr_reg( rgIoPin::rgEventStatus_w1, 0x000ff000 );
+	FAIL( "no throw" );
+    }
+    catch ( logic_error& e ) {
+	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgEventStatus_w1",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Addresses addr_reg()
+//--------------------------------------------------------------------------
+
+  CASE( "30", "addr_reg()" );
+    try {
+      volatile uint32_t		*ba = Tx.get_base_addr();
+
+      CHECKX( 0x00, (Tx.addr_reg( rgIoPin::rgFsel0                 ) - ba)*4 );
+      CHECKX( 0x04, (Tx.addr_reg( rgIoPin::rgFsel1                 ) - ba)*4 );
+      CHECKX( 0x08, (Tx.addr_reg( rgIoPin::rgFsel2                 ) - ba)*4 );
+      CHECKX( 0x0c, (Tx.addr_reg( rgIoPin::rgFsel3                 ) - ba)*4 );
+      CHECKX( 0x10, (Tx.addr_reg( rgIoPin::rgFsel4                 ) - ba)*4 );
+      CHECKX( 0x14, (Tx.addr_reg( rgIoPin::rgFsel5                 ) - ba)*4 );
+
+      CHECKX( 0x1c, (Tx.addr_reg( rgIoPin::rgPinSet_w0             ) - ba)*4 );
+      CHECKX( 0x20, (Tx.addr_reg( rgIoPin::rgPinSet_w1             ) - ba)*4 );
+      CHECKX( 0x28, (Tx.addr_reg( rgIoPin::rgPinClr_w0             ) - ba)*4 );
+      CHECKX( 0x2c, (Tx.addr_reg( rgIoPin::rgPinClr_w1             ) - ba)*4 );
+      CHECKX( 0x34, (Tx.addr_reg( rgIoPin::rgPinRead_w0            ) - ba)*4 );
+      CHECKX( 0x38, (Tx.addr_reg( rgIoPin::rgPinRead_w1            ) - ba)*4 );
+
+      CHECKX( 0x40, (Tx.addr_reg( rgIoPin::rgEventStatus_w0        ) - ba)*4 );
+      CHECKX( 0x44, (Tx.addr_reg( rgIoPin::rgEventStatus_w1        ) - ba)*4 );
+
+      CHECKX( 0x4c, (Tx.addr_reg( rgIoPin::rgDetectRising_w0       ) - ba)*4 );
+      CHECKX( 0x50, (Tx.addr_reg( rgIoPin::rgDetectRising_w1       ) - ba)*4 );
+      CHECKX( 0x58, (Tx.addr_reg( rgIoPin::rgDetectFalling_w0      ) - ba)*4 );
+      CHECKX( 0x5c, (Tx.addr_reg( rgIoPin::rgDetectFalling_w1      ) - ba)*4 );
+      CHECKX( 0x64, (Tx.addr_reg( rgIoPin::rgDetectHigh_w0         ) - ba)*4 );
+      CHECKX( 0x68, (Tx.addr_reg( rgIoPin::rgDetectHigh_w1         ) - ba)*4 );
+      CHECKX( 0x70, (Tx.addr_reg( rgIoPin::rgDetectLow_w0          ) - ba)*4 );
+      CHECKX( 0x74, (Tx.addr_reg( rgIoPin::rgDetectLow_w1          ) - ba)*4 );
+      CHECKX( 0x7c, (Tx.addr_reg( rgIoPin::rgDetectAsyncRising_w0  ) - ba)*4 );
+      CHECKX( 0x80, (Tx.addr_reg( rgIoPin::rgDetectAsyncRising_w1  ) - ba)*4 );
+      CHECKX( 0x88, (Tx.addr_reg( rgIoPin::rgDetectAsyncFalling_w0 ) - ba)*4 );
+      CHECKX( 0x8c, (Tx.addr_reg( rgIoPin::rgDetectAsyncFalling_w1 ) - ba)*4 );
+
+      CHECKX( 0x94, (Tx.addr_reg( rgIoPin::rgPullUpDown            ) - ba)*4 );
+      CHECKX( 0x98, (Tx.addr_reg( rgIoPin::rgPullUpDownClk_w0      ) - ba)*4 );
+      CHECKX( 0x9c, (Tx.addr_reg( rgIoPin::rgPullUpDownClk_w1      ) - ba)*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "31", "addr_PinRead_w0()" );
+    try {
+	CHECK( 0,           Tx.addr_PinRead_w0() -
+	    Tx.addr_reg( rgIoPin::rgPinRead_w0 )
+	);
+	CHECK( 0,           Tx.addr_PinRead_w1() -
+	    Tx.addr_reg( rgIoPin::rgPinRead_w1 )
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "32", "addr_PinSet_w0()" );
+    try {
+	CHECK( 0,           Tx.addr_PinSet_w0() -
+	    Tx.addr_reg( rgIoPin::rgPinSet_w0 )
+	);
+	CHECK( 0,           Tx.addr_PinSet_w1() -
+	    Tx.addr_reg( rgIoPin::rgPinSet_w1 )
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "33", "addr_PinClr_w0()" );
+    try {
+	CHECK( 0,           Tx.addr_PinClr_w0() -
+	    Tx.addr_reg( rgIoPin::rgPinClr_w0 )
+	);
+	CHECK( 0,           Tx.addr_PinClr_w1() -
+	    Tx.addr_reg( rgIoPin::rgPinClr_w1 )
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "34", "addr_EventStatus_w0()" );
+    try {
+	CHECK( 0,           Tx.addr_EventStatus_w0() -
+	    Tx.addr_reg( rgIoPin::rgEventStatus_w0 )
+	);
+	CHECK( 0,           Tx.addr_EventStatus_w1() -
+	    Tx.addr_reg( rgIoPin::rgEventStatus_w1 )
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Special access registers.  PinLevel, EventStatus
+//--------------------------------------------------------------------------
+// These test the functions, not the actual hardware behavior.
+
+  CASE( "40", "clear many registers" );
+    try {
+	*( Tx.addr_reg( rgIoPin::rgPinSet_w0             ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgPinClr_w0             ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgPinRead_w0            ) ) = 0x00000000;
+
+	*( Tx.addr_reg( rgIoPin::rgEventStatus_w0        ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgDetectRising_w0       ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgDetectFalling_w0      ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgDetectHigh_w0         ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgDetectLow_w0          ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgDetectAsyncRising_w0  ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgDetectAsyncFalling_w0 ) ) = 0x00000000;
+
+	*( Tx.addr_reg( rgIoPin::rgPullUpDown            ) ) = 0x00000000;
+	*( Tx.addr_reg( rgIoPin::rgPullUpDownClk_w0      ) ) = 0x00000000;
+	CHECKX( 0x00000000, Tx.read_reg( rgIoPin::rgPinRead_w0 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "41a", "rgPinRead_w0, read_PinLevel_w0()" );
+    try {
+	volatile uint32_t*
+			aa= Tx.addr_reg( rgIoPin::rgPinRead_w0 );
+	CHECKX( 0x00000000, Tx.read_reg( rgIoPin::rgPinRead_w0 ) );
+	CHECKX( 0x00000000, Tx.read_PinLevel_w0() );
+	*aa   = 0xc5555553;
+	CHECKX( 0xc5555553, Tx.read_reg( rgIoPin::rgPinRead_w0 ) );
+	CHECKX( 0xc5555553, Tx.read_PinLevel_w0() );
+	Tx.write_reg(                    rgIoPin::rgPinRead_w0, 0x3aaaaaac );
+	CHECKX( 0x3aaaaaac, Tx.read_reg( rgIoPin::rgPinRead_w0 ) );
+	CHECKX( 0x3aaaaaac, Tx.read_PinLevel_w0() );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "42a", "rgPinSet_w0, set_PinLevel_w0()" );
+    try {
+	volatile uint32_t*
+			aa= Tx.addr_reg( rgIoPin::rgPinSet_w0 );
+	CHECKX( 0x00000000, Tx.read_reg( rgIoPin::rgPinSet_w0 ) );
+	*aa   = 0xc5555553;
+	CHECKX( 0xc5555553, Tx.read_reg( rgIoPin::rgPinSet_w0 ) );
+	Tx.write_reg(                    rgIoPin::rgPinSet_w0, 0x3aaaaaac );
+	CHECKX( 0x3aaaaaac, Tx.read_reg( rgIoPin::rgPinSet_w0 ) );
+	Tx.set_PinLevel_w0( 0xf1111117 );
+	CHECKX( 0xf1111117, Tx.read_reg( rgIoPin::rgPinSet_w0 ) );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "43a", "rgPinClr_w0, set_PinLevel_w0()" );
+    try {
+	volatile uint32_t*
+			aa= Tx.addr_reg( rgIoPin::rgPinClr_w0 );
+	CHECKX( 0x00000000, Tx.read_reg( rgIoPin::rgPinClr_w0 ) );
+	*aa   = 0xa333333c;
+	CHECKX( 0xa333333c, Tx.read_reg( rgIoPin::rgPinClr_w0 ) );
+	Tx.write_reg(                    rgIoPin::rgPinClr_w0, 0x5cccccc3 );
+	CHECKX( 0x5cccccc3, Tx.read_reg( rgIoPin::rgPinClr_w0 ) );
+	Tx.clr_PinLevel_w0( 0xf2222227 );
+	CHECKX( 0xf2222227, Tx.read_reg( rgIoPin::rgPinClr_w0 ) );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "44a", "rgEventStatus_w0, read_EventStatus_w0()" );
+    try {
+	volatile uint32_t*
+			aa= Tx.addr_reg( rgIoPin::rgEventStatus_w0 );
+	CHECKX( 0x00000000, Tx.read_reg( rgIoPin::rgEventStatus_w0 ) );
+	CHECKX( 0x00000000,                 Tx.read_EventStatus_w0() );
+	*aa   = 0xf4444443;
+	CHECKX( 0xf4444443, Tx.read_reg( rgIoPin::rgEventStatus_w0 ) );
+	CHECKX( 0xf4444443, Tx.read_EventStatus_w0() );
+	Tx.write_reg(                    rgIoPin::rgEventStatus_w0, 0x7bbbbbb1 );
+	CHECKX( 0x7bbbbbb1, Tx.read_reg( rgIoPin::rgEventStatus_w0 ) );
+	CHECKX( 0x7bbbbbb1,                 Tx.read_EventStatus_w0() );
+	Tx.clr_EventStatus_w0( 0x1444444e );
+	CHECKX( 0x1444444e, Tx.read_reg( rgIoPin::rgEventStatus_w0 ) );
+	CHECKX( 0x1444444e,                 Tx.read_EventStatus_w0() );
+	*aa   = 0x00000000;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 
 //--------------------------------------------------------------------------
 //## rgIoReg_enum string conversion
