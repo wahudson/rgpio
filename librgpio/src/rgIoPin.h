@@ -11,9 +11,6 @@ class rgIoPin {
   private:
     volatile uint32_t	*GpioBase;	// IO base address
 
-//    uint32_t		PinLevel_w0;	// read only
-//    uint32_t		PinLevel_w1;
-
   private:
     static const char*	RegStr[];	// Register string names,
 					//     indexed by rgIoReg_enum.
@@ -83,44 +80,94 @@ class rgIoPin {
 			    rgIoReg_enum	reg
 			);
 
+    void		write_reg(
+			    rgIoReg_enum	reg,
+			    uint32_t		value
+			);
+
     void		modify_reg(
 			    rgIoReg_enum	reg,
 			    uint32_t		mask,
 			    uint32_t		value
 			);
 
-		// PinLevel registers
+    void		set_reg(
+			    rgIoReg_enum	reg,
+			    uint32_t		mask
+			);
+
+    void		clr_reg(
+			    rgIoReg_enum	reg,
+			    uint32_t		mask
+			);
+
+		// Address of special access registers
 
     inline volatile uint32_t*	addr_PinRead_w0() {
 	return         (GpioBase + rgPinRead_w0);
+    }
+    inline volatile uint32_t*	addr_PinRead_w1() {
+	return         (GpioBase + rgPinRead_w1);
     }
 
     inline volatile uint32_t*	addr_PinSet_w0() {
 	return         (GpioBase + rgPinSet_w0);
     }
+    inline volatile uint32_t*	addr_PinSet_w1() {
+	return         (GpioBase + rgPinSet_w1);
+    }
 
     inline volatile uint32_t*	addr_PinClr_w0() {
 	return         (GpioBase + rgPinClr_w0);
     }
+    inline volatile uint32_t*	addr_PinClr_w1() {
+	return         (GpioBase + rgPinClr_w1);
+    }
 
+    inline volatile uint32_t*	addr_EventStatus_w0() {
+	return         (GpioBase + rgEventStatus_w0);
+    }
+    inline volatile uint32_t*	addr_EventStatus_w1() {
+	return         (GpioBase + rgEventStatus_w1);
+    }
+
+		// PinLevel abstraction register
 
     inline uint32_t	read_PinLevel_w0() {
 	return  *(GpioBase + rgPinRead_w0);
+    }
+    inline uint32_t	read_PinLevel_w1() {
+	return  *(GpioBase + rgPinRead_w1);
     }
 
     inline void		set_PinLevel_w0( uint32_t mask ) {
 	*(GpioBase + rgPinSet_w0) = mask;
     }
+    inline void		set_PinLevel_w1( uint32_t mask ) {
+	*(GpioBase + rgPinSet_w1) = mask;
+    }
 
     inline void		clr_PinLevel_w0( uint32_t mask ) {
 	*(GpioBase + rgPinClr_w0) = mask;
     }
+    inline void		clr_PinLevel_w1( uint32_t mask ) {
+	*(GpioBase + rgPinClr_w1) = mask;
+    }
 
-		// Event Status register
+		// Event Status register (read/clear)
 
-    inline uint32_t	read_EventStatus_w0()
-    {
-	return  read_reg( rgEventStatus_w0 );
+    inline uint32_t	read_EventStatus_w0() {
+	return  *(GpioBase + rgEventStatus_w0);
+    }
+    inline uint32_t	read_EventStatus_w1() {
+	return  *(GpioBase + rgEventStatus_w1);
+    }
+
+    inline void		clr_EventStatus_w0( uint32_t mask ) {
+	*(GpioBase + rgEventStatus_w0) = mask;
+    }
+    inline void		clr_EventStatus_w1( uint32_t mask ) {
+	*(GpioBase + rgEventStatus_w1) = mask;
     }
 
 		// Enum string conversion
@@ -129,9 +176,9 @@ class rgIoPin {
 			    rgIoReg_enum        reg
 			);
 
-    static rgIoPin::rgIoReg_enum	find_IoReg_enum(
-					    const char		*name
-					);
+    static rgIoReg_enum	find_IoReg_enum(
+			    const char		*name
+			);
 
 };
 

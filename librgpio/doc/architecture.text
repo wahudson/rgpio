@@ -768,6 +768,13 @@ Levels of access:
 
 Object Data Structure:
 
+ >  Decided NOT to store any register values in the object.  (2018-05-25)
+    Use only direct access to the hardware registers.
+    There does not seem to be enough value in caching the register values
+    in the object for the extra complexity.  Especially given the shared
+    nature of the IO pin registers among multiple processes, it is even
+    more important to make updates as close to atomic as possible.
+
     Most registers have one-bit per pin.
 	unit32_t	EventStatus
 

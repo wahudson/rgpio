@@ -65,11 +65,15 @@ rgIoPin::init_addr(
 //--------------------------------------------------------------------------
 // Generic Register access
 //--------------------------------------------------------------------------
+// These are intended for the normal read/write capable registers.
+// The special register accessor functions (inline in the .h file) are
+// preferred wherever possible.
 
 //#!! Need to ensure GpioBase is initialized before use.
 
 /*
 * Get raw register address.
+*    Good for all registers.
 */
 volatile uint32_t*
 rgIoPin::addr_reg(
@@ -89,7 +93,6 @@ rgIoPin::addr_reg(
 
 /*
 * Read raw register value.
-*    No copy in the object.  #!!
 *    No check for write-only registers.
 */
 uint32_t
@@ -102,12 +105,27 @@ rgIoPin::read_reg(
 
 
 /*
+* Write raw register value.
+*    No check for read-only or special set/clear registers.
+*    Beware effects on special registers that set-bits or clear-bits.
+*/
+void
+rgIoPin::write_reg(
+    rgIoReg_enum	reg,
+    uint32_t		value
+)
+{
+    *(GpioBase + reg) = value;
+}
+
+
+/*
 * Modify raw register.
-*    Does read/modify/write.
-*    No copy in the object.  #!!
-*    Not applicable for write-only registers.
+*    Does read/modify/write only for normal read/write capable registers.
+*    Not applicable for write-only or read-only registers.
+*    Not applicable for registers that operate by set-bit or clear-bit.
 * exception:
-*    Throw  logic_error  on write-only registers.
+*    Throw 'logic_error' on non-normal read/write registers.
 */
 void
 rgIoPin::modify_reg(
@@ -121,10 +139,14 @@ rgIoPin::modify_reg(
     if ( (reg == rgPinSet_w0) ||
 	 (reg == rgPinSet_w1) ||
 	 (reg == rgPinClr_w0) ||
-	 (reg == rgPinClr_w1)
+	 (reg == rgPinClr_w1) ||
+	 (reg == rgPinRead_w0)     ||
+	 (reg == rgPinRead_w1)     ||
+	 (reg == rgEventStatus_w0) ||
+	 (reg == rgEventStatus_w1)
     ) {
 	std::ostringstream	css;
-	css << "write-only register in rgIoPin::modify_reg():  "
+	css << "inappropriate register in rgIoPin::modify_reg():  "
 	    << this->str_IoReg_enum( reg );
 	throw std::logic_error ( css.str() );
     }
@@ -134,9 +156,45 @@ rgIoPin::modify_reg(
     *(GpioBase + reg) = x;
 }
 
+
+/*
+* Set register bits according to mask.
+*    Intended as a user convenience.
+*    Does read/modify/write only for normal read/write capable registers.
+* exception:
+*    Throw 'logic_error' on non-normal read/write registers.
+*/
+void
+rgIoPin::set_reg(
+    rgIoReg_enum	reg,
+    uint32_t		mask
+)
+{
+    modify_reg( reg, mask, mask );
+}
+
+
+/*
+* Clear register bits according to mask.
+*    Intended as a user convenience.
+*    Does read/modify/write only for normal read/write capable registers.
+* exception:
+*    Throw 'logic_error' on non-normal read/write registers.
+*/
+void
+rgIoPin::clr_reg(
+    rgIoReg_enum	reg,
+    uint32_t		mask
+)
+{
+    modify_reg( reg, mask, 0 );
+}
+
+
 //--------------------------------------------------------------------------
-// IO Register read/write
+// Special Register Accessors (non-normal read/write)
 //--------------------------------------------------------------------------
+// All defined inline in .h file.
 
 
 //--------------------------------------------------------------------------
