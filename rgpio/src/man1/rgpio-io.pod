@@ -6,7 +6,7 @@
 
 =head1		NAME
 
-rgpio-io -- IO pin operations
+rgpio-io -- IO Pin register access
 
 =head1		SYNOPSIS
 
@@ -16,9 +16,11 @@ rgpio-io -- IO pin operations
     --w0                word 0 registers (default)
     --w1                word 1 registers
     --fsel              Fsel function select registers
-  modify:
-    --mask=0xff..       mask select bits to change, 32-bits
-    --value=0x00..      bit value, 32-bits
+  modify:  (32-bit values)
+    --set=0xff..        set mask bits
+    --clr=0xff..        clear mask bits
+    --mask=0xff..       mask to select bits of --value
+    --value=0x00..      bit values selected by --mask
   options:
     --help              show this usage
     -v, --verbose       verbose output, show registers in binary
@@ -38,14 +40,14 @@ The names are a little long, but aid in the use of the librgpio library.
 The commonly used register names are enumerated in the Register Group options
 below.  In addition there are:
 
-    rgPinSet_w0		write-only
-    rgPinSet_w1
-    rgPinClr_w0
-    rgPinClr_w1
+    rgPinSet_w0		set-only
+    rgPinSet_w1		set-only
+    rgPinClr_w0		clear-only
+    rgPinClr_w1		clear-only
 
-    rgPullUpDown
-    rgPullUpDownClk_w0
-    rgPullUpDownClk_w1
+    rgPullUpDown	R/W
+    rgPullUpDownClk_w0	R/W
+    rgPullUpDownClk_w1	R/W
 
 The default operation is to directly read and display the specified registers.
 Reading these IO registers has no side effects, and so is generally safe.
@@ -125,19 +127,34 @@ to use.  Use rgpio-fsel(1) as a better interface to these registers.
 
 =head2			Modify Register Value
 
-These two options specify a bit mask and value to set into each register of
-the list.
+These options modify bits in registers of the argument list.
+Normal R/W registers are updated by a read/modify/write process.
+The special access registers are updated by writing the value to the
+register address and the hardware performs the set or clear operation.
 
 =over
 
-=item B<--mask=0xffffffff>  - Mask select bits to change, 32-bits.
+=item B<--set=0xffffffff>   - Set mask bits.
 
-One bits are selected to be changed, zero bits will be unchanged.
+=item B<--clr=0xffffffff>   - Clear mask bits.
 
-=item B<--value=0x00000000> - Bit value, 32-bits.
+These two options work independently to set or clear register bits for which
+the given mask bit is a 1.  Other bits (with mask bit 0) are unchanged.
+Applies only to normal R/W registers or special access registers that
+perform the hardware set or clear operation.
 
-The bit values to be applied.  Only bits with a corresponding --mask bit value
-of 1 will be modified.
+=item B<--mask=0xffffffff>  - mask to select bits of --value
+
+=item B<--value=0x00000000> - bit values selected by --mask
+
+These two options work together.
+Register bits for which the given mask bit is a 1 are set to the corresponding
+value bit.  Other bits (with mask bit 0) are unchanged.
+Register x is updated by:
+
+    x = (x & (~ mask) ) | (value & mask);
+
+Applies only to the normal R/W registers.
 
 =back
 
@@ -164,6 +181,12 @@ additional column showing the same value in binary is added.
 
  Show registers in binary with --verbose.
  % rgpio io -v
+
+ Set select bits to 1.
+ % rgpio io --set=0x00000123  rgDetectLow_w0
+
+ Clear select bits to 0.
+ % rgpio io --set=0x00000123  rgDetectLow_w0
 
  Modify a single register to set bits [7:4] to 0x5 (binary 0101).
  % rgpio io --mask=0x000000f0 --value=0x00000050  rgDetectHigh_w0

@@ -45,6 +45,8 @@ class io_yOptLong : public yOption {
     bool		w0;
     bool		w1;
 
+    const char*		set;
+    const char*		clr;
     const char*		mask;
     const char*		value;
 
@@ -54,6 +56,7 @@ class io_yOptLong : public yOption {
 
   public:	// data values
 
+    bool		modify;
     uint32_t		mask_n;
     uint32_t		value_n;
 
@@ -85,6 +88,8 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     w0          = 0;
     w1          = 0;
 
+    set         = "";
+    clr         = "";
     mask        = "";
     value       = "";
 
@@ -92,6 +97,7 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     debug       = 0;
     TESTOP      = 0;
 
+    modify      = 0;
     mask_n      = 0;
     value_n     = 0;
 }
@@ -112,6 +118,8 @@ io_yOptLong::parse_options()
 	else if ( is( "--w0"         )) { w0         = 1; }
 	else if ( is( "--w1"         )) { w1         = 1; }
 
+	else if ( is( "--set="       )) { set        = this->val(); }
+	else if ( is( "--clr="       )) { clr        = this->val(); }
 	else if ( is( "--mask="      )) { mask       = this->val(); }
 	else if ( is( "--value="     )) { value      = this->val(); }
 
@@ -131,6 +139,14 @@ io_yOptLong::parse_options()
 	w0 = 1;
     }
 
+    if ( *set ) {
+	mask_n = strtoul( set, NULL, 0 );
+    }
+
+    if ( *clr ) {
+	mask_n = strtoul( clr, NULL, 0 );
+    }
+
     if ( *mask ) {
 	mask_n = strtoul( mask, NULL, 0 );
     }
@@ -144,6 +160,20 @@ io_yOptLong::parse_options()
 	    Error::msg( "modify requires --mask --value\n" );
 	}
     }
+
+    if ( *set ) {
+	if ( *clr || *mask || *value ) {
+	    Error::msg( "--set invalid with --clr or --mask and --value\n" );
+	}
+    }
+
+    if ( *clr ) {
+	if ( *set || *mask || *value ) {
+	    Error::msg( "--clr invalid with --set or --mask and --value\n" );
+	}
+    }
+
+    modify = ( *clr || *set || *mask || *value );
 }
 
 
@@ -160,6 +190,8 @@ io_yOptLong::print_option_flags()
     cout << "--fsel        = " << fsel         << endl;
     cout << "--w0          = " << w0           << endl;
     cout << "--w1          = " << w1           << endl;
+    cout << "--set         = " << set          << endl;
+    cout << "--clr         = " << clr          << endl;
     cout << "--mask        = " << mask         << endl;
     cout << "--value       = " << value        << endl;
     cout << "--verbose     = " << verbose      << endl;
@@ -170,6 +202,8 @@ io_yOptLong::print_option_flags()
     {
 	cout << "arg:          = " << arg          << endl;
     }
+
+    cout << "modify        = " << modify       << endl;
 
     cout.fill('0');
     cout <<std::hex;
@@ -197,9 +231,11 @@ io_yOptLong::print_usage()
     "    --w0                word 0 registers (default)\n"
     "    --w1                word 1 registers\n"
     "    --fsel              Fsel function select registers\n"
-    "  modify:\n"
-    "    --mask=0xff..       mask select bits to change, 32-bits\n"
-    "    --value=0x00..      bit value, 32-bits\n"
+    "  modify:  (32-bit values)\n"
+    "    --set=0xff..        set mask bits\n"
+    "    --clr=0xff..        clear mask bits\n"
+    "    --mask=0xff..       mask to select bits of --value\n"
+    "    --value=0x00..      bit values selected by --mask\n"
 //  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --help              show this usage\n"
@@ -314,17 +350,63 @@ y_io::doit()
 	if ( Error::has_err() )  return 1;
 
     // Process registers
-	if ( *Opx.mask && *Opx.value ) {	// Modify
+	if ( Opx.modify ) {
 	    cout << "Modify:" << endl;
 	}
 
 	for ( int ii=0;  ii<regcnt;  ii++ )
 	{
-	    rgIoPin::rgIoReg_enum	reg;
-	    reg = regarg[ii];
+	    rgIoPin::rgIoReg_enum	reg = regarg[ii];
+	    bool			ok = 0;
 
-	    if ( *Opx.mask && *Opx.value ) {	// Modify
-		Gpx.modify_reg( reg, Opx.mask_n, Opx.value_n );
+	    if ( Opx.modify ) {
+
+		if (      (reg == rgIoPin::rgPinSet_w0) && *Opx.set ) {
+				   Gpx.set_PinLevel_w0( Opx.mask_n );
+		    ok = 1;
+		}
+		else if ( (reg == rgIoPin::rgPinSet_w1) && *Opx.set ) {
+				   Gpx.set_PinLevel_w1( Opx.mask_n );
+		    ok = 1;
+		}
+		else if ( (reg == rgIoPin::rgPinClr_w0) && *Opx.clr ) {
+				   Gpx.clr_PinLevel_w0( Opx.mask_n );
+		    ok = 1;
+		}
+		else if ( (reg == rgIoPin::rgPinClr_w1) && *Opx.clr ) {
+				   Gpx.clr_PinLevel_w1( Opx.mask_n );
+		    ok = 1;
+		}
+		else if ( (reg == rgIoPin::rgPinRead_w0) ||
+			  (reg == rgIoPin::rgPinRead_w1) ) {
+		    ok = 0;	// read-only
+		}
+		else if ( (reg == rgIoPin::rgEventStatus_w0) && *Opx.clr ) {
+				     Gpx.clr_EventStatus_w0( Opx.mask_n );
+		    ok = 1;
+		}
+		else if ( (reg == rgIoPin::rgEventStatus_w1) && *Opx.clr ) {
+				     Gpx.clr_EventStatus_w1( Opx.mask_n );
+		    ok = 1;
+		}
+		else {		// generic register
+		    if ( *Opx.set ) {
+			Gpx.set_reg( reg, Opx.mask_n );
+		    }
+		    else if ( *Opx.clr ) {
+			Gpx.clr_reg( reg, Opx.mask_n );
+		    }
+		    else {
+			Gpx.modify_reg( reg, Opx.mask_n, Opx.value_n );
+		    }
+		    ok = 1;
+		}
+
+		if ( ! ok ) {
+		    Error::msg( "inappropriate operation on register:  " )
+			<< Gpx.str_IoReg_enum( reg ) <<endl;
+		    continue;
+		}
 	    }
 
 	    uint32_t	vv = Gpx.read_reg( reg );
