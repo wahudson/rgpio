@@ -16,6 +16,8 @@ rgpio-io -- IO Pin register access
     --w0                word 0 registers (default)
     --w1                word 1 registers
     --fsel              Fsel function select registers
+    --pud               pin PullUpDown registers
+    --all               all registers plus PinSet, PinClr
   modify:  (32-bit values)
     --set=0xff..        set mask bits
     --clr=0xff..        clear mask bits
@@ -30,41 +32,31 @@ rgpio-io -- IO Pin register access
 
 =head1		DESCRIPTION
 
-Access the set of pin GPIO registers.  All registers are 32-bits wide, and
-may contain reserved fields.
+This command provides access to the set of pin GPIO registers.  All registers
+are 32-bits wide, and may contain reserved fields.
 
 Register names are the same as the enumerated type rgIoPin::rgIoReg_enum
-and are used in both input and output (see file librgpio/src/rgIoPin.h).
+(see file rgIoPin.h) and are listed in the register group options below.
 The names are a little long, but aid in the use of the librgpio library.
-
-The commonly used register names are enumerated in the Register Group options
-below.  In addition there are:
-
-    rgPinSet_w0		set-only
-    rgPinSet_w1		set-only
-    rgPinClr_w0		clear-only
-    rgPinClr_w1		clear-only
-
-    rgPullUpDown	R/W
-    rgPullUpDownClk_w0	R/W
-    rgPullUpDownClk_w1	R/W
 
 The default operation is to directly read and display the specified registers.
 Reading these IO registers has no side effects, and so is generally safe.
 
-Register value modification is done with --mask= and --value= options.
-The process for each register is:
+If modification is requested, the process for read/write registers is:
 
     1) Read current hardware register value.
-    2) Modify value according to --mask.
+    2) Modify bits according to mask.
     3) Write modified value back to hardware register.
     4) Read hardware register and display resulting value.
 
-Caution:  Pay attention to the special behaivor of some registers.
-This command provides raw access, with no special handling of their
-requirements.
+For registers that set/clear bits on write, the process is:
+    1) Write bits according to --set or --clr mask.
+    2) Read hardware register and display resulting value.
 
-Note:  The IO lines (these registers) are typically a shared resource
+This command is intended to provide raw register access, and does not
+provide higher level compound operations.
+
+Note:  The IO lines (and these registers) are typically a shared resource
 among multiple asynchronous processes, where each process may use only a few
 lines (bits).
 The read-modify-write process of updating registers is not atomic.
@@ -122,6 +114,29 @@ These lines are accessable on the Raspberry Pi compute module.
 
 These are the raw function select registers, which are not very convenient
 to use.  Use rgpio-fsel(1) as a better interface to these registers.
+
+=item B<--pud>              - Pin PullUpDown registers.
+
+ rgPullUpDown
+ rgPullUpDownClk_w0
+ rgPullUpDownClk_w1
+
+These control programming of the weak hardware pull-up/down on each IO pin
+through a special sequence (see "BCM2835 ARM Peripherals").
+The programmed pull-up/down is rememberd thru power-down (is non-volatile)
+and cannot be read back.
+
+=item B<--all>              - All registers plus PinSet, PinClr
+
+ rgPinSet_w0
+ rgPinSet_w1
+ rgPinClr_w0
+ rgPinClr_w1
+
+Show all 29 registers, that is, all register groups above plus these 4
+write-only registers.
+Writing these 4 registers will set/clear bits in the pin output register, and
+cannot be read back.  Reading them returns an undefined value, generally zero.
 
 =back
 
@@ -210,6 +225,10 @@ In the source directory tree:
 B<rgpio>(1)
 B<rgpio-fsel>(1)
 B<librgpio>(3)
+
+ BCM2835 ARM Peripherals (2012)
+    p.89-101  6.  General Purpose I/O (GPIO)
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
 =cut
 

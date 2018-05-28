@@ -44,6 +44,8 @@ class io_yOptLong : public yOption {
     bool		fsel;
     bool		w0;
     bool		w1;
+    bool		pud;
+    bool		all;
 
     const char*		set;
     const char*		clr;
@@ -87,6 +89,8 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     fsel        = 0;
     w0          = 0;
     w1          = 0;
+    pud         = 0;
+    all         = 0;
 
     set         = "";
     clr         = "";
@@ -117,6 +121,8 @@ io_yOptLong::parse_options()
 	else if ( is( "--fsel"       )) { fsel       = 1; }
 	else if ( is( "--w0"         )) { w0         = 1; }
 	else if ( is( "--w1"         )) { w1         = 1; }
+	else if ( is( "--pud"        )) { pud        = 1; }
+	else if ( is( "--all"        )) { all        = 1; }
 
 	else if ( is( "--set="       )) { set        = this->val(); }
 	else if ( is( "--clr="       )) { clr        = this->val(); }
@@ -135,8 +141,16 @@ io_yOptLong::parse_options()
 	}
     }
 
-    if ( !( (get_argc() > 0) || w0 || w1 || fsel ) ) {	// no reg specified
+    if ( !( (get_argc() > 0) || w0 || w1 || fsel || pud || all ) ) {
+	// no reg specified
 	w0 = 1;
+    }
+
+    if ( all ) {	// show all register groups
+	fsel =1;
+	w0   =1;
+	w1   =1;
+	pud  =1;
     }
 
     if ( *set ) {
@@ -190,6 +204,8 @@ io_yOptLong::print_option_flags()
     cout << "--fsel        = " << fsel         << endl;
     cout << "--w0          = " << w0           << endl;
     cout << "--w1          = " << w1           << endl;
+    cout << "--pud         = " << pud          << endl;
+    cout << "--all         = " << all          << endl;
     cout << "--set         = " << set          << endl;
     cout << "--clr         = " << clr          << endl;
     cout << "--mask        = " << mask         << endl;
@@ -231,6 +247,8 @@ io_yOptLong::print_usage()
     "    --w0                word 0 registers (default)\n"
     "    --w1                word 1 registers\n"
     "    --fsel              Fsel function select registers\n"
+    "    --pud               pin PullUpDown registers\n"
+    "    --all               all registers plus PinSet, PinClr\n"
     "  modify:  (32-bit values)\n"
     "    --set=0xff..        set mask bits\n"
     "    --clr=0xff..        clear mask bits\n"
@@ -328,6 +346,19 @@ y_io::doit()
 	    regarg[regcnt++] = rgIoPin::rgDetectLow_w1;
 	    regarg[regcnt++] = rgIoPin::rgDetectAsyncRising_w1;
 	    regarg[regcnt++] = rgIoPin::rgDetectAsyncFalling_w1;
+	}
+
+	if ( Opx.pud ) {
+	    regarg[regcnt++] = rgIoPin::rgPullUpDown;
+	    regarg[regcnt++] = rgIoPin::rgPullUpDownClk_w0;
+	    regarg[regcnt++] = rgIoPin::rgPullUpDownClk_w1;
+	}
+
+	if ( Opx.all ) {
+	    regarg[regcnt++] = rgIoPin::rgPinSet_w0;
+	    regarg[regcnt++] = rgIoPin::rgPinSet_w1;
+	    regarg[regcnt++] = rgIoPin::rgPinClr_w0;
+	    regarg[regcnt++] = rgIoPin::rgPinClr_w1;
 	}
 
     // Argument register list
