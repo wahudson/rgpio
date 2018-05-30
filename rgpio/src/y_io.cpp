@@ -372,13 +372,17 @@ y_io::doit()
 		Error::msg( "unknown register:  " ) << arg <<endl
 		    << "    " <<  e.what() << endl;
 	    }
+
 	    if ( regcnt > RegLimit ) {
 		Error::msg( "max register args:  " ) << RegLimit <<endl;
 		break;
 	    }
 	}
-//	cout << "regcnt=" << regcnt <<endl;
 	if ( Error::has_err() )  return 1;
+
+	if ( Opx.verbose ) {
+	    cout << "IO Pin Registers:                      28   24   20   16   12    8    4    0" << endl;
+	}
 
     // Process registers
 	if ( Opx.modify ) {

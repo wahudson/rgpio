@@ -366,7 +366,7 @@ uspi_yOptLong::print_usage()
     "    --KeepInput_1=0     1= concatenate into receiver shift register\n"
     "  options:\n"
     "    --help              show this usage\n"
-//  " #  -v, --verbose       verbose output\n"
+    "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -410,6 +410,10 @@ y_uspi::doit()
 	}
 
 	if ( Error::has_err() )  return 1;
+
+	if ( Opx.verbose ) {
+	    cout << "Universal SPI Master:" << endl;
+	}
 
     // SPI channels
 	const int		SpiMax = 2;

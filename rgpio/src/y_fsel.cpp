@@ -185,7 +185,7 @@ fsel_yOptLong::print_usage()
 //  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --help              show this usage\n"
-    " #  -v, --verbose       verbose output\n"
+    "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -284,6 +284,10 @@ y_fsel::doit()
 	if ( Error::has_err() )  return 1;
 
     // Process Fsel bits
+	if ( Opx.verbose ) {
+	    cout << "Pin Function Select:" << endl;
+	}
+
 	if ( *Opx.mode ) {	// Modify
 	    cout << "Modify:" << endl;
 	}

@@ -136,7 +136,7 @@ and cannot be read back.
 Show all 29 registers, that is, all register groups above plus these 4
 write-only registers.
 Writing these 4 registers will set/clear bits in the pin output register, and
-cannot be read back.  Reading them returns an undefined value, generally zero.
+cannot be read back.  Reading them returns an undefined value.
 
 =back
 

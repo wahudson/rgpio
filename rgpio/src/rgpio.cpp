@@ -202,42 +202,41 @@ main( int	argc,
 	    Amx.open_fake_mem();
 	}
 
-	if ( Amx.is_fake_mem() ) {
+	if ( Amx.is_fake_mem() && (Opx.verbose || Opx.debug) ) {
 	    cout << "Using Fake memory" <<endl;
 	}
 
 	//#!! close_dev()
 
+	int			retv = 0;	// return value
+
 	if (      Opx.feature == "io"       ) {
-	    cout << "IO Pin Registers:" << endl;
 	    y_io		iox  ( &Opx, &Amx );	// constructor
-	    return  iox.doit();
+	    retv = iox.doit();
 	}
 	else if ( Opx.feature == "fsel"    ) {
-	    cout << "Pin Function Select:" << endl;
 	    y_fsel		fx  ( &Opx, &Amx );	// constructor
-	    return  fx.doit();
+	    retv = fx.doit();
 	}
 	else if ( Opx.feature == "clock"    ) {
-	    cout << "Clock Controls:" << endl;
 	    y_clock		cx  ( &Opx, &Amx );	// constructor
-	    return  cx.doit();
+	    retv = cx.doit();
 	}
 	else if ( Opx.feature == "uspi"    ) {
-	    cout << "Universal SPI Master:" << endl;
 	    y_uspi		usx  ( &Opx, &Amx );	// constructor
-	    return  usx.doit();
+	    retv = usx.doit();
 	}
 	else if ( Opx.feature == ""         ) {
 	    cout << "Do nothing.  Try '" << Opx.ProgName << " --help'" << endl;
 	    // Useful to verify device file access.
-	    return( 0 );
+	    retv = 0;
 	}
 	else {
 	    Error::msg( "unknown feature:  " ) << Opx.feature.c_str() <<endl;
-	    return( 1 );
+	    retv = 1;
 	}
 
+	return  retv;
     }
     catch ( std::exception& e ) {
 	Error::msg( "exception caught:  " ) << e.what() <<endl;

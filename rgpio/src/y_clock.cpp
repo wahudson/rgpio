@@ -214,7 +214,7 @@ clock_yOptLong::print_usage()
 //  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --help              show this usage\n"
-//  " #  -v, --verbose       verbose output\n"
+    "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -289,6 +289,10 @@ y_clock::doit()
 	}
 
 	if ( Error::has_err() )  return 1;
+
+	if ( Opx.verbose ) {
+	    cout << "Clock Controls:" << endl;
+	}
 
 	if ( Opx.debug ) {
 	    for ( int ii=0;  ii<=ClkMax;  ii++ )
