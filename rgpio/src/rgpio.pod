@@ -10,13 +10,13 @@ rgpio -- Raspberry Pi GPIO utility
 
 =head1		SYNOPSIS
 
- rgpio [common_opts..]  feature  [options..]
+ rgpio [main_options..]  feature  [options..]
   feature:
     io           General Purpose IO pins
     fsel         Pin Function Select
     clock        Clock generator
     uspi         Universal SPI Master, Spi1, Spi2
-  common options:
+  main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
     --help              show this usage
@@ -34,8 +34,29 @@ provide a high-level abstraction.
 
 It is a cockpit command, with sub-commands for each peripheral feature.
 
+Note options --help and --debug are different when applied to the main
+command or the sub-command.
 
 =head2			Essential Operation
+
+The main program opens the device file and then calls the specified
+sub-command (feature).
+
+Options after the sub-command are processed by the sub-command.
+
+=head2			Privilege Capabilities
+
+The librgpio library applies the "capabilities" system to provide access
+to /dev/mem for normal users without using 'sudo' or applying "setuid root"
+to the executable.  See cababilities(7).
+
+Capabilities 'CAP_DAC_OVERRIDE' and 'CAP_SYS_RAWIO' are necessary to access
+/dev/mem.  These are applied to the "Permitted file capability set" of the
+executable file.  When the file is executed, the process raises those two
+capabilities into the process "Effective" set, opens /dev/mem, and then
+drops all capabilites.  In this way the executing process has no special
+capability before or after the code section doing the raise/open/drop
+operation (i.e. outside of the librgpio rgAddrMap::open_dev_file() function).
 
 
 =head1		OPTIONS
@@ -47,6 +68,12 @@ It is a cockpit command, with sub-commands for each peripheral feature.
 m= /dev/mem (default), g= /dev/gpiomem, f= fake memory.
 This is the device special file used to map blocks of IO memory into the
 process.
+
+=item B<--debug>            - Debug output.
+
+Show the capability raise/lower actions when opening /dev/mem.
+
+=item B<--help>             - Show main program help.
 
 =back
 
@@ -75,10 +102,42 @@ Each feature has its own man page.
 
 =head1		EXAMPLES
 
+ Main command help.
  % rgpio --help
+
+ Sub command help.
+ % rgpio io --help
+
+ Normal call to a sub-command using /dev/mem (default).
+ % rgpio io
 
  Use /dev/gpiomem
  % rgpio --dev=g  io
+
+ Only open the device file, no sub-command.
+ % rgpio --dev=m --debug
+
+
+=head1		TROUBLESHOOTING
+
+=head2			Capabilities not set on the rgpio executable.
+
+Generally errors like:  "cannot open /dev/mem:  Permission denied"
+
+ View existing capabilities:
+ % getcap  ../bin/rgpio
+
+ Set necessary capabilities:  (requires root permision)
+ % sudo setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  ../bin/rgpio
+
+=head2			Wrong device file for feature.
+
+Most features (sub-commands) require /dev/mem for correct operation.
+If /dev/gpiomem is used instead, they may silently do nothing, e.g. all
+values appear stuck zero.
+
+Device /dev/gpiomem is really only useable with the GPIO pin features, i.e.
+sub-commands 'fsel' and 'io'.
 
 
 =head1		ENVIRONMENT
@@ -98,6 +157,8 @@ none
 =head1		SEE ALSO
 
 B<librgpio>(3)
+B<capabilities>(7)
+B<setcap>(8)
 
 =cut
 

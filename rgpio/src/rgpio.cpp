@@ -144,13 +144,13 @@ yOptLong::print_usage()
 {
     cout <<
     "    Raspberry Pi GPIO utility\n"
-    "usage:  " << ProgName << " [common_opts..]  feature  [options..]\n"
+    "usage:  " << ProgName << " [main_options..]  feature  [options..]\n"
     "  feature:\n"
     "    io           General Purpose IO pins\n"
     "    fsel         Pin Function Select\n"
     "    clock        Clock generator\n"
     "    uspi         Universal SPI Master, Spi1, Spi2\n"
-    "  common options:\n"
+    "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
     "                                          g= /dev/gpiomem, f= fake\n"
 //  "  # --ro                read only\n"
