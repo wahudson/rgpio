@@ -1,0 +1,331 @@
+# 2018-05-23  William A. Hudson
+
+# rgIoPin  GPIO IO Pin control class -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgIoPin  class -- GPIO IO Pin register access
+
+=head1		SYNOPSIS
+
+    #include "rgAddrMap.h"
+    #include "rgIoPin.h"
+
+=head2			Constructor
+
+    rgIoPin( rgAddrMap  *xx );
+
+    volatile uint32_t*  get_base_addr();
+
+=head2			Register enumerated type
+
+    enum rgIoReg_enum {       // type of access
+	rgFsel0                  R/W            read/write
+	rgFsel1                  R/W
+	rgFsel2                  R/W
+	rgFsel3                  R/W
+	rgFsel4                  R/W
+	rgFsel5                  R/W
+
+	rgPinSet_w0              -/Set          no read
+	rgPinSet_w1              -/Set          no read
+
+	rgPinClr_w0              -/Clear        no read
+	rgPinClr_w1              -/Clear        no read
+
+	rgPinRead_w0             R/-            read-only
+	rgPinRead_w1             R/-            read-only
+
+	rgEventStatus_w0         R/Clear        read/clear
+	rgEventStatus_w1         R/Clear        read/clear
+
+	rgDetectRising_w0        R/W
+	rgDetectRising_w1        R/W
+
+	rgDetectFalling_w0       R/W
+	rgDetectFalling_w1       R/W
+
+	rgDetectHigh_w0          R/W
+	rgDetectHigh_w1          R/W
+
+	rgDetectLow_w0           R/W
+	rgDetectLow_w1           R/W
+
+	rgDetectAsyncRising_w0   R/W
+	rgDetectAsyncRising_w1   R/W
+
+	rgDetectAsyncFalling_w0  R/W
+	rgDetectAsyncFalling_w1  R/W
+
+	rgPullUpDown             R/W
+	rgPullUpDownClk_w0       R/W
+	rgPullUpDownClk_w1       R/W
+    };
+
+=head2			Generic registor access
+
+    volatile uint32_t*  addr_reg( rgIoReg_enum  reg );
+
+    uint32_t            read_reg( rgIoReg_enum  reg );
+
+    void                write_reg(
+                            rgIoReg_enum        reg,
+                            uint32_t            value
+                        );
+
+    void                modify_reg(
+                            rgIoReg_enum        reg,
+                            uint32_t            mask,
+                            uint32_t            value
+                        );
+
+    void                set_reg(
+                            rgIoReg_enum        reg,
+                            uint32_t            mask
+                        );
+
+    void                clr_reg(
+                            rgIoReg_enum        reg,
+                            uint32_t            mask
+                        );
+
+=head2			Address of selected registers
+
+    volatile uint32_t*  addr_PinRead_w0();
+    volatile uint32_t*  addr_PinRead_w1();
+    volatile uint32_t*  addr_PinSet_w0();
+    volatile uint32_t*  addr_PinSet_w1();
+    volatile uint32_t*  addr_PinClr_w0();
+    volatile uint32_t*  addr_PinClr_w1();
+    volatile uint32_t*  addr_EventStatus_w0();
+    volatile uint32_t*  addr_EventStatus_w1();
+
+=head2			PinLevel abstraction register
+
+    uint32_t            read_PinLevel_w0();               // rgPinRead_w0
+    uint32_t            read_PinLevel_w1();               // rgPinRead_w1
+    void                set_PinLevel_w0( uint32_t mask ); // rgPinSet_w0
+    void                set_PinLevel_w1( uint32_t mask ); // rgPinSet_w1
+    void                clr_PinLevel_w0( uint32_t mask ); // rgPinClr_w0
+    void                clr_PinLevel_w1( uint32_t mask ); // rgPinClr_w1
+
+=head2			Event Status register (read/clear)
+
+    uint32_t            read_EventStatus_w0();
+    uint32_t            read_EventStatus_w1();
+    void                clr_EventStatus_w0( uint32_t mask );
+    void                clr_EventStatus_w1( uint32_t mask );
+
+=head2			Enum string conversion
+
+    static const char*  str_IoReg_enum( rgIoReg_enum  reg );
+
+    static rgIoReg_enum find_IoReg_enum( const char  *name);
+
+
+=head1		DESCRIPTION
+
+This class provides access to the hardware registers of the GPIO IO Pins
+peripheral group.
+
+Each hardware register address is represented by enumerated type
+B<rgIoReg_enum>, ordered by increasing address.  The enumerated values are
+sparce (non-consecutive) integers.
+
+Multiple levels of access to the hardware is provided:
+
+    a)  Address of registers  addr_().
+    b)  Direct register access  read_(), write_().
+    c)  Register read/modify/write  modify_(), set_(), clr_().
+
+All functions are object methods.
+All operations are on the full 32-bit hardware register.
+See rgFselPin(3) for a detailed interface to the Function Select registers.
+
+=head2			Constructor
+
+=over
+
+=item rgIoPin()
+
+Construct and initialize a new object.  Argument 'amx' is the address map
+object with an open device file or cached memory block.
+
+=item get_base_addr()
+
+Return the object IO memory block virtual address.
+
+=back
+
+=head2			rgIoReg_enum  Register enumerated type
+
+These enumerate all the GPIO pin registers.  All registers are 32-bits.
+Some registers contain reserved fields, which should be written as zero and
+ignored on read.
+
+These enums are used with the generic registor access functions, and with
+the string conversion functions.
+
+=head2			Generic registor access
+
+These functions directly access the hardware register.  Object state is not
+modified.
+
+=over
+
+=item addr_reg()
+
+Return the address of the specified register.
+Direct read/write to these addresses is the fastest (shortest execution time)
+way to transfer data.
+
+=item read_reg()
+
+Return the current value of the specified hardware register.
+There is no check for write-only registers.
+
+=item write_reg()
+
+Write the 32-bit value to the specified hardware register.
+There is no check for read-only or special set/clear registers.
+Beware effects on special registers that set-bits or clear-bits.
+
+=item modify_reg()
+
+Modify raw register.
+Does read/modify/write only for normal read/write capable registers.
+Not applicable for write-only or read-only registers.
+Not applicable for registers that operate by set-bit or clear-bit.
+Throw 'std::logic_error' on non-normal read/write registers.
+The essential operation is:
+
+    1) Read hardware register value x.
+    2) Modify value:  x = (x & (~ mask) ) | (value & mask)
+    3) Write modified value back to hardware register.
+
+=item set_reg()
+
+Set register bits according to mask.
+Essentialy calls modify_reg( reg, mask, mask ).
+
+=item clr_reg()
+
+Clear register bits according to mask.
+Essentialy calls modify_reg( reg, mask, 0 ).
+
+=back
+
+=head2			Address of selected registers
+
+These return the address of the register named by the function, same as
+addr_reg().  These named accessor functions are preferred for commonly
+used registers.
+
+=head2			PinLevel abstraction register
+
+These 6 functions are named as if operating on a single abstract register
+'PinLevel_w*' that can be read/set/cleared.  This makes better sense than
+preserving the underlying register name.
+
+These are atomic operations because the underlying hardware register
+modification is done by a single read or write.
+
+=head2			Event Status register (read/clear)
+
+These named accessor functions are preferred over the equivalent generic
+read_reg()/write_reg() functions.
+
+=over
+
+=item read_EventStatus_w0(), read_EventStatus_w1()
+
+Return the current value of the EventStatus register.
+
+=item clr_EventStatus_w0(), clr_EventStatus_w1()
+
+Clear bits in the EventStatus register according to the given mask.
+
+=back
+
+=head2			Enum string conversion
+
+These two functions map rgIoReg_enum to the corresponding character string.
+
+=over
+
+=item str_IoReg_enum()
+
+Return the string name of an rgIoReg_enum register enum.
+Also can be called as a class method.
+
+=item find_IoReg_enum()
+
+Find the rgIoReg_enum for the given string name.
+Throws std::range_error if enum string is not found.
+Throws std::logic_error if string pointer is NULL.
+Also can be called as a class method.
+
+=back
+
+=head1		EXCEPTIONS
+
+ std::logic_error
+ std::range_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+    uint32_t		data;
+
+ // Construct an object for SPI1.
+    rgAddrMap          amx;                    // address map object
+    amx.open_dev_mem();                        // open device file
+    rgIoPin            gpx  ( &amx );          // construct object gpx
+
+    uint32_t		vv;
+
+ // Read pin levels, fastest method.
+    volatile uint32_t*		pread = gpx.addr_PinRead_w0();
+    vv = *pread;
+
+ // Read pin levels.
+    vv = gpx.read_PinLevel_w0();
+
+ // Write pin levels.  bits[7:4] = binary 0101, other bits unchanged
+    gpx.set_PinLevel_w0( 0x00000050 );
+    gpx.clr_PinLevel_w0( 0x000000a0 );
+
+ // Modify bits[7:0] to 0x86 in a normal read/write register
+    vv = gpx.modify_reg( rgDetectHigh_w0, 0x00000086, 0x000000ff );
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgIoPin.h
+ src/rgIoPin.cpp
+
+
+=head1		SEE ALSO
+
+ rgIoPin(7)	hardware register description
+ rgAddrMap(3)
+ rgFselPin(3)
+ rgpio-io(1)
+
+ BCM2835 ARM Peripherals (2012)
+    p.89-101  6.  General Purpose I/O (GPIO)
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+

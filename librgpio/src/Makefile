@@ -7,6 +7,7 @@
 SHELL      = /bin/sh
 LIBDIR     = ../lib
 OJ         = ../obj
+MAN        = ../man
 
 		# all include files for main program dependency
 INCS       = \
@@ -38,6 +39,13 @@ compile:  $(OJ)  $(LIBDIR)  $(LIBDIR)/librgpio.a
 
 mkdirs:   $(OJ)  $(LIBDIR)
 
+man:	$(MAN)/man3 \
+	$(MAN)/man3/rgAddrMap.3 \
+	$(MAN)/man3/rgIoPin.3 \
+	$(MAN)/man3/rgUniSpi.3 \
+	$(MAN)/man7 \
+	$(MAN)/man7/rgUniSpi.7
+
 x1	: x1.cpp  rgAddrMap.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp  $(LIBFLAGS)
 	./x1
@@ -48,12 +56,20 @@ clean:
 clobber:
 	rm -f  $(OJ)/*
 	rm -f  $(LIBDIR)/librgpio.a
+	rm -f  $(MAN)/man3/*
+	rm -f  $(MAN)/man7/*
 
 $(LIBDIR):
 	mkdir -p  $(LIBDIR)
 
 $(OJ):
 	mkdir -p  $(OJ)
+
+$(MAN)/man3:
+	mkdir -p  $(MAN)/man3
+
+$(MAN)/man7:
+	mkdir -p  $(MAN)/man7
 
 
 $(LIBDIR)/librgpio.a:	$(OBJS)
@@ -79,4 +95,21 @@ $(OJ)/rgIoPin.o:	rgIoPin.cpp  rgIoPin.h  rgAddrMap.h
 
 $(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgUniSpi.cpp
+
+
+$(MAN)/man3/rgAddrMap.3:	rgAddrMap.pod
+	pod2man -s 3 -n rgAddrMap  --center='librgpio Raspberry Pi GPIO' \
+	    rgAddrMap.pod  $@
+
+$(MAN)/man3/rgIoPin.3:		rgIoPin.pod
+	pod2man -s 3 -n rgIoPin  --center='librgpio Raspberry Pi GPIO' \
+	    rgIoPin.pod  $@
+
+$(MAN)/man3/rgUniSpi.3:		rgUniSpi.pod
+	pod2man -s 3 -n rgUniSpi  --center='librgpio Raspberry Pi GPIO' \
+	    rgUniSpi.pod  $@
+
+$(MAN)/man7/rgUniSpi.7:		man7/rgUniSpi.pod
+	pod2man -s 7 -n rgUniSpi  --center='librgpio Raspberry Pi GPIO' \
+	    man7/rgUniSpi.pod  $@
 

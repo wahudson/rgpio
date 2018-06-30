@@ -1,0 +1,226 @@
+# 2018-06-25  William A. Hudson
+
+# rgAddrMap Address Map class -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgAddrMap class -- GPIO Address Map
+
+=head1		SYNOPSIS
+
+    #include "rgAddrMap.h"
+
+=head2			Constructor and Configuration
+
+    rgAddrMap();	// constructor
+
+    void                config_Debug(    bool v );
+    void                config_FakeNoPi( bool v );
+
+=head2			Device File
+
+    void                open_dev_mem();
+    void                open_dev_gpiomem();
+    void                open_fake_mem();
+
+    void                open_dev_file(
+        const char*             file,
+        bool                    drop_cap = 1
+    );
+
+    void                close_dev();
+
+=head2			Address Mapping
+
+    volatile uint32_t*  get_mem_block( uint32_t  bcm_addr );
+
+    uint32_t            bcm2rpi_addr( uint32_t  bcm_addr );
+
+    bool                is_fake_mem();
+
+
+=head1		DESCRIPTION
+
+This class provides memory blocks that map to GPIO hardware peripherals.
+It provides the fundamental access for all the other librgpio classes.
+
+The essential operation is to open /dev/mem (or /dev/gpiomem).
+Then use mmap() system call to map a real address page into this process
+virtual memory.  Finaly, read/write to addresses in that page go directly to
+the peripheral hardware registers.
+
+The object caches each map entry, and will return the same block of memory
+if it has already been mapped.
+
+=head2			Privilege Capabilities
+
+The "capabilities" system is used to provide access to /dev/mem for normal
+users without using 'sudo' or applying "setuid root" to the executable.
+See cababilities(7).
+
+Capabilities 'CAP_DAC_OVERRIDE' and 'CAP_SYS_RAWIO' are necessary to open
+/dev/mem for read/write access.  Once the file is open, the capabilities
+can be dropped.  The open_dev_file() function raises these two capabilities
+from the "Permitted" set into the "Effective" set just before opening, and
+drops them afterward.
+
+These capabilities get into the process "Permitted" set by being applied
+to the file "Permitted" set on the executable file.  E.g. by command:
+
+    sudo setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  file
+
+In this way the executing process has no special capability outside of the
+open device file function.
+
+=head2			Constructor and Configuration
+
+The constructor takes no arguments.  It creates an object with no device
+file open.
+
+=over
+
+=item config_Debug()
+
+Set debug mode, 1= on, 0= off.
+When Debug is TRUE, debug output on stderr is enabled.  Currently this
+is comments on the "capabilities" raise/lower in the process of opening
+the device file.
+
+=item config_FakeNoPi()
+
+Configure fall-back action when not on a Raspberry Pi:  1= fake memory with
+a warning, 0= throw error.
+Applies only when a real file is opened, i.e. open_dev_mem(), or
+open_dev_gpiomem().
+
+=back
+
+=head2			Device File
+
+These functions open the specified device file, and are the preferred user
+interface.
+
+=over
+
+=item open_dev_mem()
+
+Open "/dev/mem", providing full access to all hardware peripherals.
+
+=item open_dev_gpiomem()
+
+Open "/dev/gpiomem", providing access only to the GPIO pin functions.
+
+=item open_fake_mem()
+
+Open a fake memory block, no device file.  The same memory block is used
+for all peripherals.  Used for development and testing.
+
+=back
+
+This is the underlying function when more control is needed.
+
+=over
+
+=item open_dev_file()
+
+Open device file for IO memory map.
+Argument 'file' is the file path to open.  The 'drop_cap' flag indicates
+whether the "capabilities" for accessing /dev/mem should be raised/lowered
+(1= raise/drop capabilities, 0= not).
+The flag defaults to 1, and is provided to allow disabling the raise/drop
+of capabilities in case the user needs to manage it himself.
+
+=item close_dev()
+
+Close the device file descriptor.
+Apply when no new blocks need to be mapped.
+Existing blocks can still be used.
+
+=back
+
+=head2			Address Mapping
+
+=over
+
+=item get_mem_block()
+
+Get a peripheral memory block.
+Argument 'bcm_addr' is the peripheral address as in the BCM datasheet, block
+aligned.
+This address is translated into Raspberry Pi-3 physical address.
+If the address has already been mapped, that block is returned.
+The address is then mapped into a new page with the mmap(2) system call,
+if the device file is still open.
+
+=item is_fake_mem()
+
+Return TRUE if using fake memory.
+
+=item bcm2rpi_addr()
+
+Convert address in "BCM2835 ARM Peripherals" datasheet to Raspberry Pi real
+address.  Currently only for Raspberry Pi-3.
+
+=back
+
+=head1		EXCEPTIONS
+
+ std::range_error
+ std::runtime_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+This is the full sequence of operations.
+
+ // Construct object.
+    rgAddrMap          amx;		// address map object
+
+ // Configure, if needed.
+    amx.config_Debug( 1 );
+    amx.config_FakeNoPi( 0 );
+
+ // Open device file.
+    amx.open_dev_mem();
+
+ // Get pointer to peripheral memory block for GPIO pins.
+    volatile uint32_t*		base_addr;
+    base_addr = amx.get_mem_block( 0x7e200000 );
+
+ // Close device file, if needed, after all new maps.
+    amx.close_dev();
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgAddrMap.h
+ src/rgAddrMap.cpp
+
+
+=head1		SEE ALSO
+
+rgpio(1),
+capabilities(7),
+setcap(8)
+
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+

@@ -1,0 +1,248 @@
+# 2018-05-04  William A. Hudson
+
+# rgUniSpi  Hardware Register Description.
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgUniSpi  Hardware Description -- Universal SPI Master
+
+
+=head1		SYNOPSIS
+
+Hardware registers of the Universal SPI Master.
+All are 32-bits, but may have sparcely populated fields.
+
+    Reg Name	BCM Doc Name
+    --------	-------------
+    Cntl0	AUXSPIx_CNTL0	Control register 0
+    Cntl1	AUXSPIx_CNTL1	Control register 1
+    Stat	AUXSPIx_STAT	Status register
+    Peek	AUXSPIx_PEEK	Show received data
+    Fifo	AUXSPIx_IO	FIFO - Write Tx, Read Rx
+    FifoH	AUXSPIx_TXHOLD	same, but hold CS to extend transaction
+
+    Field Name		Register Bits
+    ---------------     -------------
+    Speed_12		Cntl0[31:20]
+    ChipSelects_3	Cntl0[19:17]
+    PostInMode_1	Cntl0[16]
+    VariableCS_1	Cntl0[15]
+    VariableWidth_1	Cntl0[14]
+    DoutHoldTime_2	Cntl0[13:12]
+    EnableSerial_1	Cntl0[11]
+    InRising_1		Cntl0[10]
+    ClearFifos_1	Cntl0[9]
+    OutRising_1		Cntl0[8]
+    InvertClk_1		Cntl0[7]
+    OutMsbFirst_1	Cntl0[6]
+    ShiftLength_6	Cntl0[5:0]
+
+    CsHighTime_3	Cntl1[10:8]
+    TxEmptyIRQ_1	Cntl1[7]
+    DoneIRQ_1		Cntl1[6]
+    InMsbFirst_1	Cntl1[1]
+    KeepInput_1		Cntl1[0]
+
+    TxLevel_3		Stat[30:28]
+    RxLevel_3		Stat[32:20]
+    TxFull_1		Stat[10]
+    TxEmpty_1		Stat[9]
+    RxFull_1		Stat[8]
+    RxEmpty_1		Stat[7]
+    Busy_1		Stat[6]
+    BitCount_6		Stat[5:0]
+
+Bit field names incorporate the number of bits in the field.
+This makes the field size self documenting, and slightly more klunky.
+
+
+=head1		DESCRIPTION
+
+This documentation describes the operation of the two Universal SPI Masters
+SPI1, SPI2.  A different SPI0 master is described elsewhere.
+See BCM doc chapter 2.3  Universal SPI Master  (p. 20-27), also referred to
+as Auxiliary peripherals.
+
+SPI stands for Serial Peripheral Interface bus.
+The Universal SPI Master is essentially a shift register controller.
+
+
+=head2			Hardware Signals
+
+Generic SPI signals are often called:
+
+    SCLK	Serial Clock, driven by master
+    MOSI	Master Out Slave In  data
+    MISO	Master In  Slave Out data
+    CS 		Chip Select (also called CE Chip Enable)
+
+GPIO Alternate Function names (hardware signals) are:
+
+    spi1_SCLK	Serial Clock, driven by master
+    spi1_MOSI	Master Out Slave In  data
+    spi1_MISO	Master In  Slave Out data
+    spi1_CE0_n	Chip Enable 0 (driven by master)
+    spi1_CE1_n	Chip Enable 1 (driven by master)
+    spi1_CE2_n	Chip Enable 2 (driven by master)
+
+    spi2_*      same for SPI2.
+
+In these waveforms we reference the first (1) and second (2) edges of the
+SCLK clock pulses.  The B<InvertClk_1> bit determines which edge is the
+rising edge.
+
+                       1 bit time
+         idle | setup |<---->|         | hold | idle
+          ____                                 ____________
+    CS        |_______________________________|
+
+                       __     __     __
+    SCLK  ____________|  |___|  |___|  |___________________
+              edge    1  2   1  2   1  2
+
+    MISO       __________ ______ ______
+    MOSI  XXXXX__________X______X______XXXXXXXXXXXXXXXXXXXX
+                     d0     d1     d2
+		Change on 2, sample on 1 (CPHA=0)
+
+                       ______ ______ ______
+    MISO  XXXXXXXXXXXXX______X______X______XXXXXXXXXXXXXXXX
+                         d0     d1     d2
+		Slave Change on 1, master sample on 2 (CPHA=1)
+
+    Post input mode:                       | extra master sample
+                          ______ ______ ______
+    MISO  XXXXXXXXXXXXXXXX______X______X______XXXXXXXXXXXXX
+                            d0     d1     d2
+
+    Inverted clock:  (InvertClk_1= 1)
+          ____________    ___    ___    ___________________
+    SCLK              |__|   |__|   |__|
+              edge    1  2   1  2   1  2
+
+
+               _______ ______ ______
+    MOSI  XXXXX_______X______X______XXXXXXXXXXXXXXXXXXXXXXX
+                  d0     d1     d2
+		Change on 1, sample on 2
+		First bit d0 is lost (not sampled).
+
+During setup (after CS goes low and before first SCLK edge) the first
+data bit is output on MOSI.  The slave must sample it on the first SCLK
+edge, and the master must change it on the second SCLK edge.  Otherwise that
+first data bit (d0) is lost.
+
+It is intended that data be sampled on the opposit edge from the one that
+changes the data, for both master and slave, as this gives the most timing
+margin:  e.g.
+
+    If master changes MOSI on 2, then slave  samples on 1.
+    If slave  changes MISO on 1, then master samples on 2.
+
+Post-input mode:  Slave changes MISO on 2, and master samples on the
+following 1.  The master uses a hidden trailing 1 clock edge to sample the
+last data bit.
+In this way the slave can use the first SCLK to load the shift register,
+and the following N-1 clocks to shift it out on MISO.
+
+
+=head2			Data Shifting in/out
+
+With  OutMsbFirst_1= 0 and InMsbFirst_1= 0:
+The LSB in the FIFO is shifted out first, and
+bits are shifted into bit 31 of Rx, which is shifted right.  Thus
+
+    Tx:  0x00003557  becomes
+    Rx:  0x35570000
+
+
+
+=head1		REGISTER BIT FIELDS
+
+The numeric suffix on the field name indicates the number of bits in the field.
+
+=head2			Cntl0 Register
+
+=over
+
+=item B<OutRising_1>        - MOSI data output changes on which SCLK edge.
+
+1= rising, 0= falling.
+If 1, data out changes on the rising  edge of SCLK.
+If 0, data out changes on the falling edge of SCLK.
+
+
+=item B<InvertClk_1>        - Invert the SPI clock.
+
+If 0, the SCLK signal idle state is low, default at reset.
+If 1, the SCLK signal idle state is high.
+This inversion is internally observed by the other configuration features,
+i.e.  OutRising_1 and InRising_1.
+
+=back
+
+=head2			Stat Register
+
+The status (Stat) register is read-only.
+
+=over
+
+=item B<TxLevel_3>          - Transmit Fifo level.
+
+The number of words in the Transmit Fifo {0..4}.
+
+=item B<RxLevel_3>          - Receive Fifo level.
+
+The number of words in the Receive Fifo {0..4}.
+
+=item B<TxFull_1>           - Transmit Fifo is full.
+
+1= full, 0= not full, can accept at least one more word.
+
+=item B<TxEmpty_1>          - Transmit Fifo is empty.
+
+1= empty, 0= not.
+
+=item B<RxFull_1>           - Receive Fifo is full.
+
+1= full, 0= not.
+
+=item B<RxEmpty_1>          - Receive Fifo is empty.
+
+1= empty, 0= not.
+
+=item B<Busy_1>             - The module is busy transferring data.
+
+1= busy, 0= not.
+It will be clear when the Transmit Fifo is empty and the module has finished
+all activities, including waiting the minimum CS high time.
+
+=item B<BitCount_6>         - The number of bits still to be processed.
+
+Starts with 'ShiftLength_6' and counts down.
+
+=back
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgUniSpi.h
+ src/rgUniSpi.cpp
+
+
+=head1		SEE ALSO
+
+ rgUniSpi(3)
+
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+ https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
+
+=cut
+
