@@ -73,27 +73,27 @@ class rgUniSpi {
     inline uint32_t	read_Fifo()       { return *(addr_Fifo());      }
     inline uint32_t	read_FifoH()      { return *(addr_FifoH());     }
 
-    inline void		write_AuxIrq(    uint32_t reg ) {
-		       *(addr_AuxIrq())    = reg;
+    inline void		write_AuxIrq(    uint32_t rval ) {
+		       *(addr_AuxIrq())    = rval;
     }
-    inline void		write_AuxEnable( uint32_t reg ) {
-		       *(addr_AuxEnable()) = reg;
+    inline void		write_AuxEnable( uint32_t rval ) {
+		       *(addr_AuxEnable()) = rval;
     }
 
-    inline void		write_Cntl0(     uint32_t reg ) {
-		       *(addr_Cntl0())     = reg;
+    inline void		write_Cntl0(     uint32_t rval ) {
+		       *(addr_Cntl0())     = rval;
     }
-    inline void		write_Cntl1(     uint32_t reg ) {
-		       *(addr_Cntl1())     = reg;
+    inline void		write_Cntl1(     uint32_t rval ) {
+		       *(addr_Cntl1())     = rval;
     }
-    inline void		write_Stat(      uint32_t reg ) {
-		       *(addr_Stat())      = reg;
+    inline void		write_Stat(      uint32_t rval ) {
+		       *(addr_Stat())      = rval;
     }
-    inline void		write_Fifo(      uint32_t reg ) {
-		       *(addr_Fifo())      = reg;
+    inline void		write_Fifo(      uint32_t rval ) {
+		       *(addr_Fifo())      = rval;
     }
-    inline void		write_FifoH(     uint32_t reg ) {
-		       *(addr_FifoH())     = reg;
+    inline void		write_FifoH(     uint32_t rval ) {
+		       *(addr_FifoH())     = rval;
     }
 
 		// Direct control:  (modify register fields)
@@ -108,7 +108,7 @@ class rgUniSpi {
 
 		// Generic Field accessors:  (private)
     uint32_t		get_field(
-	const uint32_t		reg,
+	const uint32_t		rval,
 	const uint32_t		pos,
 	const uint32_t		mask
     );
@@ -197,9 +197,9 @@ class rgUniSpi {
     inline uint32_t	get_Cntl1() { return Cntl1Reg; }
     inline uint32_t	get_Stat()  { return StatReg;  }
 
-    inline void		put_Cntl0( uint32_t reg ) { Cntl0Reg = reg; }
-    inline void		put_Cntl1( uint32_t reg ) { Cntl1Reg = reg; }
-    inline void		put_Stat(  uint32_t reg ) { StatReg  = reg; }
+    inline void		put_Cntl0( uint32_t rval ) { Cntl0Reg = rval; }
+    inline void		put_Cntl1( uint32_t rval ) { Cntl1Reg = rval; }
+    inline void		put_Stat(  uint32_t rval ) { StatReg  = rval; }
 
     inline uint32_t	get_bcm_address() { return FeatureAddr; }
 

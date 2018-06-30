@@ -76,9 +76,9 @@ rgUniSpi::read_Spi_Enable_1()
 *    1= enabled, 0= disabled, no register access
 */
 void
-rgUniSpi::write_Spi_Enable_1( uint32_t  val )
+rgUniSpi::write_Spi_Enable_1( uint32_t  bit1 )
 {
-    put_field( (uint32_t*) addr_AuxEnable(), SpiNum, 0x1, val );
+    put_field( (uint32_t*) addr_AuxEnable(), SpiNum, 0x1, bit1 );
 
     // The volatile value requires a cast.
 }
@@ -251,12 +251,12 @@ rgUniSpi::grab_Stat()
 */
 uint32_t
 rgUniSpi::get_field(
-    const uint32_t		reg,	// register value
+    const uint32_t		rval,	// register value
     const uint32_t		pos,	// field bit position
     const uint32_t		mask	// mask field size
 )
 {
-    return  ( (reg >> pos) & mask );
+    return  ( (rval >> pos) & mask );
 }
 
 
