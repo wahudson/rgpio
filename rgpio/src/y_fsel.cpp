@@ -119,6 +119,9 @@ fsel_yOptLong::parse_options()
 
     if ( !( (get_argc() > 0) || w0 || w1 ) ) {	// no bit specified
 	w0 = 1;
+	if ( *mode ) {
+	    Error::msg( "--mode requires bit numbers or --w0 --w1" ) <<endl;
+	}
     }
 
     if ( *mode ) {
