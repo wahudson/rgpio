@@ -58,6 +58,7 @@ cap:
 
 man:	$(MAN)/man1 \
 	$(MAN)/man1/rgpio.1 \
+	$(MAN)/man1/rgpio-fsel.1 \
 	$(MAN)/man1/rgpio-io.1
 
 clean: 
@@ -66,6 +67,7 @@ clean:
 clobber:
 	rm -f  $(OJ)/*
 	rm -f  $(BINDIR)/rgpio
+	rm -f  $(MAN)/man1/*
 
 $(BINDIR):
 	mkdir -p  $(BINDIR)
@@ -114,6 +116,10 @@ $(OJ)/yUtil.o:		yUtil.cpp  yUtil.h
 
 $(MAN)/man1/rgpio.1:		rgpio.pod
 	pod2man -s 1 -n rgpio --center='Raspberry Pi GPIO'  rgpio.pod  $@ 
+
+$(MAN)/man1/rgpio-fsel.1:	man1/rgpio-fsel.pod
+	pod2man -s 1 -n rgpio-fsel --center='Raspberry Pi GPIO' \
+		   man1/rgpio-fsel.pod  $@ 
 
 $(MAN)/man1/rgpio-io.1:		man1/rgpio-io.pod
 	pod2man -s 1 -n rgpio-io --center='Raspberry Pi GPIO' \

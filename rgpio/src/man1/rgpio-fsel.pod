@@ -1,0 +1,159 @@
+# 2018-06-30  William A. Hudson
+
+# rgpio-fsel -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio-fsel -- Pin Function Select
+
+=head1		SYNOPSIS
+
+ rgpio fsel [options..]  [N..]
+    N                   bit number 0..53
+  bit number groups:  (accumulate)
+    --w0                word 0, bits [31:0] (default)
+    --w1                word 1, bits [53:32]
+  modify:
+    --mode=In           set mode {In, Out, Alt0, .. Alt5}
+  options:
+    --show_all          show all alternate functions
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)
+
+
+=head1		DESCRIPTION
+
+This command displays the Function Select mode of each GPIO pin specified.
+Here "pin" refers to the GPIO bit number, not the Raspberry Pi header pin
+number.
+
+The output shows the alternate function {In, Out, Alt0, .. Alt5},
+and decodes it to show the peripheral function signal name.
+The signal names generally have a prefix indicating the peripheral they
+belong to.  Special signal names are:
+
+    --  = reserved
+    **  = do NOT USE, may have unexpected results
+
+If modification is requested with --mode=, the process for each bit is:
+
+    0) Identify the Fsel register containing that bit.
+    1) Read current hardware register value.
+    2) Modify the mode bits.
+    3) Write modified value back to hardware register.
+    4) Re-read hardware register and display the bit mode.
+
+
+Note:  The function select registers are typically a shared resource
+among multiple asynchronous processes, where each process may use only a few
+pins (bits).
+The read-modify-write process of updating registers is not atomic.
+Therefor a synchronization problem exists, and is typically solved by
+externally synchronizing the processes.
+
+
+=head1		OPTIONS
+
+=head2			Bit Number Groups
+
+These options are an alias for a list of pin numbers,
+matching the word0 and word1 bits of the B<rgpio-io> command.
+
+These pins are in addition to any pin specified in the argument list,
+and duplicates are NOT removed.
+
+=over
+
+=item B<--w0>               - Pins [31:0].  (default)
+
+Note that only pins [27:0] are accessable on Raspberry Pi-3 40-pin header.
+
+=item B<--w1>               - Pins [53:32].
+
+These pins are accessable on the Raspberry Pi compute module.
+
+=back
+
+=head2			Modify
+
+=over
+
+=item B<--mode=In>          - Set mode {In, Out, Alt0, .. Alt5}.
+
+Set the mode for the specified pins.
+The default at power-on reset is "--mode=In".
+Beware of what each pin is connected to when changing its mode to avoid
+potential drive fights.
+
+=back
+
+=head2			Options
+
+=over
+
+=item B<--show_all>         - Show all alternate functions.
+
+Output a table of all alternate functions {Alt0..Alt5} for the specified
+pins.  No pins are modified.
+
+=item B<-v, --verbose>      - Verbose output.
+
+Adds a title "Pin Function Select:" to the output.
+
+=back
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ Show pins 0..31 by default.
+ % rgpio fsel
+
+ Show all pins.
+ % rgpio fsel --w0 --w1
+
+ Set Gpio pin 12 to Output.
+ % rgpio fsel --mode=Out  12
+
+ Set Gpio pins 14..17 to Alt5 UART1 function.
+ % rgpio fsel --mode=Alt5  14 15 16 17
+
+ Show all alternate functions for all pins.  No pins are modified.
+ % rgpio fsel --show_all --w0 --w1
+
+ Reset all pins to Input.
+ % rgpio fsel --mode=In  --w0 --w1
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the source directory tree:
+
+ librgpio/src/rgFselPin.h
+ librgpio/src/rgAltFuncName.h
+
+
+=head1		SEE ALSO
+
+B<rgpio>(1)
+B<rgpio-io>(1)
+B<librgpio>(3)
+
+ BCM2835 ARM Peripherals (2012)
+    p.102-104  6.2  Alternative Function Assignments
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+=cut
+
