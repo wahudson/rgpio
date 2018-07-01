@@ -41,8 +41,6 @@ class fsel_yOptLong : public yOption {
   public:	// option values
 
     bool		show_all;
-    bool		bin;
-    bool		col;
 
     bool		w0;
     bool		w1;
@@ -78,8 +76,6 @@ fsel_yOptLong::fsel_yOptLong( yOption  *opx )
     : yOption( opx )
 {
     show_all    = 0;
-    bin         = 0;
-    col         = 0;
 
     w0          = 0;
     w1          = 0;
@@ -102,10 +98,7 @@ fsel_yOptLong::parse_options()
 {
     while ( this->next() )
     {
-	     if ( is( "--bin"        )) { bin        = 1; }
-	else if ( is( "--col"        )) { col        = 1; }
-	else if ( is( "-c"           )) { col        = 1; }
-	else if ( is( "--show_all"   )) { show_all   = 1; }
+	     if ( is( "--show_all"   )) { show_all   = 1; }
 
 	else if ( is( "--w0"         )) { w0         = 1; }
 	else if ( is( "--w1"         )) { w1         = 1; }
@@ -136,6 +129,10 @@ fsel_yOptLong::parse_options()
 	    Error::msg( "unknown Fsel mode:  --mode=" ) << mode <<endl
 		<< "    " <<  e.what() << endl;
 	}
+
+	if ( show_all ) {
+	    Error::msg( "--mode not valid with --show_all" ) <<endl;
+	}
     }
 }
 
@@ -149,8 +146,6 @@ fsel_yOptLong::print_option_flags()
     // Beware namespace clash with 'hex'.
 
     cout << "--show_all    = " << show_all     << endl;
-    cout << "--bin         = " << bin          << endl;
-    cout << "--col         = " << col          << endl;
     cout << "--w0          = " << w0           << endl;
     cout << "--w1          = " << w1           << endl;
     cout << "--mode        = " << mode         << endl;
@@ -177,15 +172,11 @@ fsel_yOptLong::print_usage()
     "    Function Select for GPIO pins\n"
     "usage:  " << ProgName << " fsel [options..]  [N..]\n"
     "    N                   bit number 0..53\n"
-//  "  output:  (one of)\n"
-//  "    --bin               show one line binary\n"
-//  "    -c,--col            show one bit per line\n"
     "  bit number groups:  (accumulate)\n"
     "    --w0                word 0, bits [31:0] (default)\n"
     "    --w1                word 1, bits [53:32]\n"
     "  modify:\n"
     "    --mode=In           set mode {In, Out, Alt0, .. Alt5}\n"
-//  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --show_all          show all alternate functions\n"
     "    --help              show this usage\n"
@@ -284,7 +275,7 @@ y_fsel::doit()
 		break;
 	    }
 	}
-//	cout << "bitcnt=" << bitcnt <<endl;
+
 	if ( Error::has_err() )  return 1;
 
     // Show all alternate functions
