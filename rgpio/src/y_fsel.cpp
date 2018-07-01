@@ -40,6 +40,7 @@ class fsel_yOptLong : public yOption {
 
   public:	// option values
 
+    bool		show_all;
     bool		bin;
     bool		col;
 
@@ -76,6 +77,7 @@ class fsel_yOptLong : public yOption {
 fsel_yOptLong::fsel_yOptLong( yOption  *opx )
     : yOption( opx )
 {
+    show_all    = 0;
     bin         = 0;
     col         = 0;
 
@@ -103,6 +105,7 @@ fsel_yOptLong::parse_options()
 	     if ( is( "--bin"        )) { bin        = 1; }
 	else if ( is( "--col"        )) { col        = 1; }
 	else if ( is( "-c"           )) { col        = 1; }
+	else if ( is( "--show_all"   )) { show_all   = 1; }
 
 	else if ( is( "--w0"         )) { w0         = 1; }
 	else if ( is( "--w1"         )) { w1         = 1; }
@@ -145,6 +148,7 @@ fsel_yOptLong::print_option_flags()
 {
     // Beware namespace clash with 'hex'.
 
+    cout << "--show_all    = " << show_all     << endl;
     cout << "--bin         = " << bin          << endl;
     cout << "--col         = " << col          << endl;
     cout << "--w0          = " << w0           << endl;
@@ -170,20 +174,20 @@ void
 fsel_yOptLong::print_usage()
 {
     cout <<
-    "    Function Select pin operations\n"
+    "    Function Select for GPIO pins\n"
     "usage:  " << ProgName << " fsel [options..]  [N..]\n"
     "    N                   bit number 0..53\n"
-    "  output:  (one of)\n"
+//  "  output:  (one of)\n"
 //  "    --bin               show one line binary\n"
-    "    -c,--col            show one bit per line\n"
-//  "    --show_alts         show show alternate function table\n"
+//  "    -c,--col            show one bit per line\n"
     "  bit number groups:  (accumulate)\n"
-    "    --w0                register word 0 (default)\n"
-    "    --w1                register word 1\n"
+    "    --w0                word 0, bits [31:0] (default)\n"
+    "    --w1                word 1, bits [53:32]\n"
     "  modify:\n"
-    "    --mode=F            set mode {In, Out, Alt0, .. Alt5}\n"
+    "    --mode=In           set mode {In, Out, Alt0, .. Alt5}\n"
 //  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
+    "    --show_all          show all alternate functions\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
@@ -282,6 +286,47 @@ y_fsel::doit()
 	}
 //	cout << "bitcnt=" << bitcnt <<endl;
 	if ( Error::has_err() )  return 1;
+
+    // Show all alternate functions
+	if ( Opx.show_all ) {
+
+	    const rgFselPin::rgFsel_enum	mode_tab[] = {
+		rgFselPin::f_Alt0,
+		rgFselPin::f_Alt1,
+		rgFselPin::f_Alt2,
+		rgFselPin::f_Alt3,
+		rgFselPin::f_Alt4,
+		rgFselPin::f_Alt5,
+	    };
+
+	    cout <<dec << "Bit ";
+	    for ( int jj=0;  jj<=5;  jj++ )		// heading
+	    {
+		cout << " " << setw(11) <<left
+		     << Fpx.str_rgFsel_enum( mode_tab[jj] );
+	    }
+	    cout <<endl;
+
+	    for ( int ii=0;  ii<bitcnt;  ii++ )		// each bit
+	    {
+		int			bit;
+		rgFselPin::rgFsel_enum	mode;
+
+		bit = bitarg[ii];
+
+		cout << " "  <<setw(2) <<right << bit;
+		cout << " ";
+		for ( int jj=0;  jj<=5;  jj++ )		// each alt mode
+		{
+		    mode = mode_tab[jj];
+		    cout << " " << setw(11) <<left
+			 << rgAltFuncName::str_altfunc_bit( mode, bit );
+		}
+		cout <<endl;
+	    }
+
+	    return 0;
+	}
 
     // Process Fsel bits
 	if ( Opx.verbose ) {
