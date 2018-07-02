@@ -11,12 +11,12 @@ MAN        = ../man
 
 		# all include files for main program dependency
 INCS       = \
-        rgAddrMap.h \
-        rgAltFuncName.h \
-        rgClock.h \
-        rgFselPin.h \
-        rgIoPin.h \
-        rgUniSpi.h
+	rgAddrMap.h \
+	rgAltFuncName.h \
+	rgClock.h \
+	rgFselPin.h \
+	rgIoPin.h \
+	rgUniSpi.h
 
 		# objects not including main()
 OBJS       = \
@@ -50,7 +50,7 @@ x1	: x1.cpp  rgAddrMap.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp  $(LIBFLAGS)
 	./x1
 
-clean: 
+clean:
 	rm -f  $(OJ)/*
 
 clobber:

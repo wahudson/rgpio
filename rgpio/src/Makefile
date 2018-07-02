@@ -18,14 +18,14 @@ LIBS       = $(LIBDIR)/librgpio.a
 
 		# all include files for main program dependency
 INCS       = \
-        Error.h \
-        y_clock.h \
-        y_fsel.h \
-        y_io.h \
-        y_uspi.h \
-        yOpVal.h \
-        yOption.h \
-        yUtil.h
+	Error.h \
+	y_clock.h \
+	y_fsel.h \
+	y_io.h \
+	y_uspi.h \
+	yOpVal.h \
+	yOption.h \
+	yUtil.h
 
 		# objects not including main()
 OBJS       = \
@@ -61,7 +61,7 @@ man:	$(MAN)/man1 \
 	$(MAN)/man1/rgpio-fsel.1 \
 	$(MAN)/man1/rgpio-io.1
 
-clean: 
+clean:
 	rm -f  $(OJ)/*
 
 clobber:
@@ -115,13 +115,13 @@ $(OJ)/yUtil.o:		yUtil.cpp  yUtil.h
 
 
 $(MAN)/man1/rgpio.1:		rgpio.pod
-	pod2man -s 1 -n rgpio --center='Raspberry Pi GPIO'  rgpio.pod  $@ 
+	pod2man -s 1 -n rgpio --center='Raspberry Pi GPIO'  rgpio.pod  $@
 
 $(MAN)/man1/rgpio-fsel.1:	man1/rgpio-fsel.pod
 	pod2man -s 1 -n rgpio-fsel --center='Raspberry Pi GPIO' \
-		   man1/rgpio-fsel.pod  $@ 
+		   man1/rgpio-fsel.pod  $@
 
 $(MAN)/man1/rgpio-io.1:		man1/rgpio-io.pod
 	pod2man -s 1 -n rgpio-io --center='Raspberry Pi GPIO' \
-		   man1/rgpio-io.pod  $@ 
+		   man1/rgpio-io.pod  $@
 
