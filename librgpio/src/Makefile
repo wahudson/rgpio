@@ -46,10 +46,6 @@ man:	$(MAN)/man3 \
 	$(MAN)/man7 \
 	$(MAN)/man7/rgUniSpi.7
 
-x1	: x1.cpp  rgAddrMap.cpp  $(INCS)
-	g++ $(CXXFLAGS) -o $@  x1.cpp   rgAddrMap.cpp  $(LIBFLAGS)
-	./x1
-
 clean:
 	rm -f  $(OJ)/*
 
