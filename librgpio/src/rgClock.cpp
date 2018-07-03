@@ -162,7 +162,7 @@ rgClock::write_DivReg( uint32_t  vv )
 * Read Busy bit.
 */
 uint32_t
-rgClock::read_Busy()
+rgClock::read_Busy_1()
 {
     return  ( (read_CtlReg() >> Busy_pos) & 0x1 );
 }
@@ -172,7 +172,7 @@ rgClock::read_Busy()
 * Read Enable bit.
 */
 uint32_t
-rgClock::read_Enable()
+rgClock::read_Enable_1()
 {
     return  ( (read_CtlReg() >> Enable_pos) & 0x1 );
 }
@@ -215,13 +215,13 @@ rgClock::disable_clock()
 *    Uses an internal time-out sized so a normal clock should be stopped.
 *    Intended as a simple combined operation.
 *    Use disable_clock() and wait_while_Busy() for more control.
-* Timeout - read_Busy() takes about 370 ns on RPi3, so 10,000 counts is
+* Timeout - read_Busy_1() takes about 370 ns on RPi3, so 10,000 counts is
 *    about 3.7 ms.  Sleep may not be worthwhile?
 * call:
 *    wait_disable()
 * return:
 *    () = busy status, 0= success clock stopped, 1= still busy
-*    BusyCount = number of read_Busy() calls taken
+*    BusyCount = number of read_Busy_1() calls taken
 */
 bool
 rgClock::wait_disable()
@@ -233,7 +233,7 @@ rgClock::wait_disable()
 
     for ( i=1;  i<=10000;  i++ )	//#!! tuning?
     {
-	busy = read_Busy();
+	busy = read_Busy_1();
 	if ( busy == 0 ) { break; }
     }
     BusyCount = i;		// save count in object
@@ -266,7 +266,7 @@ rgClock::wait_while_Busy(
 
     while ( (num_times--) > 0 )
     {
-	busy = read_Busy();
+	busy = read_Busy_1();
 	if ( busy == 0 ) { break; }
 	//#!! nanosleep( wait_ns );
     }
@@ -345,17 +345,17 @@ rgClock::apply_regs()
     // Continue if still Busy
     //#!! What if still Busy?  Throw?  Kill?
 
-    enab = get_Enable();	// save desired state
+    enab = get_Enable_1();	// save desired state
 
-    put_Enable( 0 );
-    put_PasswdCtl( 0x5a );
-    put_PasswdDiv( 0x5a );
+    put_Enable_1( 0 );
+    put_PasswdCtl_8( 0x5a );
+    put_PasswdDiv_8( 0x5a );
 
     raw_write_CtlReg( CtlReg );
     raw_write_DivReg( DivReg );
 
     if ( enab ) {		// enable only after reg update
-	put_Enable( enab );		// restore enable
+	put_Enable_1( enab );		// restore enable
 	raw_write_CtlReg( CtlReg );	// enable clock
     }
 
@@ -371,17 +371,17 @@ rgClock::apply_regs()
 * Control Password field 8-bit value.  (Write-only)
 */
 uint32_t
-rgClock::get_PasswdCtl()
+rgClock::get_PasswdCtl_8()
 {
     return  ( (CtlReg >> Passwd_pos) & 0xff );
 }
 
 void
-rgClock::put_PasswdCtl( uint32_t  bit8 )
+rgClock::put_PasswdCtl_8( uint32_t  bit8 )
 {
     if ( bit8 > 0xff ) {
 	std::ostringstream	css;
-	css << "rgClock::put_PasswdCtl():  require 8-bit arg:  0x" << hex << bit8;
+	css << "rgClock::put_PasswdCtl_8():  require 8-bit arg:  0x" << hex << bit8;
 	throw std::range_error ( css.str() );
     }
 
@@ -394,17 +394,17 @@ rgClock::put_PasswdCtl( uint32_t  bit8 )
 * MASH field 2-bit value.
 */
 uint32_t
-rgClock::get_Mash()
+rgClock::get_Mash_2()
 {
     return  ( (CtlReg >> Mash_pos) & 0x3 );
 }
 
 void
-rgClock::put_Mash( uint32_t  bit2 )
+rgClock::put_Mash_2( uint32_t  bit2 )
 {
     if ( bit2 > 0x3 ) {
 	std::ostringstream	css;
-	css << "rgClock::put_Mash():  require 2-bit arg:  " << bit2;
+	css << "rgClock::put_Mash_2():  require 2-bit arg:  " << bit2;
 	throw std::range_error ( css.str() );
     }
 
@@ -417,17 +417,17 @@ rgClock::put_Mash( uint32_t  bit2 )
 * Flip field 1-bit value.
 */
 uint32_t
-rgClock::get_Flip()
+rgClock::get_Flip_1()
 {
     return  ( (CtlReg >> Flip_pos) & 0x1 );
 }
 
 void
-rgClock::put_Flip( uint32_t  bit1 )
+rgClock::put_Flip_1( uint32_t  bit1 )
 {
     if ( bit1 > 0x1 ) {
 	std::ostringstream	css;
-	css << "rgClock::put_Flip():  require 1-bit arg:  " << bit1;
+	css << "rgClock::put_Flip_1():  require 1-bit arg:  " << bit1;
 	throw std::range_error ( css.str() );
     }
 
@@ -440,17 +440,17 @@ rgClock::put_Flip( uint32_t  bit1 )
 * Busy field 1-bit value.  (Read-only)
 */
 uint32_t
-rgClock::get_Busy()
+rgClock::get_Busy_1()
 {
     return  ( (CtlReg >> Busy_pos) & 0x1 );
 }
 
 void
-rgClock::put_Busy( uint32_t  bit1 )
+rgClock::put_Busy_1( uint32_t  bit1 )
 {
     if ( bit1 > 0x1 ) {
 	std::ostringstream	css;
-	css << "rgClock::put_Busy():  require 1-bit arg:  " << bit1;
+	css << "rgClock::put_Busy_1():  require 1-bit arg:  " << bit1;
 	throw std::range_error ( css.str() );
     }
 
@@ -463,17 +463,17 @@ rgClock::put_Busy( uint32_t  bit1 )
 * Kill field 1-bit value.
 */
 uint32_t
-rgClock::get_Kill()
+rgClock::get_Kill_1()
 {
     return  ( (CtlReg >> Kill_pos) & 0x1 );
 }
 
 void
-rgClock::put_Kill( uint32_t  bit1 )
+rgClock::put_Kill_1( uint32_t  bit1 )
 {
     if ( bit1 > 0x1 ) {
 	std::ostringstream	css;
-	css << "rgClock::put_Kill():  require 1-bit arg:  " << bit1;
+	css << "rgClock::put_Kill_1():  require 1-bit arg:  " << bit1;
 	throw std::range_error ( css.str() );
     }
 
@@ -486,17 +486,17 @@ rgClock::put_Kill( uint32_t  bit1 )
 * Enable field 1-bit value.
 */
 uint32_t
-rgClock::get_Enable()
+rgClock::get_Enable_1()
 {
     return  ( (CtlReg >> Enable_pos) & 0x1 );
 }
 
 void
-rgClock::put_Enable( uint32_t  bit1 )
+rgClock::put_Enable_1( uint32_t  bit1 )
 {
     if ( bit1 > 0x1 ) {
 	std::ostringstream	css;
-	css << "rgClock::put_Enable():  require 1-bit arg:  " << bit1;
+	css << "rgClock::put_Enable_1():  require 1-bit arg:  " << bit1;
 	throw std::range_error ( css.str() );
     }
 
@@ -509,17 +509,17 @@ rgClock::put_Enable( uint32_t  bit1 )
 * Clock Source field 4-bit value.
 */
 uint32_t
-rgClock::get_Source()
+rgClock::get_Source_4()
 {
     return  ( (CtlReg >> Source_pos) & 0xf );
 }
 
 void
-rgClock::put_Source( uint32_t  bit4 )
+rgClock::put_Source_4( uint32_t  bit4 )
 {
     if ( bit4 > 0xf ) {
 	std::ostringstream	css;
-	css << "rgClock::put_Source():  require 4-bit arg:  0x" <<hex << bit4;
+	css << "rgClock::put_Source_4():  require 4-bit arg:  0x" <<hex << bit4;
 	throw std::range_error ( css.str() );
     }
 
@@ -532,17 +532,17 @@ rgClock::put_Source( uint32_t  bit4 )
 * Divider Password field 8-bit value.  (Write-only)
 */
 uint32_t
-rgClock::get_PasswdDiv()
+rgClock::get_PasswdDiv_8()
 {
     return  ( (DivReg >> Passwd_pos) & 0xff );
 }
 
 void
-rgClock::put_PasswdDiv( uint32_t  bit8 )
+rgClock::put_PasswdDiv_8( uint32_t  bit8 )
 {
     if ( bit8 > 0xff ) {
 	std::ostringstream	css;
-	css << "rgClock::put_PasswdDiv():  require 8-bit arg:  0x" << hex << bit8;
+	css << "rgClock::put_PasswdDiv_8():  require 8-bit arg:  0x" << hex << bit8;
 	throw std::range_error ( css.str() );
     }
 
@@ -558,17 +558,17 @@ rgClock::put_PasswdDiv( uint32_t  bit8 )
 *     See p.105.
 */
 uint32_t
-rgClock::get_DivI()
+rgClock::get_DivI_12()
 {
     return  ( (DivReg >> DivI_pos) & 0xfff );
 }
 
 void
-rgClock::put_DivI( uint32_t  bit12 )
+rgClock::put_DivI_12( uint32_t  bit12 )
 {
     if ( bit12 > 0xfff ) {
 	std::ostringstream	css;
-	css << "rgClock::put_DivI():  require 12-bit arg:  0x" <<hex << bit12;
+	css << "rgClock::put_DivI_12():  require 12-bit arg:  0x" <<hex << bit12;
 	throw std::range_error ( css.str() );
     }
 
@@ -581,17 +581,17 @@ rgClock::put_DivI( uint32_t  bit12 )
 * DivF field, Fractional part of divisor, 12-bit value.
 */
 uint32_t
-rgClock::get_DivF()
+rgClock::get_DivF_12()
 {
     return  ( (DivReg >> DivF_pos) & 0xfff );
 }
 
 void
-rgClock::put_DivF( uint32_t  bit12 )
+rgClock::put_DivF_12( uint32_t  bit12 )
 {
     if ( bit12 > 0xfff ) {
 	std::ostringstream	css;
-	css << "rgClock::put_DivF():  require 12-bit arg:  0x" <<hex << bit12;
+	css << "rgClock::put_DivF_12():  require 12-bit arg:  0x" <<hex << bit12;
 	throw std::range_error ( css.str() );
     }
 

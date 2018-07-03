@@ -342,13 +342,13 @@ y_clock::doit()
 	    clk->grab_regs();
 	    n = clk->get_clock_num();
 
-	    if ( *Opx.mash   ) { clk->put_Mash(   Opx.mash_n   );  md = 1; }
-	    if ( *Opx.flip   ) { clk->put_Flip(   Opx.flip_n   );  md = 1; }
-	    if ( *Opx.kill   ) { clk->put_Kill(   Opx.kill_n   );  md = 1; }
-	    if ( *Opx.enable ) { clk->put_Enable( Opx.enable_n );  md = 1; }
-	    if ( *Opx.source ) { clk->put_Source( Opx.source_n );  md = 1; }
-	    if ( *Opx.divi   ) { clk->put_DivI(   Opx.divi_n   );  md = 1; }
-	    if ( *Opx.divf   ) { clk->put_DivF(   Opx.divf_n   );  md = 1; }
+	    if ( *Opx.mash   ) { clk->put_Mash_2(   Opx.mash_n   );  md = 1; }
+	    if ( *Opx.flip   ) { clk->put_Flip_1(   Opx.flip_n   );  md = 1; }
+	    if ( *Opx.kill   ) { clk->put_Kill_1(   Opx.kill_n   );  md = 1; }
+	    if ( *Opx.enable ) { clk->put_Enable_1( Opx.enable_n );  md = 1; }
+	    if ( *Opx.source ) { clk->put_Source_4( Opx.source_n );  md = 1; }
+	    if ( *Opx.divi   ) { clk->put_DivI_12(  Opx.divi_n   );  md = 1; }
+	    if ( *Opx.divf   ) { clk->put_DivF_12(  Opx.divf_n   );  md = 1; }
 
 	    if ( md ) {			// modify registers
 		if ( Opx.debug ) {
@@ -379,14 +379,14 @@ y_clock::doit()
 
 	    cout.fill(' ');
 	    cout <<dec
-		 << "  " << n << ".Mash=   " << clk->get_Mash()    <<endl
-		 << "  " << n << ".Flip=   " << clk->get_Flip()    <<endl
-		 << "  " << n << ".Busy=   " << clk->get_Busy()    <<endl
-		 << "  " << n << ".Kill=   " << clk->get_Kill()    <<endl
-		 << "  " << n << ".Enable= " << clk->get_Enable()  <<endl
-		 << "  " << n << ".Source= " << clk->get_Source()  <<endl
-		 << "  " << n << ".DivI=   " << clk->get_DivI()    <<endl
-		 << "  " << n << ".DivF=   " << clk->get_DivF()    <<endl
+		 << "  " << n << ".Mash_2=   " << clk->get_Mash_2()    <<endl
+		 << "  " << n << ".Flip_1=   " << clk->get_Flip_1()    <<endl
+		 << "  " << n << ".Busy_1=   " << clk->get_Busy_1()    <<endl
+		 << "  " << n << ".Kill_1=   " << clk->get_Kill_1()    <<endl
+		 << "  " << n << ".Enable_1= " << clk->get_Enable_1()  <<endl
+		 << "  " << n << ".Source_4= " << clk->get_Source_4()  <<endl
+		 << "  " << n << ".DivI_12=  " << clk->get_DivI_12()   <<endl
+		 << "  " << n << ".DivF_12=  " << clk->get_DivF_12()   <<endl
 		 <<endl;
 	}
 

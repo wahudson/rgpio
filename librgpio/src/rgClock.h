@@ -16,7 +16,7 @@ class rgClock {
     uint32_t		CtlReg;		// Control  register value
     uint32_t		DivReg;		// Divisior register value
 
-    int			BusyCount;	// Number of read_Busy() calls in last
+    int			BusyCount;	// Number of read_Busy_1() calls in last
 					//    wait_disable() or apply_regs().
 
   private:
@@ -69,8 +69,8 @@ class rgClock {
     void		write_CtlReg( uint32_t  vv );
     void		write_DivReg( uint32_t  vv );
 
-    uint32_t		read_Busy();
-    uint32_t		read_Enable();
+    uint32_t		read_Busy_1();
+    uint32_t		read_Enable_1();
 
 		// Direct control:  (modify register fields)
     void		enable_clock();
@@ -91,35 +91,35 @@ class rgClock {
 
 		// Object Field Accessors
 
-    uint32_t		get_PasswdCtl();
-    void		put_PasswdCtl( uint32_t  bit8 );
+    uint32_t		get_PasswdCtl_8();
+    void		put_PasswdCtl_8( uint32_t  bit8 );
 
-    uint32_t		get_Mash();
-    void		put_Mash( uint32_t  bit2 );
+    uint32_t		get_Mash_2();
+    void		put_Mash_2(      uint32_t  bit2 );
 
-    uint32_t		get_Flip();
-    void		put_Flip( uint32_t  bit1 );
+    uint32_t		get_Flip_1();
+    void		put_Flip_1(      uint32_t  bit1 );
 
-    uint32_t		get_Busy();
-    void		put_Busy( uint32_t  bit1 );
+    uint32_t		get_Busy_1();
+    void		put_Busy_1(      uint32_t  bit1 );
 
-    uint32_t		get_Kill();
-    void		put_Kill( uint32_t  bit1 );
+    uint32_t		get_Kill_1();
+    void		put_Kill_1(      uint32_t  bit1 );
 
-    uint32_t		get_Enable();
-    void		put_Enable( uint32_t  bit1 );
+    uint32_t		get_Enable_1();
+    void		put_Enable_1(    uint32_t  bit1 );
 
-    uint32_t		get_Source();
-    void		put_Source( uint32_t  bit4 );
+    uint32_t		get_Source_4();
+    void		put_Source_4(    uint32_t  bit4 );
 
-    uint32_t		get_PasswdDiv();
-    void		put_PasswdDiv( uint32_t  bit8 );
+    uint32_t		get_PasswdDiv_8();
+    void		put_PasswdDiv_8( uint32_t  bit8 );
 
-    uint32_t		get_DivI();
-    void		put_DivI( uint32_t  bit12 );
+    uint32_t		get_DivI_12();
+    void		put_DivI_12(     uint32_t  bit12 );
 
-    uint32_t		get_DivF();
-    void		put_DivF( uint32_t  bit12 );
+    uint32_t		get_DivF_12();
+    void		put_DivF_12(     uint32_t  bit12 );
 
 		// Test/Debug accessors
 
@@ -143,7 +143,7 @@ class rgClock {
 	return FeatureAddr;
     }
 
-    // Number of read_Busy() calls in last wait_disable().
+    // Number of read_Busy_1() calls in last wait_disable().
     inline int			get_BusyCount()
     {
 	return BusyCount;

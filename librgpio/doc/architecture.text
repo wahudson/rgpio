@@ -221,6 +221,34 @@ Enum:
     If the enum should have limited scope, put it in the class it is used
     with.
 
+Naming functions:
+    Need a method to help user know wheather a whole register is acted on,
+    or is it a bit field.
+
+    read_REG()		Read whole register.
+    read_FIELD_1()	Read a bit field.  The number is size of field.
+
+    The numeric suffix, e.g. "_1", indicates both that it is a field access,
+    and is the field width.  This makes the field width clear at the call
+    point, and saves the person reading the code from having to look it up.
+    The names are slightly more klunky, but worth it.
+    This worked really well after trying it on the rgUniSpi class.
+
+Function prefix name indicates over-all operation:
+    addr_()         return address of register
+
+    read_()         direct register/field read
+    write_(V)       direct register/field write
+
+    get_()          get object register/field value
+    put_(V)         set object register/field value
+
+    grab_()         copy register into object
+    push_(V)        copy object into register
+
+    Another name for "grab" is "pull", but I like the quirkyness of "grab".
+
+
 ----------------------------------------------------------------------------
 ## Feature Objects - common attributes.
 ----------------------------------------------------------------------------
@@ -579,15 +607,15 @@ Output format:  (rgpio)
     ctl[31:0] = 0xfabc0000   control register
     div[31:0] = 0xfabc0000   divider register
 
-    Field         Value     English          R/W Register
-    -----------   -----   ----------------   --- ---------
-    Clock0.Mash   = 3     integer division   rw  ctl[10:9]
-    Clock0.Flip   = 1     not inverted       rw  ctl[8]
-    Clock0.Busy   = 1     running            r   ctl[7]
-    Clock0.Enable = 1     disabled           rw  ctl[4]
-    Clock0.Source = 15    oscillator         rw  ctl[3:0]
-    Clock0.DivI   = 4095                     rw  div[23:12]
-    Clock0.DivF   = 4095                     rw  div[11:0]
+    Field           Value     English          R/W Register
+    -----------     -----   ----------------   --- ---------
+    Clock0.Mash_2   = 3     integer division   rw  ctl[10:9]
+    Clock0.Flip_1   = 1     not inverted       rw  ctl[8]
+    Clock0.Busy_1   = 1     running            r   ctl[7]
+    Clock0.Enable_1 = 1     disabled           rw  ctl[4]
+    Clock0.Source_4 = 15    oscillator         rw  ctl[3:0]
+    Clock0.DivI_12  = 4095                     rw  div[23:12]
+    Clock0.DivF_12  = 4095                     rw  div[11:0]
 
 
     The idea is to make the status display almost self-descriptive, to
@@ -602,6 +630,8 @@ Output format:  (rgpio)
     The Register bit positions help relate to reference doc and 32-bit
     hex value.
 
+    The fields were renamed with a numeric suffix indicating the field width,
+    after great success trying it on the rgUniSpi class.
 
 Object data:
 {
@@ -633,8 +663,8 @@ Methods:
     write_Ctl(V)		Write register, no safety check..
     write_Div(V)
 
-    read_Busy()			Read-only selected bits..
-    read_Enable()
+    read_Busy_1()			Read-only selected bits..
+    read_Enable_1()
 
 			Direct control:  (modify register fields)
     enable()			Set Enable=1	set_Enable()
@@ -653,15 +683,15 @@ Methods:
     apply_regs()		Safe apply obj to registers - disable,
 					wait for not Busy, write.
 
-				Field accessors of object state:
-  ? get_Kill()		put_Kill(V)
-    get_Mash()		put_Mash(V)
-    get_Flip()		put_Flip(V)
-    get_Source()	put_Source(V)
-    get_DivI()		put_DivI(V)
-    get_DivF()		put_DivF(V)
-    get_Enable()	put_Enable(V)
-    get_Busy()		--
+			Field accessors of object state:
+  ? get_Kill_1()	put_Kill_1(V)
+    get_Mash_2()	put_Mash_2(V)
+    get_Flip_1()	put_Flip_1(V)
+    get_Source_4()	put_Source_4(V)
+    get_DivI_12()	put_DivI_12(V)
+    get_DivF_12()	put_DivF_12(V)
+    get_Enable_1()	put_Enable_1(V)
+    get_Busy_1()		--
 
 			Test/Debug accessors:
     get_CtlReg()
