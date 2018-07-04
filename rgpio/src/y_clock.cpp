@@ -107,13 +107,13 @@ clock_yOptLong::parse_options()
 {
     while ( this->next() )
     {
-	     if ( is( "--mash="      )) { mash       = this->val(); }
-	else if ( is( "--flip="      )) { flip       = this->val(); }
-	else if ( is( "--kill="      )) { kill       = this->val(); }
-	else if ( is( "--enable="    )) { enable     = this->val(); }
-	else if ( is( "--source="    )) { source     = this->val(); }
-	else if ( is( "--divi="      )) { divi       = this->val(); }
-	else if ( is( "--divf="      )) { divf       = this->val(); }
+	     if ( is( "--Mash_2="    )) { mash       = this->val(); }
+	else if ( is( "--Flip_1="    )) { flip       = this->val(); }
+	else if ( is( "--Kill_1="    )) { kill       = this->val(); }
+	else if ( is( "--Enable_1="  )) { enable     = this->val(); }
+	else if ( is( "--Source_4="  )) { source     = this->val(); }
+	else if ( is( "--DivI_12="   )) { divi       = this->val(); }
+	else if ( is( "--DivF_12="   )) { divf       = this->val(); }
 
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
@@ -136,25 +136,25 @@ clock_yOptLong::parse_options()
     if ( *divf   ) { divf_n   = strtoul( divf,    NULL, 0 ); }
 
     if ( mash_n   > 3    ) {
-	Error::msg( "require --mash={0..3}:  "    ) << mash_n   <<endl;
+	Error::msg( "require --Mash_2={0..3}:  "     ) << mash_n   <<endl;
     }
     if ( flip_n   > 1    ) {
-	Error::msg( "require --flip={0,1}:  "     ) << flip_n   <<endl;
+	Error::msg( "require --Flip_1={0,1}:  "      ) << flip_n   <<endl;
     }
     if ( kill_n   > 1    ) {
-	Error::msg( "require --kill={0,1}:  "     ) << kill_n   <<endl;
+	Error::msg( "require --Kill_1={0,1}:  "      ) << kill_n   <<endl;
     }
     if ( enable_n > 1    ) {
-	Error::msg( "require --enable={0,1}:  "   ) << enable_n <<endl;
+	Error::msg( "require --Enable_1={0,1}:  "    ) << enable_n <<endl;
     }
     if ( source_n > 15   ) {
-	Error::msg( "require --source={0..15}:  " ) << source_n <<endl;
+	Error::msg( "require --Source_4={0..15}:  "  ) << source_n <<endl;
     }
     if ( divi_n   > 4095 ) {
-	Error::msg( "require --divi={0..4095}:  " ) << divi_n   <<endl;
+	Error::msg( "require --DivI_12={0..4095}:  " ) << divi_n   <<endl;
     }
     if ( divf_n   > 4095 ) {
-	Error::msg( "require --divf={0..4095}:  " ) << divf_n   <<endl;
+	Error::msg( "require --DivF_12={0..4095}:  " ) << divf_n   <<endl;
     }
 
 }
@@ -166,13 +166,13 @@ clock_yOptLong::parse_options()
 void
 clock_yOptLong::print_option_flags()
 {
-    cout << "--mash        = " << mash         << endl;
-    cout << "--flip        = " << flip         << endl;
-    cout << "--kill        = " << kill         << endl;
-    cout << "--enable      = " << enable       << endl;
-    cout << "--source      = " << source       << endl;
-    cout << "--divi        = " << divi         << endl;
-    cout << "--divf        = " << divf         << endl;
+    cout << "--Mash_2      = " << mash         << endl;
+    cout << "--Flip_1      = " << flip         << endl;
+    cout << "--Kill_1      = " << kill         << endl;
+    cout << "--Enable_1    = " << enable       << endl;
+    cout << "--Source_4    = " << source       << endl;
+    cout << "--DivI_12     = " << divi         << endl;
+    cout << "--DivF_12     = " << divf         << endl;
 
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
@@ -204,13 +204,13 @@ clock_yOptLong::print_usage()
     "usage:  " << ProgName << " clock [options..]  N..\n"
     "    N                   clock number 0,1,2\n"
     "  modify:\n"
-    "    --mash=0            Mash mode {0..3}, 0= integer divison\n"
-    "    --flip=0            invert output, 1= invert, 0= normal\n"
-    "    --kill=0            1= stop and reset, 0= no action\n"
-    "    --enable=0          1= enable, 0= stop, without glitches\n"
-    "    --source=0          set clock source {0..15}\n"
-    "    --divi=N            set Divisior integer,  {0..4095}\n"
-    "    --divf=N            set Divisior fraction, {0..4095}, for MASH \n"
+    "    --Mash_2=0          Mash mode {0..3}, 0= integer divison\n"
+    "    --Flip_1=0          invert output, 1= invert, 0= normal\n"
+    "    --Kill_1=0          1= stop and reset, 0= no action\n"
+    "    --Enable_1=0        1= enable, 0= stop, without glitches\n"
+    "    --Source_4=0        set clock source {0..15}\n"
+    "    --DivI_12=N         set Divisior integer,  {0..4095}\n"
+    "    --DivF_12=N         set Divisior fraction, {0..4095}, for MASH \n"
 //  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
     "    --help              show this usage\n"
