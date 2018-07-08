@@ -37,6 +37,8 @@ class clock_yOptLong : public yOption {
 
   public:	// option values
 
+    bool		clk_ch[3];	// Clock channel number requested
+
     const char*		mash;
     const char*		flip;
     const char*		kill;
@@ -77,6 +79,10 @@ class clock_yOptLong : public yOption {
 clock_yOptLong::clock_yOptLong( yOption  *opx )
     : yOption( opx )
 {
+    clk_ch[0]   = 0;
+    clk_ch[1]   = 0;
+    clk_ch[2]   = 0;
+
     mash        = "";
     flip        = "";
     kill        = "";
@@ -115,6 +121,10 @@ clock_yOptLong::parse_options()
 	else if ( is( "--DivI_12="   )) { divi       = this->val(); }
 	else if ( is( "--DivF_12="   )) { divf       = this->val(); }
 
+	else if ( is( "-0"           )) { clk_ch[0]  = 1; }
+	else if ( is( "-1"           )) { clk_ch[1]  = 1; }
+	else if ( is( "-2"           )) { clk_ch[2]  = 1; }
+
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
 	else if ( is( "--debug"      )) { debug      = 1; }
@@ -125,6 +135,10 @@ clock_yOptLong::parse_options()
 	else {
 	    Error::msg( "unknown option:  " ) << this->current_option() <<endl;
 	}
+    }
+
+    if ( !( clk_ch[0] | clk_ch[1] | clk_ch[2] ) ) {	// default
+	clk_ch[0] = 1;
     }
 
     if ( *mash   ) { mash_n   = strtoul( mash,    NULL, 0 ); }
@@ -157,6 +171,9 @@ clock_yOptLong::parse_options()
 	Error::msg( "require --DivF_12={0..4095}:  " ) << divf_n   <<endl;
     }
 
+    if ( this->get_argc() > 0 ) {
+	Error::msg( "extra arguments:  " ) << current_option() <<endl;
+    }
 }
 
 
@@ -166,6 +183,10 @@ clock_yOptLong::parse_options()
 void
 clock_yOptLong::print_option_flags()
 {
+    cout << "clk_ch[0]     = " << clk_ch[1]    << endl;
+    cout << "clk_ch[1]     = " << clk_ch[1]    << endl;
+    cout << "clk_ch[2]     = " << clk_ch[1]    << endl;
+
     cout << "--Mash_2      = " << mash         << endl;
     cout << "--Flip_1      = " << flip         << endl;
     cout << "--Kill_1      = " << kill         << endl;
@@ -201,8 +222,8 @@ clock_yOptLong::print_usage()
 {
     cout <<
     "    Clock generator control\n"
-    "usage:  " << ProgName << " clock [options..]  N..\n"
-    "    N                   clock number 0,1,2\n"
+    "usage:  " << ProgName << " clock [-N..] [options..]\n"
+    "    -N                  clock number {0,1,2}\n"
     "  modify:\n"
     "    --Mash_2=0          Mash mode {0..3}, 0= integer divison\n"
     "    --Flip_1=0          invert output, 1= invert, 0= normal\n"
@@ -263,32 +284,16 @@ y_clock::doit()
 	const int		ClkMax = 2;
 	rgClock*		Cpx[ClkMax+1] = {NULL, NULL, NULL};
 				// pointers to Clock objects, NULL if not used.
-	char			*arg;
 
-	while ( (arg = Opx.next_arg()) )
+	for ( int ii=0;  ii<=ClkMax;  ii++ )
 	{
-	    int				n;
-
-	    n = strtol( arg, NULL, 0 );
-	    if ( (n < 0) || (n > ClkMax) ) {
-		Error::msg( "require clock number {0,1,2}:  " ) << n <<endl;
-		continue;
+	    if ( Opx.clk_ch[ii] ) {
+		Cpx[ii] = new  rgClock  ( ii, AddrMap );	// constructor
 	    }
-
-	    if ( Cpx[n] ) {
-		Error::msg( "clock num already specified:  " ) << n <<endl;
-		continue;
-	    }
-
-	    Cpx[n] = new  rgClock  ( n, AddrMap );	// constructor
-	    //
-	    // Note:  Relying on rgAddrMap cache to provide the same map
-	    // for each clock object.
-
-	    //#!! destroy when done?
 	}
-
-	if ( Error::has_err() )  return 1;
+	// Note:  The rgAddrMap cache will provide the same map for each
+	// clock object.
+	//#!! destroy when done?
 
 	if ( Opx.verbose ) {
 	    cout << "Clock Controls:" << endl;
