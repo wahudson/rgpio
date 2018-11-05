@@ -7,26 +7,27 @@ Runs on Raspberry Pi (RPi) to read/control the GPIO configuration.
 
 Revision control:  git
 
-Files:  (2018-05-06)
+Files:  (2018-11-04)
 ------
 README			this file
 
 .gitignore		Git ignore transient files
 
 doc/		    Documentation
-?   architecture.text	Architecture description
-
-? man/man1/		Manpage dir tree (unmanaged)
+    architecture.text	Architecture description
 
 src/		    Source code
     Makefile		for building the tool
     Error.cpp		Error handling
     Error.h
     rgpio.cpp		main program
+    rgpio.pod		main program manpage source
     yOpVal.cpp		Option Argument class
     yOpVal.h
     yOption.cpp		Option parsing base class
     yOption.h
+    yUtil.cpp		Utility functions.
+    yUtil.h
 		      rgpio subcommands:
     y_clock.cpp		rgpio clock -- Clock control
     y_clock.h
@@ -37,12 +38,24 @@ src/		    Source code
     y_uspi.cpp		rgpio uspi -- Universal SPI Master
     y_uspi.h
 
+    man1/	      Manpage source for sub-commands
+	rgpio-fsel.pod
+	rgpio-io.pod
+
 perf/		    Source code Performance Test Programs
-    Makefile		for building programs
+    Makefile		for building programs (output in ../bin)
     clock_perf.cpp	Clock system read/write times.
+    uspi_fifo.cpp	Universal SPI fifo performance with process sleeps.
+    uspi_trace.cpp	Trace Universal SPI Master operation.
 
 bin/		    Commands
     rgpio		Raspberry Pi GPIO utility
+    clock_perf
+    uspi_fifo
+    uspi_trace
+
+man/		    Manpage dir tree (unmanaged, not source)
+    man1/		Commands, and rgpio-subcommands
 
 obj/		    temporary .o object files
     *.o
@@ -56,17 +69,20 @@ test/		    Testing
 Initial Build process:
 ----------------------
 
-0)  Set up build directories (only in a new working copy).
-    % cd src
-    % make mkdirs
+Run from the working copy src/ directory:
+    # cd .../src
     % make compile
     % make cap
+    % make man
 
 The idea is to build/run in the source directory tree, thus avoiding need for
 any package/install process.
 
 The bin/ dirctory aggregates all commands with symlinks (so it does not
 contain any sources), making it easy to add to $PATH.
+
+Man pages can be run with:  (#!! need a user friendly access or install)
+    % man -M ../man  <NAME>
 
 
 Primary developers:
