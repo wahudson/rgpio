@@ -1,0 +1,360 @@
+# 2018-07-07  William A. Hudson
+
+# rgClock General Purpose Clock class -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgClock class -- General Purpose Clock
+
+=head1		SYNOPSIS
+
+    #include "rgAddrMap.h"
+    #include "rgClock.h"
+
+=head2			Constructor
+
+    rgClock(
+        uint32_t        clknum,         // Clock number {0,1,2}
+        rgAddrMap       *amx            // object with open device file
+    );
+
+    volatile uint32_t*  get_base_addr()
+    uint32_t            get_clock_num()
+
+=head2			Address of registers
+
+    volatile uint32_t*  addr_CtlReg();
+    volatile uint32_t*  addr_DivReg();
+
+=head2			Direct register access
+
+    uint32_t            read_CtlReg();
+    uint32_t            read_DivReg();
+
+    void                raw_write_CtlReg( uint32_t  vv );
+    void                raw_write_DivReg( uint32_t  vv );
+
+    void                write_CtlReg(     uint32_t  vv );
+    void                write_DivReg(     uint32_t  vv );
+
+    uint32_t            read_Busy_1();
+    uint32_t            read_Enable_1();
+
+=head2			Direct control
+
+    void                enable_clock();
+    void                disable_clock();
+
+    bool                wait_disable();
+    bool                wait_while_Busy(
+                            uint32_t      wait_ns,
+                            int           num_times
+                        );
+
+    void                kill_generator();
+
+=head2			Object state transfer
+
+    void                grab_regs();
+    void                push_regs();    // apply password
+    bool                apply_regs();   // disable/wait for Busy=0
+
+=head2			Object Field Accessors
+
+    uint32_t            get_PasswdCtl_8();
+    void                put_PasswdCtl_8( uint32_t  bit8 );
+
+    uint32_t            get_Mash_2();
+    void                put_Mash_2(      uint32_t  bit2 );
+
+    uint32_t            get_Flip_1();
+    void                put_Flip_1(      uint32_t  bit1 );
+
+    uint32_t            get_Busy_1();
+    void                put_Busy_1(      uint32_t  bit1 );
+
+    uint32_t            get_Kill_1();
+    void                put_Kill_1(      uint32_t  bit1 );
+
+    uint32_t            get_Enable_1();
+    void                put_Enable_1(    uint32_t  bit1 );
+
+    uint32_t            get_Source_4();
+    void                put_Source_4(    uint32_t  bit4 );
+
+    uint32_t            get_PasswdDiv_8();
+    void                put_PasswdDiv_8( uint32_t  bit8 );
+
+    uint32_t            get_DivI_12();
+    void                put_DivI_12(     uint32_t  bit12 );
+
+    uint32_t            get_DivF_12();
+    void                put_DivF_12(     uint32_t  bit12 );
+
+=head2			Test/Debug accessors (private)
+
+    uint32_t            get_CtlReg();
+    void                put_CtlReg(      uint32_t  reg32 );
+
+    uint32_t            get_DivReg();
+    void                put_DivReg(      uint32_t  reg32 );
+
+    #!! int             get_BusyCount();
+
+=head2			Essential Object Data (private)
+
+ {
+    volatile uint32_t   *GpioBase;      // IO base address
+    uint32_t            ClkNum;         // Clock number {0,1,2}
+    uint32_t            CtlReg;         // Control  register value
+    uint32_t            DivReg;         // Divisior register value
+    int                 BusyCount;      // Number of read_Busy_1() calls
+                        // in last wait_disable() or apply_regs().
+ }
+
+
+=head1		DESCRIPTION
+
+This class provides access to the three General Purpose Clocks, which output
+a continuous square wave.
+
+Multiple levels of access to the hardware is provided:
+
+    a)  Address of registers  addr().
+    b)  Direct register access  read(), write().
+    c)  Object transfer grab(), push();  and modify get(), put().
+
+All functions are object methods.
+The object knows which Clock (0, 1, or 2) it is, and the object methods are
+the same for all three.
+
+=head2			Constructor
+
+=over
+
+=item rgClock()
+
+Construct and initialize a new object.
+Argument 'clknum' is the Clock number {0,1,2} to access.
+Argument 'amx' is the address map object with an open device file or cached
+memory block.
+All three clocks share the same IO memory block.
+
+=item get_base_addr()
+
+Return the object IO memory block virtual address.
+
+=item get_clock_num()
+
+Return the Clock number {0,1,2} this object accesses.
+
+=back
+
+=head2			Address of registers
+
+addr_*()  These functions return the address of the specified register.
+Direct read/write to these addresses is the fastest (shortest execution time)
+way to transfer data.
+
+=head2			Direct register access
+
+=over
+
+=item read_CtlReg(), read_DivReg()
+
+Direct read of the 32-bit hardware register.
+Object state is not modified.
+
+=item raw_write_CtlReg(), raw_write_DivReg()
+
+Raw Write registers, no Busy check.
+The hardware will not accept the write unless the password field reg[31:24] = 0x5a.
+Intended for internal use and Test.
+
+=item write_CtlReg(), write_DivReg()
+
+Write registers, with hardware password applied.  No Busy check.
+Object not modified.
+
+=item read_Busy_1()
+
+Read the Busy bit direct from hardware.  Object not modified.
+
+=item read_Enable_1()
+
+Read the Enable bit direct from hardware.  Object not modified.
+
+=back
+
+=head2			Direct control
+
+=over
+
+=item enable_clock(), disable_clock()
+
+These enable/disable the clock generator.
+Direct read/modify/write of the control register to set/clear the Enable bit.
+
+=item wait_disable()
+
+Disable the clock generator and wait until not Busy in a spin loop.
+Has an internal time-out sized so a normal clock should be stopped.
+Intended as a simple combined operation.
+Use disable_clock() and wait_while_Busy() for more control.
+Return value is the Busy bit, 0= success clock stopped, 1= still busy.
+
+=item wait_while_Busy()
+
+Wait for not Busy.  Does not disable the clock or write the CtlReg.
+Argument 'wait_ns' is the number of nanoseconds to wait, < 1e9.
+Argument 'num_times' is the number of times to check the Busy bit after
+the wait_ns has expired.
+Will time out if called with clock generator enabled.
+Use with disable_clock() or raw_write_regs() to do your own timing.
+
+#!! Incomplete, wait_ns not functional.
+
+=item kill_generator()
+
+Stop and reset the clock generator.  May glitch the output.
+The Kill bit is left set, user must clear.
+Intended for test/debug, and possible reset from a bad state.
+
+=back
+
+=head2			Object state transfer
+
+The idea is to copy the two hardware registers into the object, modify bit
+fields with accessor functions, and then write the result back to the hardware
+registers.
+Data transfer is by direct register read and write.
+
+=over
+
+=item grab_regs()
+
+Copy the control and divider hardware registers into the object.
+
+=item push_regs()
+
+Copy object to the control and divider hardware registers.
+May glitch or hang the clock generator, unless Enable=0 and Busy=0.
+The password field is applied.
+Use apply_regs() for a safe update process.
+
+=item apply_regs()
+
+Safely write control registers from the object.
+Password is always replaced with 0x5a.
+
+This function does:  First read the control register and save the enable state.
+If not (Enable=0 and Busy=0), then set Enable=0 and wait for Busy=0.
+Then write the registers with Enable=0.
+Then enable the clock if the saved state was enabled.
+
+=back
+
+=head2			Object Field Accessors
+
+These are the bit-twiddling operations to insert and extract field values
+from the register value stored in the object.
+They are named according to the register field being accessed, and the
+numeric suffix is the field width.
+
+=over
+
+=item get_*()
+
+Extract and return the field value in the object.
+
+=item put_*( v )
+
+Insert the given value into the object register field.
+Values greater than the field width throw a std::range_error exception.
+
+=back
+
+For register field descriptions see rgClock(7) or the BCM documentation.
+
+=head2			Test/Debug accessors (private)
+
+These access only object data.
+Hardware registers are neither read nor written.
+The object register values are the staging area for bit-field twiddling and
+transfer to/from the hardware registers.
+
+=over
+
+=item get_CtlReg(), get_DivReg()
+
+Return the 32-bit object register value.  Object not modified.
+
+=item put_DivReg(), put_CtlReg()
+
+Copy the given 32-bit value into the specified object register.
+
+
+=back
+
+
+=head1		EXCEPTIONS
+
+ std::range_error
+ std::logic_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+This example configures gp_CLK0 for basic operation.
+
+    uint32_t		data;
+
+ // Construct an object for CLK0.
+    rgAddrMap          amx;                    // address map object
+    amx.open_dev_mem();                        // open device file
+    rgClock            ckx  ( 0, &amx );       // construct object ckx
+
+ // Configure and enable.
+    ckx.grab_regs();
+    ckx.put_Mash_2( 0 );
+    ckx.put_Enable_1( 1 );
+    ckx.put_Source_4( 3 );
+    ckx.put_DivI_12( 4095 );
+    ckx.push_regs();
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgClock.h
+ src/rgClock.cpp
+
+
+=head1		SEE ALSO
+
+ rgClock(7)	hardware register description
+ rgAddrMap(3)
+ rgpio-clock(1)
+
+ BCM2835 ARM Peripherals (2012)
+    p.105-108  chapter 6.3  General Purpose GPIO Clocks
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+

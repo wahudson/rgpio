@@ -15,6 +15,7 @@ BCM2835 ARM Peripherals
 https://elinux.org/BCM2835_datasheet_errata
 
 https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
+    [2]  SPI Block Guide v3.06; Motorola/Freescale/NXP; 2003.
 
 https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
 

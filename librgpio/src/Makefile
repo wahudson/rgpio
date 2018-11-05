@@ -41,6 +41,7 @@ mkdirs:   $(OJ)  $(LIBDIR)
 
 man:	$(MAN)/man3 \
 	$(MAN)/man3/rgAddrMap.3 \
+	$(MAN)/man3/rgClock.3 \
 	$(MAN)/man3/rgIoPin.3 \
 	$(MAN)/man3/rgUniSpi.3 \
 	$(MAN)/man7 \
@@ -96,6 +97,10 @@ $(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
 $(MAN)/man3/rgAddrMap.3:	rgAddrMap.pod
 	pod2man -s 3 -n rgAddrMap  --center='librgpio Raspberry Pi GPIO' \
 	    rgAddrMap.pod  $@
+
+$(MAN)/man3/rgClock.3:		rgClock.pod
+	pod2man -s 3 -n rgClock    --center='librgpio Raspberry Pi GPIO' \
+	    rgClock.pod  $@
 
 $(MAN)/man3/rgIoPin.3:		rgIoPin.pod
 	pod2man -s 3 -n rgIoPin  --center='librgpio Raspberry Pi GPIO' \

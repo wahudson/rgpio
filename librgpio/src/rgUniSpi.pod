@@ -248,7 +248,7 @@ Values greater than the field width throw a std::range_error exception.
 
 =back
 
-For register field descriptions see rgUniSpi(5) or the BCM documentation.
+For register field descriptions see rgUniSpi(7) or the BCM documentation.
 
 
 =head1		EXCEPTIONS
