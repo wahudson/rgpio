@@ -37,10 +37,12 @@ run:	compile
 
 compile:  $(OJ)  $(BINDIR) \
 	$(BINDIR)/clock_perf \
+	$(BINDIR)/uspi_fifo \
 	$(BINDIR)/uspi_trace
 
 cap:
 	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/clock_perf
+	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/uspi_fifo
 	sudo  setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  $(BINDIR)/uspi_trace
 
 mkdirs:   $(OJ)  $(BINDIR)
@@ -50,6 +52,7 @@ clean:
 
 clobber:
 	rm -f  $(BINDIR)/clock_perf
+	rm -f  $(BINDIR)/uspi_fifo
 	rm -f  $(BINDIR)/uspi_trace
 
 $(BINDIR):
@@ -62,6 +65,10 @@ $(OJ):
 $(BINDIR)/clock_perf:	 clock_perf.cpp  $(OBJS)  $(INCS)  $(LIBS)
 	g++ $(CXXFLAGS) -o $@ -L $(LIBDIR) \
 			 clock_perf.cpp  $(OBJS)  $(LIBFLAGS)
+
+$(BINDIR)/uspi_fifo:	 uspi_fifo.cpp  $(OBJS)  $(INCS)  $(LIBS)
+	g++ $(CXXFLAGS) -o $@ -L $(LIBDIR) \
+			 uspi_fifo.cpp  $(OBJS)  $(LIBFLAGS)
 
 $(BINDIR)/uspi_trace:	 uspi_trace.cpp  $(OBJS)  $(INCS)  $(LIBS)
 	g++ $(CXXFLAGS) -o $@ -L $(LIBDIR) \
