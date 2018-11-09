@@ -5,7 +5,7 @@
 
 Self-checking regression tests.
 
-Files:  (2017-05-20)
+Files:  (2018-11-09)
 ------
 Makefile	run all test suites
 README		this file
@@ -15,7 +15,7 @@ README		this file
 bin/		commands for Test
 
 lib/		Test library
-??  TestLib1.pm		Library for testing programs.
+    TestLib2.pm		Library for testing programs (perl).
 
 opt/		External command installations (none)
 
@@ -34,7 +34,7 @@ t_*/		Generic test suite contents
     tmp/		where the test program is executed, removed each time
 
 
-Test suites:  (2017-05-20)
+Test suites:  (2018-11-09)
 ------------
 ?       = not committed
   b     = uses bin/
@@ -47,6 +47,7 @@ Test suites:  (2017-05-20)
 ------  --------------
  u   s  t_Error/	Error		Error message class.
  u   s  t_yUtil/	yUtil		Utility functions.
+ pbl    t_rgpio/	rgpio		rgpio main program.
 
 
 Test Setup:
@@ -74,6 +75,16 @@ Environment variable 'TESTONRPI' switch in some tests.
 
     # When on another platform
     % make test
+
+
+Strategy:
+---------
+    Program testing - test.pl
+    The idea is to stimulate the program under test with options and input,
+    capture the output, and compare against known good output.
+
+    Makefile is the common interface to all test suits, regardless of the
+    kind of test.
 
 
 Git:

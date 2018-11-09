@@ -1,0 +1,13 @@
+    Raspberry Pi GPIO utility
+usage:  rgpio [main_options..]  feature  [options..]
+  feature:
+    io           General Purpose IO pins
+    fsel         Pin Function Select
+    clock        Clock generator
+    uspi         Universal SPI Master, Spi1, Spi2
+  main options:
+    --dev=m|g|f         device file type, m= /dev/mem (default),
+                                          g= /dev/gpiomem, f= fake
+    --help              show this usage
+    --debug             debug output
+  (options with GNU= only)

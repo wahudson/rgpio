@@ -8,9 +8,11 @@ SHELL = /bin/sh
 
 test:
 	cd t_Error            && make test
+	cd t_rgpio            && make test
 	cd t_yUtil            && make test
 
 clean:
 	cd t_Error            && make clean
+	cd t_rgpio            && make clean
 	cd t_yUtil            && make clean
 
