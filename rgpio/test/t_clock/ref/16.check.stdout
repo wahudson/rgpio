@@ -1,0 +1,33 @@
+  0.CtlReg= 0x00000000
+  0.DivReg= 0x00000000
+  0.Mash_2=   0
+  0.Flip_1=   0
+  0.Busy_1=   0
+  0.Kill_1=   0
+  0.Enable_1= 0
+  0.Source_4= 0
+  0.DivI_12=  0
+  0.DivF_12=  0
+
+  1.CtlReg= 0x00000000
+  1.DivReg= 0x00000000
+  1.Mash_2=   0
+  1.Flip_1=   0
+  1.Busy_1=   0
+  1.Kill_1=   0
+  1.Enable_1= 0
+  1.Source_4= 0
+  1.DivI_12=  0
+  1.DivF_12=  0
+
+  2.CtlReg= 0x00000000
+  2.DivReg= 0x00000000
+  2.Mash_2=   0
+  2.Flip_1=   0
+  2.Busy_1=   0
+  2.Kill_1=   0
+  2.Enable_1= 0
+  2.Source_4= 0
+  2.DivI_12=  0
+  2.DivF_12=  0
+

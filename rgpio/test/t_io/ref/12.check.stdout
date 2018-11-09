@@ -1,0 +1,19 @@
+    IO pin operations
+usage:  rgpio io [options..]  [reg..]
+    reg                 register enum name
+  register groups:  (accumulate)
+    --w0                word 0 registers (default)
+    --w1                word 1 registers
+    --fsel              Fsel function select registers
+    --pud               pin PullUpDown registers
+    --all               all registers plus PinSet, PinClr
+  modify:  (32-bit values)
+    --set=0xff..        set mask bits
+    --clr=0xff..        clear mask bits
+    --mask=0xff..       mask to select bits of --value
+    --value=0x00..      bit values selected by --mask
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output, show registers in binary
+    --debug             debug output
+  (options with GNU= only)

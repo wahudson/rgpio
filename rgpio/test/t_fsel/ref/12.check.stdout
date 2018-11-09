@@ -1,0 +1,14 @@
+    Function Select for GPIO pins
+usage:  rgpio fsel [options..]  [N..]
+    N                   bit number 0..53
+  bit number groups:  (accumulate)
+    --w0                word 0, bits [31:0] (default)
+    --w1                word 1, bits [53:32]
+  modify:
+    --mode=In           set mode {In, Out, Alt0, .. Alt5}
+  options:
+    --show_all          show all alternate functions
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)

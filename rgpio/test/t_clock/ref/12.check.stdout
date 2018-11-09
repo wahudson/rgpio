@@ -1,0 +1,16 @@
+    Clock generator control
+usage:  rgpio clock [-N..] [options..]
+    -N                  clock number {0,1,2}
+  modify:
+    --Mash_2=0          Mash mode {0..3}, 0= integer divison
+    --Flip_1=0          invert output, 1= invert, 0= normal
+    --Kill_1=0          1= stop and reset, 0= no action
+    --Enable_1=0        1= enable, 0= stop, without glitches
+    --Source_4=0        set clock source {0..15}
+    --DivI_12=N         set Divisior integer,  {0..4095}
+    --DivF_12=N         set Divisior fraction, {0..4095}, for MASH 
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)

@@ -47,6 +47,9 @@ Test suites:  (2018-11-09)
 ------  --------------
  u   s  t_Error/	Error		Error message class.
  u   s  t_yUtil/	yUtil		Utility functions.
+ pbl    t_clock/	rgpio-clock	subcommand
+ pbl    t_fsel/		rgpio-fsel	subcommand
+ pbl    t_io/		rgpio-io	subcommand
  pbl    t_rgpio/	rgpio		rgpio main program.
 
 
