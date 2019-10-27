@@ -16,6 +16,7 @@ INCS       = \
 	rgClock.h \
 	rgFselPin.h \
 	rgIoPin.h \
+	rgSpi0.h \
 	rgUniSpi.h
 
 		# objects not including main()
@@ -25,6 +26,7 @@ OBJS       = \
 	$(OJ)/rgClock.o \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIoPin.o \
+	$(OJ)/rgSpi0.o \
 	$(OJ)/rgUniSpi.o
 
 		# link libraries, required by rgAddrMap
@@ -89,6 +91,9 @@ $(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPin.h
 
 $(OJ)/rgIoPin.o:	rgIoPin.cpp  rgIoPin.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgIoPin.cpp
+
+$(OJ)/rgSpi0.o:		rgSpi0.cpp  rgSpi0.h  rgAddrMap.h
+	g++ $(CXXFLAGS) -o $@  -c rgSpi0.cpp
 
 $(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgUniSpi.cpp

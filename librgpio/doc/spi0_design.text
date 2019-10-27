@@ -1,0 +1,389 @@
+2019-10-14
+		rgpio - SPI0 Design architecture
+		--------------------------------
+
+Raspberry Pi GPIO Tool and Library
+
+See also:  doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    Referenced by RaspberryPi.
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://elinux.org/BCM2835_datasheet_errata
+
+https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
+    [2]  SPI Block Guide v3.06; Motorola/Freescale/NXP; 2003.
+
+https://www.raspberrypi.org/documentation/hardware/raspberrypi/spi/README.md
+
+https://elinux.org/RPi_SPI
+
+https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
+
+
+----------------------------------------------------------------------------
+## Discussion
+----------------------------------------------------------------------------
+
+This is SPI0, the SPI master with DMA.
+It is less general than the SPI1, SPI2 Universal SPI Masters.
+
+Possible Class Names:
+ >  rgSpi0		SPI0, clear designation
+    rgSpi		seems ambiguous
+
+ >  rgUniSpi		SPI1, SPI2
+
+
+----------------------------------------------------------------------------
+## SPI0 Master
+----------------------------------------------------------------------------
+
+There are two ways the data lines can be configured:
+    A) MISO, MOSI - Two uni-directional lines as in Standard SPI.
+    B) MIMO - Bidirectional on a single wire.
+
+There are 3 major modes of operation:  (BCS ch 10.6)
+    A) Standard (Polled/Interrupt) mode
+    B) LoSSI (Low Speed Serial Interface) mode
+    C) DMA (Direct Memory Access) mode
+
+    A SPI transaction framed by CS is controlled by software, not by FIFO.
+    Thus the FIFO is nearly useless, except for packing more bits into a
+    transaction.
+
+    DMA can use full 32-bit word width of FIFO, but polled operation can
+    only write single bytes to FIFO ???
+
+
+Names of registers and bit-fields in the BCM documentation are rather short
+    and confusing when out of context.
+    Thus librgpio will assign better (hopefully) names, that are more
+    meaningful at the program call point.
+
+Register names:
+
+    rgSpi0		BCM	Description
+    ------------	----	------------------
+    CntlStat		CS	Control and Status
+    Fifo		FIFO	TX and RX FIFOs
+    ClkDiv		CLK	Clock Divider
+    DmaLen		DLEN	DMA Data Length
+    Lossi		LTOH	LoSSI mode Control
+    DmaReq		DC	DMA DREQ Controls
+
+    The non-Fifo registers are copied in the object for field manipulation.
+    The Fifo register is not, and is always direct read/write access since
+    it has side effects on the Spi state.
+
+    Register names in the object add suffix "_reg" to make it more explicit.
+    A CamelCase suffix "Reg" was tried and seems OK for a few well known
+    registers, but here it made the register names visually awkward.  The
+    underscore suffix also parallels the address offset suffix "_offset".
+
+    Names in the full register access functions have no "_reg" suffix, since
+    the rest of the function name, e.g. addr_, read_, write_ make it clear
+    that it is a full register.  [Maybe use an "_r" suffix to parallel field
+    names?]
+
+    In functions, field names always have an "_1", whereas full register names
+    do not, as the main distinguishing feature.
+
+    BCM document typically prefixes their names with "SPI_".
+    No global prefix is needed here because the use is qualified by the class.
+
+Naming functions:  (same as rgUniSpi)
+
+    Need a method to help user know whether a whole register is acted on,
+    or is it a bit field.
+
+    read_REG()		Read whole register.
+    read_FIELD_1()	Read a bit field.  The number is size of field.
+
+    The numeric suffix, e.g. "_1" indicates that it is a field access, and
+    is the field width.
+    I really like the number suffix, e.g. "_1" to indicate number of bits in
+    the field.  This makes it very explicit at the user call point.
+
+    The intent is to make the use of the library functions as clear as
+    possible, and somewhat match the documentation.
+    It is NOT intended to abstract the Feature or make it so the user
+    interface does not change when porting to another machine.
+
+    Function prefix name indicates over-all operation:
+	addr_()		return address of register
+
+	read_()		direct register/field read
+	write_(V)	direct register/field write
+
+	get_()		get object register/field value
+	put_(V)		set object register/field value
+
+	grab_()		copy register into object
+	push_(V)	copy object into register
+
+    Another name for "grab" is "pull", but I like the quirkyness of "grab".
+
+Field accessor functions:  (same as rgUniSpi)
+    Use consistent philosophy.
+
+Documentation:
+    Where to put detailed documentation on Spi operation and configuration?
+    Man page sections:
+
+    rgSpi0(7)      - describes BCM hardware function
+    rgSpi0(3)      - describes librgpio API calls, and limited function
+    rgpio_spi0(1)  - describes rgpio spi0 command
+
+    Probably want a single source describing operation, rgSpi0(7).  The
+    Library, and the utility 'rgpio' command both do the same operations, and
+    thus have a lot of overlap.  Let them both reference rgSpi0(7) for
+    hardware behavior.
+
+Operation with rgpio:
+    % rgpio spi0  --RunActive_1=1  --debug
+
+
+CntlStat  Register Field Names:
+
+    LossiWord_1		[25]  LEN_LONG	LossiWordLen_1  LossiLength_1
+    LossiDmaEn_1	[24]  DMA_LEN
+    CsPolarity_3	[23:21]  CSPOL2,CSPOL1,CSPOL0
+					CsPol2_1,CsPol1_1,CsPol0_1  ugly
+	    read-only
+    RxFullStop_1	[20]  RXF	RxFull_1  RxFullStopped_1
+    RxHalf_1		[19]  RXR	RxHalf_1  RxHalfFull_1  RxPartFull_1
+    TxHasSpace_1	[18]  TXD
+    RxHasData_1		[17]  RXD
+    TxEmpty_1		[16]  DONE	TransferDone_1  TxDone_1  TxStopped_1
+						Tx_Emptied_1
+
+    LossiEnable_1	[13]  LEN
+    ReadEnable_1	[12]  REN
+    DmaEndCs_1		[11]  ADCS	AutoCs_1  DmaAutoCs_1
+    IrqRxHalf_1		[10]  INTR	IrqRxHalf_1  IrqRxPartFull_1
+    IrqTxEmpty_1	[9]   INTD	IrqDone_1  InterDone_1
+    DmaEnable_1		[8]   DMAEN
+    RunActive_1		[7]   TA	TransferActive_1  TransActive_1  RunTA_1
+    CsPolarity_1	[6]   CSPOL	CsPolarityAll_1
+    ClearRxTxFifo_2	[5:4] CLEAR	ClearRxFifo_1, ClearTxFifo_1
+    ClockPolarity_1	[3]   CPOL	ClockPol_1  ClockPolar_1
+    ClockPhase_1	[2]   CPHA
+    ChipSelectN_2	[1:0]  CS
+
+ClkDiv  Register Fields:
+    ClockDiv_16		[15:0]  CDIV
+
+DmaLen  Register Fields:
+    DmaDataLen_16	[15:0]  LEN
+
+Lossi  Register Fields:
+    LossiHoldDly_4	[3:0]   TOH
+
+DmaReq  Register Fields:
+    DmaRxPanicLev_8	[31:24]  RPANIC
+    DmaRxReqLev_8	[23:16]  RDREQ
+    DmaTxPanicLev_8	[15:8]   TPANIC
+    DmaTxReqLev_8	[7:0]    TDREQ
+
+Register Field Names:
+    Choose names that are somewhat descriptive and meaningful at the call
+    point in user code.  The BCM field names are way too short, and often
+    too cryptic or misleading.
+    Try to limit name length to 15 characters or less, including the "_1"
+    field width numeral.
+
+    Name components typically include the thing they apply to and the
+    behavior they control.
+
+    Abbreviations appropriate for this context are:
+    Cs     Chip Select CS
+    Lossi  the LoSSI feature
+    Rx     Receive FIFO
+    Tx     Transmit FIFO
+    Dma    Direct Memory Access
+    Irq    Interrupt Request
+    Req    Request
+    Lev    Level
+
+    Decide to stick to fairly strict camel-case for things like Cs (chip
+    select), even though CS is more common.  With CS the camel-case gets
+    kind of weird, e.g. CSPolarity_1, or worse CSpolarity_1, and people have
+    no rule to know what it is going to be.
+
+    CsPolarity_3   - Combine all 3 CS Polarity bits into one field, as the
+	encoding is pretty common.  Reduce the number of fields.
+	Not clear how these work with CsPolarity_1, if at all.
+	Having the same base name makes them related when searching.
+	Having only the "_3" suffix different seems a bit confusing.
+	But the BCS doc IS confusing, and does not clarify how they combine.
+	Needs experimentation.
+	Note 3 polarity bits, but only 2 physical CS lines.
+
+    CsPolarity_1   - This seems like a global CS polarity, and is controllable
+	by DMA, whereas CsPolarity_3 is not.
+
+    RxFullStop_1   - the Rx FIFO full flag.  The "Stop" is a reminder that
+	"No further serial data will be sent/received until data is read
+	from FIFO."
+
+    RxHalf_1       - The BCM doc is confusing here.  It is likely that it
+	means Rx FIFO is half full, but the actual level is not specified.
+	Calling it "Part" is more ambiguous and may be less misleading.
+	Calling it "HalfFull" is a bit redundant as it is both half full and
+	half empty.
+	Decide to call it RxHalf_1 to start, and let "Half" be fuzzy.
+
+ ?  TxEmpty_1      - Is more literally correct.  The BCM doc calls it
+	"transfer done", referring no more data remain in the Tx FIFO so
+	there are no more data bits to send.  But the SPI transaction is
+	NOT done, since the CS is not returned to the idle (unselected) state.
+	However, the "Transfer Active" control field is also mixed in, so
+	the status bit could be 0 with data in Tx FIFO and TA=0.
+
+    IrqRxHalf_1    - Correlate with RxHalf_1
+
+    IrqTxEmpty_1   - Correlate with TxEmpty_1
+
+    RunActive_1    - Is the "Transfer Active" control/status bit.
+	It is written by software to put CS into active state.
+	With DMA it is cleared when DMA is done.
+	Thus it is more of an active run/stop kind of control.  The words
+	"Transfer Active" seem like status only, too passive.
+
+    ClearRxTxFifo_2  - to help know which bit is which.
+	Probably is common to clear both Rx and Tx, but maybe not.
+	Possibly split into two fields, ClearRxFifo_1, ClearTxFifo_1, but that
+	is more accessor functions.
+
+
+----------------------------------------------------------------------------
+## rgSpi0 Object - SPI0 Master
+----------------------------------------------------------------------------
+
+See:  p.148-159  ch 10. SPI
+
+
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
+
+    uint32_t		CntlStat_reg	// CS    Control and Status
+    //			Fifo_reg	// FIFO  TX and RX FIFOs
+    uint32_t		ClkDiv_reg	// CLK   Clock Divider
+    uint32_t		DmaLen_reg	// DLEN  DMA Data Length
+    uint32_t		Lossi_reg	// LTOH  LoSSI mode Control
+    uint32_t		DmaReq_reg	// DC    DMA DREQ Controls
+
+    // Note FifoReg is NOT part of object state.
+}
+
+Methods:
+
+    get_base_addr()		GpioBase address
+
+			Direct low-level access:
+
+    addr_CntlStat()		Address of register..
+    addr_Fifo()
+    addr_ClkDiv()
+    addr_DmaLen()
+    addr_Lossi()
+    addr_DmaReq()
+
+    read_CntlStat()		Read register..
+    read_Fifo()
+    read_ClkDiv()
+    read_DmaLen()
+    read_Lossi()
+    read_DmaReq()
+
+    write_CntlStat()		Write register..
+    write_Fifo()
+    write_ClkDiv()
+    write_DmaLen()
+    write_Lossi()
+    write_DmaReq()
+
+				Read-only selected bits..
+
+ ?  read_TxHasSpace_1()
+ ?  read_RxHasData_1()
+
+			Direct control:  (modify register fields)
+ ?  clear_fifos()		Set ClearRxTxFifo_2, then wait for not busy??
+ ?  write_RunActive_1(V)
+
+			Object state operations:
+    init_put_reset()		Object registers set to power-on reset state.
+ ?  init_put_zero()		Object registers set to zero.
+
+    grab_regs()			Read all Cntl/Status registers into object.
+    push_regs()			Write object to hardware registers.
+
+    grab_CntlStat()		Read just the Status register into object.
+ ?  grab_DmaReq()		Read just the Status register into object.
+
+			Generic Field accessors:  (private)
+    get_field(  Reg, Pos, Len )
+    put_field( &Reg, Pos, Len, Val )
+
+
+All these have both get_() and put_(V):
+			Field accessors of object state:
+    get_()
+    put_(V)
+    ...
+
+			    CntlStat register
+    get_LossiWord_1()		[25]
+    get_LossiDmaEn_1()		[24]
+
+    get_CsPolarity_3()		[23:21]
+
+    get_RxFullStop_1()		[20]
+    get_RxHalf_1()		[19]
+    get_TxHasSpace_1()		[18]
+    get_RxHasData_1()		[17]
+    get_TxEmpty_1()		[16]
+
+    get_LossiEnable_1()		[13]
+    get_ReadEnable_1()		[12]
+    get_DmaEndCs_1()		[11]
+    get_IrqRxHalf_1()		[10]
+    get_IrqTxEmpty_1()		[9]
+    get_DmaEnable_1() 		[8]
+    get_RunActive_1()		[7]
+    get_CsPolarity_1()		[6]
+    get_ClearRxTxFifo_2() 	[5:4]
+    get_ClockPolarity_1()	[3]
+    get_ClockPhase_1()		[2]
+    get_ChipSelectN_2()		[1:0]
+
+			    ClkDiv register
+    get_ClockDiv_16()		[15:0]
+
+			    DmaLen register
+    get_DmaDataLen_16()		[15:0]
+
+			    Lossi register
+    get_LossiHoldDly_4()	[3:0]
+
+			    DmaReq register
+    get_DmaRxPanicLev_8()	[31:24]
+    get_DmaRxReqLev_8()		[23:16]
+    get_DmaTxPanicLev_8()	[15:8]
+    get_DmaTxReqLev_8()		[7:0]
+
+			Register accessors of object:  (Test/Debug)
+    get_CntlStat()
+    get_ClkDiv()
+    get_DmaLen()
+    get_Lossi()
+    get_DmaReq()
+
+    put_...(V)
+
