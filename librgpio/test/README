@@ -49,6 +49,7 @@ Test suites:  (2017-05-20)
  u   s  t_rgClock/	rgClock		General Purpose Clock class.
  u   s  t_rgFselPin/	rgFselPin	Pin Function Select class.
  u   s  t_rgIoPin/	rgIoPin		GPIO IO Pin control class.
+ u   s  t_rgSpi0/	rgSpi0		SPI0 Master class.
  u   s  t_rgUniSpi/	rgUniSpi	Universal SPI Master class.
  u   s  t_rgUniSpi_liv/	rgUniSpi	Universal SPI Master class.  Live.
  u   s  t_utLib1/	utLib1		Unit Test Library.
@@ -62,6 +63,8 @@ Test Setup:
     Build the test framework in src/ (only needed when it changes):
     % cd  src/
     % make
+
+    Tests do NOT rebuild the object being tested.
 
 
 Run Tests:
@@ -82,7 +85,7 @@ Environment variable 'TESTONRPI' switch in some tests.
 
 Live Tests:  t_*_liv/
     These are intended to run only on RPi.
-    They typicaly apply privilege capability with sudo.
+    They typicaly apply privilege capability with sudo in "make cap".
     They may require special setup to configure gpio Fsel.
 
     t_rgUniSpi_liv/  require loopback:  Wire MISO Gpio19 to MOSI Gpio20.
@@ -98,4 +101,5 @@ Git:
 
 Issues:
 -------
+    Field accessor functions are not all tested.
 
