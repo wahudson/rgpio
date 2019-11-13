@@ -1,0 +1,296 @@
+# 2019-11-07  William A. Hudson
+
+# rgSpi0  Hardware Register Description.
+#---------------------------------------------------------------------------
+
+=head1		NAME
+
+rgSpi0  Hardware Description -- SPI0 Master
+
+
+=head1		SYNOPSIS
+
+Hardware registers of the SPI0 peripheral.
+All are 32-bits, but may have sparsely populated fields.
+All are read-write, except those marked read-only (RO).
+
+    Register	BCM name	Description
+    --------	--------	------------------
+    CntlStat	CS		Control and Status
+    Fifo	FIFO		TX and RX FIFOs
+    ClkDiv	CLK		Clock Divider
+    DmaLen	DLEN		DMA Data Length
+    Lossi	LTOH		LoSSI mode Control
+    DmaReq	DC		DMA DREQ Controls
+
+    Field Name		Register Bits    BCM name
+    ---------------     -------------    --------
+    LossiWord_1		CntlStat[25]     LEN_LONG  (non-existent)
+    LossiDmaEn_1	CntlStat[24]     DMA_LEN   (non-existent)
+    CsPolarity_3	CntlStat[23:21]  CSPOL2,CSPOL1,CSPOL0
+
+    RxFullStop_1	CntlStat[20]     RXF    (RO)
+    RxHalf_1		CntlStat[19]     RXR    (RO)
+    TxHasSpace_1	CntlStat[18]     TXD    (RO)
+    RxHasData_1		CntlStat[17]     RXD    (RO)
+    TxEmpty_1		CntlStat[16]     DONE   (RO)
+
+    LossiEnable_1	CntlStat[13]     LEN
+    ReadEnable_1	CntlStat[12]     REN
+    DmaEndCs_1		CntlStat[11]     ADCS
+    IrqRxHalf_1		CntlStat[10]     INTR
+    IrqTxEmpty_1	CntlStat[9]      INTD
+    DmaEnable_1		CntlStat[8]      DMAEN
+    RunActive_1		CntlStat[7]      TA
+    CsPolarity_1	CntlStat[6]      CSPOL  (non-functional)
+    ClearRxTxFifo_2	CntlStat[5:4]    CLEAR
+    ClockPolarity_1	CntlStat[3]      CPOL
+    ClockPhase_1	CntlStat[2]      CPHA
+    ChipSelectN_2	CntlStat[1:0]    CS
+
+    ClockDiv_16		ClkDiv[15:0]     CDIV
+
+    DmaDataLen_16	DmaLen[15:0]     LEN
+
+    LossiHoldDly_4	Lossi[3:0]       TOH
+
+    DmaRxPanicLev_8	DmaReq[31:24]    RPANIC
+    DmaRxReqLev_8	DmaReq[23:16]    RDREQ
+    DmaTxPanicLev_8	DmaReq[15:8]     TPANIC
+    DmaTxReqLev_8	DmaReq[7:0]      TDREQ
+
+Bit field names incorporate the number of bits in the field, making the
+field size self documenting.
+
+Unspecified bit fields in each register are typically reserved, and should
+be write as 0, and read as don't care.
+
+
+=head1		DESCRIPTION
+
+This documentation describes the operation of the SPI0 Master interface.
+The universal SPI1, SPI2 masters are described elsewhere.
+See BCM doc chapter 10 "SPI" (p. 148-159).
+
+SPI stands for Serial Peripheral Interface bus.
+The SPI0 Master is essentially a shift register controller.
+
+There are 3 major modes of operation:  (BCS ch 10.6)
+
+    A) Standard (Polled/Interrupt) mode
+    B) LoSSI (Low Speed Serial Interface) mode
+    C) DMA (Direct Memory Access) mode
+
+There are two ways the data lines can be configured:  (BCS ch 10.4)
+
+    A) MISO, MOSI - Two uni-directional lines as in Standard SPI.
+    B) MIMO - Bidirectional on a single wire, the MOSI pin.
+
+
+=head2			Hardware Signals
+
+GPIO Alternate Function names (hardware signals):  The Spi0 peripheral can
+be operated regardless of these signals being routed to GPIO pins.
+
+    spi0_SCLK	Serial Clock, driven by master
+    spi0_MOSI	Master Out Slave In  data
+    spi0_MISO	Master In  Slave Out data
+    spi0_CE0_n	Chip Enable 0 (driven by master)
+    spi0_CE1_n	Chip Enable 1 (driven by master)
+
+Generic SPI signals:  We use these names in describing timing.
+
+    SCLK	Serial Clock, driven by master
+    MOSI	Master Out Slave In  data
+    MISO	Master In  Slave Out data
+    CS 		Chip Select (also called CE Chip Enable)
+
+
+=head2			Signal Timing
+
+In these waveforms we reference the first (1) and second (2) edges of the
+SCLK clock pulses.  The B<ClockPolarity_1> bit determines the SCLK idle state,
+and thus the direction of edge1.
+
+                       1 bit time
+         idle | setup |<---->|         | hold | idle
+          ____                                 ____________
+    CS        |_______________________________|
+
+                       __     __     __
+    SCLK  ____________|  |___|  |___|  |___________________
+              edge    1  2   1  2   1  2
+		Normal clock  (ClockPolarity_1= 0), idle low
+
+    MOSI       __________ ______ ______
+    MISO  XXXXX__________X______X______XXXXXXXXXXXXXXXXXXXX
+                     d7     d6 ... d0
+		Change on 2, sample on 1 (ClockPhase_1= CPHA=0)
+
+    MOSI               ______ ______ ______
+    MISO  XXXXXXXXXXXXX______X______X______XXXXXXXXXXXXXXXX
+                         d7     d6 ... d0
+		Change on 1, sample on 2 (ClockPhase_1= CPHA=1)
+
+          ____________    ___    ___    ___________________
+    SCLK              |__|   |__|   |__|
+              edge    1  2   1  2   1  2
+		Inverted clock  (ClockPolarity_1= 1), idle high
+
+Data is always sent and received MSB (Most Significant Bit) first.
+
+The active period, when CS is low, is initiated by setting (RunActive_1= 1),
+and ends by setting (RunActive_1= 0).
+
+
+=head2			Hardware FIFO
+
+The BCM documentation shows both the Tx and Rx FIFO as having 16 entries of
+32-bits.  In Standard mode, these behave as 64 entries of 8-bits.
+
+In LoSSI mode, a ninth bit is used (and transmitted) to indicate whether
+the byte is a command or data.  Not sure how the FIFO is configured.
+
+In DMA mode, not sure how the FIFO is configured.
+
+
+=head1		REGISTER BIT FIELDS
+
+The numeric suffix on the field name indicates the number of bits in the field.
+
+=head2			CntlStat Register
+
+Only the status bits are read-only (RO), all others are read-write.
+
+=over
+
+=item B<CsPolarity_3>       - Chip Select Polarity.
+
+One bit for each Chip Enable line, left to right {CE2, CE1, CE0}.
+Note CE2 line does not exist, but the bit can still be set.  Bit values are:
+
+    0= CS is active low, the usual situation
+    1= CS is active high
+
+Active high bit positions for each line:  (Any combination is valid.)
+
+    4= spi0_CE2_n
+    2= spi0_CE1_n
+    1= spi0_CE0_n
+
+=item B<RxFullStop_1>       - Rx Fifo Full and Tx stopped.  (RO)
+
+    0= Rx Fifo is not full.
+    1= Rx Fifo is full and no further serial data will be
+	sent/received until data is read from Fifo.
+
+=item B<RxHalf_1>           - Rx Fifo Half full.  (RO)
+
+Here "Half full" is fuzzy.  The BCM doc indicates half full may be 12 out of
+16 entries of 32-bits, [equivalent to 48 out of 64 byte entries???].
+
+    0= Rx Fifo less than half full, or not active (RunActive_1= 0).
+    1= Rx Fifo is more than half full.
+
+=item B<RunActive_1>        - Transfer Active.  (RW)
+
+Is both a control and a status bit.
+
+0= Hardware lines are in idle state.  The chip select (CS) lines are all
+inactive.  SCLK is in the idle state.
+Both TxEmpty_1=0 and RxHalf_1=0 are forced, even if there is data left in
+Tx or Rx Fifo.
+Writes to the Fifo register are re-directed to select bits of CntlStat and
+DmaLen registers (intended as a feature to allow DMA to set configuration
+before sending data).
+
+1= Hardware lines are active.  The chip select line specified by ChipSelectN_2
+is in the active state (the others are idle).  Writes to the Fifo register
+write data to the Tx Fifo, and reads read from the Rx Fifo.
+This bit can also be cleared by a dma_frame_end pulse from the DMA controller.
+
+=item B<ClockPolarity_1>    - Clock Polarity (CPOL in SPI nomenclature).
+
+    0= SCLK idle state is low.
+    1= SCLK idle state is high.
+
+=item B<ClockPhase_1>       - Clock Phase (CPHA in SPI nomenclature).
+
+    0= SCLK edge1 is in middle of data bit, sample on edge1.
+    1= SCLK edge1 is on data bit change,    sample on edge2.
+
+=item B<ChipSelectN_2>      - Chip select line to activate.
+
+Two-bit value encoding the hardware line to be activated when RunActive_1=1.
+
+    0 = CE0_n
+    1 = CE1_n
+    2 = CE2_n		(does not exist)
+    3 = Reserved
+
+=back
+
+=head2			Fifo Register
+
+Reads and Writes normally access the Rx and Tx FIFO with the usual side
+effects, but have special behavior when RunActive_1= 0.
+
+A Read will remove and return one byte from the Rx (Receive FIFO), and
+the corresponding Rx status flags are updated.
+
+When RunActive_1= 1:  A Write will copy the LSB byte into the Tx FIFO, and
+update the corresponding Tx status flags.
+
+When RunActive_1= 0:  A Write will instead update the CntlStat and DmaLen
+registers as follows:  (regardless of DmaEnable_1)
+
+    DmaLen[15:0]
+	DmaDataLen_16       = write[31:16]
+
+    CntlStat[23:21,7:0]
+	CsPolarity_3        = write[10:8]
+	RunActive_1         = write[7]
+	CsPolarity_1        = write[6]
+	ClearRxTxFifo_2     = write[5:4]
+	ClockPolarity_1     = write[3]
+	ClockPhase_1        = write[2]
+	ChipSelectN_2       = write[1:0]
+
+In LoSSI mode, what happens???
+
+=head2			ClkDiv Register
+
+=over
+
+=item B<ClockDiv_16>        - Clock Divider value for SCLK frequency.  (RW)
+
+SCLK frequency = (Core Clock frequency) / ClockDiv_16
+
+If ClockDiv_16=0, the divisor is 65536 (0xffff).
+The value should be a multiple of 2, but odd numbers are rounded down.
+The maximum SPI clock rate is that of the APB clock. ???
+
+=back
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgSpi0.h
+ src/rgSpi0.cpp
+
+
+=head1		SEE ALSO
+
+ rgSpi0(3)
+ rgpio-spi0(1)
+
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+ https://en.wikipedia.org/wiki/Serial_Peripheral_Interface_Bus
+
+=cut
+
