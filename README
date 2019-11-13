@@ -16,6 +16,17 @@ librgpio/	rgpio Library development
 rgpio/		rgpio utility tool development
 
 
+Git:
+----
+Common commit keywords to help classify the type of commit.
+    Doc:		general documentation
+    Man:		manual page
+    Test:		test/ source files
+    rgXxx:		librgpio class name
+    rgpio-xxx:		rgpio sub-command
+    Checkpoint:		checkpoint initial work in progress
+    Restructure:	re-factoring code
+
 Repository History:  (newest first)
 ----------------------------------------------------------------------------
 (2017-05-21)  Initial development

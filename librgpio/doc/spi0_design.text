@@ -324,8 +324,12 @@ Methods:
     grab_regs()			Read all Cntl/Status registers into object.
     push_regs()			Write object to hardware registers.
 
-    grab_CntlStat()		Read just the Status register into object.
- ?  grab_DmaReq()		Read just the Status register into object.
+    grab_CntlStat()		Read just the CntlStat register into object.
+ ?  grab_DmaReq()		Read just the DmaReq   register into object.
+
+ ?  push_CntlStat()		Write just the CntlStat register to hardware.
+
+ ?  get_as_Fifo()		Get config word to write Fifo when RunActive_1=0
 
 			Generic Field accessors:  (private)
     get_field(  Reg, Pos, Len )

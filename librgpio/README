@@ -6,7 +6,7 @@ A C++ library to manipulate the Raspberry Pi GPIO peripherals.
 
 Revision control:  git
 
-Files:  (2018-05-06)
+Files:  (2019-11-12)
 ------
 README			this file
 
@@ -14,7 +14,9 @@ README			this file
 
 doc/		    Documentation
     architecture.text	Architecture description
+    mem_barrier.text	Memory Barrier notes
     privilege.text	Process Privilege Control
+    spi0_design.text	rgSpi0 Design architecture
     spi_design.text	rgUniSpi Design Architecure
 
 man/		    Manpage dir tree (unmanaged, not source)
@@ -23,6 +25,7 @@ man/		    Manpage dir tree (unmanaged, not source)
 
 src/		    Source code
     Makefile		for building the tool
+    man7/		hardware man page source
     rgAddrMap.cpp	Address Map class
     rgAddrMap.h
     rgAddrMap.pod
@@ -36,6 +39,8 @@ src/		    Source code
     rgIoPin.cpp		GPIO IO Pin control class
     rgIoPin.h
     rgIoPin.pod
+    rgSpi0.cpp		SPI0 Master class
+    rgSpi0.h
     rgUniSpi.cpp	Universal SPI Master class - SPI1, SPI2
     rgUniSpi.h
     rgUniSpi.pod
@@ -52,6 +57,7 @@ test/		    Testing
     README
     Makefile		Run all tests
     t_*/		Test suites
+    v_*/		Live RPi validation suites
 
 
 Initial Build process:
