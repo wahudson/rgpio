@@ -426,6 +426,152 @@ Offset Address Range Checking:
     Some libraries use #define instead of enum, and thus are not type safe -
     any integer can be substituted.  We want to do better.
 
+
+----------------------------------------------------------------------------
+## Register Object
+----------------------------------------------------------------------------
+
+    The idea is to make a register object base class, that would represent
+    only a single hardware register in a feature.
+    It would have the register value and the actual address of the feature
+    register, so it knows how to read/write the hardware register.
+
+    Each feature object would have a public set of derived register objects,
+    which would have the specific field accessor functions.
+    Then each register would be accessed by register name.  e.g.
+
+    rgSpi0		sx  ( Ax );	// the feature object constructed
+    sx.CntlStat.grab();			// copy from hardware
+    sx.CntlStat.put_RunActive_1( 1 );	// modify field
+    sx.CntlStat.push();			// copy to hardware
+
+    This has the nice advantage of clearly associating each field with the
+    proper register, making it obvious which register should be grab() or
+    push().
+
+    Previously, having all field accessors as methods of the feature object
+    was a higher abstraction in which the register/field association was
+    hidden.  This was nice, but also a problem in knowing which register to
+    push to update a field in the hardware.
+
+    Normally each derived register class would be in its own source file,
+    but this makes a flood of files which are not very useful stand-alone.
+    It was decided to put all derived register classes in the same file as
+    the feature, especially since they are so closely associated with the
+    feature.
+
+    A stand-alone derived register could be constructed, but there is the
+    problem of initializing its address.  Instead the feature object could
+    have register constructor functions that would return an initialized
+    object.  This way the user does not have to deal with register addresses.
+
+    Having register objects outside the feature object is like storing a
+    register value, but with much more capability.  Stored register values
+    can be used to alternately update a register configuration without
+    having to modify field values each time.  e.g.:  Spi0 regA could have
+    RunActive_1=1, and regB RunActive_1=0.  Then simply do regA.push()
+    to enable transaction, and regB.push() to disable it.
+
+    The register object idea was developed after feature classes rgClock,
+    rgUniSpi, and rgSpi0 were implemented.  In these it became apparent the
+    full register operations, while simple, were being re-implemented each
+    time.  When there were only a couple registers in a feature this was not
+    a problem, however more complex features were having 5 to 10 registers.
+    It was decided to explore register objects in the next feature implemented,
+    and retrofit older features after proving/refining the concept.
+
+    Register Object data:
+    {
+	Value		32-bit register value
+	Addr		address pointer to hardware register in process memory
+    }
+
+    Base Object Methods:
+    {
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
+
+	get_field(...)	Generic Field accessors (private)
+	put_field(...)
+    }
+
+Derived register class names:
+
+    The feature object has public register names (choose well).  e.g.  Spi0
+	CntlStat
+	ClkDiv
+	...
+
+    Name each derived class with the feature class name followed by the
+    register name, separated with '_' underscore.  These classes derive
+    from rgRegister and add specific field accessor functions, which would
+    be named the same as before.
+    e.g.
+	rgSpi0_CntlStat			derived class
+	    get_RunActive_1()
+	    put_RunActive_1()
+	    ...
+	rgSpi0_ClkDiv
+	    get_ClockDiv_16()
+	    put_ClockDiv_16()
+	...
+
+Constructing registers from the feature might look like:
+
+    rgSpi0_CntlStat	cntl_a = sx.new_CntlStat();
+    rgSpi0_CntlStat	cntl_b = sx.new_CntlStat();
+    cntl_b.put_RunActive_1( 1 );
+    cntl_a.push();
+    cntl_b.push();
+
+----------------------------------------------------------------------------
+## Object Structure
+----------------------------------------------------------------------------
+
+    Trying to show relationships among objects and classes.
+    Incomplete.  Class diagrams might help.
+
+Object hierarchy:  (who "has" who)
+
+    Object class
+    ------------
+    rgAddrMap		Address Map
+
+    rgAltFuncName	Alternate Function Names
+
+    rgFselPin		Function Select
+	rgAddrMap
+	rgFsel_enum		Function Select mode (enumeration)
+
+    rgIoPin		IO Pin control
+	rgAddrMap
+	rgIoReg_enum		Register address offset
+
+		    The more styalized features:
+    rgClock		General Purpose Clocks
+    rgUniSpi		Universal SPI Master
+    rgSpi0		SPI0 Master
+    ...
+	rgAddrMap		object passed to each feature
+
+		    Example with derived register objects
+    rgSpi0		SPI0 Master
+	rgAddrMap
+	rgSpi0_CntlStat		derived register classes
+	rgSpi0_ClkDiv
+	rgSpi0_DmaLen
+	rgSpi0_Lossi
+	rgSpi0_DmaReq
+	    rgRegister		    registers in each feature
+
 ----------------------------------------------------------------------------
 ## rgAddrMap Object - IO Register Memory Map
 ----------------------------------------------------------------------------
