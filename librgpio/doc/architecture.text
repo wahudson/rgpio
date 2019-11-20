@@ -461,9 +461,11 @@ Offset Address Range Checking:
     feature.
 
     A stand-alone derived register could be constructed, but there is the
-    problem of initializing its address.  Instead the feature object could
+    problem of initializing its address.  Possibly the feature object could
     have register constructor functions that would return an initialized
-    object.  This way the user does not have to deal with register addresses.
+    object.  Better yet is to use the C++ copy constructor syntax to
+    initialize the new register object with the feature register (example
+    below).  This way the user does not have to deal with register addresses.
 
     Having register objects outside the feature object is like storing a
     register value, but with much more capability.  Stored register values
@@ -499,9 +501,30 @@ Offset Address Range Checking:
 	grab()		copy hardware register into object
 	push()		copy object into hardware register
 
-	get_field(...)	Generic Field accessors (private)
+	get_field(...)	Generic Field accessors (protected)
 	put_field(...)
+
+	init_addr(...)  private initialization used by feature constructor
     }
+
+    A very nice benefit is the Generic Field accessors are defined only once
+    in the base class, and they no longer need a pointer to the register
+    value.  The register specific field accessors are now more easily made
+    as inline calls to the generic accessor functions.
+
+    A slight disadvantage is the register address is stored in each register
+    object, taking slightly more space.
+
+    The base object methods are all simple operations, and no-longer need
+    register offset values from the feature base address.  These methods
+    can all be inline, and thus as efficient (with compiler optimization) as
+    direct access to the register object address and value.
+
+    Most of these benefits could be had without a Register base class, but
+    it seems to be turning out really well.
+
+    The Generic Field accessors are intended only for use by derived registers.
+    As such, they are protected because safety relies on proper arguments.
 
 Derived register class names:
 
@@ -524,13 +547,81 @@ Derived register class names:
 	    put_ClockDiv_16()
 	...
 
-Constructing registers from the feature might look like:
+Constructing registers inside the feature:
 
-    rgSpi0_CntlStat	cntl_a = sx.new_CntlStat();
-    rgSpi0_CntlStat	cntl_b = sx.new_CntlStat();
-    cntl_b.put_RunActive_1( 1 );
-    cntl_a.push();
-    cntl_b.push();
+    A feature contains derived register objects specific to the feature as
+    above.  When the feature object is constructed, the register addresses
+    should be initialized using the base class init_addr() function.
+    Thereafter the addresses need never change.  The name init_addr() was
+    choosen to make this purpose clear, as opposed to put_addr().
+
+    The init_addr() function is not part of the normal user interface.
+    I explored making it protected and using friend declarations, but things
+    became too convoluted.  It is much better to leave it public, and
+    document that it is not part of the user interface.
+
+Constructing registers outside the feature:  (user application)
+
+    No special functions are needed, and the standard C++ initialization
+    and assignment of register objects by copying of members can be used.
+
+    rgSpi0_CntlStat	cntl_a;			// un-initialized
+    rgSpi0_CntlStat	cntl_b = sx.CntlStat;	// initialization
+
+    cntl_a = cntl_b;	// object assignment
+
+    Here cntl_a is not initialized, and has a NULL address, which is not
+    very useful.  The user must avoid this situation, i.e. always use the
+    copy constructor from the register in the feature object.
+
+    Now cntl_b is initialized by the copy constructor, and has the same
+    address as the register in the feature object sx.  Both address and
+    value are copied.
+
+    Assignment of register objects copy both address and value.
+
+    Each feature register is a different class, so the compiler will not
+    allow cross assignment or cross initialization between different
+    registers.  Thus the use of register objects should be quite safe.
+
+    Register objects have only simple values (no allocation of memory) so
+    there is no need to specify special initialization or assignment
+    operations.
+    The address could become invalid if the defining rgAddrMap object is
+    destroyed, but that is a hazard throughout.
+
+Generic Field accessors - Error Check
+
+    The put_field() function can do a run-time error check of the value,
+    and if greater than the mask, then likely something is wrong - the high
+    order bits won't get applied to the register field.
+
+    Initially the register base class just throws an exception with a
+    generic "rgRegister::put_field():  value exceeds ..." message, which
+    is not very specific as to what register field had the exception.
+    Improvements might include:
+
+    A) The derived register could contain a constant string identifying
+    the register name.
+
+    B) A #define wrapper could apply __FILE__ and __LINE__ to identify
+    exactly where in the source code the error occured.
+
+    C) The message could include the bit position as a number to identify
+    the field.
+
+    Note that many field values are constants, simply configuring the
+    feature.  Once debugged these are not a problem.
+
+    Run-time variable field values are more succeptable to mistakes.  The
+    user should probably do his own run-time check with better error message.
+    Or apply a mask in the function call to ignore bad values.  These make
+    an exception less likely, and maybe less important to have a better
+    diagnostic message.
+
+    Possibly no exception should be thrown.  Simpler in the library, but
+    provides little help to catch mistakes.
+
 
 ----------------------------------------------------------------------------
 ## Object Structure
