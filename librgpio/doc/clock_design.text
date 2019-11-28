@@ -1,0 +1,381 @@
+2019-11-25
+		rgpio - Clock Manager Design
+		----------------------------
+
+Raspberry Pi GPIO Tool and Library
+
+See also:  doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    Referenced by RaspberryPi.
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://elinux.org/BCM2835_datasheet_errata
+
+See:  p.105-108  6.3 General Purpose GPIO Clocks
+
+----------------------------------------------------------------------------
+## Discussion - Clock Manager
+----------------------------------------------------------------------------
+
+    This design is based on the rgRegister class.  It was done after the
+    original General Purpose Clock class rgClock described in
+    doc/architecture.text.
+
+    The General Purpose, PWM, and PCM clock managers are all the same.
+    Thus it makes sense to have a common base class for them.
+
+Possible base Class Names:
+    rgClock
+    rgClk
+ >  rgClkMan
+    rgClkBase
+    rgClkman
+    rgClkbase
+
+    The base class operates one complete clock manager, but does not have
+    the specific address.
+
+Derived class names:
+ >  rgClkN	the General Purpose clocks Clk0, Clk1, Clk2
+ >  rgClkPwm
+ >  rgClkPcm
+
+    The derived classes know the specific clock manager addresses.
+    The rgClkN class also has a ClkNum identifier, hence the 'N'.
+
+    Possibly the ClkNum concept could be extended to include the PWM and PCM
+    clocks, but it seems artificial to introduce arbitrary numbers for them.
+
+    However, it does seem good for an object to be able to identify itself.
+    This is commonly done with the feature address.  It might be nice to
+    have a more abstract human sensible identification in addition.  This
+    would allow having just one derived class, or even avoid need for a
+    base class altogether.  [This was the original rgClock design.]
+
+    The PWM clock manager could be an object in the PWM feature.  This would
+    make clear association without extra fuss.  But it would create some
+    stamp coupling that might not be desired.
+
+    The feature derived classes should probably have their own file,
+    especially rgClkN.  Possibly rgClkPwm could be in the PWM feature file.
+
+    The register derived classes will be in the rgClkMan feature base class
+    file to avoid explosion of files.
+
+Alternative class designs:
+
+ >  A) rgClkMan  base class
+	+ Base class is more generic.
+	- Require derived classes.
+	+ Is a more object-oriented way.
+	- Uses inheritance, a little more complex concept.
+	+ Good learning example, inheritance seems appropriate.
+	+ Better flexibility for derived class variation.  Unexpected future.
+
+    B) rgClock  feature class with specific identifier
+	+ Only one feature class.  Fewer classes.
+	- Specific instance identification adds complexity.
+	+ More obvious, as everything is in one class.
+	+ Address identification is all in one place.
+
+    Essentially two methods for identifying specific object instances.
+    I feel like the base class is the way to go (2019-11-25).
+
+Enum for specific Clock Manager identification:
+
+    enum rgClkMan_enum {
+	cm_Clk0  = 0x70 /4,
+	cm_Clk1  = 0x78 /4,
+	cm_Clk2  = 0x80 /4,
+	cm_Pwm   = 0x98 /4,
+	cm_Pcm   = 0xa0 /4,
+    }
+
+    The enum could also be the feature offset to the pair of registers,
+    similar to rgIoPin class.
+
+Documentation:
+    Man page sections:
+
+    rgClkMan(7)     - describes BCM hardware function
+    rgClkMan(3)     - describes librgpio API calls, and limited function
+    rgpio_clock(1)  - describes rgpio clock command, and limited function
+
+    rgClkN(3)       - General Purpose Clocks (derived class)
+
+    The derived class should reference the base class doc, and not reproduce
+    all the inherited functions.  Maybe just list them for reference?
+
+Operation with rgpio:
+    A) Use only base field name
+	% rgpio clock  --Enable_1=1
+
+    B) Use register prefix.  The dot looks good.
+	% rgpio clock  --Cntl.Enable_1=1
+
+    The rgClkPwm and rgClkPcm are probably best operated from the 'clock'
+    sub-command to avoid duplication of options and output formatting.
+    Clock manager identification options could be:  -0 -1 -2  --pwm  --pcm
+
+Register addresses:  (BCM doc)
+    See:
+    BCM2835 Audio & PWM clocks, G.J. van Loo, 6 February 2013
+    https://www.scribd.com/doc/127599939/BCM2835-Audio-clocks
+
+			General Purpose clocks
+    0x7e101070  CM_GP0CTL
+    0x7e101074  CM_GP0DIV
+    0x7e101078  CM_GP1CTL
+    0x7e10107c  CM_GP1DIV
+    0x7e101080  CM_GP2CTL
+    0x7e101084  CM_GP2DIV
+
+			PCM  Pulse Code Modulation
+    0x7e101098  CM_PCMCTL
+    0x7e10109c  CM_PCMDIV
+
+			PWM  Pulse Width Modulation
+    0x7e1010a0  CM_PWMCTL
+    0x7e1010a4  CM_PWMDIV
+
+----------------------------------------------------------------------------
+## Operation - Clock Manager
+----------------------------------------------------------------------------
+
+Input clock sources:  [See:  https://pinout.xyz/pinout/gpclk]
+
+    Src     Freq    Description
+    ---   --------  -----------
+    0        0 Hz   Ground
+    1     19.2 MHz  oscillator
+    2        0 Hz   testdebug0
+    3        0 Hz   testdebug1
+    4        0 Hz   PLLA
+    5     1000 MHz  PLLC (changes with overclock settings)
+    6      500 MHz  PLLD
+    7      216 MHz  HDMI auxiliary
+    8-15     0 Hz   Ground
+
+Output frequency:
+    Fout = Fsource / DIVI			with no MASH
+    Fout = Fsource / (DIVI + (DIVF / 4096))	average with MASH
+
+    [Note BCM doc error (DIVF / 1024), is wrong as DIVF is a 12-bit value.]
+
+Operation:
+    There are restrictions on when IO register fields may change in order to
+    avoid glitches and potential lock-up of the clock generator.
+    Generally, the clock must be disabled, and have have become not busy
+    (BUSY=0) before changing any config.
+
+Passwd:
+    The Passwd field in each register provides some protection against
+    accidental modification.  It must be set to 0x5a in order for a write
+    to the register to be effected.
+
+----------------------------------------------------------------------------
+## Base Class Design - Clock Manager
+----------------------------------------------------------------------------
+
+Register Names:
+
+    rgClkMan	BCM	Description
+    --------	----	------------------
+    Cntl	CTL	Control register
+    Divr	DIV	Divider register
+
+    Choose Cntl as a more common abbreviation of Control, and it matches other
+    feature control registers.
+
+    Choose Divr because it matches length of Cntl, and it is a bit quirky.
+    Some alternatives considered are:  (not used)
+
+	Ctl
+	Div
+	Divide
+	Divd
+	Divr
+	DivR	camel-case looked too busy
+	Divi
+	Divid
+
+    Register names are public objects derived from base class rgRegister.
+    They are visible to the user, and should be meaningful when viewed at
+    the user call point.
+
+    BCM document typically prefixes their names with "CM_GPx".
+    No global prefix is needed here because the use is qualified by the class.
+
+Field Names:
+
+    These field names are used in the get_(), put_() accessor functions
+    and in the options and output of the rgpio program.
+
+     Reg.Field			Bits    BCM		possible alternatives
+    ----.---------------	----    -----
+    Cntl.Passwd_8		[31:24] PASSWD  (WO)
+    Cntl.Mash_2			[10:9]  MASH
+    Cntl.Flip_1			[8]     FLIP
+    Cntl.Busy_1			[7]     BUSY    (RO)
+    Cntl.Kill_1			[5]     KILL
+    Cntl.Enable_1		[4]     ENAB
+    Cntl.Source_4		[3:0]   SRC
+
+    Divr.Passwd_8		[31:24] PASSWD  (WO)
+    Divr.DivI_12		[23:12] DIVI		DivInt_12
+    Divr.DivF_12		[11:0]  DIVF		DivFrac_12
+
+    (WO) = Write-only, (RO) = Read-only, otherwise all fields are read-write.
+
+    Abbreviations appropriate for this context are:
+	Div    Divider
+	Int    Integer
+	Frac   Fraction
+
+    DivI_12, DivF_12
+	I like these names for being short and same length, and was used in
+	the previous rgClock class.  The I and F are potentially a bit cryptic.
+	Although the longer alternatives  DivInt_12, DivFrac_12  are more
+	descriptive.
+
+Function Names:
+
+    All register and field accessor functions are methods of each register
+    object.
+
+    The full register operations are inherited from rgRegister class.
+    These are:
+
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
+
+    Another name for "grab" is "pull", but I like the quirkyness of "grab".
+
+    Field accessor functions are defined in each register derived class.
+    These are named like:  (same as rgUniSpi)
+
+	get_FIELD_N()	get object FIELD value of width N
+	put_FIELD_N(V)	set object FIELD value of width N
+
+Password access of registers:
+
+    Derived register classes could add functions for applying the password
+    on the value being written.  Make register writes more convenient.
+
+ >  A) New function pw_write()
+	+ write() is as defined in base class, does not force password.
+	+ User is made aware that password is being applied.
+
+    B) Overload rgRegister::write(), new raw_write()
+	+ write() actually does the write.
+	- User is not aware that password is being applied.
+	+ Could use rgRegister::write() for the raw write.
+	- Making rgRegister::write() 'virtual' opens up other changes.
+
+----------------------------------------------------------------------------
+## Derived Classes - Clock Manager
+----------------------------------------------------------------------------
+
+    These derive from the rgClkMan base class to make a specific feature.
+    They know the addresses of their registers (the base class does not).
+
+rgClkN		General Purpose clocks
+{
+    uint32_t		ClkNum;		// Clock number {0,1,2}
+
+    uint32_t		FeatureOffset;	// offset from base address
+
+    ...  inherited from rgClkMan
+}
+
+rgClkPwm
+{
+    uint32_t		FeatureOffset;	// offset from base address
+    ...  inherited from rgClkMan
+}
+
+rgClkPcm
+{
+    uint32_t		FeatureOffset;	// offset from base address
+    ...  inherited from rgClkMan
+}
+
+    Not exactly sure how this will work out.
+
+----------------------------------------------------------------------------
+## rgClkMan  Base Class - Clock Manager
+----------------------------------------------------------------------------
+
+rgClkMan	Clock Manager base class
+{
+    volatile uint32_t	*GpioBase;	// IO base address
+
+    uint32_t		FeatureAddr;	// BCM doc base address
+
+    rgClkMan_Cntl	Cntl;		// Control  register
+    rgClkMan_Divr	Divr;		// Divisior register
+
+    int			BusyCount;	// Number of read_Busy() calls in last
+					//    wait_disable() or apply_regs().
+}
+
+Derived register methods:
+ ?  pw_write(V)		Apply passwd and write.  Or overload write()?
+ ?  raw_write(V)	Write without applying passwd.
+
+Methods:  (in addition to rgRegister base class)
+
+    get_base_addr()		GpioBase address
+
+			Direct control:  (modify register fields)
+    enable()			Set Enable=1	set_Enable()
+    disable()			Set Enable=0	clr_Enable()
+    wait_disable()		Set Enable=0, wait for not Busy.
+
+    wait_while_Busy()		Wait for not Busy.  Handle Enable=1
+
+    kill_generator()		Kill the clock generator.  modify_Kill(V)?
+					set_Kill(), clr_Kill()?
+
+			Object state operations:
+    init_put_reset()		Object registers set to power-on reset state.
+ ?  init_put_zero()		Object registers set to zero.
+
+    grab_regs()			Read all registers into object.
+    push_regs()			Write object to hardware registers.
+
+    apply_regs()		Safe apply obj to registers - disable,
+					wait for not Busy, write.
+
+			Field accessors of object state:
+    get_()
+    put_(V)
+    ...
+
+	rgClkMan_Cntl
+
+    Cntl.get_Passwd_8()		[31:24]  (WO)
+    Cntl.get_Mash_2()		[10:9]
+    Cntl.get_Flip_1()		[8]
+    Cntl.get_Busy_1()		[7]      (RO)
+    Cntl.get_Kill_1()		[5]
+    Cntl.get_Enable_1()		[4]
+    Cntl.get_Source_4()		[3:0]
+
+	rgClkMan_Divr
+
+    Divr.get_Passwd_8()		[31:24]  (WO)
+    Divr.get_DivI_12()		[23:12]
+    Divr.get_DivF_12()		[11:0]
+
