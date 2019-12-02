@@ -159,7 +159,7 @@ Operation with rgpio:
 
 Register Names:
 
-    rgSpi0		BCM	Description
+    rgPwm		BCM	Description
     ------------	----	------------------
     Cntl		CTL	Control
     Stat		STA	Status
@@ -230,7 +230,7 @@ Field Names:
     ----.---------------	----  -----
     Cntl.Ch2_MsEnable_1		[15]  MSEN2	Ch2_MsMode_1
     Cntl.Ch2_UseFifo_1		[13]  USEF2
-    Cntl.Ch2_Polarity_1		[12]  POLA2
+    Cntl.Ch2_Invert_1		[12]  POLA2	Ch2_Polarity_1
     Cntl.Ch2_IdleBit_1		[11]  SBIT2	Ch2_Silence_1
     Cntl.Ch2_Repeat_1		[10]  RPTL2	Ch2_RepeatLast_1
     Cntl.Ch2_SerMode_1		[9]   MODE2	Ch2_PwmSerial_1  Ch2_ModeSer_1
@@ -240,7 +240,7 @@ Field Names:
 
     Cntl.Ch1_MsEnable_1		[7]   MSEN1
     Cntl.Ch1_UseFifo_1		[5]   USEF1
-    Cntl.Ch1_Polarity_1		[4]   POLA1
+    Cntl.Ch1_Invert_1		[4]   POLA1
     Cntl.Ch1_IdleBit_1		[3]   SBIT1
     Cntl.Ch1_Repeat_1		[2]   RPTL1
     Cntl.Ch1_SerMode_1		[1]   MODE1
@@ -257,8 +257,8 @@ Field Names:
     Stat.Ch1_GapErr_1		[4]   GAPO1
     Stat.FifoReadErr_1		[3]   RERR1
     Stat.FifoWriteErr_1		[2]   WERR1
-    Stat.FifoEmpty_1		[1]   EMPT1
-    Stat.FifoFull_1		[0]   FULL1
+    Stat.FifoEmpty_1		[1]   EMPT1  (RO)?
+    Stat.FifoFull_1		[0]   FULL1  (RO)?
 
     DmaConf.DmaEnable_1		[31]    ENAB
     DmaConf.DmaPanicLev_8	[15:8]  PANIC
@@ -278,19 +278,22 @@ Field Naming:
     Try to limit name length to 15 characters or less, including the "_1"
     field width numeral.
 
+    Single-bit fields should name the thing that the '1' level does.  Avoid
+    ambiguous terms like "polarity", where 1 could be normal or inverted.
+
     Name components typically include the thing they apply to and the
     behavior they control.
 
     Abbreviations appropriate for this context are:
-    Pwm    Pulse Width Modulator
-    Ser    Serializer mode
-    Ms     Mark Space mode
-    Err    Error
-    Dma    Direct Memory Access
-    Req    Request
-    Lev    Level
-    Ch1    Channel 1
-    Ch2    Channel 2
+	Pwm    Pulse Width Modulator
+	Ser    Serializer mode
+	Ms     Mark Space mode
+	Err    Error
+	Dma    Direct Memory Access
+	Req    Request
+	Lev    Level
+	Ch1    Channel 1
+	Ch2    Channel 2
 
     Decide to stick to fairly strict camel-case for things like Dma, even
     though DMA is more common.
@@ -315,6 +318,9 @@ Field Naming:
 	but not clear which function is the zero level.
 
 	Seems best to just name the function that is the 1 value.
+
+    Ch2_Invert_1    - 1= invert output, 0= not.
+	Calling it "Polarity" is ambiguous, don't know which level is inverted.
 
     Ch2_IdleBit_1   - Doc calls it a Silence bit.  Idle seems like a better
 	description.
@@ -394,7 +400,7 @@ Methods:
 
     Cntl.get_Ch2_MsEnable_1()	[15]
     Cntl.get_Ch2_UseFifo_1()	[13]
-    Cntl.get_Ch2_Polarity_1()	[12]
+    Cntl.get_Ch2_Invert_1()	[12]
     Cntl.get_Ch2_IdleBit_1()	[11]
     Cntl.get_Ch2_Repeat_1()	[10]
     Cntl.get_Ch2_SerMode_1()	[9]
@@ -404,7 +410,7 @@ Methods:
 
     Cntl.get_Ch1_MsEnable_1()	[7]
     Cntl.get_Ch1_UseFifo_1()	[5]
-    Cntl.get_Ch1_Polarity_1()	[4]
+    Cntl.get_Ch1_Invert_1()	[4]
     Cntl.get_Ch1_IdleBit_1()	[3]
     Cntl.get_Ch1_Repeat_1()	[2]
     Cntl.get_Ch1_SerMode_1()	[1]
