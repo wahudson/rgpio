@@ -16,6 +16,7 @@ using namespace std;
 #include "y_clock.h"
 #include "y_fsel.h"
 #include "y_io.h"
+#include "y_pwm.h"
 #include "y_spi0.h"
 #include "y_uspi.h"
 
@@ -150,6 +151,7 @@ yOptLong::print_usage()
     "    io           General Purpose IO pins\n"
     "    fsel         Pin Function Select\n"
     "    clock        Clock generator\n"
+    "    pwm          PWM Pulse Width Modulator\n"
     "    spi0         SPI0 Master\n"
     "    uspi         Universal SPI Master, Spi1, Spi2\n"
     "  main options:\n"
@@ -223,6 +225,10 @@ main( int	argc,
 	else if ( Opx.feature == "clock"    ) {
 	    y_clock		cx  ( &Opx, &Amx );	// constructor
 	    retv = cx.doit();
+	}
+	else if ( Opx.feature == "pwm"     ) {
+	    y_pwm		pwx  ( &Opx, &Amx );	// constructor
+	    retv = pwx.doit();
 	}
 	else if ( Opx.feature == "spi0"    ) {
 	    y_spi0		usx  ( &Opx, &Amx );	// constructor

@@ -22,6 +22,7 @@ INCS       = \
 	y_clock.h \
 	y_fsel.h \
 	y_io.h \
+	y_pwm.h \
 	y_spi0.h \
 	y_uspi.h \
 	yOpVal.h \
@@ -34,6 +35,7 @@ OBJS       = \
 	$(OJ)/y_clock.o \
 	$(OJ)/y_fsel.o \
 	$(OJ)/y_io.o \
+	$(OJ)/y_pwm.o \
 	$(OJ)/y_spi0.o \
 	$(OJ)/y_uspi.o \
 	$(OJ)/yOpVal.o \
@@ -98,6 +100,9 @@ $(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
 
 $(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_io.cpp
+
+$(OJ)/y_pwm.o:		y_pwm.cpp  y_pwm.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_pwm.cpp
 
 $(OJ)/y_spi0.o:		y_spi0.cpp  y_spi0.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_spi0.cpp
