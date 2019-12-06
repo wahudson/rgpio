@@ -134,12 +134,17 @@ class rgPwm_DmaConf : public rgRegister {
 class rgPwm_Fifo : public rgRegister {
 };
 
-class rgPwm_Range : public rgRegister {
+class rgPwm_Ch1Range : public rgRegister {
 };
 
-class rgPwm_Data  : public rgRegister {
+class rgPwm_Ch1Data  : public rgRegister {
 };
-//#!! Should Ch1 and Ch2 share classes?  Object copy of address??
+
+class rgPwm_Ch2Range : public rgRegister {
+};
+
+class rgPwm_Ch2Data  : public rgRegister {
+};
 
 
 class rgPwm {
@@ -152,10 +157,10 @@ class rgPwm {
     rgPwm_Stat		Stat;		// STA	Status
     rgPwm_DmaConf	DmaConf;	// DMAC	DMA Configuration
     rgPwm_Fifo		Fifo;		// FIF1	Fifo input (WO)
-    rgPwm_Range		Ch1Range;	// RNG1 cycle length M
-    rgPwm_Data		Ch1Data;	// DAT1 data or mark length N
-    rgPwm_Range		Ch2Range;	// RNG2 cycle length M
-    rgPwm_Data		Ch2Data;	// DAT2 data or mark length N
+    rgPwm_Ch1Range	Ch1Range;	// RNG1 cycle length M
+    rgPwm_Ch1Data	Ch1Data;	// DAT1 data or mark length N
+    rgPwm_Ch2Range	Ch2Range;	// RNG2 cycle length M
+    rgPwm_Ch2Data	Ch2Data;	// DAT2 data or mark length N
 
   private:
     static const uint32_t	FeatureAddr  = 0x7e20c000;	// BCM doc value

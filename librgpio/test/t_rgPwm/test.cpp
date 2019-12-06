@@ -103,18 +103,36 @@ rgPwm			Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "14e", "reg constructor rgPwm_Range" );
+  CASE( "14e", "reg constructor rgPwm_Ch1Range" );
     try {
-	rgPwm_Range	rx  ( Tx.Ch1Range );
+	rgPwm_Ch1Range	rx  ( Tx.Ch1Range );
 	CHECKX( 0x10, (rx.addr() - Tx.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "14f", "reg constructor rgPwm_Data" );
+  CASE( "14f", "reg constructor rgPwm_Ch1Data" );
     try {
-	rgPwm_Data	rx  ( Tx.Ch2Data );
+	rgPwm_Ch1Data	rx  ( Tx.Ch1Data );
+	CHECKX( 0x14, (rx.addr() - Tx.get_base_addr())*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "14g", "reg constructor rgPwm_Ch2Range" );
+    try {
+	rgPwm_Ch2Range	rx  ( Tx.Ch2Range );
+	CHECKX( 0x20, (rx.addr() - Tx.get_base_addr())*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "14h", "reg constructor rgPwm_Ch2Data" );
+    try {
+	rgPwm_Ch2Data	rx  ( Tx.Ch2Data );
 	CHECKX( 0x24, (rx.addr() - Tx.get_base_addr())*4 );
     }
     catch (...) {

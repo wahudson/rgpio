@@ -360,6 +360,56 @@ Function Names:
 	get_FIELD_N()	get object FIELD value of width N
 	put_FIELD_N(V)	set object FIELD value of width N
 
+Register Classes:
+
+    Each unique register gets its own class name:
+	rgPwm_Cntl
+	rgPwm_Stat
+	rgPwm_DmaConf
+	rgPwm_Fifo
+
+    The Ch1/Ch2 Range and Data registers are 32-bits and have no fields.
+    Should they share a common class declaration?
+
+    A) Declare as rgRegister (just use the base class).
+	+ No new class declarations.
+	- Not uniform to have some as the base class.
+	- Allows cross address copy, confusion.
+
+    B) rgPwm_Range, rgPwm_data - shared by Ch1/Ch2.
+	+ Ch1/Ch2 share the same class, fewer classes.
+	- Minor exception to register class naming.
+	- Allows cross address copy, confusion.
+
+ >  C) Each register address gets a unique class.
+	+ Systematic class naming, follows all other registers.
+	+ Cross address (class) copy dis-allowed by compiler.
+	- More classes.
+	+ Allows future specialization if needed.
+
+    Tried (B) first, but in retrospect began to see disadvantages (see
+    initial rgPwm.h, 2019-12-01).
+    Registers internal to the feature class are not a problem.
+
+    Register objects outside the class each have a copy of the register
+    address.  Full object copy, i.e. regA = regB, will also copy the
+    address, thus changing what regA really is.  Same with constructor
+    initialization (also called copy constructor).
+
+    It is possible to define both constructor initialization and the class
+    copy operator to not copy the address, but that leaves an address
+    initialization problem for the user.
+
+    Thus (C), each register address gets a unique class, is really the best
+    choice.
+
+    Object copy leaves some uncertainty about the address being copied:
+	regA = regB;
+
+    Explicit value copy is easy enough, and can be done between any two
+    register classes:
+	regA.put( regB.get );
+
 ----------------------------------------------------------------------------
 ## rgPwm Object - Pulse Width Modulator
 ----------------------------------------------------------------------------
