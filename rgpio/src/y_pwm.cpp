@@ -397,6 +397,7 @@ y_pwm::doit()
     // PWM object
 
 	rgPwm		Pwx  ( AddrMap );	// constructor
+	rgPwm_Stat	Sx   ( Pwx.Stat );	// construct register
 
 	if ( Opx.debug ) {
 	    // Note cout does not know how to show (volatile uint32_t*).
@@ -434,6 +435,7 @@ y_pwm::doit()
 	    APPLX( Ch2Data  )
 
 #define APPLY( X, Y ) if ( Opx.X.Given ) { Pwx.Y( Opx.X.Val );  md = 1; }
+#define APPLS( X, Y ) if ( Opx.X.Given ) {     Y( Opx.X.Val );  md = 1; }
 
 	// Cntl fields
 
@@ -457,15 +459,18 @@ y_pwm::doit()
 
 	// Stat fields
 
-	    APPLY( Ch2_Active_1,    Stat.put_Ch2_Active_1    )
-	    APPLY( Ch1_Active_1,    Stat.put_Ch1_Active_1    )
-	    APPLY( BusError_1,      Stat.put_BusError_1      )
-	    APPLY( Ch2_GapErr_1,    Stat.put_Ch2_GapErr_1    )
-	    APPLY( Ch1_GapErr_1,    Stat.put_Ch1_GapErr_1    )
-	    APPLY( FifoReadErr_1,   Stat.put_FifoReadErr_1   )
-	    APPLY( FifoWriteErr_1,  Stat.put_FifoWriteErr_1  )
-	    APPLY( FifoEmpty_1,     Stat.put_FifoEmpty_1     )
-	    APPLY( FifoFull_1,      Stat.put_FifoFull_1      )
+	    // Read-only, write 1 clears bit, write 0 does nothing.
+	    Sx.put( ( Opx.Stat.Given ) ? Opx.Stat.Val : 0x00000000 );
+
+	    APPLS( Ch2_Active_1,    Sx.put_Ch2_Active_1    )	// (RO)
+	    APPLS( Ch1_Active_1,    Sx.put_Ch1_Active_1    )	// (RO)
+	    APPLS( BusError_1,      Sx.put_BusError_1      )
+	    APPLS( Ch2_GapErr_1,    Sx.put_Ch2_GapErr_1    )
+	    APPLS( Ch1_GapErr_1,    Sx.put_Ch1_GapErr_1    )
+	    APPLS( FifoReadErr_1,   Sx.put_FifoReadErr_1   )
+	    APPLS( FifoWriteErr_1,  Sx.put_FifoWriteErr_1  )
+	    APPLS( FifoEmpty_1,     Sx.put_FifoEmpty_1     )	// (RO)
+	    APPLS( FifoFull_1,      Sx.put_FifoFull_1      )	// (RO)
 
 	// DmaConf fields
 
@@ -475,7 +480,14 @@ y_pwm::doit()
 
 	    if ( md ) {			// modified registers
 		Opx.trace_msg( "Modify regs" );
-		Pwx.push_regs();
+		Pwx.Ch1Range.push();
+		Pwx.Ch1Data.push();
+		Pwx.Ch2Range.push();
+		Pwx.Ch2Data.push();
+		Pwx.DmaConf.push();
+		Pwx.Cntl.push();
+		Sx.push();		// Stat last, clear Err flags
+		// Functional ordering, otherwise split up rgpio commands.
 	    }
 
 	    if ( Opx.tx ) {
@@ -501,17 +513,16 @@ y_pwm::doit()
 
 	    cout.fill('0');
 	    cout <<hex
-		<< "   Cntl=     0x" <<setw(8) << Pwx.Cntl.read()     <<endl
-		<< "   Stat=     0x" <<setw(8) << Pwx.Stat.read()     <<endl
-		<< "   DmaConf=  0x" <<setw(8) << Pwx.DmaConf.read()  <<endl
+		<< "   Cntl=     0x" <<setw(8) << Pwx.Cntl.get()     <<endl
+		<< "   Stat=     0x" <<setw(8) << Pwx.Stat.get()     <<endl
+		<< "   DmaConf=  0x" <<setw(8) << Pwx.DmaConf.get()  <<endl
 		<< "   Fifo=     0x" <<setw(8) << Pwx.Fifo.read()     <<endl
-		<< "   Ch2Range= 0x" <<setw(8) << Pwx.Ch2Range.read() <<endl
-		<< "   Ch2Data=  0x" <<setw(8) << Pwx.Ch2Data.read()  <<endl
-		<< "   Ch1Range= 0x" <<setw(8) << Pwx.Ch1Range.read() <<endl
-		<< "   Ch1Data=  0x" <<setw(8) << Pwx.Ch1Data.read()  <<endl
+		<< "   Ch2Range= 0x" <<setw(8) << Pwx.Ch2Range.get() <<endl
+		<< "   Ch2Data=  0x" <<setw(8) << Pwx.Ch2Data.get()  <<endl
+		<< "   Ch1Range= 0x" <<setw(8) << Pwx.Ch1Range.get() <<endl
+		<< "   Ch1Data=  0x" <<setw(8) << Pwx.Ch1Data.get()  <<endl
 		;
-		// Fifo for debug, is (WO)
-		//#!! use get() for consistency with fields?
+		// Fifo for debug, is (WO), is not in grab_regs()
 
 	    cout.fill(' ');
 	    cout <<dec
