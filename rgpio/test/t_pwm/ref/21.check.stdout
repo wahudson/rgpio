@@ -1,0 +1,38 @@
+   Cntl=     0xffffffff
+   Stat=     0xffffffff
+   DmaConf=  0xffffffff
+   Fifo=     0x00000000
+   Ch2Range= 0xffffffff
+   Ch2Data=  0xffffffff
+   Ch1Range= 0xffffffff
+   Ch1Data=  0xffffffff
+ Cntl
+   Ch2_MsEnable_1  = 1
+   Ch2_UseFifo_1   = 1
+   Ch2_Invert_1    = 1
+   Ch2_IdleBit_1   = 1
+   Ch2_Repeat_1    = 1
+   Ch2_SerMode_1   = 1
+   Ch2_Enable_1    = 1
+   ClearFifo_1     = 1
+   Ch1_MsEnable_1  = 1
+   Ch1_UseFifo_1   = 1
+   Ch1_Invert_1    = 1
+   Ch1_IdleBit_1   = 1
+   Ch1_Repeat_1    = 1
+   Ch1_SerMode_1   = 1
+   Ch1_Enable_1    = 1
+ Stat
+   Ch2_Active_1    = 1
+   Ch1_Active_1    = 1
+   BusError_1      = 1
+   Ch2_GapErr_1    = 1
+   Ch1_GapErr_1    = 1
+   FifoReadErr_1   = 1
+   FifoWriteErr_1  = 1
+   FifoEmpty_1     = 1
+   FifoFull_1      = 1
+ DmaConf
+   DmaEnable_1     = 1
+   DmaPanicLev_8   = 255
+   DmaReqLev_8     = 255

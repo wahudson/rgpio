@@ -1,0 +1,41 @@
+    PWM Pulse Width Modulator control
+usage:  rgpio pwm  [options..] [--tx V..]
+  modify full register:  (V= 32-bit value)
+    --Cntl=V            Control
+    --Stat=V            Status
+    --DmaConf=V         DMA Configuration
+    --Ch2Range=V        cycle length M
+    --Ch2Data=V         data pattern or mark length N
+    --Ch1Range=V        ...
+    --Ch1Data=V         ...
+  send pattern:
+    --tx                write arg values to Fifo
+  modify Cntl bit fields:
+    --ClearFifo_1=0     1= clears fifo, single shot (WO)
+    --Ch2_MsEnable_1=0  1= mark/space mode, 0= pwm mode
+    --Ch2_UseFifo_1=0   1= fifo, 0= Data register
+    --Ch2_Invert_1=0    1= invert, 0= normal
+    --Ch2_IdleBit_1=0   value output for padding or idle
+    --Ch2_Repeat_1=0    1= repeat last data in fifo, 0= not
+    --Ch2_SerMode_1=0   1= serializer mode, 0= MsEnable mode
+    --Ch2_Enable_1=0    1= enable channel, 0= disabled
+    --Ch1_* ...         same as Ch2_* above
+  modify Stat bit fields:  (write 1 to clear Err flag)
+    --Ch2_Active_1=0    1= transmitting, 0=not, (RO)
+    --Ch1_Active_1=0    ...
+    --BusError_1=0      error writing to registers, bus overrun
+    --Ch2_GapErr_1=0    gap in transmission between fifo entries
+    --Ch1_GapErr_1=0    ...
+    --FifoReadErr_1=0   fifo read when empty
+    --FifoWriteErr_1=0  fifo write when full
+    --FifoEmpty_1=0     fifo is empty (RO)
+    --FifoFull_1=0      fifo is full  (RO)
+  modify DmaConf bit fields:
+    --DmaEnable_1=0     1= DMA start, 0= disabled
+    --DmaPanicLev_8=N   DMA panic when Fifo level > N
+    --DmaReqLev_8=N     DMA DREQ  when Fifo level > N
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)

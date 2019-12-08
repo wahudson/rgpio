@@ -1,0 +1,42 @@
+PWM:
++ Grab regs
++ Modify regs
++ Grab regs
+   Cntl=     0x00000040
+   Stat=     0x00000020
+   DmaConf=  0x80000000
+   Fifo=     0x00000000
+   Ch2Range= 0x00000000
+   Ch2Data=  0x00000000
+   Ch1Range= 0x00000000
+   Ch1Data=  0x00000000
+ Cntl
+   Ch2_MsEnable_1  = 0
+   Ch2_UseFifo_1   = 0
+   Ch2_Invert_1    = 0
+   Ch2_IdleBit_1   = 0
+   Ch2_Repeat_1    = 0
+   Ch2_SerMode_1   = 0
+   Ch2_Enable_1    = 0
+   ClearFifo_1     = 1
+   Ch1_MsEnable_1  = 0
+   Ch1_UseFifo_1   = 0
+   Ch1_Invert_1    = 0
+   Ch1_IdleBit_1   = 0
+   Ch1_Repeat_1    = 0
+   Ch1_SerMode_1   = 0
+   Ch1_Enable_1    = 0
+ Stat
+   Ch2_Active_1    = 0
+   Ch1_Active_1    = 0
+   BusError_1      = 0
+   Ch2_GapErr_1    = 1
+   Ch1_GapErr_1    = 0
+   FifoReadErr_1   = 0
+   FifoWriteErr_1  = 0
+   FifoEmpty_1     = 0
+   FifoFull_1      = 0
+ DmaConf
+   DmaEnable_1     = 1
+   DmaPanicLev_8   = 0
+   DmaReqLev_8     = 0

@@ -49,6 +49,7 @@ Test suites:  (2018-11-09)
  u   s  t_yUtil/	yUtil		Utility functions.
  pbl    t_clock/	rgpio-clock	subcommand
  pbl    t_fsel/		rgpio-fsel	subcommand
+ pbl    t_pwm/		rgpio-pwm	subcommand
  pbl    t_io/		rgpio-io	subcommand
  pbl    t_rgpio/	rgpio		rgpio main program.
 
@@ -61,6 +62,8 @@ Test Setup:
     Build the test framework in src/ (only needed when it changes):
     % cd  src/
     % make
+
+    Tests do NOT rebuild the object being tested.
 
 
 Run Tests:
