@@ -1,0 +1,336 @@
+# 2019-12-08  William A. Hudson
+
+# rgPwm  Hardware Register Description.
+#---------------------------------------------------------------------------
+
+=head1		NAME
+
+rgPwm  Hardware Description -- PWM Pulse Width Modulator
+
+=head1		SYNOPSIS
+
+Hardware registers of the PWM peripheral on Raspberry Pi3.
+All are 32-bits, but may have sparsely populated fields.
+All are read-write, except those marked read-only (RO) or write-only (WO).
+
+    rgPwm
+    Register          BCM name	Description
+    ---------         --------	------------------
+    Cntl		CTL	Control
+    Stat		STA	Status
+    DmaConf		DMAC	DMA Configuration
+    Fifo		FIF1	Fifo input (WO)
+    Ch1Range		RNG1	cycle length M
+    Ch1Data		DAT1	data pattern or mark length N
+    Ch2Range		RNG2	...
+    Ch2Data		DAT2	...
+
+The Ch*Range and Ch*Data registers are each a single 32-bit field, so have no
+field names.
+
+     Reg.Field			Bits  BCM name
+    ----.---------------	----  --------
+    Cntl.Ch2_MsEnable_1		[15]  MSEN2
+    Cntl.Ch2_UseFifo_1		[13]  USEF2
+    Cntl.Ch2_Invert_1		[12]  POLA2
+    Cntl.Ch2_IdleBit_1		[11]  SBIT2
+    Cntl.Ch2_Repeat_1		[10]  RPTL2
+    Cntl.Ch2_SerMode_1		[9]   MODE2
+    Cntl.Ch2_Enable_1		[8]   PWEN2
+
+    Cntl.ClearFifo_1		[6]   CLRF1  (WO)
+
+    Cntl.Ch1_MsEnable_1		[7]   MSEN1
+    Cntl.Ch1_UseFifo_1		[5]   USEF1
+    Cntl.Ch1_Invert_1		[4]   POLA1
+    Cntl.Ch1_IdleBit_1		[3]   SBIT1
+    Cntl.Ch1_Repeat_1		[2]   RPTL1
+    Cntl.Ch1_SerMode_1		[1]   MODE1
+    Cntl.Ch1_Enable_1		[0]   PWEN1
+
+    Stat.Ch4_Active_1		[12]  STA4   (RO)  (non-existent)
+    Stat.Ch3_Active_1		[11]  STA3   (RO)  (non-existent)
+    Stat.Ch2_Active_1		[10]  STA2   (RO)
+    Stat.Ch1_Active_1		[9]   STA1   (RO)
+    Stat.BusError_1		[8]   BERR
+    Stat.Ch4_GapErr_1		[7]   GAPO4        (non-existent)
+    Stat.Ch3_GapErr_1		[6]   GAPO3        (non-existent)
+    Stat.Ch2_GapErr_1		[5]   GAPO2
+    Stat.Ch1_GapErr_1		[4]   GAPO1
+    Stat.FifoReadErr_1		[3]   RERR1
+    Stat.FifoWriteErr_1		[2]   WERR1
+    Stat.FifoEmpty_1		[1]   EMPT1  (RO)?
+    Stat.FifoFull_1		[0]   FULL1  (RO)?
+
+    DmaConf.DmaEnable_1		[31]    ENAB
+    DmaConf.DmaPanicLev_8	[15:8]  PANIC
+    DmaConf.DmaReqLev_8		[7:0]   DREQ
+
+    (WO) = Write-only, (RO) = Read-only, otherwise all are Read-write.
+
+Bit field names incorporate the number of bits in the field, making the
+field size self documenting.
+
+Unspecified bit fields in each register are typically reserved, and should
+be write as 0, and read as don't care.
+
+Note:  Ch3 and Ch4 probably are non-functional, likely left over from a
+previous chip design.  Treat as reserved.
+
+
+=head1		DESCRIPTION
+
+This documentation describes the operation of the PWM Pulse Width Modulator
+on Raspberry Pi.
+
+Two output channels, Ch1 and Ch2, are almost fully independent.  They share
+an 8-entry by 32-bit FIFO.  When one channel does not use the FIFO, they are
+fully independent.
+
+The clock source comes from the PWM Clock Manager, which is nearly identical
+to the General Purpose clocks.
+
+Each channel can operate in one of three modes of operation:
+
+    A) PWM mode.
+    B) MS Mark/Space mode.
+    C) Serializer mode.
+
+The data pattern or integer N can come from Data Register or FIFO.
+The Range register always specifies integer M.
+
+
+=head2			A) PWM mode
+
+The idea is to output a pulse train with a duty cycle of (N / M), with
+pulses evenly distributed, on average, in a range of M clock cycles,
+where N and M are unsigned integers and N < M.
+On average, the output will have N cycles high, and the remainder
+(M - N) cycles low.
+
+A simple algorithm distributes the N high cycles uniformly over the
+range M.  Here x is the integer state or context.
+[Deduced from incomplete description in BCM doc p.139]
+
+	x = 0			# maybe output 1?
+	for each clock cycle do {
+	    x = x + N
+	    if ( x >= M ) {
+		x = x - M
+		output 1
+	    }
+	    else {
+		output 0
+	    }
+	}
+
+The output pattern repeats at least every M clock clock cycles,
+and may be shorter if M is an integer multiple of N.
+
+Require (N <= M), otherwise x grows without bound.
+
+
+=head2		B) MS Mark/Space mode.
+
+Simply output N high clocks, followed by (M - N) low clocks.  This mode can
+make a very low frequency clock since M and N are 32-bit numbers.
+
+	      <------------ M Range ---------->
+	      <---- N ----->
+	       ____________                    ____________
+    Out  _____|            |__________________|            |________
+
+
+=head2		C) Serializer mode.
+
+Data pattern is shifted out, one bit per clock cycle, MSB (Most Significant
+Bit) first.  [BCM doc p.142]
+Data is taken as 32-bit words from the Data register, or Fifo.  ???
+
+The data is repeated every M clock cycles, truncated or zero-padded
+with the idle-bit value, depending on range M.
+
+	      <------------ M Range ---------->
+	      < Data bits >
+
+    Out  _____|XXXXXXXXXXXX|__________________|XXXXXXXXXXXX|________
+
+
+=head2			Hardware Signals
+
+GPIO Alternate Function signal names:  Note the PWM peripheral can be
+operated regardless of these signals being routed to GPIO pins.
+(The inconsistent naming is unfortunate.)
+
+    Sig Name	Function
+    --------	----------
+    PWM0	Ch1 output
+    PWM1	Ch2 output
+
+
+=head1		REGISTER BIT FIELDS
+
+Channel 1 (Ch1_*) bit field functions are the same as for Ch2_*.
+The numeric suffix on the field name indicates the number of bits in the field.
+
+=head2			Cntl register
+
+Virtually all fields are read-write control bits, i.e. the read value is the
+last write value.
+
+=over
+
+=item B<ClearFifo_1>        - Clear output Fifo.  (WO)
+
+ 1= Clear Fifo as a single-shot operation.
+ 0= do nothing
+
+Reading always returns 0.
+
+=item B<Ch2_MsEnable_1>     - Mark/Space mode enable.
+
+ 1= MS Mark/Space mode
+ 0= PWM mode
+
+This bit has no effect when Ch2_SerMode_1=1.
+
+=item B<Ch2_UseFifo_1>      - Use Fifo or Data register.
+
+ 1= use Fifo
+ 0= use Data register
+
+Select data source for Serializer or parameter N.
+
+=item B<Ch2_Invert_1>       - Invert output.
+
+ 1= invert final output
+ 0= not
+
+=item B<Ch2_IdleBit_1>      - Idle output level.
+
+This bit value is output when:  Zero padding in Serializer mode.
+Between two consecutive transfers, i.e. when there is a gap in output.
+When the Range is larger than the data being transferred.
+[The BCM doc is not clear.]
+Not used in Mark/Space mode.
+
+=item B<Ch2_Repeat_1>       - Repeat last data in Fifo.
+
+ 1= Last data in Fifo is repeated while Fifo is empty.
+ 0= Interrupt when Fifo is empty.
+
+No effect when Ch2_UseFifo_1=0.
+Note when both channels share the Fifo, the last valid data value for each
+channel is not well defined, so both channels should set Ch*_Repeat_1=0.
+
+=item B<Ch2_SerMode_1>      - Enable Serializer mode.
+
+ 1= Serializer mode.
+ 0= Use mode selected by Ch2_MsEnable_1.
+
+=item B<Ch2_Enable_1>       - Enable channel operation.
+
+ 1= Enabled.   Output is produced by state machine execution.
+ 0= Disabled.  Output is the Ch2_IdleBit_1 value.
+
+All registers and Fifo are writeable without setting this bit.
+
+=item B<Ch1_*>              - Same as Ch2_* above ...
+
+=back
+
+=head2			Stat register
+
+Only the Error bits are read-write (RW), all others are read-only (RO).
+
+The Error bits are cleared in a one-shot operation when written 1, and
+remain unchanged when written 0.  Thus simply writing back the read register
+value will clear all the Error bits that were set.
+
+=over
+
+=item B<Ch2_Active_1>       - Active state of channel.  (RO)
+
+ 1= Active, output is transmitting.
+ 0= Not active, not transmitting.
+
+=item B<BusError_1>         - Bus Error flag.
+
+ 1= Bus Error occurred.  (Write 1 to clear.)
+ 0= Not
+
+=item B<Ch2_GapErr_1>       - Gap occurred flag.
+
+ 1= Gap has occurred.    (Write 1 to clear.)
+ 0= Not
+
+=item B<FifoReadErr_1>      - Fifo read on empty error.
+
+ 1= Error has occurred.  (Write 1 to clear.)
+ 0= Not
+
+=item B<FifoWriteErr_1>     - Fifo write when full error.
+
+ 1= Error has occurred.  (Write 1 to clear.)
+ 0= Not
+
+=item B<FifoEmpty_1>        - Fifo is Empty.  (RO)
+
+ 1= Fifo is Empty.
+ 0= Not
+
+=item B<FifoFull_1>         - Fifo is Full.  (RO)
+
+ 1= Fifo is Full.
+ 0= Not
+
+=item B<Ch1_*>              - Same as Ch2_* above ...
+
+=back
+
+=head2			DmaConf register
+
+See BCM doc.
+
+=head2			Fifo register (WO)
+
+See BCM doc.
+
+=head2			Ch2Range, Ch1Range  registers
+
+Register value is interpreted as an unsigned 32-bit integer M representing
+the number of clock cycles in one cycle of operation.
+
+=head2			Ch2Data, Ch1Data  registers
+
+Register interpretation depends on mode.
+See BCM doc.
+
+
+=head1		BUGS
+
+This documentation is intended as a more complete description, derived mostly
+from the BCM doc along with deductions and experimental observations.
+As such, it may be wrong.
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgPwm.h
+ src/rgPwm.cpp
+
+
+=head1		SEE ALSO
+
+ rgPwm(3)
+ rgpio-pwm(1)
+
+ BCM doc:  Chapter 9 "Pulse Width Modulator" (p.138-147).
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+

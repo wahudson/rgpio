@@ -14,8 +14,10 @@ README			this file
 
 doc/		    Documentation
     architecture.text	Architecture description
+    clock_design.text	Clock Manager design
     mem_barrier.text	Memory Barrier notes
     privilege.text	Process Privilege Control
+    pwm_design.text	PWM (Pulse Width Modulator) design
     spi0_design.text	rgSpi0 Design architecture
     spi_design.text	rgUniSpi Design Architecure
 
@@ -39,6 +41,10 @@ src/		    Source code
     rgIoPin.cpp		GPIO IO Pin control class
     rgIoPin.h
     rgIoPin.pod
+    rgPwm.cpp		PWM Pulse Width Modulator class
+    rgPwm.h
+    rgRegister.cpp	Register base class
+    rgRegister.h
     rgSpi0.cpp		SPI0 Master class
     rgSpi0.h
     rgUniSpi.cpp	Universal SPI Master class - SPI1, SPI2
