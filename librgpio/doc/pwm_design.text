@@ -149,6 +149,46 @@ Operation with rgpio:
     Note Mark/Space mode can make a very low frequency clock since M, and N,
     are 32-bit numbers.
 
+Register Operation:
+
+    Most registers are simple Read/Write (RW).
+    The Fifo register is Write-only (WO).
+
+    The Stat register is Read-only (RO), but some bit fields (the Error flags)
+    are cleared by writing a 1.  A useful effect is after reading the Stat
+    register, and inspecting Error flags, simply writing the same value back
+    will clear all error flags that were set.
+
+    The Cntl.ClearFifo_1 bit is essentially Write-only (WO).  Writing a 1
+    clears the Fifo in a one-shot operation, i.e. the bit is self clearing.
+    It always reads as 0.
+
+    Read-only (RO) bit fields can be written with either 0 or 1, and has
+    no effect.
+
+Reserved Fields:
+
+    Reserved fields should be written as 0, and read as don't care (pretty
+    uniform throughout the BCM doc).  This is intended to provide future
+    compatibility when a new hardware feature bit is added to the register.
+    There may or may not be actual register storage for reserved bits.
+    Typically reserved bits read as zero, but don't count on it.
+
+    For full utility, the library allows writing any value to reserved fields.
+
+    Specifiec register functions to help with reserved fields:
+
+	zero_reserved() - Put zero in reserved fields of object register.
+
+	apply()         - Zero reserved fields, then push object register
+			    to hardware.
+
+	Perhaps apply() should be a virtual function of the rgRegister
+	base class so it exists for all registers.  In the base class it
+	is the same as push().
+
+    These ideas may also apply to registers that have password fields.
+
 ----------------------------------------------------------------------------
 ## Class Design - Pulse Width Modulator
 ----------------------------------------------------------------------------
