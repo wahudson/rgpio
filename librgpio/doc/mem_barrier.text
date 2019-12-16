@@ -28,6 +28,10 @@ User-space RCU: Memory-barrier menagerie
 LINUX KERNEL MEMORY BARRIERS
     https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/memory-barriers.txt
 
+Memory Barriers: a Hardware View for Software Hackers
+    Paul E. McKenney, Linux Technology Center, IBM Beaverton, July 23, 2010
+    https://www.researchgate.net/publication/228824849_Memory_Barriers_a_Hardware_View_for_Software_Hackers
+
 ----------------------------------------------------------------------------
 ## Usage
 ----------------------------------------------------------------------------

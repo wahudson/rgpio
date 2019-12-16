@@ -201,6 +201,7 @@ Register Names:
 	DivR	camel-case looked too busy
 	Divi
 	Divid
+	DivReg
 
     Register names are public objects derived from base class rgRegister.
     They are visible to the user, and should be meaningful when viewed at
@@ -273,7 +274,7 @@ Password access of registers:
     Derived register classes could add functions for applying the password
     on the value being written.  Make register writes more convenient.
 
- >  A) New function pw_write()
+    A) New function pw_write()
 	+ write() is as defined in base class, does not force password.
 	+ User is made aware that password is being applied.
 
@@ -283,35 +284,127 @@ Password access of registers:
 	+ Could use rgRegister::write() for the raw write.
 	- Making rgRegister::write() 'virtual' opens up other changes.
 
+    Another way is an apply() function that changes the passwd field in
+    the object register, then writes the hardware register.  Leave the
+    register base class write() and push() as the raw operations.
+    This idea also applies to setting reserved fields zero.
+
+ >  C) Virtual apply() sets passwd in object, then calls write().
+	+ apply() is a natural companion for push().
+	+ push() and write() remain raw operations.
+	+ Passwd value remains in register object for user reference.
+	- Combines object modification and hardware register update.
+
+    Function set would be:  (all have no arguments)
+	set_passwd()	- set passwd field in register object
+	zero_reserved()	- zero reserved fields in register object
+	apply()		- modify passwd + reserved and write hardware
+
+    Possibly overload put_Passwd_8() with no argument to set the default
+    password.  But that seems a bit non-uniform.
+
 ----------------------------------------------------------------------------
 ## Derived Classes - Clock Manager
 ----------------------------------------------------------------------------
 
+Address Initialization:
+
+    There are multiple clock manager objects, each with a different set of
+    register addresses within the same feature page address.
+    e.g. Clk0, Clk1, Clk2, cmPWM, cmPCM.
+
+    Each clock manager operates the same, so it makes sense to represent
+    that with a base class, and let each specific derived class specify
+    the actual register addresses.
+
+    We want the specific objects to be fully initialized at construction.
+    This makes use (once constructed) easier, and operations need not
+    repeatedly check for initialization.
+
+    Now the base class constructor cannot initialize addresses because the
+    register offset is not yet known.  Thus the derived class must initialize
+    addresses after base class construction.
+
+    The essential address assignment of registers is:
+
+        GpioBase = amx->get_mem_block( FeatureAddr );
+
+	Cntl.init_addr( GpioBase + Cntl_offset );
+	Divr.init_addr( GpioBase + Divr_offset );
+	...
+    where
+	amx         = rgAddrMap pointer
+	FeatureAddr = BCM doc page address of the feature
+	*_offset    = Register offset from page address
+
+    It seems best to simply let the derived class do this.  There is not
+    much help the base class could provide without adding more indirection.
+
+Purpose of Base Class:
+
+    When there are multiple feature objects it may be useful to make derived
+    classes for each one.  This gives flexibility to customize some for
+    specific behavior.  e.g.  The Clk0, Clk1, Clk2 objects could be a
+    single indexed class, while allowing cmPWM to be a separate class.
+
+ >  A) rgClkMan virtual base class
+	- Require derived classes.
+	+ A common base for various specific clock managers.
+
+    B) Separate rgClkPwm, rgClkPcm classes
+	- Seems redundant to have separate classes for essentially the
+	    same thing.
+	+ Flexibility for unexpected divergence.
+	o These could derive from rgClkN, or a base class.
+
+ >  C) Indexed rgClkN class
+	- Need enum indexing scheme.
+	+ Objects better fit natural model of a single class.
+	- Hard to customize if features diverge in functionality.
+	+ Index is handy to track full set of objects.
+	o Could derive from rgClkMan base class.
+
+    Decide to essentially do both.  Gives best flexibility.
+
+    Deriving objects from the base class is not that useful, since the
+    addresses are not initialized.
+
+Possible derived classes:
+
     These derive from the rgClkMan base class to make a specific feature.
     They know the addresses of their registers (the base class does not).
 
-rgClkN		General Purpose clocks
+rgClkMan	base class
 {
-    uint32_t		ClkNum;		// Clock number {0,1,2}
+    volatile uint32_t		*GpioBase;
 
-    uint32_t		FeatureOffset;	// offset from base address
+    rgClk_Cntl			Cntl;	// registers
+    rgClk_Cntl			Divr;
 
-    ...  inherited from rgClkMan
 }
 
-rgClkPwm
+rgClkPwm	a single clock manager
 {
-    uint32_t		FeatureOffset;	// offset from base address
+    static const uint32_t	FeatureAddr  = 0x7e101000;
+    static const uint32_t	Cntl_offset  = 0x98;
+    static const uint32_t	Divr_offset  = 0x9c;
     ...  inherited from rgClkMan
+
+    Constructor:
+        GpioBase = amx->get_mem_block( FeatureAddr );
+	Cntl.init_addr( GpioBase +     Cntl_offset );
+	Divr.init_addr( GpioBase +     Divr_offset );
 }
 
-rgClkPcm
+rgClkN		General Purpose clocks {Clk0, Clk1, Clk2, ...}
 {
-    uint32_t		FeatureOffset;	// offset from base address
-    ...  inherited from rgClkMan
+    static const uint32_t	FeatureAddr  = 0x7e101000;
+    ClkMan_enum		ClkEnum;	// Clock number
+    ...
 }
 
-    Not exactly sure how this will work out.
+    Possibly put these simple derived classes in the same file as the
+    base class, just to avoid file explosion.
 
 ----------------------------------------------------------------------------
 ## rgClkMan  Base Class - Clock Manager
