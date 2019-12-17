@@ -33,6 +33,10 @@ src/		    Source code
     rgAddrMap.pod
     rgAltFuncName.cpp	Alternate Function Names class
     rgAltFuncName.h
+    rgClk.cpp		Clock Manager enumerated class (replace rgClock)
+    rgClk.h
+    rgClkMan.cpp	Clock Manager base class
+    rgClkMan.h
     rgClock.cpp		General Purpose Clock class
     rgClock.h
     rgClock.pod

@@ -303,6 +303,19 @@ Password access of registers:
     Possibly overload put_Passwd_8() with no argument to set the default
     password.  But that seems a bit non-uniform.
 
+Register Field Classes:
+
+    These derive from rgRegister and are named:
+	rgClk_Cntl
+	rgClk_Divr
+
+    Following the convention of the feature class rgClk_ followed by the
+    register name.  They are not nested in a parent class for simplicity
+    and flexibility.  Note in the case of multiple derived clock manager
+    classes, the register class name cannot match each feature class.
+    For this reason, I am favoring naming the enumerated clock class
+    "rgClk" to match.
+
 ----------------------------------------------------------------------------
 ## Derived Classes - Clock Manager
 ----------------------------------------------------------------------------
@@ -376,15 +389,13 @@ Possible derived classes:
 
 rgClkMan	base class
 {
-    volatile uint32_t		*GpioBase;
-
     rgClk_Cntl			Cntl;	// registers
     rgClk_Cntl			Divr;
-
 }
 
 rgClkPwm	a single clock manager
 {
+    volatile uint32_t		*GpioBase;
     static const uint32_t	FeatureAddr  = 0x7e101000;
     static const uint32_t	Cntl_offset  = 0x98;
     static const uint32_t	Divr_offset  = 0x9c;
@@ -396,50 +407,85 @@ rgClkPwm	a single clock manager
 	Divr.init_addr( GpioBase +     Divr_offset );
 }
 
-rgClkN		General Purpose clocks {Clk0, Clk1, Clk2, ...}
+rgClk		enumerated clocks {Clk0, Clk1, Clk2, ...}
 {
+    volatile uint32_t		*GpioBase;
     static const uint32_t	FeatureAddr  = 0x7e101000;
-    ClkMan_enum		ClkEnum;	// Clock number
-    ...
+    rgClk_enum			ClkEnum;	// Clock number
+    ...  inherited from rgClkMan
 }
 
     Possibly put these simple derived classes in the same file as the
     base class, just to avoid file explosion.
+    OR better put all classes in rgClk.h file, which better fits the style
+    of other features.  It also makes the base class more of an
+    implementation detail.
+
+Enumerated clock managers:
+
+    The enum could be designed to index small arrays for looking up
+    register offsets or string names.
+    Let Clk0, Clk1, Clk2 be integers {0, 1, 2} for easy mapping of those
+    features.
+
+	enum rgClk_enum {
+	    cm_Clk0 = 0,
+	    cm_Clk1,
+	    cm_Clk2,
+	    cm_ClkPwm,
+	    cm_ClkPcm
+	};
+
+    Nest these enums in the rgClk class to help limit name space pollution
+    and help identify what they go with.  This means enum use text is longer,
+    but more specific:  e.g.  rgClk::cm_Clk2
+
+----------------------------------------------------------------------------
+## rgClk  Derived Class - enumerated Clock Manager
+----------------------------------------------------------------------------
+
+rgClk		derived class
+{
+    enum rgClk_enum { ... };		// enumeration names
+
+    rgClk_enum		ClkEnum;	// Clock number
+
+    volatile uint32_t	*GpioBase;	// IO base address
+    uint32_t		FeatureAddr;	// BCM doc base address
+
+  Constructor:
+    rgClk( rgClk_enum clknum, rgAddrMap* xx )
+
+  Methods:
+    get_clk_enum()		get ClkEnum
+    get_base_addr()		GpioBase address
+}
 
 ----------------------------------------------------------------------------
 ## rgClkMan  Base Class - Clock Manager
 ----------------------------------------------------------------------------
 
-rgClkMan	Clock Manager base class
+rgClkMan	base class
 {
-    volatile uint32_t	*GpioBase;	// IO base address
-
-    uint32_t		FeatureAddr;	// BCM doc base address
-
     rgClkMan_Cntl	Cntl;		// Control  register
     rgClkMan_Divr	Divr;		// Divisior register
 
     int			BusyCount;	// Number of read_Busy() calls in last
 					//    wait_disable() or apply_regs().
+  Constructor:
+    rgClk()		// no address initialization
 }
-
-Derived register methods:
- ?  pw_write(V)		Apply passwd and write.  Or overload write()?
- ?  raw_write(V)	Write without applying passwd.
 
 Methods:  (in addition to rgRegister base class)
 
-    get_base_addr()		GpioBase address
-
 			Direct control:  (modify register fields)
-    enable()			Set Enable=1	set_Enable()
-    disable()			Set Enable=0	clr_Enable()
+    enable_clock()		Set Enable=1
+    disable_clock()		Set Enable=0
     wait_disable()		Set Enable=0, wait for not Busy.
 
     wait_while_Busy()		Wait for not Busy.  Handle Enable=1
 
-    kill_generator()		Kill the clock generator.  modify_Kill(V)?
-					set_Kill(), clr_Kill()?
+    kill_generator()		Kill the clock generator.
 
 			Object state operations:
     init_put_reset()		Object registers set to power-on reset state.
@@ -456,7 +502,7 @@ Methods:  (in addition to rgRegister base class)
     put_(V)
     ...
 
-	rgClkMan_Cntl
+	rgClk_Cntl
 
     Cntl.get_Passwd_8()		[31:24]  (WO)
     Cntl.get_Mash_2()		[10:9]
@@ -466,7 +512,7 @@ Methods:  (in addition to rgRegister base class)
     Cntl.get_Enable_1()		[4]
     Cntl.get_Source_4()		[3:0]
 
-	rgClkMan_Divr
+	rgClk_Divr
 
     Divr.get_Passwd_8()		[31:24]  (WO)
     Divr.get_DivI_12()		[23:12]

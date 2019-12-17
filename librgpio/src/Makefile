@@ -13,6 +13,8 @@ MAN        = ../man
 INCS       = \
 	rgAddrMap.h \
 	rgAltFuncName.h \
+	rgClk.h \
+	rgClkMan.h \
 	rgClock.h \
 	rgFselPin.h \
 	rgIoPin.h \
@@ -25,6 +27,8 @@ INCS       = \
 OBJS       = \
 	$(OJ)/rgAddrMap.o \
 	$(OJ)/rgAltFuncName.o \
+	$(OJ)/rgClk.o \
+	$(OJ)/rgClkMan.o \
 	$(OJ)/rgClock.o \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIoPin.o \
@@ -88,6 +92,12 @@ $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
 $(OJ)/rgAltFuncName.o:	rgAltFuncName.cpp  rgAltFuncName.h \
 			rgAddrMap.h  rgIoPin.h  rgFselPin.h
 	g++ $(CXXFLAGS) -o $@  -c rgAltFuncName.cpp
+
+$(OJ)/rgClk.o:	rgClk.cpp  rgClk.h  rgAddrMap.h  rgClkMan.h
+	g++ $(CXXFLAGS) -o $@  -c rgClk.cpp
+
+$(OJ)/rgClkMan.o:	rgClkMan.cpp  rgClkMan.h
+	g++ $(CXXFLAGS) -o $@  -c rgClkMan.cpp
 
 $(OJ)/rgClock.o:	rgClock.cpp  rgClock.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgClock.cpp
