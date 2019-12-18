@@ -90,8 +90,8 @@ Enum for specific Clock Manager identification:
 	cm_Clk0  = 0x70 /4,
 	cm_Clk1  = 0x78 /4,
 	cm_Clk2  = 0x80 /4,
-	cm_Pwm   = 0x98 /4,
-	cm_Pcm   = 0xa0 /4,
+	cm_Pcm   = 0x98 /4,
+	cm_Pwm   = 0xa0 /4,
     }
 
     The enum could also be the feature offset to the pair of registers,
@@ -473,8 +473,8 @@ rgClkPwm	a single clock manager
 {
     volatile uint32_t		*GpioBase;
     static const uint32_t	FeatureAddr  = 0x7e101000;
-    static const uint32_t	Cntl_offset  = 0x98;
-    static const uint32_t	Divr_offset  = 0x9c;
+    static const uint32_t	Cntl_offset  = 0xa0;
+    static const uint32_t	Divr_offset  = 0xa4;
     ...  inherited from rgClkMan
 
     Constructor:
@@ -508,8 +508,8 @@ Enumerated clock managers:
 	    cm_Clk0 = 0,
 	    cm_Clk1,
 	    cm_Clk2,
-	    cm_ClkPwm,
-	    cm_ClkPcm
+	    cm_ClkPcm,
+	    cm_ClkPwm
 	};
 
     Nest these enums in the rgClk class to help limit name space pollution

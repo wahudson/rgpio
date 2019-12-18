@@ -11,17 +11,18 @@
 
 class rgClk : public rgClkMan {
   public:
-    // Clock feature identifers.
+    // Clock manager identifiers.
     //   Clk0, Clk1, Clk2 are guaranteed to be integers {0, 1, 2} respectively.
-    //   The other clock managers enum may be in any order.
+    //   Values match class lookup tables, should remain constant.
+    //   Extension should add new enums on end of list.
     //   Intended for use as a packed array index.
     //
     enum rgClk_enum {
 	cm_Clk0 = 0,
 	cm_Clk1,
 	cm_Clk2,
-	cm_ClkPwm,
-	cm_ClkPcm
+	cm_ClkPcm,
+	cm_ClkPwm
     };
 
   private:

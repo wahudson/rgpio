@@ -94,8 +94,8 @@ rgClk::cstr_clk_enum(
 	"Clk0",
 	"Clk1",
 	"Clk2",
-	"ClkPwm",
 	"ClkPcm",
+	"ClkPwm"
     };
 
     return  cstr[ clknum ];
