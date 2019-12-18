@@ -8,13 +8,19 @@
 //--------------------------------------------------------------------------
 // rGPIO  rgClkMan - Clock Manager base class
 //--------------------------------------------------------------------------
+//    Note:  A function defined within the declaration of a class is inline
+//    by default.
 
 class rgClk_Cntl : public rgRegister {
   public:
 
     inline
+    void	apply()			{ put_Passwd_8();  push(); };
+
+    inline
     uint32_t	get_Passwd_8()           { return  get_field( 24, 0xff    ); };
     void	put_Passwd_8( uint32_t v )       { put_field( 24, 0xff, v ); };
+    void	put_Passwd_8()                { put_field( 24, 0xff, 0x5a ); };
 
     inline
     uint32_t	get_Mash_2()             { return  get_field(  9, 0x3    ); };
@@ -46,8 +52,12 @@ class rgClk_Divr : public rgRegister {
   public:
 
     inline
+    void	apply()			{ put_Passwd_8();  push(); };
+
+    inline
     uint32_t	get_Passwd_8()           { return  get_field( 24, 0xff    ); };
     void	put_Passwd_8( uint32_t v )       { put_field( 24, 0xff, v ); };
+    void	put_Passwd_8()                { put_field( 24, 0xff, 0x5a ); };
 
     inline
     uint32_t	get_DivI_12()           { return  get_field( 12, 0xfff    ); };
@@ -79,6 +89,7 @@ class rgClkMan {
 
     void		grab_regs();
     void		push_regs();
+    void		apply_regs();
 
 		// Test/Debug accessors
 

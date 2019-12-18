@@ -300,8 +300,74 @@ Password access of registers:
 	zero_reserved()	- zero reserved fields in register object
 	apply()		- modify passwd + reserved and write hardware
 
-    Possibly overload put_Passwd_8() with no argument to set the default
-    password.  But that seems a bit non-uniform.
+ >  Possibly overload put_Passwd_8() with no argument to set the default
+    password.  While that seems a bit non-uniform, the stronger association
+    is more beneficial.
+
+Reserved Fields:
+
+    Many registers have unused bits that are generally defined as "reserved".
+    The BCM doc typically specifies that reserved fields should be "write
+    as 0, read as don't care".  This provides some potential compatibility
+    for a future hardware change to add new control bits.
+
+    An idea is to define a zero_reserved() function in each register class
+    that would set all the register object reserved bits to zero (e.g.
+    AND with a mask).  This provides low-level operation.
+
+	void
+	zero_reserved() {
+	    put( get() & 0xff0007df );	// bits [23:11,6]
+	};
+
+    An apply() function in each register class could then call zero_reserved()
+    and then push() the object value to the hardware register.  This has a
+    useful result of leaving the actual value written to the hardware in
+    the object register.
+
+	void
+	apply() {
+	    zero_reserved();
+	    put_Passwd_8();
+	    push();
+	};
+
+    Is it worthwhile trying to write zero on reserved fields?
+
+    A) Zero reserved fields.
+	+ Profides possible future compatibility.
+	- More complexity and more code.
+	- Testing of reserved bits - more work.
+	-- Consequence of errors in reserved bit mask value.
+	- Future hardware change may not be compatible anyway.
+	- Still need to inspect the future hardware change.
+
+ >  B) Write reserved fields as may be.
+	+ Less complexity, less code.
+	+ Register constructor initializes reg value to zero.
+	+ Read typically returns zeros in reserved fields.
+	+ Natural read/write is more correct for normal control bits.
+	- A future hardware change may need code change.
+	+ The future is not predictable.
+	+ The future change may never come.
+
+    Regular read/write control bits:  Typically writing back the value read
+    is exactly what is wanted.  If the new bit read as 1, then zero_reserved()
+    would clear it (not desired).
+
+    One-shot error flags (like in PWM):  These flags typically are 1 when
+    an error occurred.  Writing 0 does nothing, writing 1 clears the error
+    and future reads return 0 until an error occurs.
+    Simply writing back the read value will clear these flags (not desired,
+    but not harmful either).
+    The zero_reserved() method would work better for these bits.
+
+    Thus each method can fail to future proof depending on the new bit
+    behavior.
+
+    Overall I think the zero_reserved() idea has the more future risk.
+    Adding complexity now to protect against the future is not worthwhile.
+    Decide to do (B), i.e. do nothing.
 
 Register Field Classes:
 
@@ -315,6 +381,16 @@ Register Field Classes:
     classes, the register class name cannot match each feature class.
     For this reason, I am favoring naming the enumerated clock class
     "rgClk" to match.
+
+Register class apply() function:
+
+    Define apply() in the specific (derived) register class to do any
+    generally useful operation to the object register before push() to the
+    hardware register.  e.g. Apply default pass word value.
+
+    Decided to not put a default apply() in the rgRegister base class.
+    This makes it more obvious when apply() actually does something
+    different.
 
 ----------------------------------------------------------------------------
 ## Derived Classes - Clock Manager

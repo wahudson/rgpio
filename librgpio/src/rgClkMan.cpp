@@ -71,6 +71,17 @@ rgClkMan::push_regs()
 }
 
 
+/*
+* Apply passwd, then write hardware registers from the object.
+*/
+void
+rgClkMan::apply_regs()
+{
+    Cntl.apply();
+    Divr.apply();
+}
+
+
 //--------------------------------------------------------------------------
 // Debug
 //--------------------------------------------------------------------------
