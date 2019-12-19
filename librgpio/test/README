@@ -49,6 +49,7 @@ Test suites:  (2017-05-20)
  p      = Program test (command)
 ------  --------------
  u   s  t_rgAddrMap/	rgAddrMap	Address Map class.
+ u   s  t_rgClk/	rgClk		General Clock Manager class.
  u   s  t_rgClock/	rgClock		General Purpose Clock class.
  u   s  t_rgFselPin/	rgFselPin	Pin Function Select class.
  u   s  t_rgIoPin/	rgIoPin		GPIO IO Pin control class.
