@@ -19,6 +19,7 @@ LIBS       = $(LIBDIR)/librgpio.a
 		# all include files for main program dependency
 INCS       = \
 	Error.h \
+	y_clk.h \
 	y_clock.h \
 	y_fsel.h \
 	y_io.h \
@@ -32,6 +33,7 @@ INCS       = \
 		# objects not including main()
 OBJS       = \
 	$(OJ)/Error.o \
+	$(OJ)/y_clk.o \
 	$(OJ)/y_clock.o \
 	$(OJ)/y_fsel.o \
 	$(OJ)/y_io.o \
@@ -91,6 +93,9 @@ $(BINDIR)/rgpio:	        $(OJ)/rgpio.o  $(OBJS)  $(LIBS)
 $(OJ)/rgpio.o:	rgpio.cpp  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c rgpio.cpp
 
+
+$(OJ)/y_clk.o:		y_clk.cpp  y_clk.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_clk.cpp
 
 $(OJ)/y_clock.o:	y_clock.cpp  y_clock.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_clock.cpp

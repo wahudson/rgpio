@@ -13,6 +13,7 @@ using namespace std;
 #include "rgAddrMap.h"
 #include "rgIoPin.h"
 
+#include "y_clk.h"
 #include "y_clock.h"
 #include "y_fsel.h"
 #include "y_io.h"
@@ -150,6 +151,7 @@ yOptLong::print_usage()
     "  feature:\n"
     "    io           General Purpose IO pins\n"
     "    fsel         Pin Function Select\n"
+    "    clk          Clock generator\n"
     "    clock        Clock generator\n"
     "    pwm          PWM Pulse Width Modulator\n"
     "    spi0         SPI0 Master\n"
@@ -221,6 +223,10 @@ main( int	argc,
 	else if ( Opx.feature == "fsel"    ) {
 	    y_fsel		fx  ( &Opx, &Amx );	// constructor
 	    retv = fx.doit();
+	}
+	else if ( Opx.feature == "clk"     ) {
+	    y_clk		cx  ( &Opx, &Amx );	// constructor
+	    retv = cx.doit();
 	}
 	else if ( Opx.feature == "clock"    ) {
 	    y_clock		cx  ( &Opx, &Amx );	// constructor
