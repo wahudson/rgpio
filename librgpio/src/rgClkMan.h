@@ -81,6 +81,11 @@ class rgClkMan {
     rgClk_Cntl		Cntl;		// Control
     rgClk_Divr		Divr;		// Divider
 
+  private:
+    long		WaitTime_ns;	// nanoseconds delay, 0= none
+    int			WaitCount;	// limit wait cycles, 0= no wait
+    int			BusyCount;	// number of cycles waited
+
   public:
     rgClkMan();			// constructor
 
@@ -89,7 +94,21 @@ class rgClkMan {
 
     void		grab_regs();
     void		push_regs();
-    void		apply_regs();
+    void		apply_regs();		// with default password
+
+		// Special functions
+
+    bool		apply_nicely();		// apply all registers safely
+
+    bool		wait_while_busy();
+
+    inline int		wait_time_ns()		{ return WaitTime_ns; };
+    inline void		wait_time_ns( int ns )	{ WaitTime_ns = ns; };
+
+    inline int		wait_count_n()		{ return WaitCount; };
+    inline void		wait_count_n( int n )	{ WaitCount = n; };
+
+    inline int		get_busy_count()	{ return BusyCount; };
 
 		// Test/Debug accessors
 
