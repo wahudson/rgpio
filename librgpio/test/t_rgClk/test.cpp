@@ -5,8 +5,8 @@
 //    20-29  Addresses
 //    30-39  Direct register access  read(), write()
 //    40-49  Full register get(), put(), grab(), push()
-//    50-59  .
-//    60-69  .
+//    50-59  Special functions  wait_while_busy()
+//    60-69  Special functions  apply_nicely()
 //    80-89  Cntl Field Accessors  get_(), put_()
 //    90-99  Divr Field Accessors  get_(), put_()
 //--------------------------------------------------------------------------
@@ -383,6 +383,229 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 	//
 	CHECKX(            0x5acccccc, Tx.Cntl.read()     );
 	CHECKX(            0x5adddddd, Tx.Divr.read()     );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Special functions  wait_while_busy()
+//--------------------------------------------------------------------------
+
+  CASE( "50a", "default wait_time_ns()" );
+    try {
+	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	CHECK(    1000, tx.wait_time_ns() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "50b", "default wait_count_n()" );
+    try {
+	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	CHECK(  3,      tx.wait_count_n() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "50c", "default get_busy_count()" );
+    try {
+	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	CHECK(  0,      tx.get_busy_count() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "53", "set/get wait_time_ns()" );
+    try {
+	Tx.wait_time_ns( 5012 );
+	CHECK(  5012,       Tx.wait_time_ns() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "54", "set/get wait_count_n()" );
+    try {
+	Tx.wait_count_n( 42 );
+	CHECK(  42,         Tx.wait_count_n() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "55", "wait_while_busy() Busy_1=1" );
+    try {
+	Tx.wait_count_n(            3 );
+	Tx.Cntl.put(       0xffffffff );
+	Tx.Cntl.put_Busy_1(         1 );
+	Tx.Cntl.push();
+	Tx.Cntl.put(       0x00000000 );
+	CHECK(                      1, Tx.wait_while_busy() );	// DUT
+	CHECK(                      3, Tx.get_busy_count() );
+	CHECKX(            0x00000000, Tx.Cntl.get()      );	// unchanged
+	CHECKX(            0xffffffff, Tx.Cntl.read()     );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "56", "wait_while_busy() Busy_1=0" );
+    try {
+	Tx.wait_count_n(            3 );
+	Tx.Cntl.put(       0xffffffff );
+	Tx.Cntl.put_Busy_1(         0 );
+	Tx.Cntl.push();
+	Tx.Cntl.put(       0x00000000 );
+	CHECK(                      0, Tx.wait_while_busy() );	// DUT
+	CHECK(                      0, Tx.get_busy_count() );
+	CHECKX(            0x00000000, Tx.Cntl.get()      );	// unchanged
+	CHECKX(            0xffffff7f, Tx.Cntl.read()     );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "57", "wait_while_busy() Busy_1=1, no wait" );
+    try {
+	Tx.wait_count_n(            0 );
+	Tx.Cntl.put_Busy_1(         1 );
+	Tx.Cntl.push();
+	CHECK(                      1, Tx.wait_while_busy() );	// DUT
+	CHECK(                      0, Tx.get_busy_count() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Special functions  apply_nicely()
+//--------------------------------------------------------------------------
+
+//--------------------------------------
+  CASE( "60a", "apply_nicely() running, Enable=1" );
+    try {
+	Tx.wait_time_ns(         2000 );
+	Tx.wait_count_n(            3 );
+	Tx.Divr.write(     0xff333ccc );
+	Tx.Divr.put(       0x00ddd555 );
+	//
+	Tx.Cntl.put(       0x00000000 );
+	Tx.Cntl.put_Busy_1(         1 );
+	Tx.Cntl.put_Enable_1(       1 );
+	Tx.Cntl.push();
+	Tx.Cntl.put(       0xffffffff );
+	Tx.Cntl.put_Enable_1(       1 );
+	CHECKX(            0xff333ccc, Tx.Divr.read()     );
+	CHECKX(            0x00ddd555, Tx.Divr.get()      );
+	CHECKX(            0x00000090, Tx.Cntl.read()     );
+	CHECKX(            0xffffffff, Tx.Cntl.get()      );
+	//
+	CHECK(                      1, Tx.apply_nicely() );	// DUT
+	CHECK(                      3, Tx.get_busy_count() );
+	//
+	CHECKX(            0x5addd555, Tx.Divr.read()     );
+	CHECKX(            0x5addd555, Tx.Divr.get()      );
+	CHECKX(            0x5affffff, Tx.Cntl.read()     );
+	CHECKX(            0x5affffff, Tx.Cntl.get()      );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "60b", "apply_nicely() running, Enable=0" );
+    try {
+	Tx.wait_time_ns(         2000 );
+	Tx.wait_count_n(            3 );
+	Tx.Divr.write(     0xff333ccc );
+	Tx.Divr.put(       0x00ddd555 );
+	//
+	Tx.Cntl.put(       0x00000000 );
+	Tx.Cntl.put_Busy_1(         1 );
+	Tx.Cntl.put_Enable_1(       1 );
+	Tx.Cntl.push();
+	Tx.Cntl.put(       0xffffffff );
+	Tx.Cntl.put_Enable_1(       0 );
+	CHECKX(            0xff333ccc, Tx.Divr.read()     );
+	CHECKX(            0x00ddd555, Tx.Divr.get()      );
+	CHECKX(            0x00000090, Tx.Cntl.read()     );
+	CHECKX(            0xffffffef, Tx.Cntl.get()      );
+	//
+	CHECK(                      1, Tx.apply_nicely() );	// DUT
+	CHECK(                      3, Tx.get_busy_count() );
+	//
+	CHECKX(            0x5addd555, Tx.Divr.read()     );
+	CHECKX(            0x5addd555, Tx.Divr.get()      );
+	CHECKX(            0x5affffef, Tx.Cntl.read()     );
+	CHECKX(            0x5affffef, Tx.Cntl.get()      );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "61a", "apply_nicely() stopped, Enable=1" );
+    try {
+	Tx.wait_time_ns(         2000 );
+	Tx.wait_count_n(            3 );
+	Tx.Divr.write(     0xff333ccc );
+	Tx.Divr.put(       0x00ddd555 );
+	//
+	Tx.Cntl.put(       0x00000000 );
+	Tx.Cntl.put_Busy_1(         0 );
+	Tx.Cntl.put_Enable_1(       0 );
+	Tx.Cntl.push();
+	Tx.Cntl.put(       0xffffffff );
+	Tx.Cntl.put_Enable_1(       1 );
+	CHECKX(            0xff333ccc, Tx.Divr.read()     );
+	CHECKX(            0x00ddd555, Tx.Divr.get()      );
+	CHECKX(            0x00000000, Tx.Cntl.read()     );
+	CHECKX(            0xffffffff, Tx.Cntl.get()      );
+	//
+	CHECK(                      0, Tx.apply_nicely() );	// DUT
+	CHECK(                      0, Tx.get_busy_count() );
+	//
+	CHECKX(            0x5addd555, Tx.Divr.read()     );
+	CHECKX(            0x5addd555, Tx.Divr.get()      );
+	CHECKX(            0x5affffff, Tx.Cntl.read()     );
+	CHECKX(            0x5affffff, Tx.Cntl.get()      );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "61b", "apply_nicely() stopped, Enable=0" );
+    try {
+	Tx.wait_time_ns(         2000 );
+	Tx.wait_count_n(            3 );
+	Tx.Divr.write(     0xff333ccc );
+	Tx.Divr.put(       0x00ddd555 );
+	//
+	Tx.Cntl.put(       0x00000000 );
+	Tx.Cntl.put_Busy_1(         0 );
+	Tx.Cntl.put_Enable_1(       0 );
+	Tx.Cntl.push();
+	Tx.Cntl.put(       0xffffffff );
+	Tx.Cntl.put_Enable_1(       0 );
+	CHECKX(            0xff333ccc, Tx.Divr.read()     );
+	CHECKX(            0x00ddd555, Tx.Divr.get()      );
+	CHECKX(            0x00000000, Tx.Cntl.read()     );
+	CHECKX(            0xffffffef, Tx.Cntl.get()      );
+	//
+	CHECK(                      0, Tx.apply_nicely() );	// DUT
+	CHECK(                      0, Tx.get_busy_count() );
+	//
+	CHECKX(            0x5addd555, Tx.Divr.read()     );
+	CHECKX(            0x5addd555, Tx.Divr.get()      );
+	CHECKX(            0x5affffef, Tx.Cntl.read()     );
+	CHECKX(            0x5affffef, Tx.Cntl.get()      );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
