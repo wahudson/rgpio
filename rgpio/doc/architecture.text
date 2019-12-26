@@ -229,3 +229,139 @@ IO option combinations:
     fsel  --bit=N			Fsel bit read
     fsel  --bit=N  --mode=F		Fsel bit write
 
+
+----------------------------------------------------------------------------
+## rgpio clk  (2019-12-21)
+----------------------------------------------------------------------------
+
+    % rgpio clk --help
+	Clock generator control
+    usage:  rgpio clk [name..] [options..]
+      name:  (multiple ok)
+	-0, -1, -2          Clk0, Clk1, Clk2
+	--pcm               PCM clock manager
+	--pwm               PWM clock manager
+      modify:
+	--Mash_2=0          Mash mode {0..3}, 0= integer division
+	--Flip_1=0          invert output, 1= invert, 0= normal
+	--Busy_1=0          1= clock generator is running (RO)
+	--Kill_1=0          1= stop and reset, 0= no action
+	--Enable_1=0        1= enable, 0= stop
+	--Source_4=0        set clock source {0..15}
+	--DivI_12=N         set Divisior integer,  {0..4095}
+	--DivF_12=N         set Divisior fraction, {0..4095}, for MASH
+      options:
+	--help              show this usage
+	-v, --verbose       verbose output
+	--debug             debug output
+      (options with GNU= only)
+
+    This command was developed after the original "rgpio clock" command.
+
+    The clock generator is called a "Clock Manager" in BCM doc.
+
+Purpose:
+
+    a) Inspect existing clock configuration (i.e. read-only viewing).
+    b) Configure a useful mode.
+    c) Enable exploring any configuration.
+
+    Design choices involve trade-off of how far to push the tool in various
+    directions.
+
+    Many peripherals have a lot of fields and so a lot of command options.
+    Thus not much benefit trying to minimize options.
+
+Clock Specification:
+
+    The short -0, -1, -2 to specify general purpose clocks is nice and sweet.
+    Decide to stick with long option standard for --pwm, --pcm.
+
+    Try to keep all clocks in the same order wherever they appear.
+    Currently ordered by increasing register address.
+
+Output clock numbers:
+
+    Initially using the rgClk_enum value since it is short, clean, and
+    corresponds to Clk0, Clk1, Clk2.  The ClkPcm and ClkPwm numbers are
+    arbitrary, but maybe OK.  The full name on each section helps.
+
+    % rgpio clk -2 --pwm
+    Clk2:
+      2.Cntl    = 0x00000000
+      2.Divr    = 0x00000000
+      2.Mash_2    = 0
+      2.Flip_1    = 0
+      ...
+    ClkPwm:
+      4.Cntl    = 0x00000000
+      4.Divr    = 0x00000000
+      4.Mash_2    = 0
+      4.Flip_1    = 0
+      ...
+
+    Prefixing the full clock name on each field looked too busy and
+    distracting.
+
+    Clk2:
+      Clk2.Cntl    = 0x00000000
+      Clk2.Divr    = 0x00000000
+      Clk2.Mash_2    = 0
+      Clk2.Flip_1    = 0
+      ...
+    ClkPwm:
+      ClkPwm.Cntl    = 0x00000000
+      ClkPwm.Divr    = 0x00000000
+      ClkPwm.Mash_2    = 0
+      ClkPwm.Flip_1    = 0
+      ...
+
+    I kind of like the prefix numbers, which are also used by "rgpio uspi".
+    When the same set of field names is output multiple time, the prefix
+    really helps avoid confusion.
+
+Passwd Field:
+
+    Decide to always apply the default password when registers are modified.
+    Making the user supply the password seems too klunky.
+
+    Maybe make a --Passwd_8 option to enable experimenting with other
+    password values.  It could default to the correct password.
+
+	--Cntl.Passwd_8
+	--Divr.Passwd_8
+
+Configuration Update:
+
+    The BCM doc specifies that the clock should be disabled, and wait for
+    not busy, before changing any register field values.  If not disabled,
+    the clock generator may glitch or hang.
+    Ways to handle it:
+
+    A) Always disable clock for register update.
+	+ Make clean change in clock output.
+	- User cannot explore other behavior.
+	- Not obvious that extra steps are being applied.
+
+    B) Let user do it.
+	+ Simple consistent definition of command operation.
+	- Extra steps to manually --Enable_1=0 and check Busy_1.
+	+ Any behavior can be explored, including glitches.
+
+    C) --dis option to auto-disable.
+	+ Best of both.
+	- Extra option to get clean update.
+	+ Extra steps invoked at direct request of user.
+	- Tend to forget to apply option, unexpected result.
+
+ >  D) --nodis option to NOT auto-disable.
+	+ Default does the "right thing" for clean update.
+	+ Option allows exploring other behavior.
+
+    Decided to implement (D) with a --raw option.
+
+Option --Busy_1:
+
+    Field Busy_1 is read-only (RO).  Thus don't really need an option
+    to modify it, other than to allow exploration.
+

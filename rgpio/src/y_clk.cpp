@@ -59,6 +59,8 @@ class clk_yOptLong : public yOption {
     yOpVal		DivI_12;
     yOpVal		DivF_12;
 
+    bool		raw;
+
     bool		verbose;
     bool		debug;
     bool		TESTOP;
@@ -83,6 +85,7 @@ class clk_yOptLong : public yOption {
 clk_yOptLong::clk_yOptLong( yOption  *opx )
     : yOption( opx )
 {
+    raw         = 0;
     verbose     = 0;
     debug       = 0;
     TESTOP      = 0;
@@ -117,6 +120,7 @@ clk_yOptLong::parse_options()
 	else if ( is( "--pcm"        )) { Clk_wanted[ rgClk::cm_ClkPcm ] = 1; }
 	else if ( is( "--pwm"        )) { Clk_wanted[ rgClk::cm_ClkPwm ] = 1; }
 
+	else if ( is( "--raw"        )) { raw        = 1; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
 	else if ( is( "--debug"      )) { debug      = 1; }
@@ -216,6 +220,7 @@ clk_yOptLong::print_option_flags()
     cout << "--DivI_12         = " << DivI_12.Val         << endl;
     cout << "--DivF_12         = " << DivF_12.Val         << endl;
 
+    cout << "--raw         = " << raw          << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
 
@@ -251,9 +256,10 @@ clk_yOptLong::print_usage()
     "    --DivI_12=N         set Divisior integer,  {0..4095}\n"
     "    --DivF_12=N         set Divisior fraction, {0..4095}, for MASH \n"
     "  options:\n"
+    "    --raw               no disable before modification\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output\n"
-    "    --debug             debug output\n"
+//  "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
 
@@ -378,11 +384,18 @@ y_clk::doit()
 
 	    if ( md ) {			// modified registers
 		Opx.trace_msg( "Modify regs" );
-		clx->Cntl.apply();
-		clx->Divr.apply();
-	    }
+		if ( Opx.raw ) {
+		    clx->Cntl.apply();
+		    clx->Divr.apply();
+		}
+		else {
+		    bool	busy;
+		    busy = clx->apply_nicely();
+		    if ( busy ) {
+			Error::msg( "rgClk::apply_nicely() still busy\n" );
+		    }
+		}
 
-	    if ( md ) {			// registers changed
 		Opx.trace_msg( "Grab regs" );
 		clx->grab_regs();
 	    }
