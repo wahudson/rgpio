@@ -1,0 +1,22 @@
+Clk2:
+  2.Cntl    = 0x5a00073f
+  2.Divr    = 0x5affffff
+  2.Mash_2    = 3
+  2.Flip_1    = 1
+  2.Busy_1    = 0
+  2.Kill_1    = 1
+  2.Enable_1  = 1
+  2.Source_4  = 15
+  2.DivI_12   = 4095
+  2.DivF_12   = 4095
+ClkPwm:
+  4.Cntl    = 0x5a00073f
+  4.Divr    = 0x5affffff
+  4.Mash_2    = 3
+  4.Flip_1    = 1
+  4.Busy_1    = 0
+  4.Kill_1    = 1
+  4.Enable_1  = 1
+  4.Source_4  = 15
+  4.DivI_12   = 4095
+  4.DivF_12   = 4095

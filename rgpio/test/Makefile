@@ -8,6 +8,7 @@ SHELL = /bin/sh
 
 test:
 	cd t_Error            && make test
+	cd t_clk              && make test
 	cd t_clock            && make test
 	cd t_fsel             && make test
 	cd t_pwm              && make test
@@ -17,6 +18,7 @@ test:
 
 clean:
 	cd t_Error            && make clean
+	cd t_clk              && make clean
 	cd t_clock            && make clean
 	cd t_fsel             && make clean
 	cd t_pwm              && make clean

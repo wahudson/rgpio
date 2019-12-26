@@ -1,0 +1,55 @@
+Clk0:
+  0.Cntl    = 0x00000000
+  0.Divr    = 0x00000000
+  0.Mash_2    = 0
+  0.Flip_1    = 0
+  0.Busy_1    = 0
+  0.Kill_1    = 0
+  0.Enable_1  = 0
+  0.Source_4  = 0
+  0.DivI_12   = 0
+  0.DivF_12   = 0
+Clk1:
+  1.Cntl    = 0x00000000
+  1.Divr    = 0x00000000
+  1.Mash_2    = 0
+  1.Flip_1    = 0
+  1.Busy_1    = 0
+  1.Kill_1    = 0
+  1.Enable_1  = 0
+  1.Source_4  = 0
+  1.DivI_12   = 0
+  1.DivF_12   = 0
+Clk2:
+  2.Cntl    = 0x00000000
+  2.Divr    = 0x00000000
+  2.Mash_2    = 0
+  2.Flip_1    = 0
+  2.Busy_1    = 0
+  2.Kill_1    = 0
+  2.Enable_1  = 0
+  2.Source_4  = 0
+  2.DivI_12   = 0
+  2.DivF_12   = 0
+ClkPcm:
+  3.Cntl    = 0x00000000
+  3.Divr    = 0x00000000
+  3.Mash_2    = 0
+  3.Flip_1    = 0
+  3.Busy_1    = 0
+  3.Kill_1    = 0
+  3.Enable_1  = 0
+  3.Source_4  = 0
+  3.DivI_12   = 0
+  3.DivF_12   = 0
+ClkPwm:
+  4.Cntl    = 0x00000000
+  4.Divr    = 0x00000000
+  4.Mash_2    = 0
+  4.Flip_1    = 0
+  4.Busy_1    = 0
+  4.Kill_1    = 0
+  4.Enable_1  = 0
+  4.Source_4  = 0
+  4.DivI_12   = 0
+  4.DivF_12   = 0

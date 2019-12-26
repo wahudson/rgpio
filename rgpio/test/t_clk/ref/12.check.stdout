@@ -1,0 +1,20 @@
+    Clock generator control
+usage:  rgpio clk [name..] [options..]
+  name:  (multiple ok)
+    -0, -1, -2          Clk0, Clk1, Clk2
+    --pcm               PCM clock manager
+    --pwm               PWM clock manager
+  modify:
+    --Mash_2=0          Mash mode {0..3}, 0= integer division
+    --Flip_1=0          invert output, 1= invert, 0= normal
+    --Busy_1=0          1= clock generator is running (RO)
+    --Kill_1=0          1= stop and reset, 0= no action
+    --Enable_1=0        1= enable, 0= stop
+    --Source_4=0        set clock source {0..15}
+    --DivI_12=N         set Divisior integer,  {0..4095}
+    --DivF_12=N         set Divisior fraction, {0..4095}, for MASH 
+  options:
+    --raw               no disable before modification
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
