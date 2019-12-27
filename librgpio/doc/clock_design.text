@@ -392,6 +392,51 @@ Register class apply() function:
     This makes it more obvious when apply() actually does something
     different.
 
+Special apply_nicely():
+
+    Function to help safely apply object to the hardware registers.
+
+    The BCM doc is pretty clear that virtually all register fields should
+    not be changed while the clock is busy (enabled).  In addition the
+    Mash_2 and Source_4 fields should not be changed at the same time as
+    asserting Enable_1 (enabling the clock).  Concequences range from
+    glitching the output clock, to locking up the clock generator.
+
+    Experiment seems to indicate some fields (like DivI_12) cannot be
+    written when the clock is enabled (Enable_1=1).
+
+    This function carries out the following steps on the hardware register
+    to meet these requirements:
+	1) If (Enable_1 == 1), then disable clock by setting Enable_1=0.
+	2) Wait until (Busy_1 == 0), or timeout.
+	3) Apply requested Cntl and Divr registers, but with Enable_1=0.
+	4) If Enable_1=1 was requested, then set it.
+
+    If timeout occurs and the clock is still busy, the function continues
+    to apply the requested values anyway, and returns the busy status.
+    Alternatives are to throw an exception, or simply return failure,
+    neither of which seem very helpful.  Need more experimentation to see
+    how it behaves.
+
+    The function name was chosen to indicate goodness without any guarantee.
+    The intent is to change the function if better methods are found.
+
+Special wait_while_busy():
+
+    Function to wait until (Busy_1 == 0) or a timeout is reached.  This is
+    a bit tricky, so it was encapsulated in a single place.
+
+    The idea is to have a wait loop inspecting Busy_1 on each cycle.
+    Timout is provided as a sleep time each cycle and a limit on number of
+    cycles.  These attributes in the object allow configuration without
+    having to pass values down to the wait function as function arguments.
+
+	WaitCount   = limit number of wait cycles, 0= no wait
+	WaitTime_ns = nanoseconds to delay each cycle, 0= none
+
+    The function returns the Busy_1 state on timeout.  This way the caller
+    can take any additional action desired.
+
 ----------------------------------------------------------------------------
 ## Derived Classes - Clock Manager
 ----------------------------------------------------------------------------
