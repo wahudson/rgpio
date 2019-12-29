@@ -7,6 +7,7 @@
 //    40-49  Full register get(), put(), grab(), push()
 //    50-59  Special functions  wait_while_busy()
 //    60-69  Special functions  apply_nicely()
+//    70-79  rgClk_enum - get_Cntl_offset(), cstr_clk_enum(), int2clk_enum()
 //    80-89  Cntl Field Accessors  get_(), put_()
 //    90-99  Divr Field Accessors  get_(), put_()
 //--------------------------------------------------------------------------
@@ -606,6 +607,110 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 	CHECKX(            0x5addd555, Tx.Divr.get()      );
 	CHECKX(            0x5affffef, Tx.Cntl.read()     );
 	CHECKX(            0x5affffef, Tx.Cntl.get()      );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## rgClk_enum - get_Cntl_offset(), cstr_clk_enum(), int2clk_enum()
+//--------------------------------------------------------------------------
+
+  CASE( "70", "rgClk_enum values" );
+    try {
+	CHECK(  0, rgClk::cm_Clk0     );
+	CHECK(  1, rgClk::cm_Clk1     );
+	CHECK(  2, rgClk::cm_Clk2     );
+	CHECK(  3, rgClk::cm_ClkPcm   );
+	CHECK(  4, rgClk::cm_ClkPwm   );
+	CHECK(  4, rgClk::cm_MaxEnum  );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "71a", "get_Cntl_offset() all values" );
+    try {
+	CHECKX( 0x00000070, 4 * Tx.get_Cntl_offset( rgClk::cm_Clk0   ) );
+	CHECKX( 0x00000078, 4 * Tx.get_Cntl_offset( rgClk::cm_Clk1   ) );
+	CHECKX( 0x00000080, 4 * Tx.get_Cntl_offset( rgClk::cm_Clk2   ) );
+	CHECKX( 0x00000098, 4 * Tx.get_Cntl_offset( rgClk::cm_ClkPcm ) );
+	CHECKX( 0x000000a0, 4 * Tx.get_Cntl_offset( rgClk::cm_ClkPwm ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "71b", "get_Cntl_offset() bad enum" );
+    try {
+	CHECKX( 0x0000001c, Tx.get_Cntl_offset( (rgClk::rgClk_enum) -1 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "72a", "cstr_clk_enum() all names" );
+    try {
+	CHECK( "Clk0",   Tx.cstr_clk_enum( rgClk::cm_Clk0   ) );
+	CHECK( "Clk1",   Tx.cstr_clk_enum( rgClk::cm_Clk1   ) );
+	CHECK( "Clk2",   Tx.cstr_clk_enum( rgClk::cm_Clk2   ) );
+	CHECK( "ClkPcm", Tx.cstr_clk_enum( rgClk::cm_ClkPcm ) );
+	CHECK( "ClkPwm", Tx.cstr_clk_enum( rgClk::cm_ClkPwm ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "72b", "cstr_clk_enum() bad enum" );
+    try {
+	CHECK(  "Clk0", Tx.cstr_clk_enum( (rgClk::rgClk_enum) -1 ) );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClk::cstr_clk_enum() invalid rgClk_enum:  -1",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "75a", "int2clk_enum()" );
+    try {
+	rgClk::rgClk_enum	ev;	// verify return type
+	ev = Tx.int2clk_enum( 4 );
+	CHECK(  4, ev );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "75b", "int2clk_enum() bad int" );
+    try {
+	Tx.int2clk_enum( -1 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClk::int2clk_enum() int out of range:  -1",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "75c", "int2clk_enum() bad int" );
+    try {
+	Tx.int2clk_enum( 5 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgClk::int2clk_enum() int out of range:  5",
+	    e.what()
+	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
