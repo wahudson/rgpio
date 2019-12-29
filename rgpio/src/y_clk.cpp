@@ -39,10 +39,12 @@ class clk_yOptLong : public yOption {
 //    char*		current_option();
 
   public:	// option values
-
-				// requested clk, index by rgClk_enum
-    bool		Clk_wanted[5] = {0,0,0,0,0};
-
+					// clock name options, same as enum
+    bool		cm_Clk0   = 0;
+    bool		cm_Clk1   = 0;
+    bool		cm_Clk2   = 0;
+    bool		cm_ClkPcm = 0;
+    bool		cm_ClkPwm = 0;
 					// registers
     yOpVal		Cntl;
     yOpVal		Divr;
@@ -114,11 +116,11 @@ clk_yOptLong::parse_options()
 	else if ( is( "--DivI_12="         )) { DivI_12.set(         val() ); }
 	else if ( is( "--DivF_12="         )) { DivF_12.set(         val() ); }
 
-	else if ( is( "-0"           )) { Clk_wanted[ rgClk::cm_Clk0   ] = 1; }
-	else if ( is( "-1"           )) { Clk_wanted[ rgClk::cm_Clk1   ] = 1; }
-	else if ( is( "-2"           )) { Clk_wanted[ rgClk::cm_Clk2   ] = 1; }
-	else if ( is( "--pcm"        )) { Clk_wanted[ rgClk::cm_ClkPcm ] = 1; }
-	else if ( is( "--pwm"        )) { Clk_wanted[ rgClk::cm_ClkPwm ] = 1; }
+	else if ( is( "-0"           )) { cm_Clk0    = 1; }
+	else if ( is( "-1"           )) { cm_Clk1    = 1; }
+	else if ( is( "-2"           )) { cm_Clk2    = 1; }
+	else if ( is( "--pcm"        )) { cm_ClkPcm  = 1; }
+	else if ( is( "--pwm"        )) { cm_ClkPwm  = 1; }
 
 	else if ( is( "--raw"        )) { raw        = 1; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
@@ -134,13 +136,13 @@ clk_yOptLong::parse_options()
     }
 
     if ( ! (
-	Clk_wanted[ rgClk::cm_Clk0   ] ||
-	Clk_wanted[ rgClk::cm_Clk1   ] ||
-	Clk_wanted[ rgClk::cm_Clk2   ] ||
-	Clk_wanted[ rgClk::cm_ClkPcm ] ||
-	Clk_wanted[ rgClk::cm_ClkPwm ] )
+	cm_Clk0    ||
+	cm_Clk1    ||
+	cm_Clk2    ||
+	cm_ClkPcm  ||
+	cm_ClkPwm  )
     ) {
-	Clk_wanted[ rgClk::cm_Clk0   ] = 1;	// default
+	cm_Clk0    = 1;	// default
     }
 
     if (                       Mash_2.Val > 0x3 ) {
@@ -199,11 +201,11 @@ clk_yOptLong::print_option_flags()
 {
     cout.fill('0');
 
-    cout << "-0    = " << Clk_wanted[ rgClk::cm_Clk0   ] << endl;
-    cout << "-1    = " << Clk_wanted[ rgClk::cm_Clk1   ] << endl;
-    cout << "-2    = " << Clk_wanted[ rgClk::cm_Clk2   ] << endl;
-    cout << "--pcm = " << Clk_wanted[ rgClk::cm_ClkPcm ] << endl;
-    cout << "--pwm = " << Clk_wanted[ rgClk::cm_ClkPwm ] << endl;
+    cout << "-0    = " << cm_Clk0    << endl;
+    cout << "-1    = " << cm_Clk1    << endl;
+    cout << "-2    = " << cm_Clk2    << endl;
+    cout << "--pcm = " << cm_ClkPcm  << endl;
+    cout << "--pwm = " << cm_ClkPwm  << endl;
 
     cout <<hex;
     cout << "--Cntl        = 0x" <<setw(8) << Cntl.Val        << endl;
@@ -325,23 +327,23 @@ y_clk::doit()
 	rgClk*		Cpx[ClkMax+1] = {NULL, NULL, NULL, NULL, NULL};
 			// pointers to Clock objects, NULL if not used.
 
-	if (       Opx.Clk_wanted[ rgClk::cm_Clk0   ] ) {
+	if (                          Opx.cm_Clk0    ) {
 	    Cpx[0] = new  rgClk  ( rgClk::cm_Clk0, AddrMap );	// constructor
 	}
 
-	if (       Opx.Clk_wanted[ rgClk::cm_Clk1   ] ) {
+	if (                          Opx.cm_Clk1    ) {
 	    Cpx[1] = new  rgClk  ( rgClk::cm_Clk1, AddrMap );	// constructor
 	}
 
-	if (       Opx.Clk_wanted[ rgClk::cm_Clk2   ] ) {
+	if (                          Opx.cm_Clk2    ) {
 	    Cpx[2] = new  rgClk  ( rgClk::cm_Clk2, AddrMap );	// constructor
 	}
 
-	if (       Opx.Clk_wanted[ rgClk::cm_ClkPcm ] ) {
+	if (                          Opx.cm_ClkPcm  ) {
 	    Cpx[3] = new  rgClk  ( rgClk::cm_ClkPcm, AddrMap );	// constructor
 	}
 
-	if (       Opx.Clk_wanted[ rgClk::cm_ClkPwm ] ) {
+	if (                          Opx.cm_ClkPwm  ) {
 	    Cpx[4] = new  rgClk  ( rgClk::cm_ClkPwm, AddrMap );	// constructor
 	}
 
