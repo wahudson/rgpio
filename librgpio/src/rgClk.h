@@ -14,7 +14,7 @@ class rgClk : public rgClkMan {
     // Clock manager identifiers.
     //   Clk0, Clk1, Clk2 are guaranteed to be integers {0, 1, 2} respectively.
     //   Values match class lookup tables, should remain constant.
-    //   Extension should add new enums on end of list.
+    //   Extension should add new enums on end and adjust cm_MaxEnum.
     //   Intended for use as a packed array index.
     //
     enum rgClk_enum {
@@ -22,7 +22,8 @@ class rgClk : public rgClkMan {
 	cm_Clk1,
 	cm_Clk2,
 	cm_ClkPcm,
-	cm_ClkPwm
+	cm_ClkPwm,
+	cm_MaxEnum = cm_ClkPwm		// Maximum enum value
     };
 
   private:
@@ -44,6 +45,8 @@ class rgClk : public rgClkMan {
     const uint32_t	get_Cntl_offset( rgClk_enum clknum );
 
     const char*		cstr_clk_enum( rgClk_enum clknum );
+
+    rgClk_enum		int2clk_enum( int num );
 
     inline
     volatile uint32_t*	get_base_addr()   { return  GpioBase; }

@@ -335,7 +335,7 @@ Reserved Fields:
     Is it worthwhile trying to write zero on reserved fields?
 
     A) Zero reserved fields.
-	+ Profides possible future compatibility.
+	+ Provides possible future compatibility.
 	- More complexity and more code.
 	- Testing of reserved bits - more work.
 	-- Consequence of errors in reserved bit mask value.
@@ -399,7 +399,7 @@ Special apply_nicely():
     The BCM doc is pretty clear that virtually all register fields should
     not be changed while the clock is busy (enabled).  In addition the
     Mash_2 and Source_4 fields should not be changed at the same time as
-    asserting Enable_1 (enabling the clock).  Concequences range from
+    asserting Enable_1 (enabling the clock).  Consequences range from
     glitching the output clock, to locking up the clock generator.
 
     Experiment seems to indicate some fields (like DivI_12) cannot be
@@ -427,7 +427,7 @@ Special wait_while_busy():
     a bit tricky, so it was encapsulated in a single place.
 
     The idea is to have a wait loop inspecting Busy_1 on each cycle.
-    Timout is provided as a sleep time each cycle and a limit on number of
+    Timeout is provided as a sleep time each cycle and a limit on number of
     cycles.  These attributes in the object allow configuration without
     having to pass values down to the wait function as function arguments.
 
@@ -562,6 +562,86 @@ Enumerated clock managers:
     but more specific:  e.g.  rgClk::cm_Clk2
 
 ----------------------------------------------------------------------------
+## enum Anti-bugging
+----------------------------------------------------------------------------
+
+    Enumerators are a great way to name individual things in a set.
+    Here we think about anti-bugging when future changes add or delete
+    individuals from the enum set.  Some thoughts:
+
+  a) Embed enum in a class to avoid name space pollution.
+    The class qualification also makes it obvious to not compare enums from
+    different classes.  A unique prefix string on the enum name also helps.
+
+  b) Passing enum as a function argument.
+    Compiler does type checking, so is pretty safe.
+    Beware an explicit cast of an integer to enum defeats this check, and
+    is generally not safe.
+
+  c) Enums promote to integer in many situations, e.g.
+	in comparison   (e1 == e2)
+	in array index  arr[e]
+    Be aware.  Maybe use an "enum class".
+
+  d) Switch statement:  switch (e) {...}
+    Compiler checks that all enum values are compared in "case:" statements,
+    but only if no "default:" statement is present.
+    This catches any added or deleted enums.
+    Independent of enum ordering.
+    Enums need not be in a continuous range.
+    Is a very safe way to operate with a set of enums.
+
+  e) Looping by enum value:
+	for ( enum e = e_Min;  e <= e_Max;  e++ ) {...}
+    Need to know what e_Min and e_Max are, which could be defined as alias
+    values for the actual minimum and maximum enum names.
+    Other issues are:
+    1) The enum set must be a packed range.
+    2) The increment operator must be defined for the enum.
+    This seems like a reasonably safe loop and the loop index is an enum.
+
+    The loop could increment an integer, but then need need an int to enum
+    conversion function:
+	for ( int i = e_Min;  i <= e_Max;  i++ ) {
+	    enum	e = int2enum( i );
+	}
+
+  f) Indexing an array by enum:  arr[e]
+    An array is a convenient way to map enums to other things (e.g. string
+    names).  Practical if enums are restricted to a packed range of integers.
+    Some issues are:
+    1) The array is actually indexed by the integer value promoted from enum.
+    2) Array entry order must match enum value order.
+    3) Array bounds checking, i.e.  against (0 .. e_Max)
+    4) Holes in enum range, i.e. missing array values.
+
+    Array indexing is attractive because of the apparent simplicity of
+    using an array initializer list in enum order.  This can work well
+    in the beginning of a project if the enums never change.  However,
+    when enums must be added or deleted, it becomes a problem tracking
+    down the corresponding places that must also change.
+
+  g) User cast an int to enum:
+    The enum can thus be any value (not a valid enum name).
+    Checking range on packed enum is somewhat practical.
+    Validating against all enum names is generally not practical.
+    Thus probably best to not guard against this, and let the user get
+    what he deserves.
+
+Conclusions:
+    Use good judgment.  Be aware of issues.  Test thoroughly.
+
+    Define enums carefully with guidance for reasonable future change.
+    Within the library things should be well controlled and even array
+    indexing can be managed.
+
+    User code should prefer switch statement over array indexing.
+
+    I tried both switch statement (d) and array indexing (f) in class rgClk
+    (2019-12-28).  The switch is definitely more robust and does not need
+    run-time checks.
+
+----------------------------------------------------------------------------
 ## rgClk  Derived Class - enumerated Clock Manager
 ----------------------------------------------------------------------------
 
@@ -589,7 +669,7 @@ rgClk		derived class
 rgClkMan	base class
 {
     rgClkMan_Cntl	Cntl;		// Control  register
-    rgClkMan_Divr	Divr;		// Divisior register
+    rgClkMan_Divr	Divr;		// Divisor  register
 
     int			BusyCount;	// Number of read_Busy() calls in last
 					//    wait_disable() or apply_regs().
