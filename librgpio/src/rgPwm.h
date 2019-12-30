@@ -13,122 +13,122 @@ class rgPwm_Cntl : public rgRegister {
   public:
 
     inline
-    uint32_t	get_Ch2_MsEnable_1()     { return  get_field( 15, 0x1    ); };
-    void	put_Ch2_MsEnable_1( uint32_t v ) { put_field( 15, 0x1, v ); };
+    uint32_t	get_Ch2_MsEnable_1()     { return  get_field( 15, 0x1    ); }
+    void	put_Ch2_MsEnable_1( uint32_t v ) { put_field( 15, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch2_UseFifo_1()      { return  get_field( 13, 0x1    ); };
-    void	put_Ch2_UseFifo_1( uint32_t v )  { put_field( 13, 0x1, v ); };
+    uint32_t	get_Ch2_UseFifo_1()      { return  get_field( 13, 0x1    ); }
+    void	put_Ch2_UseFifo_1( uint32_t v )  { put_field( 13, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch2_Invert_1()       { return  get_field( 12, 0x1    ); };
-    void	put_Ch2_Invert_1( uint32_t v )   { put_field( 12, 0x1, v ); };
+    uint32_t	get_Ch2_Invert_1()       { return  get_field( 12, 0x1    ); }
+    void	put_Ch2_Invert_1( uint32_t v )   { put_field( 12, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch2_IdleBit_1()      { return  get_field( 11, 0x1    ); };
-    void	put_Ch2_IdleBit_1( uint32_t v )  { put_field( 11, 0x1, v ); };
+    uint32_t	get_Ch2_IdleBit_1()      { return  get_field( 11, 0x1    ); }
+    void	put_Ch2_IdleBit_1( uint32_t v )  { put_field( 11, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch2_Repeat_1()       { return  get_field( 10, 0x1    ); };
-    void	put_Ch2_Repeat_1( uint32_t v )   { put_field( 10, 0x1, v ); };
+    uint32_t	get_Ch2_Repeat_1()       { return  get_field( 10, 0x1    ); }
+    void	put_Ch2_Repeat_1( uint32_t v )   { put_field( 10, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch2_SerMode_1()      { return  get_field(  9, 0x1    ); };
-    void	put_Ch2_SerMode_1( uint32_t v )  { put_field(  9, 0x1, v ); };
+    uint32_t	get_Ch2_SerMode_1()      { return  get_field(  9, 0x1    ); }
+    void	put_Ch2_SerMode_1( uint32_t v )  { put_field(  9, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch2_Enable_1()       { return  get_field(  8, 0x1    ); };
-    void	put_Ch2_Enable_1( uint32_t v )   { put_field(  8, 0x1, v ); };
-
-
-    inline
-    uint32_t	get_ClearFifo_1()        { return  get_field(  6, 0x1    ); };
-    void	put_ClearFifo_1( uint32_t v )    { put_field(  6, 0x1, v ); };
+    uint32_t	get_Ch2_Enable_1()       { return  get_field(  8, 0x1    ); }
+    void	put_Ch2_Enable_1( uint32_t v )   { put_field(  8, 0x1, v ); }
 
 
     inline
-    uint32_t	get_Ch1_MsEnable_1()     { return  get_field(  7, 0x1    ); };
-    void	put_Ch1_MsEnable_1( uint32_t v ) { put_field(  7, 0x1, v ); };
+    uint32_t	get_ClearFifo_1()        { return  get_field(  6, 0x1    ); }
+    void	put_ClearFifo_1( uint32_t v )    { put_field(  6, 0x1, v ); }
+
 
     inline
-    uint32_t	get_Ch1_UseFifo_1()      { return  get_field(  5, 0x1    ); };
-    void	put_Ch1_UseFifo_1( uint32_t v )  { put_field(  5, 0x1, v ); };
+    uint32_t	get_Ch1_MsEnable_1()     { return  get_field(  7, 0x1    ); }
+    void	put_Ch1_MsEnable_1( uint32_t v ) { put_field(  7, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch1_Invert_1()       { return  get_field(  4, 0x1    ); };
-    void	put_Ch1_Invert_1( uint32_t v )   { put_field(  4, 0x1, v ); };
+    uint32_t	get_Ch1_UseFifo_1()      { return  get_field(  5, 0x1    ); }
+    void	put_Ch1_UseFifo_1( uint32_t v )  { put_field(  5, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch1_IdleBit_1()      { return  get_field(  3, 0x1    ); };
-    void	put_Ch1_IdleBit_1( uint32_t v )  { put_field(  3, 0x1, v ); };
+    uint32_t	get_Ch1_Invert_1()       { return  get_field(  4, 0x1    ); }
+    void	put_Ch1_Invert_1( uint32_t v )   { put_field(  4, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch1_Repeat_1()       { return  get_field(  2, 0x1    ); };
-    void	put_Ch1_Repeat_1( uint32_t v )   { put_field(  2, 0x1, v ); };
+    uint32_t	get_Ch1_IdleBit_1()      { return  get_field(  3, 0x1    ); }
+    void	put_Ch1_IdleBit_1( uint32_t v )  { put_field(  3, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch1_SerMode_1()      { return  get_field(  1, 0x1    ); };
-    void	put_Ch1_SerMode_1( uint32_t v )  { put_field(  1, 0x1, v ); };
+    uint32_t	get_Ch1_Repeat_1()       { return  get_field(  2, 0x1    ); }
+    void	put_Ch1_Repeat_1( uint32_t v )   { put_field(  2, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch1_Enable_1()       { return  get_field(  0, 0x1    ); };
-    void	put_Ch1_Enable_1( uint32_t v )   { put_field(  0, 0x1, v ); };
+    uint32_t	get_Ch1_SerMode_1()      { return  get_field(  1, 0x1    ); }
+    void	put_Ch1_SerMode_1( uint32_t v )  { put_field(  1, 0x1, v ); }
+
+    inline
+    uint32_t	get_Ch1_Enable_1()       { return  get_field(  0, 0x1    ); }
+    void	put_Ch1_Enable_1( uint32_t v )   { put_field(  0, 0x1, v ); }
 };
 
 class rgPwm_Stat : public rgRegister {
   public:
 
     inline
-    uint32_t	get_Ch2_Active_1()       { return  get_field( 10, 0x1    ); };
-    void	put_Ch2_Active_1( uint32_t v )   { put_field( 10, 0x1, v ); };
+    uint32_t	get_Ch2_Active_1()       { return  get_field( 10, 0x1    ); }
+    void	put_Ch2_Active_1( uint32_t v )   { put_field( 10, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch1_Active_1()       { return  get_field(  9, 0x1    ); };
-    void	put_Ch1_Active_1( uint32_t v )   { put_field(  9, 0x1, v ); };
+    uint32_t	get_Ch1_Active_1()       { return  get_field(  9, 0x1    ); }
+    void	put_Ch1_Active_1( uint32_t v )   { put_field(  9, 0x1, v ); }
 
     inline
-    uint32_t	get_BusError_1()         { return  get_field(  8, 0x1    ); };
-    void	put_BusError_1( uint32_t v )     { put_field(  8, 0x1, v ); };
+    uint32_t	get_BusError_1()         { return  get_field(  8, 0x1    ); }
+    void	put_BusError_1( uint32_t v )     { put_field(  8, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch2_GapErr_1()       { return  get_field(  5, 0x1    ); };
-    void	put_Ch2_GapErr_1( uint32_t v )   { put_field(  5, 0x1, v ); };
+    uint32_t	get_Ch2_GapErr_1()       { return  get_field(  5, 0x1    ); }
+    void	put_Ch2_GapErr_1( uint32_t v )   { put_field(  5, 0x1, v ); }
 
     inline
-    uint32_t	get_Ch1_GapErr_1()       { return  get_field(  4, 0x1    ); };
-    void	put_Ch1_GapErr_1( uint32_t v )   { put_field(  4, 0x1, v ); };
+    uint32_t	get_Ch1_GapErr_1()       { return  get_field(  4, 0x1    ); }
+    void	put_Ch1_GapErr_1( uint32_t v )   { put_field(  4, 0x1, v ); }
 
     inline
-    uint32_t	get_FifoReadErr_1()      { return  get_field(  3, 0x1    ); };
-    void	put_FifoReadErr_1( uint32_t v )  { put_field(  3, 0x1, v ); };
+    uint32_t	get_FifoReadErr_1()      { return  get_field(  3, 0x1    ); }
+    void	put_FifoReadErr_1( uint32_t v )  { put_field(  3, 0x1, v ); }
 
     inline
-    uint32_t	get_FifoWriteErr_1()     { return  get_field(  2, 0x1    ); };
-    void	put_FifoWriteErr_1( uint32_t v ) { put_field(  2, 0x1, v ); };
+    uint32_t	get_FifoWriteErr_1()     { return  get_field(  2, 0x1    ); }
+    void	put_FifoWriteErr_1( uint32_t v ) { put_field(  2, 0x1, v ); }
 
     inline
-    uint32_t	get_FifoEmpty_1()        { return  get_field(  1, 0x1    ); };
-    void	put_FifoEmpty_1( uint32_t v )    { put_field(  1, 0x1, v ); };
+    uint32_t	get_FifoEmpty_1()        { return  get_field(  1, 0x1    ); }
+    void	put_FifoEmpty_1( uint32_t v )    { put_field(  1, 0x1, v ); }
 
     inline
-    uint32_t	get_FifoFull_1()         { return  get_field(  0, 0x1    ); };
-    void	put_FifoFull_1( uint32_t v )     { put_field(  0, 0x1, v ); };
+    uint32_t	get_FifoFull_1()         { return  get_field(  0, 0x1    ); }
+    void	put_FifoFull_1( uint32_t v )     { put_field(  0, 0x1, v ); }
 };
 
 class rgPwm_DmaConf : public rgRegister {
   public:
 
     inline
-    uint32_t	get_DmaEnable_1()        { return  get_field( 31, 0x1    ); };
-    void	put_DmaEnable_1( uint32_t v )    { put_field( 31, 0x1, v ); };
+    uint32_t	get_DmaEnable_1()        { return  get_field( 31, 0x1    ); }
+    void	put_DmaEnable_1( uint32_t v )    { put_field( 31, 0x1, v ); }
 
     inline
-    uint32_t	get_DmaPanicLev_8()     { return  get_field(  8, 0xff    ); };
-    void	put_DmaPanicLev_8( uint32_t v ) { put_field(  8, 0xff, v ); };
+    uint32_t	get_DmaPanicLev_8()     { return  get_field(  8, 0xff    ); }
+    void	put_DmaPanicLev_8( uint32_t v ) { put_field(  8, 0xff, v ); }
 
     inline
-    uint32_t	get_DmaReqLev_8()       { return  get_field(  0, 0xff    ); };
-    void	put_DmaReqLev_8( uint32_t v )   { put_field(  0, 0xff, v ); };
+    uint32_t	get_DmaReqLev_8()       { return  get_field(  0, 0xff    ); }
+    void	put_DmaReqLev_8( uint32_t v )   { put_field(  0, 0xff, v ); }
 };
 
 class rgPwm_Fifo : public rgRegister {
