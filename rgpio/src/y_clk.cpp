@@ -249,14 +249,16 @@ clk_yOptLong::print_usage()
     "    --pcm               PCM clock manager\n"
     "    --pwm               PWM clock manager\n"
     "  modify:\n"
-    "    --Mash_2=0          Mash mode {0..3}, 0= integer division\n"
-    "    --Flip_1=0          invert output, 1= invert, 0= normal\n"
+    "    --Cntl=0x5a000000   set control register\n"
+    "    --Divr=0x5a000000   set divider register\n"
+    "    --Mash_2=0          MASH mode {0..3}, 0= integer division\n"
+    "    --Flip_1=0          1= invert output, 0= normal\n"
     "    --Busy_1=0          1= clock generator is running (RO)\n"
     "    --Kill_1=0          1= stop and reset, 0= no action\n"
     "    --Enable_1=0        1= enable, 0= stop\n"
     "    --Source_4=0        set clock source {0..15}\n"
-    "    --DivI_12=N         set Divisior integer,  {0..4095}\n"
-    "    --DivF_12=N         set Divisior fraction, {0..4095}, for MASH \n"
+    "    --DivI_12=N         set divisor integer,  {0..4095}\n"
+    "    --DivF_12=N         set divisor fraction, {0..4095}, for MASH \n"
     "  options:\n"
     "    --raw               no disable before modification\n"
     "    --help              show this usage\n"
@@ -422,6 +424,7 @@ y_clk::doit()
 
 	    cout.fill(' ');
 	    cout <<dec
+		// no Passwd_8, is write only
 		<< cp << "Mash_2    = " << clx->Cntl.get_Mash_2()   <<endl
 		<< cp << "Flip_1    = " << clx->Cntl.get_Flip_1()   <<endl
 		<< cp << "Busy_1    = " << clx->Cntl.get_Busy_1()   <<endl

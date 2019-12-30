@@ -5,14 +5,16 @@ usage:  rgpio clk [name..] [options..]
     --pcm               PCM clock manager
     --pwm               PWM clock manager
   modify:
-    --Mash_2=0          Mash mode {0..3}, 0= integer division
-    --Flip_1=0          invert output, 1= invert, 0= normal
+    --Cntl=0x5a000000   set control register
+    --Divr=0x5a000000   set divider register
+    --Mash_2=0          MASH mode {0..3}, 0= integer division
+    --Flip_1=0          1= invert output, 0= normal
     --Busy_1=0          1= clock generator is running (RO)
     --Kill_1=0          1= stop and reset, 0= no action
     --Enable_1=0        1= enable, 0= stop
     --Source_4=0        set clock source {0..15}
-    --DivI_12=N         set Divisior integer,  {0..4095}
-    --DivF_12=N         set Divisior fraction, {0..4095}, for MASH 
+    --DivI_12=N         set divisor integer,  {0..4095}
+    --DivF_12=N         set divisor fraction, {0..4095}, for MASH 
   options:
     --raw               no disable before modification
     --help              show this usage
