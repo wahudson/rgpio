@@ -15,36 +15,36 @@ class rgClk_Cntl : public rgRegister {
   public:
 
     inline
-    void	apply()			{ put_Passwd_8();  push(); };
+    void	apply()			{ put_Passwd_8();  push(); }
 
     inline
-    uint32_t	get_Passwd_8()           { return  get_field( 24, 0xff    ); };
-    void	put_Passwd_8( uint32_t v )       { put_field( 24, 0xff, v ); };
-    void	put_Passwd_8()                { put_field( 24, 0xff, 0x5a ); };
+    uint32_t	get_Passwd_8()        { return  get_field( 24, 0xff       ); }
+    void	put_Passwd_8( uint32_t v )    { put_field( 24, 0xff, v    ); }
+    void	put_Passwd_8()                { put_field( 24, 0xff, 0x5a ); }
 
     inline
-    uint32_t	get_Mash_2()             { return  get_field(  9, 0x3    ); };
-    void	put_Mash_2( uint32_t v )         { put_field(  9, 0x3, v ); };
+    uint32_t	get_Mash_2()             { return  get_field(  9, 0x3    ); }
+    void	put_Mash_2( uint32_t v )         { put_field(  9, 0x3, v ); }
 
     inline
-    uint32_t	get_Flip_1()             { return  get_field(  8, 0x1    ); };
-    void	put_Flip_1( uint32_t v )         { put_field(  8, 0x1, v ); };
+    uint32_t	get_Flip_1()             { return  get_field(  8, 0x1    ); }
+    void	put_Flip_1( uint32_t v )         { put_field(  8, 0x1, v ); }
 
     inline
-    uint32_t	get_Busy_1()             { return  get_field(  7, 0x1    ); };
-    void	put_Busy_1( uint32_t v )         { put_field(  7, 0x1, v ); };
+    uint32_t	get_Busy_1()             { return  get_field(  7, 0x1    ); }
+    void	put_Busy_1( uint32_t v )         { put_field(  7, 0x1, v ); }
 
     inline
-    uint32_t	get_Kill_1()             { return  get_field(  5, 0x1    ); };
-    void	put_Kill_1( uint32_t v )         { put_field(  5, 0x1, v ); };
+    uint32_t	get_Kill_1()             { return  get_field(  5, 0x1    ); }
+    void	put_Kill_1( uint32_t v )         { put_field(  5, 0x1, v ); }
 
     inline
-    uint32_t	get_Enable_1()           { return  get_field(  4, 0x1    ); };
-    void	put_Enable_1( uint32_t v )       { put_field(  4, 0x1, v ); };
+    uint32_t	get_Enable_1()           { return  get_field(  4, 0x1    ); }
+    void	put_Enable_1( uint32_t v )       { put_field(  4, 0x1, v ); }
 
     inline
-    uint32_t	get_Source_4()           { return  get_field(  0, 0xf    ); };
-    void	put_Source_4( uint32_t v )       { put_field(  0, 0xf, v ); };
+    uint32_t	get_Source_4()           { return  get_field(  0, 0xf    ); }
+    void	put_Source_4( uint32_t v )       { put_field(  0, 0xf, v ); }
 
 };
 
@@ -52,20 +52,20 @@ class rgClk_Divr : public rgRegister {
   public:
 
     inline
-    void	apply()			{ put_Passwd_8();  push(); };
+    void	apply()			{ put_Passwd_8();  push(); }
 
     inline
-    uint32_t	get_Passwd_8()           { return  get_field( 24, 0xff    ); };
-    void	put_Passwd_8( uint32_t v )       { put_field( 24, 0xff, v ); };
-    void	put_Passwd_8()                { put_field( 24, 0xff, 0x5a ); };
+    uint32_t	get_Passwd_8()        { return  get_field( 24, 0xff       ); }
+    void	put_Passwd_8( uint32_t v )    { put_field( 24, 0xff, v    ); }
+    void	put_Passwd_8()                { put_field( 24, 0xff, 0x5a ); }
 
     inline
-    uint32_t	get_DivI_12()           { return  get_field( 12, 0xfff    ); };
-    void	put_DivI_12( uint32_t v )       { put_field( 12, 0xfff, v ); };
+    uint32_t	get_DivI_12()           { return  get_field( 12, 0xfff    ); }
+    void	put_DivI_12( uint32_t v )       { put_field( 12, 0xfff, v ); }
 
     inline
-    uint32_t	get_DivF_12()           { return  get_field(  0, 0xfff    ); };
-    void	put_DivF_12( uint32_t v )       { put_field(  0, 0xfff, v ); };
+    uint32_t	get_DivF_12()           { return  get_field(  0, 0xfff    ); }
+    void	put_DivF_12( uint32_t v )       { put_field(  0, 0xfff, v ); }
 
 };
 
@@ -102,13 +102,13 @@ class rgClkMan {
 
     bool		wait_while_busy();
 
-    inline int		wait_time_ns()		{ return WaitTime_ns; };
-    inline void		wait_time_ns( int ns )	{ WaitTime_ns = ns; };
+    inline int		wait_time_ns()		{ return WaitTime_ns; }
+    inline void		wait_time_ns( int ns )	{ WaitTime_ns = ns; }
 
-    inline int		wait_count_n()		{ return WaitCount; };
-    inline void		wait_count_n( int n )	{ WaitCount = n; };
+    inline int		wait_count_n()		{ return WaitCount; }
+    inline void		wait_count_n( int n )	{ WaitCount = n; }
 
-    inline int		get_busy_count()	{ return BusyCount; };
+    inline int		get_busy_count()	{ return BusyCount; }
 
 		// Test/Debug accessors
 
