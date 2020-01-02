@@ -386,6 +386,10 @@ y_clk::doit()
 	    APPLY( DivI_12,   Divr.put_DivI_12   )
 	    APPLY( DivF_12,   Divr.put_DivF_12   )
 
+	    // Use defaults to help validate library.
+	    // clx->wait_time_ns( 0 );
+	    // clx->wait_count_n( 10000 );
+
 	    if ( md ) {			// modified registers
 		Opx.trace_msg( "Modify regs" );
 		if ( Opx.raw ) {
@@ -396,7 +400,11 @@ y_clk::doit()
 		    bool	busy;
 		    busy = clx->apply_nicely();
 		    if ( busy ) {
-			Error::msg( "rgClk::apply_nicely() still busy\n" );
+			Error::msg( "registers not set, clock busy:  " ) <<
+			"BusyCount= " << clx->get_busy_count() <<endl;
+		    }
+		    if ( Opx.verbose ) {
+			cout << "+ BusyCount= " << clx->get_busy_count() <<endl;
 		    }
 		}
 

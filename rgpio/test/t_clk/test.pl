@@ -138,6 +138,7 @@ run_test( "18b", "clock verbose with modify",
     Stdout => q(
 	+ Grab regs
 	+ Modify regs
+	+ BusyCount= 0
 	+ Grab regs
 	Clk1:
 	  1.Cntl    = 0x5a000006
