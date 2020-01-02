@@ -1,0 +1,377 @@
+# 2019-12-29  William A. Hudson
+
+# rgClk  Clock Manager class -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgClk class -- Clock Manager, General Purpose Clocks
+
+=head1		SYNOPSIS
+
+ #include "rgAddrMap.h"
+ #include "rgClk.h"
+
+=head2			Essential Class members
+
+ class rgClk {
+   public:
+     rgClk_Cntl		Cntl;		// Control register
+     rgClk_Divr		Divr;		// Divider register
+
+     enum rgClk_enum {			// Clock identifiers
+	 cm_Clk0 = 0,
+	 cm_Clk1,
+	 cm_Clk2,
+	 cm_ClkPcm,
+	 cm_ClkPwm,
+	 cm_MaxEnum = cm_ClkPwm		// Maximum enum value
+     };
+   private:
+     rgClk_enum		ClkEnum;	// Clock identifier
+     long		WaitTime_ns;	// nanoseconds delay, 0= none
+     int		WaitCount;	// limit wait cycles, 0= no wait
+     int		BusyCount;	// number of cycles waited
+ };
+
+=head2			Constructor
+
+ rgClk(
+     rgClk_enum		clkenum,	// Clock identifier
+     rgAddrMap		*amx		// object with open device file
+ );
+
+ rgClk::rgClk_enum	get_clock_enum()	    { return  ClkEnum; }
+ volatile uint32_t*	get_base_addr();
+ uint32_t		get_bcm_address();
+
+=head2			Register base class methods
+
+ volatile uint32_t*	REG.addr()		    { return Addr; }
+
+ uint32_t		REG.read()		    { return *Addr; }
+ void			REG.write( uint32_t  vv )   { *Addr = vv; }
+
+ void			REG.grab()		    { RegVal = *Addr; }
+ void			REG.push()		    { *Addr = RegVal; }
+
+ uint32_t		REG.get()		    { return RegVal; }
+ void			REG.put( uint32_t  vv )	    { RegVal = vv; }
+
+=head2			Register Field Accessors
+
+ void			Cntl.apply()	{ put_Passwd_8();  push(); }
+
+ uint32_t		Cntl.get_Passwd_8();
+ void			Cntl.put_Passwd_8(	uint32_t  bit8 );
+ void			Cntl.put_Passwd_8();	// put passwd 0x5a
+
+ uint32_t		Cntl.get_Mash_2();
+ void			Cntl.put_Mash_2(	uint32_t  bit2 );
+
+ uint32_t		Cntl.get_Flip_1();
+ void			Cntl.put_Flip_1(	uint32_t  bit1 );
+
+ uint32_t		Cntl.get_Busy_1();
+ void			Cntl.put_Busy_1(	uint32_t  bit1 );
+
+ uint32_t		Cntl.get_Kill_1();
+ void			Cntl.put_Kill_1(	uint32_t  bit1 );
+
+ uint32_t		Cntl.get_Enable_1();
+ void			Cntl.put_Enable_1(	uint32_t  bit1 );
+
+ uint32_t		Cntl.get_Source_4();
+ void			Cntl.put_Source_4(	uint32_t  bit4 );
+
+ void			Divr.apply()	{ put_Passwd_8();  push(); }
+
+ uint32_t		Divr.get_Passwd_8();
+ void			Divr.put_Passwd_8(	uint32_t  bit8 );
+ void			Divr.put_Passwd_8();	// put passwd 0x5a
+
+ uint32_t		Divr.get_DivI_12();
+ void			Divr.put_DivI_12(	uint32_t  bit12 );
+
+ uint32_t		Divr.get_DivF_12();
+ void			Divr.put_DivF_12(	uint32_t  bit12 );
+
+=head2			Object state operations
+
+ void			init_put_reset();
+
+ void			grab_regs();
+ void			push_regs();
+ bool			apply_regs();		// with password
+
+=head2			Special functions
+
+ bool			apply_nicely();		// apply registers safely
+ bool			wait_while_busy();
+
+ int			wait_time_ns()		{ return WaitTime_ns; }
+ void			wait_time_ns( int ns )	{ WaitTime_ns = ns; }
+
+ int			wait_count_n()		{ return WaitCount; }
+ void			wait_count_n( int n )	{ WaitCount = n; }
+
+ int			get_busy_count()	{ return BusyCount; }
+
+=head2			Enumerator Conversions
+
+ const char*		cstr_clk_enum( rgClk_enum clkenum );
+ rgClk_enum		int2clk_enum( int num );
+
+
+=head1		DESCRIPTION
+
+This class provides operation of 5 Clock Managers - General Purpose Clocks
+Clk0, Clk1, Clk2 and clocks feeding PCM and PWM peripherals.
+
+All functions are object methods.
+The object knows which Clock Manager it is, and the object methods are
+the same for all.
+
+=head2			Constructor
+
+=over
+
+=item rgClk()
+
+Construct and initialize a new object.
+Argument 'clkenum' is the Clock Manager to be operated.
+Argument 'amx' is the address map object with an open device file or cached
+memory block.
+All clock managers share the same IO memory block, but have separate
+register addresses.
+
+=item get_clock_enum()
+
+Return the Clock enum (rgClk::rgClk_enum) of this object.
+
+=item get_base_addr()
+
+Return the object IO memory block virtual address.
+
+=item get_bcm_address()
+
+Return the BCM doc peripheral address.
+
+=back
+
+=head2			Register Classes
+
+Each specific register class inherits from rgRegister and contains all the
+detailed register manipulations.
+These classes are named with the feature class rgClk_ followed by the
+register name.  They are not nested in a parent class for simplicity and
+flexibility.
+
+ rgClk_Cntl	Control register class
+ rgClk_Divr	Divider register class
+
+Any register in the object can be independently constructed and initialized
+from the object register.  It will have the same register address and can
+be used just like the register in the feature object.  e.g. where ckx is
+an rgClk object:
+
+ rgClk_Cntl		cx  ( ckx.Cntl );	// construct copy
+
+=head2			Register base class methods
+
+These functions provide whole register operations for the object and hardware
+registers.  They inherit from the rgRegister base class and are the same
+for all registers.  They are defined inline, and thus are very efficient data
+transfers (with compiler optimization).
+
+ REG.addr()   Returns the hardware register virtual address.
+ REG.read()   Reads value from hardware register.
+ REG.write(v) Writes argument value to hardware register.
+ REG.grab()   Copies hardware register into the object.
+ REG.push()   Copies object to the hardware register.
+ REG.get()    Returns value from the register object.
+ REG.put(v)   Puts argument value into the register object.
+
+Direct assignment (write/read) of the hardware register address is the
+fastest (shortest execution time) way to transfer data.
+
+=head2			Register Field Accessors
+
+These are the bit-twiddling operations to insert and extract field values
+from the register value stored in the object.
+They are named according to the register field being accessed, and the
+numeric suffix is the field width.
+They are methods of each individual register object.
+
+For register field descriptions see rgClk(7) or the BCM documentation.
+
+=over
+
+=item REG.get_*()
+
+Extract and return the field value in the object.
+
+=item REG.put_*( v )
+
+Insert the given value into the object register field.
+Values greater than the field width throw a std::range_error exception.
+
+=item REG.apply()
+
+Set object field Passwd_8= 0x5a and copy to hardware register.
+Hardware prevents register update without the correct password.
+
+=back
+
+=head2			Object state operations
+
+These operate on all registers in the rgClk object.
+They effectively call the underlying function for each register object.
+
+=over
+
+=item init_put_reset()
+
+Initialize object registers to the hardware power-on reset state.
+Intended for use with the put_*() field accessor functions, and can be
+called multiple times.
+Virtually all fields are zero, or are the inactive state.
+Hardware registers are unchanged.
+
+=item grab_regs()
+
+Copy the Cntl and Divr hardware registers into the object.
+
+=item push_regs()
+
+Copy object to the Cntl and Divr hardware registers.
+The Passwd_8 fields are not applied or modified.
+May glitch or hang the clock generator, unless Enable_1=0 and Busy_1=0.
+Use apply_nicely() for a safe update process.
+
+=item apply_regs()
+
+Apply password Passwd_8= 0x5a to each object register, then copy to the
+hardware registers as in push_regs().
+
+=back
+
+=head2			Special functions
+
+These provide a higher level sequence of operations to update the clock
+manager hardware while meeting the requirements specified in the BCM doc.
+
+=over
+
+=item apply_nicely()
+
+Apply registers safely:  First disable the clock and wait for not busy.
+Then apply registers without simultaneous enable.
+Then apply Enable_1 if requested.
+Register values are NOT written if still busy after wait timeout.
+
+ call:
+    apply_nicely()
+ return:
+    ()  = status:  0= success;  1= busy timeout, clock is disabled
+
+Both Cntl and Divr are modified by setting password fields to 0x5a.
+See wait_while_busy() below for time limit configuration.
+
+=item wait_while_busy()
+
+Wait until not busy or time limit is reached.
+Does not disable the clock, and will time out if still enabled.
+Cntl object and hardware registers are unchanged.
+
+ call:
+    wait_while_busy()
+    WaitCount   = limit number of wait cycles, 0= no wait
+    WaitTime_ns = nanoseconds to delay each cycle, 0= none
+ return:
+    ()        = busy status:  0= clock stopped, 1= still busy
+    BusyCount = number of wait cycles until Busy_1=0 or limit reached
+
+Object attributes WaitCount, WaitTime_ns, BusyCount are accessed with
+functions in the synopsis above.
+
+=back
+
+=head2			Enumerator Conversions
+
+=over
+
+=item cstr_clk_enum()
+
+Return string name for a clock enum.
+
+=item int2clk_enum()
+
+Return rgClk_enum for an int.
+Throw range_error if int is invalid.
+
+=back
+
+
+=head1		EXCEPTIONS
+
+ std::logic_error
+ std::range_error
+ std::runtime_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+This example configures gp_CLK0 for basic operation.
+
+ // Construct an object for CLK0.
+    rgAddrMap		amx;		// address map object
+    amx.open_dev_mem();			// open device file
+    rgClk		ckx  ( rgClk::cm_Clk0, &amx );	// constructor
+
+ // Reconfigure a clock.
+    ckx.grab_regs();
+    ckx.Cntl.put_Mash_2( 0 );		// integer divide
+    ckx.Cntl.put_Enable_1( 1 );
+    ckx.Cntl.put_Source_4( 6 );
+    ckx.Divr.put_DivI_12( 4095 );
+    ckx.apply_nicely();			// with passwords
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgClk.h		clock manager class
+ src/rgClk.cpp
+ src/rgClkMan.h		clock manager base class
+ src/rgClkMan.cpp
+ src/rgRegister.h	register base class
+
+
+=head1		SEE ALSO
+
+ rgClk(7)	hardware register description
+ rgAddrMap(3)
+ rgpio-clk(1)
+
+ BCM2835 ARM Peripherals (2012)
+    p.105-108  chapter 6.3  General Purpose GPIO Clocks
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+

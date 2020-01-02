@@ -1,0 +1,290 @@
+# 2019-12-28  William A. Hudson
+
+# rgClk  Hardware Register Description.
+#---------------------------------------------------------------------------
+
+=head1		NAME
+
+rgClk  Hardware Description -- Clock Managers
+
+=head1		SYNOPSIS
+
+There are 5 clock managers available for use, named as follows:
+
+    Name	Description
+    ------	----------------
+    Clk0	General purpose clock
+    Clk1	General purpose clock
+    Clk2	General purpose clock
+    ClkPcm	PCM (Pulse Code Modulator) clock
+    ClkPwm	PWM (Pulse Width Modulator) clock
+
+Hardware registers of each Clock Manager are:  (32 bits each)
+
+    rgClk
+    Register    BCM name        Description
+    --------    --------        ------------------
+    Cntl          CTL           Control register
+    Divr          DIV           Divider register
+
+Register fields are named:
+
+     Reg.Field			Bits     BCM name
+    ----.---------------	-------  --------
+    Cntl.Passwd_8		[31:24]  PASSWD  (WO)
+    Cntl.Mash_2			[10:9]   MASH
+    Cntl.Flip_1			[8]      FLIP
+    Cntl.Busy_1			[7]      BUSY    (RO)
+    Cntl.Kill_1			[5]      KILL
+    Cntl.Enable_1		[4]      ENAB
+    Cntl.Source_4		[3:0]    SRC
+
+    Divr.Passwd_8		[31:24]  PASSWD  (WO)
+    Divr.DivI_12		[23:12]  DIVI
+    Divr.DivF_12		[11:0]   DIVF
+
+    (WO) = Write-only, (RO) = Read-only, otherwise all are Read-write.
+
+Field names incorporate the number of bits in the field, making the field
+size self documenting.
+
+Unspecified bit fields in each register are typically reserved, and should
+be write as 0, and read as don't care.
+
+
+=head1		DESCRIPTION
+
+Each clock generator (clock manager) operates independently and has
+these features:
+
+- It has a 12-bit integer divisor.
+
+- It has an optional 12-bit fractional divider that operates by periodically
+dropping input clock pulses.
+
+- It has optional noise-shaping MASH dividers.  These can push the fractional
+divider jitter out of the audio band.
+
+- It can select from 16 input clock sources, but only a few are operational.
+
+The MASH modes are summarized in this table, where K is the clock period
+scale factor.  Note the minimum allowed value of DivI for each mode.
+
+ mode     min
+ Mash_2   DivI   K min        K average            K max
+ ------   ----   ----------   ------------------   ----------
+    0      2     (DivI)       (DivI)               (DivI)
+    1      2     (DivI)       (DivI + DivF/4096)   (DivI + 1)
+    2      3     (DivI - 1)   (DivI + DivF/4096)   (DivI + 2)
+    3      5     (DivI - 3)   (DivI + DivF/4096)   (DivI + 4)
+
+    Tout = Tsrc * K     = output clock period, where
+    Tsrc                = source clock period
+
+The period of any output clock cycle is always an integral multiple K of
+the source clock period, where K can be any integer in the range
+(K min .. K max).  Averaging over many cycles should give the (K average)
+value in the table.
+
+Mode (Mash_2 value) 0 gives integer division with no additional jitter.
+Mode 1 gives a simple fractional divider with associated jitter.
+Modes 2 and 3 give MASH noise shaping dividers with larger jitter, but
+with a shaped noise frequency spectrum.
+Note when DivI is small, the jitter can be quite large.
+
+The minimum value of DivI is for the specified operation.
+Note in mode Mash_2=0, the minimum DivI is 2 (not 1 as in BCM doc).
+
+See BCM doc for frequency examples.
+
+
+=head2			Hardware Signals
+
+GPIO Alternate Function signal names:  These are general purpose clocks
+that can be routed to IO pins.
+
+    Sig Name	Function
+    --------	----------
+    gp_CLK0	Clk0 output
+    gp_CLK1	Clk1 output
+    gp_CLK2	Clk2 output
+
+The other clock generators drive their respective peripheral.  They are
+described here because they have virtually the same operation.
+
+CAUTION:  Only Clk0 is documented as available for general use.  Clk1 and Clk2
+appear to be used by the Raspberry Pi3 hardware (on GPIO bits 42 and 43) for
+Ethernet and Wifi clocks, but may be available on other versions.
+(See device tree blob.)
+
+=head2			Frequency Limits
+
+The clock generator can produce very high frequencies, but the GPIO output
+pins and loading may limit the practical output frequency to about 125 MHz
+(or less).
+
+When the MASH dividers are used, the BCM doc states "the user must ensure
+that the module is not exposed to frequencies higher than 25 MHz".
+What are they trying to say here?
+It is unlikely the digital logic has a timing path that would limit the
+frequency that low.
+Perhaps they mean that the MASH dividers are more likely to have the
+desired properties in an audio application if the input clock frequency
+is high and the output frequency is limited to less than 25 MHz.
+
+=head2			Changing Configuration
+
+In general, the control registers (Cntl, Divr) should not be changed when
+the clock is busy (Busy_1=1).  Doing so typically results in glitches,
+hangs, or a confused state where the clock output does not match the
+register configuration.
+The recommended procedure is:
+
+ 1) Disable the clock, setting only (Enable_1=0).
+ 2) Wait until not busy (Busy_1=0).
+ 3) Then modify registers, keeping (Enable_1=0).
+ 4) Then enable the clock, setting (Enable_1=1).
+
+
+=head1		REGISTER BIT FIELDS
+
+The numeric suffix on the field name indicates the number of bits in the field.
+
+=head2			Cntl register
+
+Virtually all fields are read-write control bits, i.e. the read value is the
+last write value.  The Busy_1 status bit is read-only.
+
+=over
+
+=item B<Passwd_8>           - Password.  (WO)
+
+Writing the Cntl register has no effect unless Passwd_8= 0x5a.
+Reading always returns 0.
+This is a mechanism to provide some protection against accidental modification.
+
+=item B<Mash_2>             - MASH control.
+
+ 0= integer division, DivF_12 is ignored.
+ 1= 1-stage MASH (equivalent to non-MASH fractional divider)
+ 2= 2-stage MASH
+ 3= 3-stage MASH
+
+To avoid lock-ups and glitches do not change this control while Busy_1=1
+and do not change this control at the same time as asserting Enable_1.
+
+=item B<Flip_1>             - Invert clock output.
+
+ 1= invert clock output
+ 0= normal
+
+Intended for test/debug.  Changing this control while the clock is running
+will generate an edge on the clock output, with possible runt pulses.
+
+Experimental observation:  It seems to always read back 0, regardless of value
+written.  It has no effect on the disabled clock output level (Enable_1=0).
+
+=item B<Busy_1>             - Clock generator is running.  (RO)
+
+ 1= running
+ 0= not
+
+Is a read-only status flag.
+
+=item B<Kill_1>             - Kill the clock generator.
+
+ 1= stop and reset the clock generator
+ 0= no action
+
+Intended for test/debug only.  May cause a glitch on the clock generator
+output.
+
+Experimental observation:  It is NOT one-shot operation, it retains the
+value written.
+It stops the clock output and clears Busy_1=0, but leaves Enable_1=1.
+It seems to be the only way to clear a hung state when Busy_1=1.
+
+=item B<Enable_1>           - Enable the clock generator.
+
+ 1= enable
+ 0= disable
+
+Request clock to start or stop without glitches.
+When the final cycle is complete the clock will stop and set flag Busy_1=0.
+
+=item B<Source_4>           - Clock source.
+
+Select the clock source.  Actual frequencies may depend on the model of
+Raspberry Pi.
+[See:  https://pinout.xyz/pinout/gpclk]
+
+ Source    Freq    Description
+ ------  --------  -----------
+ 0          0 Hz   Ground
+ 1       19.2 MHz  oscillator
+ 2          0 Hz   testdebug0
+ 3          0 Hz   testdebug1
+ 4          0 Hz   PLLA
+ 5       1000 MHz  PLLC (changes with overclock settings)
+ 6        500 MHz  PLLD
+ 7        216 MHz  HDMI auxiliary
+ 8..15      0 Hz   Ground
+
+To avoid lock-ups and glitches do not change this control while Busy_1=1
+and do not change this control at the same time as asserting Enable_1.
+
+=back
+
+=head2			Divr register
+
+Clock divisor fields.
+
+=over
+
+=item B<Passwd_8>           - Password.  (WO)
+
+Writing the Divr register has no effect unless Passwd_8= 0x5a.
+Reading always returns 0.
+
+=item B<DivI_12>            - Integer part of divisor.
+
+Minimum value is limited by the Mash_2 mode - see DESCRIPTION table.
+
+=item B<DivF_12>            - Fractional part of divisor.
+
+Is ignored when Mash_2=0.
+
+=back
+
+
+=head1		BUGS
+
+This documentation is intended as a more complete description, derived mostly
+from the BCM doc along with deductions and experimental observations.
+As such, it may be wrong.
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgClk.h
+ src/rgClk.cpp
+
+
+=head1		SEE ALSO
+
+ rgClk(3)
+ rgpio-clk(1)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+ Chapter 6.3 "General Purpose GPIO Clocks" (p.105-108).
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+ BCM2835 Audio & PWM clocks, G.J. van Loo, 6 February 2013
+ https://www.scribd.com/doc/127599939/BCM2835-Audio-clocks
+
+=cut
+
