@@ -396,7 +396,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
   CASE( "50a", "default wait_time_ns()" );
     try {
 	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
-	CHECK(    1000, tx.wait_time_ns() );
+	CHECK(       0, tx.wait_time_ns() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -405,7 +405,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
   CASE( "50b", "default wait_count_n()" );
     try {
 	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
-	CHECK(  3,      tx.wait_count_n() );
+	CHECK(   10000, tx.wait_count_n() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -512,10 +512,10 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 	CHECK(                      1, Tx.apply_nicely() );	// DUT
 	CHECK(                      3, Tx.get_busy_count() );
 	//
-	CHECKX(            0x5addd555, Tx.Divr.read()     );
-	CHECKX(            0x5addd555, Tx.Divr.get()      );
-	CHECKX(            0x5affffff, Tx.Cntl.read()     );
-	CHECKX(            0x5affffff, Tx.Cntl.get()      );
+	CHECKX(            0xff333ccc, Tx.Divr.read()     );	// no write
+	CHECKX(            0x00ddd555, Tx.Divr.get()      );
+	CHECKX(            0x5a000080, Tx.Cntl.read()     );	// disabled
+	CHECKX(            0xffffffff, Tx.Cntl.get()      );	// unchanged
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -542,10 +542,10 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 	CHECK(                      1, Tx.apply_nicely() );	// DUT
 	CHECK(                      3, Tx.get_busy_count() );
 	//
-	CHECKX(            0x5addd555, Tx.Divr.read()     );
-	CHECKX(            0x5addd555, Tx.Divr.get()      );
-	CHECKX(            0x5affffef, Tx.Cntl.read()     );
-	CHECKX(            0x5affffef, Tx.Cntl.get()      );
+	CHECKX(            0xff333ccc, Tx.Divr.read()     );	// no write
+	CHECKX(            0x00ddd555, Tx.Divr.get()      );
+	CHECKX(            0x5a000080, Tx.Cntl.read()     );	// disabled
+	CHECKX(            0xffffffef, Tx.Cntl.get()      );	// unchanged
     }
     catch (...) {
 	FAIL( "unexpected exception" );
