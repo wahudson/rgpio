@@ -27,8 +27,8 @@ using namespace std;
 */
 rgClkMan::rgClkMan()
 {
-    WaitTime_ns = 1000;
-    WaitCount   = 3;
+    WaitTime_ns = 0;		// no nanosleep
+    WaitCount   = 10000;	// about 10x margin
     BusyCount   = 0;
 }
 
@@ -95,13 +95,17 @@ rgClkMan::apply_regs()
 *        Disable clock if it was running, then wait for not busy.
 *        Apply registers without simultaneous enable.
 *        Apply Enable_1 if requested.
+*    Register values are NOT written if still busy after wait timeout.
 *    Both Cntl and Divr are applied with password fields set to 0x5a.
 *    Use accessors to configure WaitTime_ns and WaitCount.
 *    See wait_while_busy().
+* Note:  In general, changing field values when busy can result in a corrupted
+*    state where the clock output is the wrong frequency or hung.
 * call:
 *    apply_nicely()
 * return:
-*    ()  = status, 0= success, 1= was busy after disable
+*    ()  = status:  0= success
+*                   1= wait on busy timeout, clock is disabled
 */
 bool
 rgClkMan::apply_nicely()
@@ -118,17 +122,19 @@ rgClkMan::apply_nicely()
 
     busy = wait_while_busy();		// check Busy_1 and set BusyCount
 
-    if ( Cntl.get_Enable_1() ) {
-	Cntl.put_Enable_1( 0 );		// apply registers without enable
-	Cntl.apply();
-	Divr.apply();
+    if ( ! busy ) {
+	if ( Cntl.get_Enable_1() ) {
+	    Cntl.put_Enable_1( 0 );	// apply registers without enable
+	    Cntl.apply();
+	    Divr.apply();
 
-	Cntl.put_Enable_1( 1 );		// then enable
-	Cntl.apply();
-    }
-    else {
-	Cntl.apply();
-	Divr.apply();
+	    Cntl.put_Enable_1( 1 );	// then enable
+	    Cntl.apply();
+	}
+	else {
+	    Cntl.apply();
+	    Divr.apply();
+	}
     }
 
     return  busy;
@@ -139,6 +145,8 @@ rgClkMan::apply_nicely()
 * Wait until not Busy or time limit reached.
 *    Does not disable the clock, will time out if still enabled.
 *    Cntl object and hardware registers are unchanged.
+*    Intrinsic loop iteration time is ~310 ns, dominated by the Cntl register
+*    read time.
 * call:
 *    wait_while_busy()
 *    WaitCount   = limit number of wait cycles, 0= no wait

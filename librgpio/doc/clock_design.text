@@ -39,12 +39,14 @@ Possible base Class Names:
     the specific address.
 
 Derived class names:
- >  rgClkN	the General Purpose clocks Clk0, Clk1, Clk2
+    rgClkN	the General Purpose clocks Clk0, Clk1, Clk2
+ >  rgClk
  >  rgClkPwm
  >  rgClkPcm
 
     The derived classes know the specific clock manager addresses.
     The rgClkN class also has a ClkNum identifier, hence the 'N'.
+    Decided to call it rgClk, to keep it simple.
 
     Possibly the ClkNum concept could be extended to include the PWM and PCM
     clocks, but it seems artificial to introduce arbitrary numbers for them.
@@ -175,6 +177,54 @@ Passwd:
     The Passwd field in each register provides some protection against
     accidental modification.  It must be set to 0x5a in order for a write
     to the register to be effected.
+
+Experiments:  (2019-12-30)
+
+    Invert clock (Flip_1):
+	This bit does not seem to work, at least not store a value.
+	At one point using Kill_1 did manage to set Flip_1=1.
+
+    Kill clock (Kill_1):
+	Kill_1 is NOT one-shot, it retains the value written.
+	It does seem to stop and reset the generator, making Busy_1=0.
+	It does not clear Enable_1.
+
+	In one case, changing to an inactive source Source_4=4 while still busy
+	resulted in the clock output stuck high and Busy_1=1.  No amount of
+	enable/disable would clear it.  Using Kill_1 did clear it.
+
+    Inactive Source:
+	If an inactive source is selected, the output stays low and not busy
+	(Busy_1=0).  Thus changing away from an inactive clock is always OK.
+
+    Modify while Busy:
+	When Busy_1=1, writing DivI_12 changes the register value, but the
+	clock frequency does not change.  This is a confused state!
+	Disable and re-enable (with Busy_1=0) seemed to fix it.
+
+	Even writing the same register values when Busy would sometimes
+	result in the wrong frequency output.
+
+	Thus it seems very important to wait for not Busy!
+
+    Frequency measurements:  Raspberry Pi3, DivI_12=1000
+	Source_4=1   19.20  kHz  52.084 us
+	Source_4=5   1.000  MHz  1.000  us
+	Source_4=6   500.0  kHz  2.000  us
+	Source_4=7   3.9375 kHz  253.97 us
+
+    Loop time in wait_while_busy():
+	With WaitTime_ns=0, WaitCount=1000.  No compiler optimization.
+	Each loop iteration is about 365 ns/BusyCount.
+	With g++ -O3  each loop is about 313 ns/BusyCount, which is about
+	the intrinsic IO read time of Cntl.grab() (which dominates any other
+	instructions in the loop).
+
+	BusyCount was < 600 in many interactive trials with rgpio-clk.
+	WaitCount=1000 seems adequate.
+
+	Just using WaitCount seems very effective, and no need for
+	nanosleep().
 
 ----------------------------------------------------------------------------
 ## Base Class Design - Clock Manager
@@ -403,7 +453,8 @@ Special apply_nicely():
     glitching the output clock, to locking up the clock generator.
 
     Experiment seems to indicate some fields (like DivI_12) cannot be
-    written when the clock is enabled (Enable_1=1).
+    changed when the clock is enabled (Enable_1=1) - i.e. the register has
+    the new value, but the clock frequency does not change.
 
     This function carries out the following steps on the hardware register
     to meet these requirements:
@@ -417,6 +468,13 @@ Special apply_nicely():
     Alternatives are to throw an exception, or simply return failure,
     neither of which seem very helpful.  Need more experimentation to see
     how it behaves.
+
+    After experiments (2019-12-30), it looks like modifying registers
+    (even with the same value) can lead to wrong frequency clock output,
+    and possibly a hang that needs Kill to recover.
+
+ >  Decided timeout should return with busy=1 and NOT set registers - let
+    user decide what to do.  Leave clock disabled.
 
     The function name was chosen to indicate goodness without any guarantee.
     The intent is to change the function if better methods are found.
