@@ -1,0 +1,176 @@
+# 2019-12-30  William A. Hudson
+
+# rgpio-clk -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio-clk -- Clock Generator control
+
+=head1		SYNOPSIS
+
+ rgpio clk [name..] [options..]
+  name:  (multiple ok)
+    -0, -1, -2          Clk0, Clk1, Clk2
+    --pcm               PCM clock manager
+    --pwm               PWM clock manager
+  modify:
+    --Cntl=0x5a000000   set control register
+    --Divr=0x5a000000   set divider register
+    --Mash_2=0          MASH mode {0..3}, 0= integer division
+    --Flip_1=0          1= invert output, 0= normal
+    --Busy_1=0          1= clock generator is running (RO)
+    --Kill_1=0          1= stop and reset, 0= no action
+    --Enable_1=0        1= enable, 0= stop
+    --Source_4=0        set clock source {0..15}
+    --DivI_12=N         set divisor integer,  {0..4095}
+    --DivF_12=N         set divisor fraction, {0..4095}, for MASH
+  options:
+    --raw               no disable before modification
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
+
+
+=head1		DESCRIPTION
+
+Configure the Clock Generators (Clock Managers in BCM doc).
+See B<rgClk>(7) manpage for hardware description.
+
+=head1		OPTIONS
+
+=head2			Clock Name
+
+These options specify which clock manager to operate on (default Clk0).
+Multiple can be specified at the same time.
+
+=over
+
+=item B<-0>                 - Clk0    general purpose clock
+
+=item B<-1>                 - Clk1    general purpose clock
+
+=item B<-2>                 - Clk2    general purpose clock
+
+=item B<--pcm>              - ClkPcm  feeds the Pulse Code Modulator
+
+=item B<--pwm>              - ClkPwm  feeds the Pulse Width Modulator
+
+=back
+
+=head2			Modify
+
+These options modify the specified bit field.  Any unspecified fields
+remain unchanged.  The default password (Passwd_8= 0x5a) is always applied.
+If no modification options are specified, the hardware register values are
+simply read and displayed.
+
+=over
+
+=item B<--Cntl=0x5a000000>  - Set control register.
+
+=item B<--Divr=0x5a000000>  - Set divider register.
+
+=item B<--Mash_2=0>         - Mash mode {0..3}, 0= integer division.
+
+=item B<--Flip_1=0>         - Invert output, 1= invert, 0= normal.
+
+=item B<--Busy_1=0>         - 1= clock generator is running (RO).
+
+=item B<--Kill_1=0>         - 1= stop and reset, 0= no action.
+
+=item B<--Enable_1=0>       - 1= enable, 0= stop.
+
+=item B<--Source_4=0>       - Set clock source {0..15}.
+
+=item B<--DivI_12=N>        - Set Divisor integer,  {0..4095}.
+
+=item B<--DivF_12=N>        - Set Divisor fraction, {0..4095}, for MASH.
+
+=back
+
+=head2			Options
+
+=over
+
+=item B<--raw>              - No disable before modification.
+
+Directly apply the register modifications (with default Passwd_8).
+
+Without --raw, the clock is first disabled, then wait for not busy, then
+apply registers without simultaneous enable, then enable if requested.
+
+=item B<-v, --verbose>      - Verbose output.
+
+Shows actions taken as the command executes.
+
+=back
+
+=head1		OUTPUT
+
+Output values are always the final register values re-read after all
+modifications.
+Example output (on stdout) for one clock generator looks like:
+
+ Clk0:				# clock generator name
+   0.Cntl    = 0x00000096	# full register values
+   0.Divr    = 0x003ff000
+   0.Mash_2    = 0		# field values
+   0.Flip_1    = 0
+   0.Busy_1    = 1
+   0.Kill_1    = 0
+   0.Enable_1  = 1
+   0.Source_4  = 6
+   0.DivI_12   = 1023
+   0.DivF_12   = 0
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ View clock configuration of Clk0 and ClkPwm.
+ % rgpio clk -0 --pwm
+
+ Clear clock registers.
+ % rgpio clk --Cntl=0 --Divr=0
+
+ Modify register fields.
+ % rgpio clk --Source_4=6 --DivI_12=1000
+
+ Use --raw for exploring literal changes.
+ % rgpio clk --raw --Source_4=6 --Enable_1=1
+
+ Set Divr register fields
+ % rgpio clk --DivI_12=0xf DivF_12=0xd
+ % rgpio clk --Divr=0x0000f00d
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the source directory tree:
+
+ librgpio/src/rgClk.h
+ librgpio/src/rgClkMan.h
+
+
+=head1		SEE ALSO
+
+B<rgpio>(1),
+B<rgClk>(7),
+B<rgClk>(3),
+B<librgpio>(3)
+
+ BCM doc:  BCM2835 ARM Peripherals (2012)
+ Chapter 6.3 "General Purpose GPIO Clocks" (p.105-108).
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+=cut
+

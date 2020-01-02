@@ -64,6 +64,7 @@ cap:
 
 man:	$(MAN)/man1 \
 	$(MAN)/man1/rgpio.1 \
+	$(MAN)/man1/rgpio-clk.1 \
 	$(MAN)/man1/rgpio-fsel.1 \
 	$(MAN)/man1/rgpio-io.1
 
@@ -131,6 +132,10 @@ $(OJ)/yUtil.o:		yUtil.cpp  yUtil.h
 
 $(MAN)/man1/rgpio.1:		rgpio.pod
 	pod2man -s 1 -n rgpio --center='Raspberry Pi GPIO'  rgpio.pod  $@
+
+$(MAN)/man1/rgpio-clk.1:	man1/rgpio-clk.pod
+	pod2man -s 1 -n rgpio-clk --center='Raspberry Pi GPIO' \
+		   man1/rgpio-clk.pod  $@
 
 $(MAN)/man1/rgpio-fsel.1:	man1/rgpio-fsel.pod
 	pod2man -s 1 -n rgpio-fsel --center='Raspberry Pi GPIO' \
