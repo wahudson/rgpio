@@ -14,6 +14,7 @@ using namespace std;
 #include "rgAddrMap.h"
 #include "rgIoPin.h"
 #include "rgClock.h"
+#include "rgClk.h"
 #include "rgUniSpi.h"
 
 #include "Error.h"
@@ -229,19 +230,26 @@ main( int	argc,
 
 	rgIoPin			Gpx  ( &Amx );		// constructor
 	rgClock			Ckx  ( 0, &Amx );	// constructor
+	rgClk			Cky  ( rgClk::cm_Clk0, &Amx );	// constructor
 	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
 	uint32_t		vv;
 
 	volatile uint32_t*	pinread = Gpx.addr_PinRead_w0();
 	volatile uint32_t*	pinset  = Gpx.addr_PinSet_w0();
 
-	volatile uint32_t*	ck0ctl     = Ckx.addr_CtlReg();
+//	volatile uint32_t*	ck0ctl     = Ckx.addr_CtlReg();
+	volatile uint32_t*	ck0ctl     = Cky.Cntl.addr();
 	volatile uint32_t*	uspi_Cntl0 = Uspix.addr_Cntl0();
+
+    // Configure
+	Cky.wait_time_ns( 0 );
+	Cky.wait_count_n( 10 );
 
     // Make vars used
 	vv = *pinread;
 	*pinset = 0x00000000;
 	vv = *ck0ctl;
+	vv = *uspi_Cntl0;
 	rv = vv;	// used
 
 	if ( Opx.debug ) {
@@ -271,14 +279,20 @@ main( int	argc,
 //		Ckx.read_CtlReg();
 //		Ckx.grab_regs();
 //		vv = Ckx.read_Busy();
-//		vv = *ck0ctl;
-//		*ck0ctl = 0x00000000;
+//		vv = *ck0ctl;		// 370 ns/sample  -O3: 313 ns/sample
+//		*ck0ctl = 0x00000000;	// 157 ns/sample
+//		Cky.Cntl.grab();	// 420 ns/sample  -O3: 370 ns/sample
+//		vv = Cky.Cntl.read();	// 420 ns/sample
+//		Cky.wait_while_busy();	// 365 ns/BusyCount  -O3: 313 ns/
+
+		Cky.Cntl.grab();
+		vv = Cky.Cntl.get_Busy_1();	// -O3: 313 ns/sample
 
 //		*pinset = 0x00000000;
 //		vv = *pinread;
 //		vv = Gpx.read_PinLevel_w0();
 
-		vv = *uspi_Cntl0;
+//		vv = *uspi_Cntl0;
 
 		sample_cnt++;
 	    }
