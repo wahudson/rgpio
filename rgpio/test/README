@@ -46,13 +46,23 @@ Test suites:  (2018-11-09)
  p      = Program test (command)
 ------  --------------
  u   s  t_Error/	Error		Error message class.
- u   s  t_yUtil/	yUtil		Utility functions.
  pbl    t_clk/		rgpio-clk	subcommand
  pbl    t_clock/	rgpio-clock	subcommand
  pbl    t_fsel/		rgpio-fsel	subcommand
- pbl    t_pwm/		rgpio-pwm	subcommand
  pbl    t_io/		rgpio-io	subcommand
+ pbl    t_pwm/		rgpio-pwm	subcommand
  pbl    t_rgpio/	rgpio		rgpio main program.
+ u   s  t_yUtil/	yUtil		Utility functions.
+
+
+t_*/    Test code functionality.
+	    Can run on RPi or Linux platform.
+	    Generally should NOT depend on hardware, i.e.
+	    use "rgpio --dev=f" fake memory.
+
+v_*/    Validate RPi hardware behavior.
+	    Run on RPi only, other Linux will fail.
+	    Each test may require special hardware setup.  See test.cpp
 
 
 Test Setup:
@@ -93,6 +103,8 @@ Strategy:
     Makefile is the common interface to all test suits, regardless of the
     kind of test.
 
+    Tests should take care not to modify hardware that is in use by the
+    operating system, i.e. be safe to run on RPi.
 
 Git:
 ----

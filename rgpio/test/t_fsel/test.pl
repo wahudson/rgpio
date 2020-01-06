@@ -43,7 +43,7 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 #---------------------------------------------------------------------------
 
 run_test( "11", "fsel no args",
-    "rgpio fsel",
+    "rgpio --dev=f  fsel",
     0,
     Stderr => q(),
     Stdout => q(
@@ -84,13 +84,13 @@ run_test( "11", "fsel no args",
 );
 
 run_test( "12", "fsel help",
-    "rgpio fsel --help",
+    "rgpio --dev=f  fsel --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "bad option",
-    "rgpio fsel --dev=xx",
+    "rgpio --dev=f  fsel --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -100,7 +100,7 @@ run_test( "13", "bad option",
 );
 
 run_test( "14", "fsel bit 53",
-    "rgpio fsel 53",
+    "rgpio --dev=f  fsel 53",
     0,
     Stderr => q(),
     Stdout => q(
@@ -110,7 +110,7 @@ run_test( "14", "fsel bit 53",
 );
 
 run_test( "15", "fsel bit too large",
-    "rgpio fsel 54",
+    "rgpio --dev=f  fsel 54",
     1,
     Stderr => q(
 	Error:   bit arg out-of-range:  54
@@ -119,7 +119,7 @@ run_test( "15", "fsel bit too large",
 );
 
 run_test( "16", "fsel verbose",
-    "rgpio fsel -v 0",
+    "rgpio --dev=f  fsel -v 0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -135,7 +135,7 @@ run_test( "16", "fsel verbose",
 #---------------------------------------------------------------------------
 
 run_test( "20", "fsel --mode=Out no default",
-    "rgpio fsel --mode=Out",
+    "rgpio --dev=f  fsel --mode=Out",
     1,
     Stderr => q(
 	Error:  --mode requires bit numbers or --w0 --w1
@@ -144,7 +144,7 @@ run_test( "20", "fsel --mode=Out no default",
 );
 
 run_test( "21", "fsel --mode=Out  4",
-    "rgpio fsel --mode=Out  4",
+    "rgpio --dev=f  fsel --mode=Out  4",
     0,
     Stderr => q(),
     Stdout => q(
@@ -155,7 +155,7 @@ run_test( "21", "fsel --mode=Out  4",
 );
 
 run_test( "22", "fsel --mode=Out  4",
-    "rgpio fsel --mode=Alt5  14 15 16 17",
+    "rgpio --dev=f  fsel --mode=Alt5  14 15 16 17",
     0,
     Stderr => q(),
     Stdout => q(
@@ -169,13 +169,13 @@ run_test( "22", "fsel --mode=Out  4",
 );
 
 run_test( "23", "fsel reset all pins",
-    "rgpio fsel --mode=In --w0 --w1",
+    "rgpio --dev=f  fsel --mode=In --w0 --w1",
     0,
     Stderr => q(),
 );
 
 run_test( "24", "fsel --mode=Baad",
-    "rgpio fsel --mode=Baad  4",
+    "rgpio --dev=f  fsel --mode=Baad  4",
     1,
     Stderr => q(
 	Error:  unknown Fsel mode:  --mode=Baad
@@ -190,7 +190,7 @@ run_test( "24", "fsel --mode=Baad",
 #---------------------------------------------------------------------------
 
 run_test( "30", "fsel --show_all",
-    "rgpio fsel --show_all  4 5",
+    "rgpio --dev=f  fsel --show_all  4 5",
     0,
     Stderr => q(),
     Stdout => q(
@@ -202,13 +202,13 @@ Bit  Alt0        Alt1        Alt2        Alt3        Alt4        Alt5
 );
 
 run_test( "31", "fsel --show_all",
-    "rgpio fsel --show_all --w0 --w1",
+    "rgpio --dev=f  fsel --show_all --w0 --w1",
     0,
     Stderr => q(),
 );
 
 run_test( "32", "fsel --show_all",
-    "rgpio fsel --show_all --mode=In  4",
+    "rgpio --dev=f  fsel --show_all --mode=In  4",
     1,
     Stderr => q(
 	Error:  --mode not valid with --show_all
