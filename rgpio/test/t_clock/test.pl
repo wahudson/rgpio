@@ -43,7 +43,7 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 #---------------------------------------------------------------------------
 
 run_test( "11", "clock no args",
-    "rgpio clock",
+    "rgpio --dev=f  clock",
     0,
     Stderr => q(),
     Stdout => q(
@@ -62,13 +62,13 @@ run_test( "11", "clock no args",
 );
 
 run_test( "12", "clock help",
-    "rgpio clock --help",
+    "rgpio --dev=f  clock --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio clock --dev=xx",
+    "rgpio --dev=f  clock --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -78,7 +78,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "extra argument",
-    "rgpio clock 2",
+    "rgpio --dev=f  clock 2",
     1,
     Stderr => q(
 	Error:  extra arguments:  2
@@ -87,7 +87,7 @@ run_test( "14", "extra argument",
 );
 
 run_test( "15", "bad clock number",
-    "rgpio clock -3",
+    "rgpio --dev=f  clock -3",
     1,
     Stderr => q(
 	Error:  unknown option:  -3
@@ -96,13 +96,13 @@ run_test( "15", "bad clock number",
 );
 
 run_test( "16", "good clock numbers",
-    "rgpio clock -0 -1 -2",
+    "rgpio --dev=f  clock -0 -1 -2",
     0,
     Stderr => q(),
 );
 
 run_test( "17", "--Busy_1 not an option",
-    "rgpio clock --Busy_1=0",
+    "rgpio --dev=f  clock --Busy_1=0",
     1,
     Stderr => q(
 	Error:  unknown option:  --Busy_1=0
@@ -112,7 +112,7 @@ run_test( "17", "--Busy_1 not an option",
 
 #---------------------------------------
 run_test( "18a", "clock verbose",
-    "rgpio clock -1 -v",
+    "rgpio --dev=f  clock -1 -v",
     0,
     Stderr => q(),
     Stdout => q(
@@ -132,7 +132,7 @@ run_test( "18a", "clock verbose",
 );
 
 run_test( "18b", "clock verbose",
-    "rgpio clock -1 --verbose",
+    "rgpio --dev=f  clock -1 --verbose",
     0,
     Stderr => q(),
     Stdout => q(
@@ -157,7 +157,7 @@ run_test( "18b", "clock verbose",
 #---------------------------------------------------------------------------
 
 run_test( "20", "modify default clock",
-    "rgpio clock --Mash_2=3",
+    "rgpio --dev=f  clock --Mash_2=3",
     0,
     Stderr => q(),
     Stdout => q(
@@ -176,19 +176,19 @@ run_test( "20", "modify default clock",
 );
 
 run_test( "21", "modify all clocks",
-    "rgpio clock -0 -1 -2 --Enable_1=1",
+    "rgpio --dev=f  clock -0 -1 -2 --Enable_1=1",
     0,
     Stderr => q(),
 );
 
 run_test( "22", "modify everything",
-    "rgpio clock -0 -1 -2 --Mash_2=3 --Flip_1=1 --Kill_1=1 --Enable_1=1 --Source_4=0xf --DivI_12=4095 --DivF_12=4095",
+    "rgpio --dev=f  clock -0 -1 -2 --Mash_2=3 --Flip_1=1 --Kill_1=1 --Enable_1=1 --Source_4=0xf --DivI_12=4095 --DivF_12=4095",
     0,
     Stderr => q(),
 );
 
 run_test( "23", "all modify errors",
-    "rgpio clock -0 -1 -2 --Mash_2=4 --Flip_1=2 --Kill_1=2 --Enable_1=2 --Source_4=0x1f --DivI_12=4096 --DivF_12=4096",
+    "rgpio --dev=f  clock -0 -1 -2 --Mash_2=4 --Flip_1=2 --Kill_1=2 --Enable_1=2 --Source_4=0x1f --DivI_12=4096 --DivF_12=4096",
     1,
     Stderr => q(
 	Error:  require --Mash_2={0..3}:  4
@@ -209,7 +209,7 @@ run_test( "23", "all modify errors",
 
 #---------------------------------------
 run_test( "31b", "bad --Mash_2",
-    "rgpio clock -0 --Mash_2=4",
+    "rgpio --dev=f  clock -0 --Mash_2=4",
     1,
     Stderr => q(
 	Error:  require --Mash_2={0..3}:  4
@@ -219,20 +219,20 @@ run_test( "31b", "bad --Mash_2",
 
 #---------------------------------------
 run_test( "35a", "max --Source_4",
-    "rgpio clock -0 --Source_4=0xf",
+    "rgpio --dev=f  clock -0 --Source_4=0xf",
     0,
     Stderr => q(),
 );
 
 #---------------------------------------
 run_test( "37a", "max --DivF_12",
-    "rgpio clock -0 --DivF_12=4095",
+    "rgpio --dev=f  clock -0 --DivF_12=4095",
     0,
     Stderr => q(),
 );
 
 run_test( "37b", "bad --DivF_12",
-    "rgpio clock -0 --DivF_12=4096",
+    "rgpio --dev=f  clock -0 --DivF_12=4096",
     1,
     Stderr => q(
 	Error:  require --DivF_12={0..4095}:  4096
