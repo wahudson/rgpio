@@ -1,4 +1,4 @@
-bin/
-lib/
-man/
-obj/
+/bin/
+/lib/
+/man/
+/obj/
