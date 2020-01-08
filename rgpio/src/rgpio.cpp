@@ -11,7 +11,6 @@
 using namespace std;
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
 
 #include "y_clk.h"
 #include "y_clock.h"
@@ -111,7 +110,8 @@ yOptLong::parse_options()
 	feature = this->current_option();	// no advance for next level
     }
 
-    if ( !((*dev == 'm') || (*dev == 'g') || (*dev == 'f')) ) {
+    if ( !( ((*dev == 'm') || (*dev == 'g') || (*dev == 'f')) &&
+	    (*(dev+1) == '\0') ) ) {
 	Error::msg( "require --dev=m|g|f" ) <<endl;
     }
 }
@@ -212,7 +212,8 @@ main( int	argc,
 	    cout << "Using Fake memory" <<endl;
 	}
 
-	//#!! close_dev()
+	// Note:  Device file cannot be closed until each feature has
+	// mapped its memory block.  Fine to leave it open.
 
 	int			retv = 0;	// return value
 
