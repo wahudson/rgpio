@@ -19,7 +19,7 @@ doc/		    Documentation
     privilege.text	Process Privilege Control
     pwm_design.text	PWM (Pulse Width Modulator) design
     spi0_design.text	rgSpi0 Design architecture
-    spi_design.text	rgUniSpi Design Architecure
+    uspi_design.text	rgUniSpi Design Architecure
 
 man/		    Manpage dir tree (unmanaged, not source)
     man3/		Library calls
