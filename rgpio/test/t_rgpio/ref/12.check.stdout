@@ -3,7 +3,10 @@ usage:  rgpio [main_options..]  feature  [options..]
   feature:
     io           General Purpose IO pins
     fsel         Pin Function Select
+    clk          Clock generator
     clock        Clock generator
+    pwm          PWM Pulse Width Modulator
+    spi0         SPI0 Master
     uspi         Universal SPI Master, Spi1, Spi2
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),

@@ -52,8 +52,8 @@ run_test( "11a", "rgpio no args",
     ),
 );
 
-run_test( "11b", "rgpio no args",
-    "rgpio -v",
+run_test( "11b", "rgpio --verbose",
+    "rgpio --dev=f -v",
     0,
     Stderr => q(),
     Stdout => q(
@@ -62,15 +62,19 @@ run_test( "11b", "rgpio no args",
     ),
 );
 
-run_test( "11c", "rgpio no args",
+if ( $ENV{TESTONRPI} ) {
+  run_test( "11c", "rgpio --debug",
     "rgpio --debug",
     0,
-    Stderr => q(),
+    Stderr => q(
+	rgAddrMap:  raise cap:  = cap_dac_override,cap_sys_rawio+ep
+	rgAddrMap:  drop  cap:  =
+    ),
     Stdout => q(
-	Using Fake memory
 	Do nothing.  Try 'rgpio --help'
     ),
-);
+  );
+}
 
 #---------------------------------------
 run_test( "12", "rgpio help",
@@ -80,7 +84,7 @@ run_test( "12", "rgpio help",
 );
 
 run_test( "13", "rgpio bad --dev",
-    "rgpio --dev=xx",
+    "rgpio --dev=mm",
     1,
     Stderr => q(
 	Error:  require --dev=m|g|f
