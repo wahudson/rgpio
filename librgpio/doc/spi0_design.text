@@ -1,6 +1,6 @@
 2019-10-14
-		rgpio - SPI0 Design architecture
-		--------------------------------
+		rgpio - SPI0 Master Design
+		--------------------------
 
 Raspberry Pi GPIO Tool and Library
 
@@ -11,6 +11,7 @@ References:
 BCM2835 ARM Peripherals
     Referenced by RaspberryPi.
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+    See:  p.148-159  ch 10. SPI
 
 https://elinux.org/BCM2835_datasheet_errata
 
@@ -25,7 +26,7 @@ https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
 
 
 ----------------------------------------------------------------------------
-## Discussion
+## Discussion - SPI0 Master
 ----------------------------------------------------------------------------
 
 This is SPI0, the SPI master with DMA.
@@ -37,9 +38,24 @@ Possible Class Names:
 
  >  rgUniSpi		SPI1, SPI2
 
+Documentation:
+    Where to put detailed documentation on Spi operation and configuration?
+    Man page sections:
+
+    rgSpi0(7)      - describes BCM hardware function
+    rgSpi0(3)      - describes librgpio API calls, and limited function
+    rgpio-spi0(1)  - describes rgpio spi0 command
+
+    Probably want a separate source describing operation.  The Library, and
+    the utility 'rgpio' command both do the same operations, and thus have
+    a lot of overlap.  Let them both reference section (7) for hardware
+    behavior.
+
+Operation with rgpio:
+    % rgpio spi0  --RunActive_1=1  --debug
 
 ----------------------------------------------------------------------------
-## SPI0 Master
+## Operation - SPI0 Master
 ----------------------------------------------------------------------------
 
 There are two ways the data lines can be configured:
@@ -58,6 +74,10 @@ There are 3 major modes of operation:  (BCS ch 10.6)
     DMA can use full 32-bit word width of FIFO, but polled operation can
     only write single bytes to FIFO ???
 
+
+----------------------------------------------------------------------------
+## Class Design - SPI0 Master
+----------------------------------------------------------------------------
 
 Names of registers and bit-fields in the BCM documentation are rather short
     and confusing when out of context.
@@ -129,22 +149,6 @@ Naming functions:  (same as rgUniSpi)
 
 Field accessor functions:  (same as rgUniSpi)
     Use consistent philosophy.
-
-Documentation:
-    Where to put detailed documentation on Spi operation and configuration?
-    Man page sections:
-
-    rgSpi0(7)      - describes BCM hardware function
-    rgSpi0(3)      - describes librgpio API calls, and limited function
-    rgpio_spi0(1)  - describes rgpio spi0 command
-
-    Probably want a single source describing operation, rgSpi0(7).  The
-    Library, and the utility 'rgpio' command both do the same operations, and
-    thus have a lot of overlap.  Let them both reference rgSpi0(7) for
-    hardware behavior.
-
-Operation with rgpio:
-    % rgpio spi0  --RunActive_1=1  --debug
 
 
 CntlStat  Register Field Names:

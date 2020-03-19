@@ -1,6 +1,6 @@
 2018-01-21
-		rgpio - SPI Design Architecure
-		------------------------------
+		rgpio - rgUniSpi (Universal SPI Master) Design
+		----------------------------------------------
 
 Raspberry Pi GPIO Tool and Library
 
@@ -11,6 +11,8 @@ References:
 BCM2835 ARM Peripherals
     Referenced by RaspberryPi.
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+    See:  p.8-10   ch 2.   Auxiliaries: UART1 & SPI1, SPI2
+    See:  p.20-27  ch 2.3  Universal SPI Master
 
 https://elinux.org/BCM2835_datasheet_errata
 
@@ -25,7 +27,7 @@ https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
 
 
 ----------------------------------------------------------------------------
-## Discussion
+## Discussion - Universal SPI Master
 ----------------------------------------------------------------------------
 
 There are 3 SPI masters, of two different flavors:
@@ -72,9 +74,28 @@ Possible Class Names:
     Probably replicate them in both the Universal SPI Master and
     Mini Uart classes.
 
+Documentation:
+    Where to put detailed documentation on Spi operation and configuration?
+
+    rgUniSpi(7)    - describes BCM hardware function
+    rgUniSpi(3)    - describes librgpio API calls, and limited function
+    rgpio-uspi(1)  - describes rgpio uspi command
+
+    Probably want a separate source describing operation.  The Library, and
+    the utility 'rgpio' command both do the same operations, and thus have
+    a lot of overlap.  Let them both reference section (7) for hardware
+    behavior.
+
+Operation with rgpio:
+    # run like this
+    sudo ../bin/rgpio --dev=m uspi -1  --debug
+
+    # Enable Spi1, now can observe
+    rgpio uspi -1 --Spi_Enable_1=1  --debug
+
 
 ----------------------------------------------------------------------------
-## Universal SPI Master
+## Operation - Universal SPI Master
 ----------------------------------------------------------------------------
 
 Shares two Auxiliary registers which controls the MiniUart and the
@@ -92,8 +113,16 @@ BCM documentation confusion:
     While the fifo access register shows valid "Data[15:0]".
     The Variable Width section refers to [23:0] as the transmitted data.
 
-    The addresses at the begining of chapter 2 are different than those
+    The addresses at the beginning of chapter 2 are different than those
     in the Universal SPI Master section.
+
+SPI clock frequency:  (see BCM p.21)
+    Freq = system_clock_freq/(2*(speed+1))
+
+
+----------------------------------------------------------------------------
+## Class Design - Universal SPI Master
+----------------------------------------------------------------------------
 
 Register names:
     Cntl0Reg	-
@@ -277,23 +306,6 @@ Initialize object register state:  Cntl0, Cntl1, Stat
     Note the reset state is virtually all zero, only ChipSelects= 0x7 (all
     inactive) are non-zero.  Thus init_put_zero() is probably not worth the
     effort.
-
-Documentation:
-    Where to put detailed documentation on Spi operation and configuration?
-
-    Probably want a seperate source describing operation.  The Library, and
-    the utility 'rgpio' command both do the same operations, and thus have
-    a lot of overlap.
-
-SPI clock frequency:  (see BCM p.21)
-    Freq = system_clock_freq/(2*(speed+1))
-
-Operation with rgpio:
-    # run like this
-    sudo ../bin/rgpio --dev=m uspi -1  --debug
-
-    # Enable Spi1, now can observe
-    rgpio uspi -1 --Spi_Enable_1=1  --debug
 
 
 ----------------------------------------------------------------------------
