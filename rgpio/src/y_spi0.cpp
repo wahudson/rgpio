@@ -473,11 +473,11 @@ y_spi0::doit()
 		 <<hex << (uint32_t*) Spx.get_base_addr() <<endl;
 
 	    cout << "    " << "Spi0.CntlStat=       "
-		 <<hex << (uint32_t*) Spx.addr_CntlStat() <<endl;
+		 <<hex << (uint32_t*) Spx.CntlStat.addr() <<endl;
 
 	    cout << "    " << "Spi0.diff_CntlStat=  "
 		 <<hex
-		 << (Spx.addr_CntlStat() - Spx.get_base_addr())*4 <<endl;
+		 << (Spx.CntlStat.addr() - Spx.get_base_addr())*4 <<endl;
 
 	    cout <<dec <<endl;
 	}
@@ -488,125 +488,50 @@ y_spi0::doit()
 	    Opx.trace_msg( "Grab regs" );
 	    Spx.grab_regs();
 
+#define APPLX( X )    if ( Opx.X.Given ) { Spx.X.put( Opx.X.Val );  md = 1; }
+#define APPLY( X, Y ) if ( Opx.X.Given ) { Y( Opx.X.Val );  md = 1; }
+
 	// Registers
 
-	    if (    Opx.CntlStat.Given ) {
-		Spx.put_CntlStat( Opx.CntlStat.Val );   md = 1;
-	    }
+	    APPLX( CntlStat )
+	    APPLX( ClkDiv   )
+	    APPLX( DmaLen   )
+	    APPLX( Lossi    )
+	    APPLX( DmaReq   )
 
-	    if (    Opx.ClkDiv.Given ) {
-		Spx.put_ClkDiv(   Opx.ClkDiv.Val   );   md = 1;
-	    }
+	// Fields
 
-	    if (    Opx.DmaLen.Given ) {
-		Spx.put_DmaLen(   Opx.DmaLen.Val   );   md = 1;
-	    }
+	    APPLY( LossiWord_1,     Spx.CntlStat.put_LossiWord_1     )
+	    APPLY( LossiDmaEn_1,    Spx.CntlStat.put_LossiDmaEn_1    )
+	    APPLY( CsPolarity_3,    Spx.CntlStat.put_CsPolarity_3    )
+//	    APPLY( RxFullStop_1,    Spx.CntlStat.put_RxFullStop_1    )
+//	    APPLY( RxHalf_1,        Spx.CntlStat.put_RxHalf_1        )
+//	    APPLY( TxHasSpace_1,    Spx.CntlStat.put_TxHasSpace_1    )
+//	    APPLY( RxHasData_1,     Spx.CntlStat.put_RxHasData_1     )
+//	    APPLY( TxEmpty_1,       Spx.CntlStat.put_TxEmpty_1       )
+	    APPLY( LossiEnable_1,   Spx.CntlStat.put_LossiEnable_1   )
+	    APPLY( ReadEnable_1,    Spx.CntlStat.put_ReadEnable_1    )
+	    APPLY( DmaEndCs_1,      Spx.CntlStat.put_DmaEndCs_1      )
+	    APPLY( IrqRxHalf_1,     Spx.CntlStat.put_IrqRxHalf_1     )
+	    APPLY( IrqTxEmpty_1,    Spx.CntlStat.put_IrqTxEmpty_1    )
+	    APPLY( DmaEnable_1,     Spx.CntlStat.put_DmaEnable_1     )
+	    APPLY( RunActive_1,     Spx.CntlStat.put_RunActive_1     )
+	    APPLY( CsPolarity_1,    Spx.CntlStat.put_CsPolarity_1    )
+	    APPLY( ClearRxTxFifo_2, Spx.CntlStat.put_ClearRxTxFifo_2 )
+	    APPLY( ClockPolarity_1, Spx.CntlStat.put_ClockPolarity_1 )
+	    APPLY( ClockPhase_1,    Spx.CntlStat.put_ClockPhase_1    )
+	    APPLY( ChipSelectN_2,   Spx.CntlStat.put_ChipSelectN_2   )
 
-	    if (    Opx.Lossi.Given ) {
-		Spx.put_Lossi(    Opx.Lossi.Val    );   md = 1;
-	    }
+	    APPLY( ClockDiv_16,     Spx.ClkDiv.put_ClockDiv_16       )
 
-	    if (    Opx.DmaReq.Given ) {
-		Spx.put_DmaReq(   Opx.DmaReq.Val   );   md = 1;
-	    }
+	    APPLY( DmaDataLen_16,   Spx.DmaLen.put_DmaDataLen_16     )
 
+	    APPLY( LossiHoldDly_4,  Spx.Lossi.put_LossiHoldDly_4     )
 
-	// CntlStat fields
-
-	    if (    Opx.LossiWord_1.Given ) {
-		Spx.put_LossiWord_1(     Opx.LossiWord_1.Val     );  md = 1;
-	    }
-
-	    if (    Opx.LossiDmaEn_1.Given ) {
-		Spx.put_LossiDmaEn_1(    Opx.LossiDmaEn_1.Val    );  md = 1;
-	    }
-
-	    if (    Opx.CsPolarity_3.Given ) {
-		Spx.put_CsPolarity_3(    Opx.CsPolarity_3.Val    );  md = 1;
-	    }
-
-	    // Read-only status
-
-	    if (    Opx.LossiEnable_1.Given ) {
-		Spx.put_LossiEnable_1(   Opx.LossiEnable_1.Val   );  md = 1;
-	    }
-
-	    if (    Opx.ReadEnable_1.Given ) {
-		Spx.put_ReadEnable_1(    Opx.ReadEnable_1.Val    );  md = 1;
-	    }
-
-	    if (    Opx.DmaEndCs_1.Given ) {
-		Spx.put_DmaEndCs_1(      Opx.DmaEndCs_1.Val      );  md = 1;
-	    }
-
-	    if (    Opx.IrqRxHalf_1.Given ) {
-		Spx.put_IrqRxHalf_1(     Opx.IrqRxHalf_1.Val     );  md = 1;
-	    }
-
-	    if (    Opx.IrqTxEmpty_1.Given ) {
-		Spx.put_IrqTxEmpty_1(    Opx.IrqTxEmpty_1.Val    );  md = 1;
-	    }
-
-	    if (    Opx.DmaEnable_1.Given ) {
-		Spx.put_DmaEnable_1(     Opx.DmaEnable_1.Val     );  md = 1;
-	    }
-
-	    if (    Opx.RunActive_1.Given ) {
-		Spx.put_RunActive_1(     Opx.RunActive_1.Val     );  md = 1;
-	    }
-
-	    if (    Opx.CsPolarity_1.Given ) {
-		Spx.put_CsPolarity_1(    Opx.CsPolarity_1.Val    );  md = 1;
-	    }
-
-	    if (    Opx.ClearRxTxFifo_2.Given ) {
-		Spx.put_ClearRxTxFifo_2( Opx.ClearRxTxFifo_2.Val );  md = 1;
-	    }
-
-	    if (    Opx.ClockPolarity_1.Given ) {
-		Spx.put_ClockPolarity_1( Opx.ClockPolarity_1.Val );  md = 1;
-	    }
-
-	    if (    Opx.ClockPhase_1.Given ) {
-		Spx.put_ClockPhase_1(    Opx.ClockPhase_1.Val    );  md = 1;
-	    }
-
-	    if (    Opx.ChipSelectN_2.Given ) {
-		Spx.put_ChipSelectN_2(   Opx.ChipSelectN_2.Val   );  md = 1;
-	    }
-
-	// ClkDiv fields
-	    if (    Opx.ClockDiv_16.Given ) {
-		Spx.put_ClockDiv_16(     Opx.ClockDiv_16.Val     );  md = 1;
-	    }
-
-	// DmaLen fields
-	    if (    Opx.DmaDataLen_16.Given ) {
-		Spx.put_DmaDataLen_16(   Opx.DmaDataLen_16.Val   );  md = 1;
-	    }
-
-	// Lossi  fields
-	    if (    Opx.LossiHoldDly_4.Given ) {
-		Spx.put_LossiHoldDly_4(  Opx.LossiHoldDly_4.Val  );  md = 1;
-	    }
-
-	// DmaReq fields
-	    if (    Opx.DmaRxPanicLev_8.Given ) {
-		Spx.put_DmaRxPanicLev_8( Opx.DmaRxPanicLev_8.Val );  md = 1;
-	    }
-
-	    if (    Opx.DmaRxReqLev_8.Given ) {
-		Spx.put_DmaRxReqLev_8(   Opx.DmaRxReqLev_8.Val   );  md = 1;
-	    }
-
-	    if (    Opx.DmaTxPanicLev_8.Given ) {
-		Spx.put_DmaTxPanicLev_8( Opx.DmaTxPanicLev_8.Val );  md = 1;
-	    }
-
-	    if (    Opx.DmaTxReqLev_8.Given ) {
-		Spx.put_DmaTxReqLev_8(   Opx.DmaTxReqLev_8.Val   );  md = 1;
-	    }
-
+	    APPLY( DmaRxPanicLev_8, Spx.DmaReq.put_DmaRxPanicLev_8   )
+	    APPLY( DmaRxReqLev_8,   Spx.DmaReq.put_DmaRxReqLev_8     )
+	    APPLY( DmaTxPanicLev_8, Spx.DmaReq.put_DmaTxPanicLev_8   )
+	    APPLY( DmaTxReqLev_8,   Spx.DmaReq.put_DmaTxReqLev_8     )
 
 	    if ( md ) {			// modified registers
 		Opx.trace_msg( "Modify regs" );
@@ -624,7 +549,7 @@ y_spi0::doit()
 		    vv = strtoul( cp, NULL, 0 );
 		    cout.fill('0');
 		    cout << "   write_Fifo:  0x" <<hex <<setw(8) << vv << endl;
-		    Spx.write_Fifo( vv );
+		    Spx.Fifo.write( vv );
 		}
 		cout << dec;
 	    }
@@ -637,49 +562,47 @@ y_spi0::doit()
 
 	    cout.fill('0');
 	    cout <<hex
-		<< "   CntlStat= 0x" <<setw(8) << Spx.read_CntlStat()  <<endl
-		<< "   ClkDiv=   0x" <<setw(8) << Spx.read_ClkDiv()    <<endl
-		<< "   DmaLen=   0x" <<setw(8) << Spx.read_DmaLen()    <<endl
-		<< "   Lossi=    0x" <<setw(8) << Spx.read_Lossi()     <<endl
-		<< "   DmaReq=   0x" <<setw(8) << Spx.read_DmaReq()    <<endl
+		<< "   CntlStat= 0x" <<setw(8) << Spx.CntlStat.read()  <<endl
+		<< "   ClkDiv=   0x" <<setw(8) << Spx.ClkDiv.read()    <<endl
+		<< "   DmaLen=   0x" <<setw(8) << Spx.DmaLen.read()    <<endl
+		<< "   Lossi=    0x" <<setw(8) << Spx.Lossi.read()     <<endl
+		<< "   DmaReq=   0x" <<setw(8) << Spx.DmaReq.read()    <<endl
 		;
 
 	    cout.fill(' ');
 	    cout <<dec
 		<< " CntlStat" <<endl
-		<< "   LossiWord_1     = " << Spx.get_LossiWord_1()     <<endl
-		<< "   LossiDmaEn_1    = " << Spx.get_LossiDmaEn_1()    <<endl
-		<< "   CsPolarity_3    = " << Spx.get_CsPolarity_3()    <<endl
-
-		<< "   RxFullStop_1    = " << Spx.get_RxFullStop_1()    <<endl
-		<< "   RxHalf_1        = " << Spx.get_RxHalf_1()        <<endl
-		<< "   TxHasSpace_1    = " << Spx.get_TxHasSpace_1()    <<endl
-		<< "   RxHasData_1     = " << Spx.get_RxHasData_1()     <<endl
-		<< "   TxEmpty_1       = " << Spx.get_TxEmpty_1()       <<endl
-		<< "   LossiEnable_1   = " << Spx.get_LossiEnable_1()   <<endl
-		<< "   ReadEnable_1    = " << Spx.get_ReadEnable_1()    <<endl
-		<< "   DmaEndCs_1      = " << Spx.get_DmaEndCs_1()      <<endl
-		<< "   IrqRxHalf_1     = " << Spx.get_IrqRxHalf_1()     <<endl
-		<< "   IrqTxEmpty_1    = " << Spx.get_IrqTxEmpty_1()    <<endl
-		<< "   DmaEnable_1     = " << Spx.get_DmaEnable_1()     <<endl
-
-		<< "   RunActive_1     = " << Spx.get_RunActive_1()     <<endl
-		<< "   CsPolarity_1    = " << Spx.get_CsPolarity_1()    <<endl
-		<< "   ClearRxTxFifo_2 = " << Spx.get_ClearRxTxFifo_2() <<endl
-		<< "   ClockPolarity_1 = " << Spx.get_ClockPolarity_1() <<endl
-		<< "   ClockPhase_1    = " << Spx.get_ClockPhase_1()    <<endl
-		<< "   ChipSelectN_2   = " << Spx.get_ChipSelectN_2()   <<endl
+		<< "   LossiWord_1     = " << Spx.CntlStat.get_LossiWord_1()     <<endl
+		<< "   LossiDmaEn_1    = " << Spx.CntlStat.get_LossiDmaEn_1()    <<endl
+		<< "   CsPolarity_3    = " << Spx.CntlStat.get_CsPolarity_3()    <<endl
+		<< "   RxFullStop_1    = " << Spx.CntlStat.get_RxFullStop_1()    <<endl
+		<< "   RxHalf_1        = " << Spx.CntlStat.get_RxHalf_1()        <<endl
+		<< "   TxHasSpace_1    = " << Spx.CntlStat.get_TxHasSpace_1()    <<endl
+		<< "   RxHasData_1     = " << Spx.CntlStat.get_RxHasData_1()     <<endl
+		<< "   TxEmpty_1       = " << Spx.CntlStat.get_TxEmpty_1()       <<endl
+		<< "   LossiEnable_1   = " << Spx.CntlStat.get_LossiEnable_1()   <<endl
+		<< "   ReadEnable_1    = " << Spx.CntlStat.get_ReadEnable_1()    <<endl
+		<< "   DmaEndCs_1      = " << Spx.CntlStat.get_DmaEndCs_1()      <<endl
+		<< "   IrqRxHalf_1     = " << Spx.CntlStat.get_IrqRxHalf_1()     <<endl
+		<< "   IrqTxEmpty_1    = " << Spx.CntlStat.get_IrqTxEmpty_1()    <<endl
+		<< "   DmaEnable_1     = " << Spx.CntlStat.get_DmaEnable_1()     <<endl
+		<< "   RunActive_1     = " << Spx.CntlStat.get_RunActive_1()     <<endl
+		<< "   CsPolarity_1    = " << Spx.CntlStat.get_CsPolarity_1()    <<endl
+		<< "   ClearRxTxFifo_2 = " << Spx.CntlStat.get_ClearRxTxFifo_2() <<endl
+		<< "   ClockPolarity_1 = " << Spx.CntlStat.get_ClockPolarity_1() <<endl
+		<< "   ClockPhase_1    = " << Spx.CntlStat.get_ClockPhase_1()    <<endl
+		<< "   ChipSelectN_2   = " << Spx.CntlStat.get_ChipSelectN_2()   <<endl
 		<< " ClkDiv" <<endl
-		<< "   ClockDiv_16     = " << Spx.get_ClockDiv_16()     <<endl
+		<< "   ClockDiv_16     = " << Spx.ClkDiv.get_ClockDiv_16()     <<endl
 		<< " DmaLen" <<endl
-		<< "   DmaDataLen_16   = " << Spx.get_DmaDataLen_16()   <<endl
+		<< "   DmaDataLen_16   = " << Spx.DmaLen.get_DmaDataLen_16()   <<endl
 		<< " Lossi"  <<endl
-		<< "   LossiHoldDly_4  = " << Spx.get_LossiHoldDly_4()  <<endl
+		<< "   LossiHoldDly_4  = " << Spx.Lossi.get_LossiHoldDly_4()   <<endl
 		<< " DmaReq" <<endl
-		<< "   DmaRxPanicLev_8 = " << Spx.get_DmaRxPanicLev_8() <<endl
-		<< "   DmaRxReqLev_8   = " << Spx.get_DmaRxReqLev_8()   <<endl
-		<< "   DmaTxPanicLev_8 = " << Spx.get_DmaTxPanicLev_8() <<endl
-		<< "   DmaTxReqLev_8   = " << Spx.get_DmaTxReqLev_8()   <<endl
+		<< "   DmaRxPanicLev_8 = " << Spx.DmaReq.get_DmaRxPanicLev_8() <<endl
+		<< "   DmaRxReqLev_8   = " << Spx.DmaReq.get_DmaRxReqLev_8()   <<endl
+		<< "   DmaTxPanicLev_8 = " << Spx.DmaReq.get_DmaTxPanicLev_8() <<endl
+		<< "   DmaTxReqLev_8   = " << Spx.DmaReq.get_DmaTxReqLev_8()   <<endl
 		;
 
 	    if ( Opx.rx.Val ) {
@@ -687,7 +610,7 @@ y_spi0::doit()
 		cout.fill('0');
 		cout <<hex;
 		for ( uint32_t jj = 1;  jj <= Opx.rx.Val;  jj++ ) {
-		    cout << "   read_Fifo:  0x" <<setw(8) << Spx.read_Fifo()
+		    cout << "   read_Fifo:  0x" <<setw(8) << Spx.Fifo.read()
 			 <<endl;
 		}
 		cout <<dec;
