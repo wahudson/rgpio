@@ -88,12 +88,12 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "10a", "init_put_reset(), clear Fifo" );
     try {
 	Tx.init_put_reset();
-	Tx.put_ClearRxTxFifo_2( 0x3 );	// one-shot, reads as 0
-	CHECKX(            0x00041030, Tx.get_CntlStat() );
-	CHECKX(            0x00000000, Tx.get_ClkDiv()   );
-	CHECKX(            0x00000000, Tx.get_DmaLen()   );
-	CHECKX(            0x00000001, Tx.get_Lossi()    );
-	CHECKX(            0x30201020, Tx.get_DmaReq()   );
+	Tx.CntlStat.put_ClearRxTxFifo_2( 0x3 );	// one-shot, reads as 0
+	CHECKX(            0x00041030, Tx.CntlStat.get() );
+	CHECKX(            0x00000000, Tx.ClkDiv.get()   );
+	CHECKX(            0x00000000, Tx.DmaLen.get()   );
+	CHECKX(            0x00000001, Tx.Lossi.get()    );
+	CHECKX(            0x30201020, Tx.DmaReq.get()   );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -102,11 +102,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "10b", "push_regs() reset state" );
     try {
 	Tx.push_regs();
-	CHECKX(            0x00041000, Tx.read_CntlStat() );
-	CHECKX(            0x00000000, Tx.read_ClkDiv()   );
-	CHECKX(            0x00000000, Tx.read_DmaLen()   );
-	CHECKX(            0x00000001, Tx.read_Lossi()    );
-	CHECKX(            0x30201020, Tx.read_DmaReq()   );
+	CHECKX(            0x00041000, Tx.CntlStat.read() );
+	CHECKX(            0x00000000, Tx.ClkDiv.read()   );
+	CHECKX(            0x00000000, Tx.DmaLen.read()   );
+	CHECKX(            0x00000001, Tx.Lossi.read()    );
+	CHECKX(            0x30201020, Tx.DmaReq.read()   );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -115,11 +115,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "10c", "CntlStat grab_regs()" );
     try {
 	Tx.grab_regs();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	CHECK(                      1, Tx.get_TxHasSpace_1()    );
-	CHECK(                      0, Tx.get_TxEmpty_1()       );
-	CHECK(                      1, Tx.get_ReadEnable_1()    );
-	CHECK(                      0, Tx.get_RunActive_1()     );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	CHECK(                      1, Tx.CntlStat.get_TxHasSpace_1()    );
+	CHECK(                      0, Tx.CntlStat.get_TxEmpty_1()       );
+	CHECK(                      1, Tx.CntlStat.get_ReadEnable_1()    );
+	CHECK(                      0, Tx.CntlStat.get_RunActive_1()     );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -138,11 +138,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "11", "set ClockPolarity_1=1  CntlStat[3]" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_ClockPolarity_1(     1 );
-	CHECKX(            0x00041008, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_ClockPolarity_1( 1 );
+	CHECKX(            0x00041008, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00041008, Tx.read_CntlStat() );
+	CHECKX(            0x00041008, Tx.CntlStat.read() );
 	CHECKX(            0x00000980, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "1 00 11", cstr_spi0_gpio( &Gx ) );
 	//                   ^         SCLK idle state is 1
@@ -155,11 +155,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "12", "set CsPolarity_1=1  CntlStat[6]  no effect" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_CsPolarity_1(        1 );
-	CHECKX(            0x00041040, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_CsPolarity_1(    1 );
+	CHECKX(            0x00041040, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00041040, Tx.read_CntlStat() );
+	CHECKX(            0x00041040, Tx.CntlStat.read() );
 	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   no change in CE0_n or CE1_n
@@ -172,11 +172,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "13", "set CsPolarity_3=1  CntlStat[23:21]" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_CsPolarity_3(        1 );
-	CHECKX(            0x00241000, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_CsPolarity_3(    1 );
+	CHECKX(            0x00241000, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00241000, Tx.read_CntlStat() );
+	CHECKX(            0x00241000, Tx.CntlStat.read() );
 	CHECKX(            0x00000080, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 01", cstr_spi0_gpio( &Gx ) );
 	//                        ^    CE0_n idle low
@@ -188,11 +188,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "14", "set CsPolarity_3=2  CntlStat[23:21]" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_CsPolarity_3(        2 );
-	CHECKX(            0x00441000, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_CsPolarity_3(    2 );
+	CHECKX(            0x00441000, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00441000, Tx.read_CntlStat() );
+	CHECKX(            0x00441000, Tx.CntlStat.read() );
 	CHECKX(            0x00000100, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 10", cstr_spi0_gpio( &Gx ) );
 	//                         ^   CE1_n idle low
@@ -204,11 +204,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "15", "set CsPolarity_3=4  CntlStat[23:21]" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_CsPolarity_3(        4 );
-	CHECKX(            0x00841000, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_CsPolarity_3(    4 );
+	CHECKX(            0x00841000, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00841000, Tx.read_CntlStat() );
+	CHECKX(            0x00841000, Tx.CntlStat.read() );
 	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   there is no CE2_n, no effect
@@ -220,11 +220,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "16", "set CsPolarity_3=3  CntlStat[23:21]" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_CsPolarity_3(        3 );
-	CHECKX(            0x00641000, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_CsPolarity_3(    3 );
+	CHECKX(            0x00641000, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00641000, Tx.read_CntlStat() );
+	CHECKX(            0x00641000, Tx.CntlStat.read() );
 	CHECKX(            0x00000000, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 00", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   both CE0_n, CE1_n idle low
@@ -242,11 +242,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "20a", "set RunActive_1=0  CntlStat[7] baseline" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_RunActive_1(         0 );
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_RunActive_1(     0 );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00041000, Tx.read_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.read() );
 	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
     }
@@ -257,22 +257,22 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "20b", "set RunActive_1=1  see CE0_n active" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_RunActive_1(         1 );
-	CHECKX(            0x00041080, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_RunActive_1(     1 );
+	CHECKX(            0x00041080, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00051080, Tx.read_CntlStat() );
+	CHECKX(            0x00051080, Tx.CntlStat.read() );
 	CHECKX(            0x00000080, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 01", cstr_spi0_gpio( &Gx ) );
 	//                        ^    CE0_n is active
 	Tx.grab_regs();
-	CHECK(                      0, Tx.get_RxFullStop_1()    );
-	CHECK(                      0, Tx.get_RxHalf_1()        );
-	CHECK(                      1, Tx.get_TxHasSpace_1()    );
-	CHECK(                      0, Tx.get_RxHasData_1()     );
-	CHECK(                      1, Tx.get_TxEmpty_1()       );
-	CHECK(                      1, Tx.get_ReadEnable_1()    );  // reset
-	CHECK(                      0, Tx.get_ChipSelectN_2()   );
+	CHECK(                      0, Tx.CntlStat.get_RxFullStop_1()    );
+	CHECK(                      0, Tx.CntlStat.get_RxHalf_1()        );
+	CHECK(                      1, Tx.CntlStat.get_TxHasSpace_1()    );
+	CHECK(                      0, Tx.CntlStat.get_RxHasData_1()     );
+	CHECK(                      1, Tx.CntlStat.get_TxEmpty_1()       );
+	CHECK(                      1, Tx.CntlStat.get_ReadEnable_1()    );  // reset
+	CHECK(                      0, Tx.CntlStat.get_ChipSelectN_2()   );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -281,22 +281,22 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "20c", "put back RunActive_1=0  see CE0_n return to idle" );
     try {
 	Tx.grab_regs();
-	CHECKX(            0x00051080, Tx.get_CntlStat() );
-	Tx.put_RunActive_1(         0 );
+	CHECKX(            0x00051080, Tx.CntlStat.get() );
+	Tx.CntlStat.put_RunActive_1(     0 );
 	Tx.push_regs();
 	Tx.grab_regs();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
 	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^    CE0_n is idle
 	Tx.grab_regs();
-	CHECK(                      0, Tx.get_RxFullStop_1()    );
-	CHECK(                      0, Tx.get_RxHalf_1()        );
-	CHECK(                      1, Tx.get_TxHasSpace_1()    );
-	CHECK(                      0, Tx.get_RxHasData_1()     );
-	CHECK(                      0, Tx.get_TxEmpty_1()       );
-	CHECK(                      1, Tx.get_ReadEnable_1()    );
-	CHECK(                      0, Tx.get_ChipSelectN_2()   );
+	CHECK(                      0, Tx.CntlStat.get_RxFullStop_1()    );
+	CHECK(                      0, Tx.CntlStat.get_RxHalf_1()        );
+	CHECK(                      1, Tx.CntlStat.get_TxHasSpace_1()    );
+	CHECK(                      0, Tx.CntlStat.get_RxHasData_1()     );
+	CHECK(                      0, Tx.CntlStat.get_TxEmpty_1()       );
+	CHECK(                      1, Tx.CntlStat.get_ReadEnable_1()    );
+	CHECK(                      0, Tx.CntlStat.get_ChipSelectN_2()   );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -306,11 +306,11 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
   CASE( "21a", "set ChipSelectN_2=1" );
     try {
 	Tx.init_put_reset();
-	CHECKX(            0x00041000, Tx.get_CntlStat() );
-	Tx.put_ChipSelectN_2(       1 );
-	CHECKX(            0x00041001, Tx.get_CntlStat() );
+	CHECKX(            0x00041000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_ChipSelectN_2(   1 );
+	CHECKX(            0x00041001, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00041001, Tx.read_CntlStat() );
+	CHECKX(            0x00041001, Tx.CntlStat.read() );
 	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   both CE0_n, CE1_n idle
@@ -321,21 +321,21 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 
   CASE( "21b", "set RunActive_1=1  see CE1_n active" );
     try {
-	Tx.put_RunActive_1(         1 );
-	CHECKX(            0x00041081, Tx.get_CntlStat() );
+	Tx.CntlStat.put_RunActive_1(     1 );
+	CHECKX(            0x00041081, Tx.CntlStat.get() );
 	Tx.push_regs();
-	CHECKX(            0x00051081, Tx.read_CntlStat() );
+	CHECKX(            0x00051081, Tx.CntlStat.read() );
 	CHECKX(            0x00000100, (Gx.read_PinLevel_w0() & SPI0_G) );
 	CHECK(              "0 00 10", cstr_spi0_gpio( &Gx ) );
 	//                         ^   CE1_n is active
 	Tx.grab_regs();
-	CHECK(                      0, Tx.get_RxFullStop_1()    );
-	CHECK(                      0, Tx.get_RxHalf_1()        );
-	CHECK(                      1, Tx.get_TxHasSpace_1()    );
-	CHECK(                      0, Tx.get_RxHasData_1()     );
-	CHECK(                      1, Tx.get_TxEmpty_1()       );
-	CHECK(                      1, Tx.get_ReadEnable_1()    );  // reset
-	CHECK(                      1, Tx.get_ChipSelectN_2()   );
+	CHECK(                      0, Tx.CntlStat.get_RxFullStop_1()    );
+	CHECK(                      0, Tx.CntlStat.get_RxHalf_1()        );
+	CHECK(                      1, Tx.CntlStat.get_TxHasSpace_1()    );
+	CHECK(                      0, Tx.CntlStat.get_RxHasData_1()     );
+	CHECK(                      1, Tx.CntlStat.get_TxEmpty_1()       );
+	CHECK(                      1, Tx.CntlStat.get_ReadEnable_1()    );  // reset
+	CHECK(                      1, Tx.CntlStat.get_ChipSelectN_2()   );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
