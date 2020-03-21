@@ -9,8 +9,8 @@
 
 // Provide external configuration:
 //    % rgpio fsel --mode=Alt0  11 10 9 8 7
-//    GPIO[11:7] == {SCLK, MOSI, MISO, CE0_n, CE1_n}
-//    All GPIO pins unconnected.  Jumper MISO (pin 9) to MOSI (pin 10).
+//    Gpio[11:7] == {SCLK, MOSI, MISO, CE0_n, CE1_n}
+//    All other GPIO pins unconnected.  Loopback is optional.
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr

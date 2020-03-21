@@ -1,0 +1,11 @@
+#! /bin/bash
+# 2020-03-21  William A. Hudson
+
+# Initialize Raspberry Pi gpio for test.
+
+echo >&2 "# using Gpio[11:7] == {SCLK, MOSI, MISO, CE0_n, CE1_n}"
+echo >&2 "# optional:  Jumper MISO (Gpio[9], pin 21) to MOSI (Gpio[10], pin 19)"
+
+set -x
+rgpio fsel --mode=Alt0  11 10 9 8 7
+
