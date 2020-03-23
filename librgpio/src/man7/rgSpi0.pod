@@ -7,7 +7,6 @@
 
 rgSpi0  Hardware Description -- SPI0 Master
 
-
 =head1		SYNOPSIS
 
 Hardware registers of the SPI0 peripheral.
@@ -75,13 +74,13 @@ See BCM doc chapter 10 "SPI" (p. 148-159).
 SPI stands for Serial Peripheral Interface bus.
 The SPI0 Master is essentially a shift register controller.
 
-There are 3 major modes of operation:  (BCS ch 10.6)
+There are 3 major modes of operation:  (BCM ch 10.6)
 
     A) Standard (Polled/Interrupt) mode
     B) LoSSI (Low Speed Serial Interface) mode
     C) DMA (Direct Memory Access) mode
 
-There are two ways the data lines can be configured:  (BCS ch 10.4)
+There are two ways the data lines can be configured:  (BCM ch 10.4)
 
     A) MISO, MOSI - Two uni-directional lines as in Standard SPI.
     B) MIMO - Bidirectional on a single wire, the MOSI pin.
@@ -166,33 +165,87 @@ Only the status bits are read-only (RO), all others are read-write.
 
 =item B<CsPolarity_3>       - Chip Select Polarity.
 
-One bit for each Chip Enable line, left to right {CE2, CE1, CE0}.
-Note CE2 line does not exist, but the bit can still be set.  Bit values are:
+Configures the active level of each Chip Enable line, one bit for each,
+left to right {CE2, CE1, CE0}:
 
-    0= CS is active low, the usual situation
-    1= CS is active high
+ 1= CS is active high
+ 0= CS is active low, the usual situation
 
-Active high bit positions for each line:  (Any combination is valid.)
-
-    4= spi0_CE2_n
-    2= spi0_CE1_n
-    1= spi0_CE0_n
+Note CE2 line does not exist, but the bit can still be set.
 
 =item B<RxFullStop_1>       - Rx Fifo Full and Tx stopped.  (RO)
 
-    0= Rx Fifo is not full.
-    1= Rx Fifo is full and no further serial data will be
-	sent/received until data is read from Fifo.
+ 1= Rx Fifo is full and no further serial data will be sent.
+ 0= Rx Fifo is not full.
 
 =item B<RxHalf_1>           - Rx Fifo Half full.  (RO)
+
+ 1= Rx Fifo is more than half full.
+ 0= Rx Fifo less than half full, OR not active (RunActive_1= 0).
 
 Here "Half full" is fuzzy.  The BCM doc indicates half full may be 12 out of
 16 entries of 32-bits, [equivalent to 48 out of 64 byte entries???].
 
-    0= Rx Fifo less than half full, or not active (RunActive_1= 0).
-    1= Rx Fifo is more than half full.
+=item B<TxHasSpace_1>       - Tx Fifo can accept data.  (RO)
 
-=item B<RunActive_1>        - Transfer Active.  (RW)
+ 1= Tx Fifo has space for at least 1 byte.
+ 0= Tx Fifo is full.
+
+=item B<RxHasData_1>        - Rx Fifo contains data.  (RO)
+
+ 1= Rx Fifo contains at least 1 byte.
+ 0= Rx Fifo is empty.
+
+=item B<TxEmpty_1>          - Tx transfer done.  (RO)
+
+ 1= Tx Fifo is empty, transfer is complete.
+ 0= Transfer in progress, OR not active (RunActive_1= 0)
+
+=item B<LossiEnable_1>      - LoSSI enable.
+
+ 1= LoSSI master.
+ 0= SPI master.
+
+Controls serial interface configuration.
+
+=item B<ReadEnable_1>       - Bidirectional mode MOSI Read Enable.
+
+ 1= Read from SPI slave.
+ 0= Write to  SPI slave, normal SPI.
+
+Controls behavior of MOSI driver/receiver.
+When 1, it tri-states the MOSI driver and reads serial data from MOSI instead
+of MISO.  Tx Fifo data operates normally, but is not sent to the SPI slave,
+since MOSI output is disabled.
+[See table in Figure 10-6 Serial interface Block Diagram, p. 152]
+
+This is the only control for Bidirectional mode.
+Software must coordinate with the slave on the bus (MOSI) direction.
+[See ch. 10.2.2 Bidirectional mode, p.149]
+
+=item B<DmaEndCs_1>         - DMA auto deassert Chip Select.
+
+ 1= Auto deassert CS at end of DMA transfer (DmaDataLen_16)
+ 0= Not
+
+Effective only in DMA mode.  When 0, software must manage CS.
+
+=item B<IrqRxHalf_1>        - Interrupt on RxHalf_1.
+
+ 1= Generate interrupt while RxHalf_1=1
+ 0= Not
+
+=item B<IrqTxEmpty_1>       - Interrupt on TxEmpty_1.
+
+ 1= Generate interrupt when TxEmpty_1=1
+ 0= Not
+
+=item B<DmaEnable_1>        - DMA Enable.
+
+ 1= Enable DMA operation.
+ 0= Not
+
+=item B<RunActive_1>        - Transfer Active.
 
 Is both a control and a status bit.
 
@@ -209,24 +262,45 @@ is in the active state (the others are idle).  Writes to the Fifo register
 write data to the Tx Fifo, and reads read from the Rx Fifo.
 This bit can also be cleared by a dma_frame_end pulse from the DMA controller.
 
+=item B<CsPolarity_1>       - Chip Select Polarity.
+
+ 1= CS lines are active high
+ 0= CS lines are active low, the usual situation
+
+Note this bit has storage, but appears non-functional.  The BCM doc does
+not make clear how it would combine with CsPolarity_3 above.
+
+=item B<ClearRxTxFifo_2>    - Clear Rx,Tx Fifo.
+
+ 0= No action.             (binary 00)
+ 1= Clear Tx.              (binary 01)
+ 2= Clear Rx.              (binary 10)
+ 3= Clear both Rx and Tx.  (binary 11)
+
+Clear is a one-shot operation, the bits are automatically reset and always
+read back as zero.
+
+If both Clear and RunActive_1 are set at the same time,
+the Fifo is cleared before the new frame is started.
+
 =item B<ClockPolarity_1>    - Clock Polarity (CPOL in SPI nomenclature).
 
-    0= SCLK idle state is low.
-    1= SCLK idle state is high.
+ 1= SCLK idle state is high.
+ 0= SCLK idle state is low.
 
 =item B<ClockPhase_1>       - Clock Phase (CPHA in SPI nomenclature).
 
-    0= SCLK edge1 is in middle of data bit, sample on edge1.
-    1= SCLK edge1 is on data bit change,    sample on edge2.
+ 1= SCLK edge1 is on data bit change,    sample on edge2.
+ 0= SCLK edge1 is in middle of data bit, sample on edge1.
 
 =item B<ChipSelectN_2>      - Chip select line to activate.
-
-Two-bit value encoding the hardware line to be activated when RunActive_1=1.
 
     0 = CE0_n
     1 = CE1_n
     2 = CE2_n		(does not exist)
     3 = Reserved
+
+Two-bit value encoding the hardware line to be activated when RunActive_1=1.
 
 =back
 
@@ -260,15 +334,62 @@ In LoSSI mode, what happens???
 
 =head2			ClkDiv Register
 
+Bit fields are:
+
 =over
 
-=item B<ClockDiv_16>        - Clock Divider value for SCLK frequency.  (RW)
+=item B<ClockDiv_16>        - Clock Divider value for SCLK frequency.
 
 SCLK frequency = (Core Clock frequency) / ClockDiv_16
 
 If ClockDiv_16=0, the divisor is 65536 (0xffff).
 The value should be a multiple of 2, but odd numbers are rounded down.
 The maximum SPI clock rate is that of the APB clock. ???
+
+=back
+
+=head2			DmaLen Register
+
+Bit fields are:
+
+=over
+
+=item B<DmaDataLen_16>      - DMA data length.
+
+Is the number of bytes to transfer.
+Valid only for DMA mode DmaEnable_1=1.
+
+=back
+
+=head2			Lossi Register
+
+Bit fields are:
+
+=over
+
+=item B<LossiHoldDly_4>     - LoSSI output hold delay.
+
+This sets the Output Hold delay in APB clocks.
+A value of 0 causes a 1 clock delay.
+
+=back
+
+=head2			DmaReq Register
+
+Controls the generation of the Request and Panic signals to an
+external DMA engine.  The Request signals are generated when the FIFOs reach
+their defined levels and need servicing.  The Panic signals instruct the
+external DMA engine to raise the priority of its AXI requests.
+
+=over
+
+=item B<DmaRxPanicLev_8>    - DMA Read Panic Threshold.
+
+=item B<DmaRxReqLev_8>      - DMA Read Request Threshold.
+
+=item B<DmaTxPanicLev_8>    - DMA Write Panic Threshold.
+
+=item B<DmaTxReqLev_8>      - DMA Write Request Threshold.
 
 =back
 
@@ -286,6 +407,8 @@ In the librgpio/ source tree:
  rgSpi0(3)
  rgpio-spi0(1)
 
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+ Chapter 10 "SPI" (p.148-159).
  https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
