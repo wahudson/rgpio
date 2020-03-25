@@ -11,6 +11,7 @@
 using namespace std;
 
 #include "rgAddrMap.h"
+#include "rgVersion.h"
 
 #include "y_clk.h"
 #include "y_clock.h"
@@ -22,6 +23,7 @@ using namespace std;
 
 #include "Error.h"
 #include "yOption.h"
+#include "yVersion.h"
 
 
 //--------------------------------------------------------------------------
@@ -44,6 +46,7 @@ class yOptLong : public yOption {
     const char*		dev;
     bool		ro;
 
+    bool		version;
     bool		verbose;
     bool		debug;
     bool		TESTOP;
@@ -75,6 +78,7 @@ yOptLong::yOptLong( int argc,  char* argv[] )
     dev         = "m";
     ro          = 0;
 
+    version     = 0;
     verbose     = 0;
     debug       = 0;
     TESTOP      = 0;
@@ -94,6 +98,7 @@ yOptLong::parse_options()
 	if      ( is( "--dev="       )) { dev        = this->val(); }
 	else if ( is( "--ro"         )) { ro         = 1; }
 
+	else if ( is( "--version"    )) { version    = 1; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
 	else if ( is( "--debug"      )) { debug      = 1; }
@@ -187,6 +192,16 @@ main( int	argc,
 
 	if ( Opx.TESTOP ) {
 	    Opx.print_option_flags();
+	    return ( Error::has_err() ? 1 : 0 );
+	}
+
+	if ( Opx.version ) {
+	    cout << "rgpio version " << yVersion::get_Version() <<
+		"  (librgpio " << rgVersion::get_Version() << ")"
+		<<endl;
+
+//	    cout << "rgpio version    " << yVersion::get_Version() <<endl;
+//	    cout << "librgpio version " << rgVersion::get_Version() <<endl;
 	    return ( Error::has_err() ? 1 : 0 );
 	}
 

@@ -21,7 +21,8 @@ INCS       = \
 	rgPwm.h \
 	rgRegister.h \
 	rgSpi0.h \
-	rgUniSpi.h
+	rgUniSpi.h \
+	rgVersion.h
 
 		# objects not including main()
 OBJS       = \

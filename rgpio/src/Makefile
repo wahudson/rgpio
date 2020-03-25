@@ -28,7 +28,9 @@ INCS       = \
 	y_uspi.h \
 	yOpVal.h \
 	yOption.h \
-	yUtil.h
+	yUtil.h \
+	yVersion.h \
+	$(INCDIR)/rgVersion.h
 
 		# objects not including main()
 OBJS       = \

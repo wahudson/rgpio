@@ -7,7 +7,7 @@ Runs on Raspberry Pi (RPi) to read/control the GPIO configuration.
 
 Revision control:  git
 
-Files:  (2018-11-04)
+Files:  (2020-03-24)
 ------
 README			this file
 
@@ -28,6 +28,8 @@ src/		    Source code
     yOption.h
     yUtil.cpp		Utility functions.
     yUtil.h
+    yVersion.h		Version Number (inline code) - define here
+
 		      rgpio subcommands:
     y_clk.cpp		rgpio clk -- Clock control
     y_clk.h

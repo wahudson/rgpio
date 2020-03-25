@@ -1,0 +1,42 @@
+2020-03-20  William A. Hudson
+
+		Version Numbering
+		-----------------
+
+----------------------------------------------------------------------------
+## References
+----------------------------------------------------------------------------
+
+Semantic Versioning 2.0.0
+    https://semver.org/
+    Strategy for versioning software.  Essentially X.Y.Z (Major.Minor.Patch).
+
+----------------------------------------------------------------------------
+## Version Log
+----------------------------------------------------------------------------
+
+    Tag		Message
+    -------	-------
+    v0.10.0	End of rgSpi0 with register functions.
+
+
+----------------------------------------------------------------------------
+## Discussion
+----------------------------------------------------------------------------
+
+Version:  X.Y.Z-PreRelease
+
+        Major X= backwards incompatible API changes
+        Minor Y= backwards compatible API additions/changes
+        Patch Z= Bug fixes not affecting the API
+	-PreRelease    = optional string
+	+BuildMetadata = optional string
+
+Git Tag:  Prefix the version number with a 'v'.
+
+    Both librgpio and rgpio will have separate version numbers.
+    Probably rgpio will also indicate what librgpio it uses.
+
+    rgVersion class to provide a version number.
+    Probably use a static get_version() function.
+
