@@ -58,12 +58,12 @@ Test suites:  (2017-05-20)
  u   s  t_rgRegister/	rgRegister	Register base class.
  u   s  t_rgSpi0/	rgSpi0		SPI0 Master class.
  u   s  t_rgUniSpi/	rgUniSpi	Universal SPI Master class.
- u   s  t_rgUniSpi_liv/	rgUniSpi	Universal SPI Master class.  Live.
  u   s  t_utLib1/	utLib1		Unit Test Library.
 				    Live RPi tests
  u   s  v_rgSpi0_a/	rgSpi0		SPI0 register/field function
  u   s  v_rgSpi0_fifo/	rgSpi0		SPI0 Fifo function in loop back.
  u   s  v_rgSpi0_gpio/	rgSpi0		SPI0 pin function on GPIO
+ u   s  v_rgUniSpi/	rgUniSpi	Universal SPI Master class.
 
 
 t_*/	Test librgpio code functionality.
@@ -102,12 +102,12 @@ Environment variable 'TESTONRPI' switch in some tests.
     # When on another platform
     % make test
 
-Live Tests:  t_*_liv/	v_*/
+Live Tests:  v_*/
     These are intended to run only on RPi.
     They typicaly apply privilege capability with sudo in "make cap".
     They may require special setup to configure gpio Fsel.
 
-    t_rgUniSpi_liv/  require loopback:  Wire MISO Gpio19 to MOSI Gpio20.
+    v_rgUniSpi/  require loopback:  Wire MISO Gpio19 to MOSI Gpio20.
 
 
 Git:
