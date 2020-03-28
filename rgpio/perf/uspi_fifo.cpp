@@ -4,7 +4,7 @@
 //     No hardware connection needed.
 // Provide external configuration:
 //   rgpio fsel --mode=Alt4  16 17 18 19 20 21		# not required
-//   rgpio uspi -1 --Spi_Enable_1=1
+//   rgpio uspi -1 --SpiEnable_1=1
 //   rgpio uspi -1 --Speed_12=200 --EnableSerial_1=1 --ShiftLength_6=16
 //--------------------------------------------------------------------------
 
@@ -272,7 +272,7 @@ main( int	argc,
 	    // initial fill of the 4-entry fifo
 	    for ( int i=0;  i < 4;  i++ )
 	    {
-		Uspix.write_Fifo( 0x0f0f );
+		Uspix.Fifo.write( 0x0f0f );
 	    }
 
 	    // Inner loop
@@ -280,18 +280,18 @@ main( int	argc,
 	    //    sleep might.
 	    while ( sample_cnt < n_samp )
 	    {
-		Uspix.grab_Stat();
+		Uspix.Stat.grab();
 
-		if ( ! Uspix.get_TxFull_1() ) {
-		    Uspix.write_Fifo( 0xfff );
+		if ( ! Uspix.Stat.get_TxFull_1() ) {
+		    Uspix.Fifo.write( 0xfff );
 		    fifo_cnt++;
 		}
 
-		if ( Uspix.get_TxEmpty_1() ) {
+		if ( Uspix.Stat.get_TxEmpty_1() ) {
 		    overflow_cnt++;
 		}
 
-		memDat[ sample_cnt ] = Uspix.get_Stat();
+		memDat[ sample_cnt ] = Uspix.Stat.get();
 
 		sample_cnt++;
 	    }
@@ -344,15 +344,15 @@ main( int	argc,
 	    for ( int ii=0;  ii<n_samp;  ii++ )
 	    {
 		vv   = memDat[ii];
-		Uspix.put_Stat( vv );
+		Uspix.Stat.put( vv );
 
 		cout.fill(' ');
 		cout <<dec <<setw(6) << ii;
 		cout.fill('0');
 		cout << "  0x"  <<hex <<setw(8) << memDat[ii];
-		cout << "  "    <<dec <<setw(1) << Uspix.get_TxLevel_3();
-		cout << "  "          <<setw(1) << Uspix.get_RxLevel_3();
-		cout << "  "          <<setw(2) << Uspix.get_BitCount_6();
+		cout << "  "    <<dec <<setw(1) << Uspix.Stat.get_TxLevel_3();
+		cout << "  "          <<setw(1) << Uspix.Stat.get_RxLevel_3();
+		cout << "  "          <<setw(2) << Uspix.Stat.get_BitCount_6();
 		cout <<endl;
 	    }
 	}

@@ -239,7 +239,7 @@ main( int	argc,
 
 //	volatile uint32_t*	ck0ctl     = Ckx.addr_CtlReg();
 	volatile uint32_t*	ck0ctl     = Cky.Cntl.addr();
-	volatile uint32_t*	uspi_Cntl0 = Uspix.addr_Cntl0();
+	volatile uint32_t*	uspi_Cntl0 = Uspix.Cntl0.addr();
 
     // Configure
 	Cky.wait_time_ns( 0 );

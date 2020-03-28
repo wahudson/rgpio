@@ -4,9 +4,9 @@
 //     Use GPIO read in a tight loop to observe Uspi1 signal trace.
 // Provide external configuration:
 //   rgpio fsel --mode=Alt4  16 17 18 19 20 21
-//   rgpio uspi -1 --Spi_Enable_1=1
+//   rgpio uspi -1 --SpiEnable_1=1
 //   rgpio uspi -1 --Speed_12=200 --EnableSerial_1=1 --ShiftLength_6=8 ...
-//   rgpio clock --enable=1 --source=5 --mash=0 --divi=1000  0
+//   rgpio clk -0 --Enable_1=1 --Source_4=5 --Mash_2=0 --DivI_12=1000
 //   rgpio fsel --mode=Alt0  4
 //--------------------------------------------------------------------------
 
@@ -276,7 +276,7 @@ main( int	argc,
 
 	    for ( int i=0;  i < Opx.txval_n;  i++ )
 	    {
-		Uspix.write_Fifo( Opx.txval[i] );
+		Uspix.Fifo.write( Opx.txval[i] );
 	    }
 
 	// Inner loop
