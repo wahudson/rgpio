@@ -3,7 +3,7 @@
 // rGPIO Universal SPI Master class.  Spi1, Spi2
 //
 // See:  BCM2835 ARM Peripherals (2012)
-//	p.20-27 Universal SPI Master (2x)
+//	p.20-27  ch 2.3 Universal SPI Master
 //
 //--------------------------------------------------------------------------
 
@@ -34,17 +34,28 @@ rgUniSpi::rgUniSpi(
     rgAddrMap		*xx
 )
 {
+    uint32_t		delta;
+
     if ( ! ((spinum == 1) || (spinum == 2)) ) {
 	std::ostringstream	css;
 	css << "rgUniSpi:  constructor requires spi number {1,2}:  " << spinum;
 	throw std::range_error ( css.str() );
     }
 
-    GpioBase   = xx->get_mem_block( FeatureAddr );
-    SpiNum     = spinum;
-    Cntl0Reg   = 0;
-    Cntl1Reg   = 0;
-    StatReg    = 0;
+    GpioBase = xx->get_mem_block( FeatureAddr );
+    SpiNum   = spinum;
+
+    delta    = (SpiNum - 1) * (0x40 /4);	// word distance to Spi2.Cntl0
+
+    AuxIrq.init_addr( GpioBase + AuxIrq_offset );
+     AuxEn.init_addr( GpioBase + AuxEn_offset  );
+
+    Cntl0.init_addr( GpioBase + delta + Cntl0_offset );
+    Cntl1.init_addr( GpioBase + delta + Cntl1_offset );
+     Stat.init_addr( GpioBase + delta +  Stat_offset );
+     Peek.init_addr( GpioBase + delta +  Peek_offset );
+     Fifo.init_addr( GpioBase + delta +  Fifo_offset );
+    FifoH.init_addr( GpioBase + delta + FifoH_offset );
 }
 
 //--------------------------------------------------------------------------
@@ -54,125 +65,46 @@ rgUniSpi::rgUniSpi(
 
 /*
 * Read the SPI Interrupt Request bit.  (Read-only)
-*    Is 1 if an interrupt is pending.
+*    Hardware register read, object not modified.
+*    Returns 1 if an interrupt is pending.
 */
 uint32_t
-rgUniSpi::read_Spi_IRQ_1()
+rgUniSpi::read_SpiIrq_1()
 {
-    return  ( ( *(addr_AuxIrq()) >> SpiNum ) & 0x1 );
+    return  ( ( AuxIrq.read() >> SpiNum ) & 0x1 );
 }
 
 /*
-* Read the SPI Access Enable bit
+* Read the SPI Access Enable bit.
+*    Hardware register read, object not modified.
 */
 uint32_t
-rgUniSpi::read_Spi_Enable_1()
+rgUniSpi::read_SpiEnable_1()
 {
-    return  ( ( *(addr_AuxEnable()) >> SpiNum ) & 0x1 );
+    return  ( ( AuxEn.read() >> SpiNum ) & 0x1 );
 }
 
 /*
-* Write the SPI Access Enable bit
-*    1= enabled, 0= disabled, no register access
+* Write the SPI Access Enable bit.
+*    Direct register read/modify/write, not Atomic.
 */
 void
-rgUniSpi::write_Spi_Enable_1( uint32_t  bit1 )
+rgUniSpi::write_SpiEnable_1( uint32_t  val )
 {
-    put_field( (uint32_t*) addr_AuxEnable(), SpiNum, 0x1, bit1 );
+    volatile uint32_t*		addr;
+    uint32_t			mask;
 
-    // The volatile value requires a cast.
+    addr = AuxEn.addr();
+
+    if ( val ) {
+	mask =   0x1 << SpiNum;
+	*addr |= mask;
+    }
+    else {
+	mask = ~(0x1 << SpiNum);
+	*addr &= mask;
+    }
 }
-
-
-//--------------------------------------------------------------------------
-// Address of registers
-//--------------------------------------------------------------------------
-// Address value is calculated as a pointer to uint32_t (i.e. a word address).
-// The address pointer itself (uint32_t*) is a byte address, word aligned.
-// Thus offsets are word offsets (byte offset divide by 4).
-
-/*
-* Aux Interrupt Request register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_AuxIrq()
-{
-    return  (GpioBase + AuxIrq_offset);
-}
-
-/*
-* Aux Enable register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_AuxEnable()
-{
-    return  (GpioBase + AuxEnable_offset);
-}
-
-/*
-* Control 0 register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_Cntl0()
-{
-    return  (GpioBase + Cntl0_offset + ((SpiNum - 1) * 0x10));
-}
-
-/*
-* Control 1 register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_Cntl1()
-{
-    return  (GpioBase + Cntl1_offset + ((SpiNum - 1) * 0x10));
-}
-
-/*
-* Status register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_Stat()
-{
-    return  (GpioBase + Stat_offset + ((SpiNum - 1) * 0x10));
-}
-
-/*
-* Fifo Peek register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_Peek()
-{
-    return  (GpioBase + Peek_offset + ((SpiNum - 1) * 0x10));
-}
-
-/*
-* Fifo register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_Fifo()
-{
-    return  (GpioBase + Fifo_offset + ((SpiNum - 1) * 0x10));
-}
-
-/*
-* Fifo Hold register address.
-*/
-volatile uint32_t*
-rgUniSpi::addr_FifoH()
-{
-    return  (GpioBase + FifoH_offset + ((SpiNum - 1) * 0x10));
-}
-
-
-//--------------------------------------------------------------------------
-// Direct register access
-//--------------------------------------------------------------------------
-// All inline.
-
-
-//--------------------------------------------------------------------------
-// Direct control:  (modify register fields)
-//--------------------------------------------------------------------------
 
 
 //--------------------------------------------------------------------------
@@ -181,19 +113,27 @@ rgUniSpi::addr_FifoH()
 
 /*
 * Initialize object control/status registers to the power-on reset state.
-* Hardware registers are unchanged.
-* Intended for use with the put_*() field accessor functions, and can be
-* called multiple times.
-* Virtually all fields are zero, or are the inactive state.
+*    Intended for use with the put_*() field accessor functions, and can be
+*    called multiple times.
+*    Virtually all fields are zero, or are the inactive state.
+*    Hardware registers are unchanged.
 */
 void
 rgUniSpi::init_put_reset()
 {
-    Cntl0Reg = 0x00000000;
-    Cntl1Reg = 0x00000000;
-    StatReg  = 0x00000280;	// TxEmpty=1, RxEmpty=1
+//#!! all registers?  Or just control/status?
 
-    put_ChipSelects_3( 0x7 );	// all 3 inactive
+    AuxIrq.put( 0x00000000 );
+    AuxEn.put(  0x00000000 );
+
+    Cntl0.put(  0x00000000 );
+    Cntl1.put(  0x00000000 );
+    Stat.put(   0x00000280 );		// TxEmpty=1, RxEmpty=1
+    Peek.put(   0x00000000 );
+    Fifo.put(   0x00000000 );
+    FifoH.put(  0x00000000 );
+
+    Cntl0.put_ChipSelects_3( 0x7 );	// all 3 inactive
 }
 
 
@@ -203,9 +143,9 @@ rgUniSpi::init_put_reset()
 void
 rgUniSpi::grab_regs()
 {
-    Cntl0Reg = read_Cntl0();
-    Cntl1Reg = read_Cntl1();
-    StatReg  = read_Stat();
+    Cntl0.grab();
+    Cntl1.grab();
+    Stat.grab();
 }
 
 
@@ -216,255 +156,8 @@ rgUniSpi::grab_regs()
 void
 rgUniSpi::push_regs()
 {
-    write_Cntl0( Cntl0Reg );
-    write_Cntl1( Cntl1Reg );
-}
-
-
-/*
-* Read status registers into the object.
-*     This saves execution time compared to reading all 3 registers.
-*/
-void
-rgUniSpi::grab_Stat()
-{
-    StatReg  = read_Stat();
-}
-
-
-//--------------------------------------------------------------------------
-// Generic Field accessors:  (private)
-//--------------------------------------------------------------------------
-/*
-* Register bits are numbered [31:0].
-* Field postion is the bit number of the field LSB.
-* Mask is the maximum field value.
-* These are private because safety relies on proper arguments.
-*/
-
-/*
-* Get field value.
-*    Extract field value out of a 32-bit register value.
-* call:
-*    speed = get_field( Cntl0Reg, 20, 0xfff )
-*    Extract Speed field [31:20]
-*/
-uint32_t
-rgUniSpi::get_field(
-    const uint32_t		rval,	// register value
-    const uint32_t		pos,	// field bit position
-    const uint32_t		mask	// mask field size
-)
-{
-    return  ( (rval >> pos) & mask );
-}
-
-
-/*
-* Insert field value.
-*    Insert field value into a 32-bit register variable.
-*    Value is range checked.
-* call:
-*    put_field( addr_Cntl0(), 20, 0xfff, 0x042 )
-*    Insert value into Speed field [31:20]
-* exception:
-*    range_error  if ( value > mask )
-*/
-void
-rgUniSpi::put_field(
-    uint32_t*			rp,	// register pointer
-    const uint32_t		pos,	// field bit position
-    const uint32_t		mask,	// mask field size
-    const uint32_t		value	// value to insert
-)
-{
-    if ( value > mask ) {
-	std::ostringstream	css;
-	css << "rgUniSpi::put_field():  value exceeds 0x" <<hex << mask
-	    << ":  0x" <<hex << value;
-	throw std::range_error ( css.str() );
-    }
-
-    *rp = (*rp & ~(mask << pos)) | (value << pos);
-}
-
-
-//--------------------------------------------------------------------------
-// Object Field Accessors
-//--------------------------------------------------------------------------
-
-/*
-* Cntl0 fields.
-*/
-
-uint32_t  rgUniSpi::get_Speed_12() {
-			return  get_field(  Cntl0Reg, 20, 0xfff    );
-}
-void      rgUniSpi::put_Speed_12( uint32_t  v ) {
-				put_field( &Cntl0Reg, 20, 0xfff, v );
-}
-
-uint32_t  rgUniSpi::get_ChipSelects_3() {
-			return  get_field(  Cntl0Reg, 17, 0x7    );
-}
-void      rgUniSpi::put_ChipSelects_3( uint32_t  v ) {
-				put_field( &Cntl0Reg, 17, 0x7, v );
-}
-
-uint32_t  rgUniSpi::get_PostInMode_1() {
-			return  get_field(  Cntl0Reg, 16, 0x1    );
-}
-void      rgUniSpi::put_PostInMode_1( uint32_t  v ) {
-				put_field( &Cntl0Reg, 16, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_VariableCS_1() {
-			return  get_field(  Cntl0Reg, 15, 0x1    );
-}
-void      rgUniSpi::put_VariableCS_1( uint32_t  v ) {
-				put_field( &Cntl0Reg, 15, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_VariableWidth_1() {
-			return  get_field(  Cntl0Reg, 14, 0x1    );
-}
-void      rgUniSpi::put_VariableWidth_1( uint32_t  v ) {
-				put_field( &Cntl0Reg, 14, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_DoutHoldTime_2() {
-			return  get_field(  Cntl0Reg, 12, 0x3    );
-}
-void      rgUniSpi::put_DoutHoldTime_2( uint32_t  v ) {
-				put_field( &Cntl0Reg, 12, 0x3, v );
-}
-
-uint32_t  rgUniSpi::get_EnableSerial_1() {
-			return  get_field(  Cntl0Reg, 11, 0x1    );
-}
-void      rgUniSpi::put_EnableSerial_1( uint32_t  v ) {
-				put_field( &Cntl0Reg, 11, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_InRising_1() {
-			return  get_field(  Cntl0Reg, 10, 0x1    );
-}
-void      rgUniSpi::put_InRising_1( uint32_t  v ) {
-				put_field( &Cntl0Reg, 10, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_ClearFifos_1() {
-			return  get_field(  Cntl0Reg,  9, 0x1    );
-}
-void      rgUniSpi::put_ClearFifos_1( uint32_t  v ) {
-				put_field( &Cntl0Reg,  9, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_OutRising_1() {
-			return  get_field(  Cntl0Reg,  8, 0x1    );
-}
-void      rgUniSpi::put_OutRising_1( uint32_t  v ) {
-				put_field( &Cntl0Reg,  8, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_InvertClk_1() {
-			return  get_field(  Cntl0Reg,  7, 0x1    );
-}
-void      rgUniSpi::put_InvertClk_1( uint32_t  v ) {
-				put_field( &Cntl0Reg,  7, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_OutMsbFirst_1() {
-			return  get_field(  Cntl0Reg,  6, 0x1    );
-}
-void      rgUniSpi::put_OutMsbFirst_1( uint32_t  v ) {
-				put_field( &Cntl0Reg,  6, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_ShiftLength_6() {
-			return  get_field(  Cntl0Reg,  0, 0x3f    );
-}
-void      rgUniSpi::put_ShiftLength_6( uint32_t  v ) {
-				put_field( &Cntl0Reg,  0, 0x3f, v );
-}
-
-
-/*
-* Cntl1 fields.
-*/
-
-uint32_t  rgUniSpi::get_CsHighTime_3() {
-			return  get_field(  Cntl1Reg,  8, 0x7    );
-}
-void      rgUniSpi::put_CsHighTime_3( uint32_t  v ) {
-				put_field( &Cntl1Reg,  8, 0x7, v );
-}
-
-uint32_t  rgUniSpi::get_TxEmptyIRQ_1() {
-			return  get_field(  Cntl1Reg,  7, 0x1    );
-}
-void      rgUniSpi::put_TxEmptyIRQ_1( uint32_t  v ) {
-				put_field( &Cntl1Reg,  7, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_DoneIRQ_1() {
-			return  get_field(  Cntl1Reg,  6, 0x1    );
-}
-void      rgUniSpi::put_DoneIRQ_1( uint32_t  v ) {
-				put_field( &Cntl1Reg,  6, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_InMsbFirst_1() {
-			return  get_field(  Cntl1Reg,  1, 0x1    );
-}
-void      rgUniSpi::put_InMsbFirst_1( uint32_t  v ) {
-				put_field( &Cntl1Reg,  1, 0x1, v );
-}
-
-uint32_t  rgUniSpi::get_KeepInput_1() {
-			return  get_field(  Cntl1Reg,  0, 0x1    );
-}
-void      rgUniSpi::put_KeepInput_1( uint32_t  v ) {
-				put_field( &Cntl1Reg,  0, 0x1, v );
-}
-
-
-/*
-* Status fields.  Read-only?
-*    Field positions determined by experiment.
-*    The BCM doc seems incompletely adapted from another version of SPI.
-*/
-
-uint32_t  rgUniSpi::get_TxLevel_3() {
-			return  get_field( StatReg, 28, 0x7 );
-}
-
-uint32_t  rgUniSpi::get_RxLevel_3() {
-			return  get_field( StatReg, 20, 0x7 );
-}
-
-uint32_t  rgUniSpi::get_TxFull_1() {
-			return  get_field( StatReg, 10, 0x1 );
-}
-
-uint32_t  rgUniSpi::get_TxEmpty_1() {
-			return  get_field( StatReg,  9, 0x1 );
-}
-
-uint32_t  rgUniSpi::get_RxFull_1() {
-			return  get_field( StatReg,  8, 0x1 );
-}
-
-uint32_t  rgUniSpi::get_RxEmpty_1() {
-			return  get_field( StatReg,  7, 0x1 );
-}
-
-uint32_t  rgUniSpi::get_Busy_1() {
-			return  get_field( StatReg,  6, 0x1 );
-}
-
-uint32_t  rgUniSpi::get_BitCount_6() {
-			return  get_field( StatReg,  0, 0x3f );
+    Cntl0.push();
+    Cntl1.push();
 }
 
 
@@ -475,15 +168,15 @@ uint32_t  rgUniSpi::get_BitCount_6() {
 /*
 * Show debug output.
 * call:
-*    self.show_debug()
+*    self.show_debug( cout )
 */
 void
 rgUniSpi::show_debug( std::ostream& sout )
 {
-    sout << "SpiNum= "        <<dec << SpiNum
-	 << "  Cntl0Reg= 0x"  <<hex << Cntl0Reg
-	 << "  Cntl1Reg= 0x"  <<hex << Cntl1Reg
-	 << "  StatReg=  0x"  <<hex << StatReg
+    sout << "SpiNum= "     <<dec << SpiNum
+	 << "  Cntl0= 0x"  <<hex << Cntl0.get()
+	 << "  Cntl1= 0x"  <<hex << Cntl1.get()
+	 << "  Stat=  0x"  <<hex << Stat.get()
 	 << endl;
     sout <<dec;
 }

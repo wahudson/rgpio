@@ -28,7 +28,7 @@ All are 32-bits, but may have sparcely populated fields.
     Speed_12		Cntl0[31:20]
     ChipSelects_3	Cntl0[19:17]
     PostInMode_1	Cntl0[16]
-    VariableCS_1	Cntl0[15]
+    VariableCs_1	Cntl0[15]
     VariableWidth_1	Cntl0[14]
     DoutHoldTime_2	Cntl0[13:12]
     EnableSerial_1	Cntl0[11]
@@ -40,8 +40,8 @@ All are 32-bits, but may have sparcely populated fields.
     ShiftLength_6	Cntl0[5:0]
 
     CsHighTime_3	Cntl1[10:8]
-    TxEmptyIRQ_1	Cntl1[7]
-    DoneIRQ_1		Cntl1[6]
+    TxEmptyIrq_1	Cntl1[7]
+    DoneIrq_1		Cntl1[6]
     InMsbFirst_1	Cntl1[1]
     KeepInput_1		Cntl1[0]
 

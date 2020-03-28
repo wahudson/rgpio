@@ -6,6 +6,9 @@ Raspberry Pi GPIO Tool and Library
 
 See also:  doc/architecture.text
 
+See tag:  func_rgUniSpi  2020-03-25  9812fc0878
+    Last version with function register accessors.
+
 References:
 -----------
 BCM2835 ARM Peripherals
@@ -25,6 +28,7 @@ https://elinux.org/RPi_SPI
 
 https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
 
+See:  p.20-27  ch 2.3 Universal SPI Master
 
 ----------------------------------------------------------------------------
 ## Discussion - Universal SPI Master
@@ -32,18 +36,15 @@ https://learn.sparkfun.com/tutorials/raspberry-pi-spi-and-i2c-tutorial
 
 There are 3 SPI masters, of two different flavors:
 
-1)  SPI1, SPI2 -- ch 2.3  Universal SPI Master  (p. 20-27) also
-			    referred to as Auxiliary peripherals.
+    1) SPI1, SPI2   - ch 2.3  Universal SPI Master  (p. 20-27)
+		Also referred to as Auxiliary Peripherals.
 
-2)  SPI0       -- ch 10.  SPI  (p. 148-159)
+    2) SPI0         - ch 10.  SPI  (p. 148-159)
 		Less general, but has DMA.
-		This seems to be the mainline SPI used by many things
-		on RPi.
+		Seems to be the mainline SPI used by many things on RPi.
 
-The Universal SPI Master seems much more flexible, and seems to be better
-described.
-
-They are pretty unrelated in control structure.
+    The Universal SPI Master seems much more flexible, and seems to be better
+    described.  They are pretty unrelated in control structure.
 
 Possible Class Names:
  >  rgSpi0		Spi0 DMA
@@ -66,11 +67,11 @@ Possible Class Names:
     rgMUart
     rgAuxUart
 
-    rgAux		The Auxilliary registers
+    rgAux		The Auxiliary registers
  >  rgAuxCon
     rgAuxEn
 
-    The Auxilliary enable and IRQ registers have only 3-bits each.
+    The Auxiliary enable and IRQ registers have only 3-bits each.
     Probably replicate them in both the Universal SPI Master and
     Mini Uart classes.
 
@@ -91,8 +92,51 @@ Operation with rgpio:
     sudo ../bin/rgpio --dev=m uspi -1  --debug
 
     # Enable Spi1, now can observe
-    rgpio uspi -1 --Spi_Enable_1=1  --debug
+    rgpio uspi -1 --SpiEnable_1=1  --debug
 
+Register addresses:  (BCM doc)
+    These are byte addresses, word aligned for each 32-bit register.
+
+    AuxIrq	0x7e215000
+    AuxEn	0x7e215004
+
+    rgUniSpi	Spi1		Spi2
+    --------	----------	----------
+    Cntl0	0x7e215080	0x7e2150c0
+    Cntl1	0x7e215084	0x7e2150c4
+    Stat	0x7e215088	0x7e2150c8
+    Peek	0x7e21508c	0x7e2150cc
+
+    Fifo	0x7e2150a0..	0x7e2150f0..
+		0x7e2150ac	0x7e2150fc
+
+    FifoH	0x7e2150b0..	0x7e2150f0..
+		0x7e2150bc	0x7e2150fc
+
+    Note:  Fifo and FifoH each have 4 addresses that access the same fifo.
+    We use the lowest address.
+
+    Both Spi1 and Spi2 have the same register offsets from Cntl0 register.
+    We use that to compute register addresses for both.
+
+History:
+    This (rgUniSpi) was one of the first peripherals to be designed, and was
+    originally created with top level class accessor functions.
+	e.g.  X.get_Speed_12()
+    Now it has been refactored using register objects.
+	e.g.  X.Cntl0.get_Speed_12()
+
+    Major feature classes were designed in this order:  (date mostly complete)
+	This gives a sense for the evolution of design ideas.
+
+	2018-01-20  rgClock     func
+	2018-01-30  rgUniSpi    func
+	2019-11-13  rgSpi0      func
+	2019-11-20  rgRegister  -   register object idea
+	2019-12-05  rgPwm       reg
+	2019-12-28  rgClk       reg to parallel/replace rgClock
+	2020-03-19  rgSpi0      reg refactor
+	2020-03-26  rgUniSpi    reg refactor
 
 ----------------------------------------------------------------------------
 ## Operation - Universal SPI Master
@@ -108,13 +152,13 @@ two Universal SPI Masters.
     You can not even read or write the registers!"
 
 BCM documentation confusion:
-    Confustion on width of fifo.  The intro clearly states
+    Confusion on width of fifo.  The intro clearly states
     "4 entries 32-bit wide transmit and receive FIFOs."
     While the fifo access register shows valid "Data[15:0]".
     The Variable Width section refers to [23:0] as the transmitted data.
 
-    The addresses at the beginning of chapter 2 are different than those
-    in the Universal SPI Master section.
+    Some addresses at the beginning of chapter 2 are different (and wrong)
+    than those in the Universal SPI Master section.
 
 SPI clock frequency:  (see BCM p.21)
     Freq = system_clock_freq/(2*(speed+1))
@@ -125,83 +169,148 @@ SPI clock frequency:  (see BCM p.21)
 ----------------------------------------------------------------------------
 
 Register names:
-    Cntl0Reg	-
-    Cntl1Reg	- these two combine for all control fields
-    StatReg
-    PeekReg
-    FifoReg
-    FifoHoldReg
 
-    Register names in the object have suffix "Reg" to make it more unique.
-    Names in the full register access functions drop the "Reg" suffix, since
-    the rest of the function name, e.g. addr_, read_, write_ make it clear
-    that it is a full register.
+    rgUniSpi	BCM	Description
+    --------	------	-----------
+    AuxIrq	AUXIRQ  Auxiliary Interrupt Request  (RO)
+    AuxEn	AUXENB  Auxiliary Enable
 
-    Only the control and status registers are copied in the object for
-    field manipulation.  The Fifo data access registers are always direct
-    read/write access, since they have side effects on the Spi state.
-    Also they are full word accesses, so no bit twiddleing needed.
+    Cntl0	CNTL0	Control 0
+    Cntl1	CNTL1	Control 1
+    Stat	STAT	Status  (RO)
+    Peek	PEEK	Peek at Rx Fifo top entry  (RO)
+    Fifo	IO	Fifo end transaction
+    FifoH	TXHOLD	Fifo Hold to extend transaction
 
-BCM Register names:
-    rgUniSpi	BCM
-    --------	------
-    Cntl0	CNTL0
-    Cntl1	CNTL1
-    Stat	STAT
-    Peek	PEEK
-    Fifo	IO
-    FifoH	TXHOLD
+    Register names are public objects derived from base class rgRegister.
+    Thus want good name choices when viewed at the user call point.
 
-    BCM prefix these names with "AUXSPI0_".
+    BCM document typically prefixes their names with "AUXSPI0_".
     No global prefix is needed here because the use is qualified by the class.
-    The Fifo registers were renamed to be a little more explicit, as "IO" is
-    too generic.
-
-    The Fifo and FifoH registers differ only in side effect of holding CS (chip
-    select) lines.  These names hopefully make that a little more apparent.
-    FifoH was choosen, instead of FifoHold, to keep it shorter.
+    The Fifo registers were renamed to be a little more explicit.
 
     The "Stat" register name is a subset of the common word "Status", and
     thus maybe not so good.  "StatR" might have been better.
     "Peek" is sufficiently quirky.
 
-Naming functions:
-    Need a method to help user know wheather a whole register is acted on,
-    or is it a bit field.
+    The Fifo and FifoH registers differ only in side effect of holding CS (chip
+    select) lines.  These names hopefully make that a little more apparent.
+    FifoH was chosen, instead of FifoHold, to keep it shorter.
 
-    read_REG()		Read whole register.
-    read_FIELD_1()	Read a bit field.  The number is size of field.
+Field Names:
 
-    The numeric suffix, e.g. "_1" indicates that it is a field access, and
-    is the field width.
-    I really like the number suffix, e.g. "_1" to indicate number of bits in
-    the field.  This makes it very explicit at the user call point.
+     Reg.Field			Bits     BCM
+    ----.---------------	----     -----
+    Cntl0.Speed_12		[31:20]  Speed
+    Cntl0.ChipSelects_3		[19:17]  chip selects
+    Cntl0.PostInMode_1		[16]     post-input mode
+ !  Cntl0.VariableCs_1		[15]     Variable CS
+    Cntl0.VariableWidth_1	[14]     Variable width
+    Cntl0.DoutHoldTime_2	[13:12]  DOUT Hold time
+    Cntl0.EnableSerial_1	[11]     Enable
+    Cntl0.InRising_1		[10]     In rising
+    Cntl0.ClearFifos_1		[9]      Clear FIFOs
+    Cntl0.OutRising_1		[8]      Out rising
+    Cntl0.InvertClk_1		[7]      Invert SPI CLK
+    Cntl0.OutMsbFirst_1		[6]      Shift out MS bit first
+    Cntl0.ShiftLength_6		[5:0]    Shift length
 
+    Cntl1.CsHighTime_3		[10:8]   CS high time
+ !  Cntl1.TxEmptyIrq_1		[7]      TX empty IRQ
+ !  Cntl1.DoneIrq_1		[6]      Done IRQ
+    Cntl1.InMsbFirst_1		[1]      Shift in MS bit first
+    Cntl1.KeepInput_1		[0]      Keep input
+
+    Stat.TxLevel_3		[30:28]
+    Stat.RxLevel_3		[22:20]
+    Stat.TxFull_1		[10]
+    Stat.TxEmpty_1		[9]
+    Stat.RxFull_1		[8]
+    Stat.RxEmpty_1		[7]
+    Stat.Busy_1			[6]
+    Stat.BitCount_6		[5:0]
+
+ !  Rename with true CamelCase
+
+    The Rx/Tx status field bit positions were deduced by experiment.
+
+Field Naming:
+
+    The numeric suffix indicates field width, making it very explicit at
+    the user call point.  I really like this, even if slightly more klunky.
+
+    Abbreviations appropriate for this context are:
+	Cs	Chip Select
+	Irq	Interrupt Request
+	Msb	Most Significant Bit
+	Rx	Receive Fifo
+	Tx	Transmit Fifo
+	In	Input
+	Out	Output
+
+    Choose names that are somewhat descriptive and meaningful at the call
+    point in user code.
     The intent is to make the use of the library functions as clear as
     possible, and somewhat match the documentation.
- >  It is NOT intended to abstract the Feature or make it so the user
- >  interface does not change when porting to another machine.
+    It is NOT intended to abstract the Feature or make it so the user
+    interface does not change when porting to another machine.
 
-    Function prefix name indicates over-all operation:
-	addr_()		return address of register
+    In this case the BCM doc does not really name the fields.
 
-	read_()		direct register/field read
-	write_(V)	direct register/field write
+    Decide to stick to fairly strict camel-case for things like Cs, even
+    though CS is more common.
 
-	get_()		get object register/field value
-	put_(V)		set object register/field value
+    Try to limit name length to 15 characters or less, including the "_1"
+    field width numeral.
 
-	grab_()		copy register into object
-	push_(V)	copy object into register
+    Name components typically include the thing they apply to and the
+    behavior they control.
+    Single-bit fields should name the thing that the '1' level does.
+
+    TxLevel_3   -	[30:28]
+    RxLevel_3   -	[22:20]
+	These hold the fifo level {0..4}, for a 4-entry fifo, and thus
+	are at least 3-bits wide.  Possibly they could be 4-bits wide,
+	as TxLevel_3 could be [31:28] to fill out the rest of the 32-bit
+	register.
+
+    RxFull_1    - existence is deduced by experiment.
+	The BCM doc seems to have wrong bit positions for most status fields.
+
+Function Names:
+
+    All register and field accessor functions are methods of each register
+    object.
+
+    The full register operations are inherited from rgRegister class.
+    These are:
+
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
 
     Another name for "grab" is "pull", but I like the quirkyness of "grab".
 
-Field accessor functions:
+    Field accessor functions are defined in each register derived class.
+    These are named like:  (same as rgUniSpi)
+
+	get_FIELD_N()	get object FIELD value of width N
+	put_FIELD_N(V)	set object FIELD value of width N
+
+Field accessor functions:  Design Thoughts
+
     There are a lot of them!  Total 25.
 
     Decided on individual function for each field.  This gives best
     robustness, helping to guard against user call errors.  Compile time
-    checks for existance of the function.  Individual functions can later
+    checks for existence of the function.  Individual functions can later
     customize with extra checks on a particular field if necessary.
     Down side is a lot of functions.
 
@@ -218,8 +327,9 @@ Field accessor functions:
     uniform.  The 'inline' can save a little execution time, but probably
     is a don't-care for configuration operations, which are not time critical.
 
-    Decided against 'inline' for field accessor functions.  More important
-    to keep the headers and code clean to avoid mistakes.
+    Originally decided against 'inline' for field accessor functions, as it
+    was more important to keep the headers and code clean to avoid mistakes.
+    Now decided to use 'inline', as the register object made it more practical.
 
     Considered using enum for field names, indexing a table of structures
     containing the bit twiddleing parameters.  This is attractive to reduce
@@ -232,8 +342,10 @@ Field accessor functions:
     But it still gets quite long.
     Still want to avoid users slinging enums.
     Enum implementation under the hood would be acceptable.
+    Decided against Enum for field names.
 
 Initialize object register state:  Cntl0, Cntl1, Stat
+
     An alternative to the "grab/modify/push" method is "init/modify/push".
 
     Two useful initial states are "power-on reset" and all zero.
@@ -307,13 +419,245 @@ Initialize object register state:  Cntl0, Cntl1, Stat
     inactive) are non-zero.  Thus init_put_zero() is probably not worth the
     effort.
 
+Indexed Class:  SpiNum
+
+    There are two universal SPI masters, Spi1 and Spi2, both in the same
+    address page.  Both have the same register offsets from Cntl0.  This
+    makes register address calculation easy based on the SPI Number (SpiNum).
+
+    Decide to use a single class rgUniSpi with an index SpiNum to
+    distinguish each object.  This is simpler than deriving from a base
+    class as was done for rgClk.  [rgClk had many dozens of clock managers,
+    so the flexibility of a base class was warranted.]
+
+Aux Register access:
+
+    The two auxiliary registers provide interrupt status and enable control
+    for the two Universal SPI Masters and one Mini-UART.  All three have
+    bits in each register.
+
+     Reg.Field			Bits  BCM
+    ----.---------------	----  -----
+    AuxIrq.Spi2Irq_1		[2]   Spi2 interrupt pending
+    AuxIrq.Spi1Irq_1		[1]   Spi1 interrupt pending
+    AuxIrq.MiniUartIrq_1	[0]   Mini UART interrupt pending
+
+    AuxEn.Spi2Enable_1		[2]   Spi2 enable
+    AuxEn.Spi1Enable_1		[1]   Spi1 enable
+    AuxEn.MiniUartEnable_1	[0]   Mini UART enable
+
+    Decide to let each of the three feature objects have a separate copy
+    of these registers.  But each feature should read/write only its own
+    bit.
+
+    Read/modify/write of a single bit is not atomic.  To help avoid
+    synchronization problems, the best we can do is to make it short.
+
+    Original idea to use top level set/clear functions:  (very short)
+	set_SpiEnable_1()
+	    addr  = AuxEn.addr();
+	    *addr |= 0x1 << SpiNum;
+
+	clr_SpiEnable_1()
+	    addr  = AuxEn.addr();
+	    *addr &= ~( 0x1 << SpiNum );
+
+    Writing a bit value could look like:  (also short)
+ >	write_SpiEnable_1( val )
+	    addr  = AuxEn.addr();
+	    if ( val ) {
+		*addr |= 0x1 << SpiNum;
+	    }
+	    else {
+		*addr &= ~( 0x1 << SpiNum );
+	    }
+
+    The idea is to have top-level accessor functions for each Enable/Irq bit
+    that make the read/modify/write operation as short as practical.
+
+    Reading bits can have top-level read functions, for parallelism.
+ >	read_SpiIrq_1()
+ >	read_SpiEnable_1()
+
+    Both AuxIrq and AuxEn have the full rgRegister capability.
+    Using the typical register methods is longer, and even worse if the
+    function calls are separated:
+	AuxEn.grab();
+	AuxEn.put_Spi1Enable_1( 1 );
+	AuxEn.push();
+
+    Possibly provide the bit access as register methods:
+	AuxIrq.read_Spi1Irq_1()
+	AuxIrq.read_Spi2Irq_1()
+	AuxEn.read_Spi1Enable_1()
+	AuxEn.read_Spi2Enable_1()
+
+    Note top-level accessors know which SpiNum the object is, while the
+    register bit accessors do not.
+    Overall, top-level accessors seem like the best solution.
+
+Aux Enable methods:
+
+    Thinking about methods that look obvious at the code call point.
+
+    A) Normal rgRegister grab/put/push bit field access.
+	X.AuxEn.put_Spi1Enable_1(V)
+	X.AuxEn.put_Spi2Enable_1(V)
+	+ Is a common method, well understood.
+	-- Update sequence could be accidentally separated.
+
+ >  B) New register bit modify method.
+	AuxEn.apply_Spi1Enable_1( 1 )
+	+ Could become a new style of update.
+	+ The apply_() function idea is already being used.
+	- User must know which bit is the object SpiNum.
+	+ Is read/modify/write encapsulated.
+	+ Actual register is identified.
+
+ >  C) Top-level virtual bit.
+	X.set_SpiEnable_1() or X.write_SpiEnable_1(V)
+	+ Virtual bit is elegant, uses top-level SpiNum.
+	- Virtual bit hides actual bits.
+	+ Virtual bit name at least relates to the actual bits.
+	- Loose connection to the actual register.
+
+    D) Abstract top-level method.
+	X.enable_spi();  X.disable_spi()
+	+ Short name, seems direct and meaningful.
+	- Indirection hides actual bit accessed.
+	- Loose connection to the actual register.
+
+    E) Put SpiNum in AuxEn and use a Virtual bit.
+	AuxEn.set_SpiEnable_1()
+	+ Virtual bit is elegant.
+	- Indirection hides actual bit accessed.
+	-- Unexpected that register knows who it belongs to.
+	+ Actual register is identified.
+
+    We will have AuxEn register and its rgRegister methods.
+    Can always have AuxEn bit access functions.
+    Thus its really a choice to also have higher level user abstraction,
+    like (C) or (D).
+
+    Abstract top-level Spi Enable methods:
+
+    A) X.set_SpiEnable_1()  X.clr_SpiEnable_1()
+	- Two functions.
+	+ Name relates to actual bit name.
+	- Name not the best compliment to read_().
+	+ Simpler functions.  e.g.  (addr |= 0x2)
+
+ >  B) X.write_SpiEnable_1(V)
+	+ single function.
+	+ Name relates to actual bit name.
+	+ write_() compliments read_().
+
+    C) X.enable_spi()  X.disable_spi()
+	+ Abstract meaning is pretty obvious.
+	- No indication of actual bit name.
+
 
 ----------------------------------------------------------------------------
 ## rgUniSpi Object - Universal SPI Master
 ----------------------------------------------------------------------------
 
-See:  p.20-27  2.3 Universal SPI Master
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
 
+    uint32_t		SpiNum;		// SPI number {1,2}
+
+				// Registers
+    rgUniSpi_AuxIrq	AuxIrq;		// AUXIRQ  Auxiliary Interrupt Req (RO)
+    rgUniSpi_AuxEn	AuxEn;		// AUXENB  Auxiliary Enable
+
+    rgUniSpi_Cntl0	Cntl0;		// CNTL0   Control 0
+    rgUniSpi_Cntl1	Cntl1;		// CNTL1   Control 1
+    rgUniSpi_Stat	Stat;		// STAT    Status  (RO)
+    rgUniSpi_Peek	Peek;		// PEEK    Rx Fifo top entry  (RO)
+    rgUniSpi_Fifo	Fifo;		// IO      Fifo end transaction
+    rgUniSpi_FifoH	FifoH;		// TXHOLD  Fifo extend transaction
+}
+
+Methods:
+
+    get_base_addr()		GpioBase address
+    get_spi_num()		Get SPI number {1,2}
+
+			Enable/IRQ bits in shared Aux register:
+    read_SpiIrq_1()		interrupt request bit, read-only
+
+    read_SpiEnable_1()		SPI module enable bit
+    write_SpiEnable_1(V)	SPI module enable bit
+
+ ?  set_SpiEnable_1()		SPI module enable bit
+ ?  clr_SpiEnable_1()		SPI module enable bit
+
+ ?  enable_spi()		SPI module enable bit
+ ?  disable_spi()		SPI module enable bit
+
+			Direct control:  (modify register fields)
+ ?  clear_fifos()		Set ClearFifos_1, then wait for not busy and
+				    clear it.  Higher-level operation.
+
+			Object state operations:
+    init_put_reset()		Object registers set to power-on reset state.
+  x init_put_zero()		Object registers set to zero.
+
+    grab_regs()			Read all Cntl/Status registers into object.
+    push_regs()			Write object to hardware registers.
+
+			    rgUniSpi_AuxIrq
+
+    AuxIrq.read_Spi2Irq_1()	[2]
+    AuxIrq.read_Spi1Irq_1()	[1]
+
+			    rgUniSpi_AuxEn
+
+    AuxEn.read_Spi2Enable_1()	[2]
+    AuxEn.read_Spi1Enable_1()	[1]
+
+			Field accessors of object state:
+			    All these have both get_() and put_(V).
+
+			    rgUniSpi_Cntl0
+
+    Cntl0.get_Speed_12()	[31:20]
+    Cntl0.get_ChipSelects_3()	[19:17]
+    Cntl0.get_PostInMode_1()	[16]
+ !  Cntl0.get_VariableCs_1()	[15]
+    Cntl0.get_VariableWidth_1()	[14]
+    Cntl0.get_DoutHoldTime_2()	[13:12]
+    Cntl0.get_EnableSerial_1()	[11]
+    Cntl0.get_InRising_1()	[10]
+    Cntl0.get_ClearFifos_1()	[9]
+    Cntl0.get_OutRising_1()	[8]
+    Cntl0.get_InvertClk_1()	[7]
+    Cntl0.get_OutMsbFirst_1()	[6]
+    Cntl0.get_ShiftLength_6()	[5:0]
+
+			    rgUniSpi_Cntl1
+
+    Cntl1.get_CsHighTime_3()	[10:8]
+ !  Cntl1.get_TxEmptyIrq_1()	[7]
+ !  Cntl1.get_DoneIrq_1()	[6]
+    Cntl1.get_InMsbFirst_1()	[1]
+    Cntl1.get_KeepInput_1()	[0]
+
+			    rgUniSpi_Stat
+
+    Stat.get_TxLevel_3()	[30:28]
+    Stat.get_RxLevel_3()	[22:20]
+    Stat.get_TxFull_1()		[10]
+    Stat.get_TxEmpty_1()	[9]
+    Stat.get_RxFull_1()		[8]
+    Stat.get_RxEmpty_1()	[7]
+    Stat.get_Busy_1()		[6]
+    Stat.get_BitCount_6()	[5:0]
+
+
+----------------------------------------
+Old design
 
 Object data:
 {
@@ -326,7 +670,6 @@ Object data:
     uint32_t		StatReg;	// Status register
 
 }
-
 
 Methods:
 
