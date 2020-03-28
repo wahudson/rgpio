@@ -18,6 +18,13 @@ test:
 	cd t_rgUniSpi         && make test
 #	cd t_utLib1           && make test
 
+# on Rpi only - need sudo, test.init, and hardware jumpers
+Live:
+	cd v_rgSpi0_a         && make test
+	cd v_rgSpi0_fifo      && make test
+	cd v_rgSpi0_gpio      && make test
+	cd v_rgUniSpi         && make test
+
 clean:
 	cd t_rgAddrMap        && make clean
 	cd t_rgClk            && make clean
@@ -29,4 +36,8 @@ clean:
 	cd t_rgSpi0           && make clean
 	cd t_rgUniSpi         && make clean
 #	cd t_utLib1           && make clean
+	cd v_rgSpi0_a         && make clean
+	cd v_rgSpi0_fifo      && make clean
+	cd v_rgSpi0_gpio      && make clean
+	cd v_rgUniSpi         && make clean
 

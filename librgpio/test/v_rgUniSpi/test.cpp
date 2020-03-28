@@ -9,8 +9,9 @@
 //    60-69  .
 //
 // Configure Uspi1 for loopback:
-//    Wire MISO Gpio19 to MOSI Gpio20.
-//    rgpio fsel --mode=Alt4  16 17 18 19 20 21
+//    % rgpio fsel --mode=Alt4  16 17 18 19 20 21
+//    Gpio[21:16] == {SCLK, MOSI, MISO, CE0_n, CE1_n, CE2n}
+//    Jumper MISO (Gpio[19], pin 35) to MOSI (Gpio[20], pin 38).
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -71,8 +72,8 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "11a", "Access disabled" );
     try {
-	Tx.write_Spi_Enable_1( 0 );
-	CHECK( 0, Tx.read_Spi_Enable_1() );
+	Tx.write_SpiEnable_1( 0 );
+	CHECK( 0, Tx.read_SpiEnable_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -80,8 +81,8 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "11b", "Access enabled" );
     try {
-	Tx.write_Spi_Enable_1( 1 );
-	CHECK( 1, Tx.read_Spi_Enable_1() );
+	Tx.write_SpiEnable_1( 1 );
+	CHECK( 1, Tx.read_SpiEnable_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -91,13 +92,13 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
   CASE( "12", "Clear fifo" );
     try {
 	Tx.init_put_reset();
-	Tx.put_ClearFifos_1( 1 );
+	Tx.Cntl0.put_ClearFifos_1( 1 );
 	Tx.push_regs();
-	Tx.put_ClearFifos_1( 0 );
+	Tx.Cntl0.put_ClearFifos_1( 0 );
 	Tx.push_regs();
-	CHECKX( 0x000e0000, Tx.read_Cntl0() );
-	CHECKX( 0x00000000, Tx.read_Cntl1() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	CHECKX( 0x000e0000, Tx.Cntl0.read() );
+	CHECKX( 0x00000000, Tx.Cntl1.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -107,15 +108,15 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
   CASE( "14", "Config Spi1" );
     try {
 	Tx.init_put_reset();
-	Tx.put_Speed_12( 0xfff );	// slowest
-	Tx.put_EnableSerial_1( 1 );
-	Tx.put_ShiftLength_6( 8 );
-	Tx.put_OutRising_1( 1 );	// change on edge 1	#!!
-	Tx.put_InRising_1( 0 );		// sample on edge 2
+	Tx.Cntl0.put_Speed_12( 0xfff );	// slowest
+	Tx.Cntl0.put_EnableSerial_1( 1 );
+	Tx.Cntl0.put_ShiftLength_6( 8 );
+	Tx.Cntl0.put_OutRising_1( 1 );	// change on edge 1	#!!
+	Tx.Cntl0.put_InRising_1( 0 );		// sample on edge 2
 	Tx.push_regs();
-	CHECKX( 0xfffe0908, Tx.read_Cntl0() );
-	CHECKX( 0x00000000, Tx.read_Cntl1() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	CHECKX( 0xfffe0908, Tx.Cntl0.read() );
+	CHECKX( 0x00000000, Tx.Cntl1.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -131,8 +132,8 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 	int			i;
 	for ( i=0;  i<200;  i++ )
 	{
-	    Tx.grab_Stat();
-	    if ( ! Tx.get_Busy_1() )  break;
+	    Tx.Stat.grab();
+	    if ( ! Tx.Stat.get_Busy_1() )  break;
 	}
 	cout << "Busy loop:  " << i <<endl;
 */
@@ -140,17 +141,17 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
   CASE( "20", "common config" );
     try {
 	Tx.init_put_reset();
-	Tx.put_Speed_12(     200 );
-	Tx.put_EnableSerial_1( 1 );
-	Tx.put_ChipSelects_3( 0x4 );
-	Tx.put_ShiftLength_6( 16 );
-	Tx.put_PostInMode_1(   0 );
-	Tx.put_InvertClk_1(    0 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_Speed_12(     200 );
+	Tx.Cntl0.put_EnableSerial_1( 1 );
+	Tx.Cntl0.put_ChipSelects_3( 0x4 );
+	Tx.Cntl0.put_ShiftLength_6( 16 );
+	Tx.Cntl0.put_PostInMode_1(   0 );
+	Tx.Cntl0.put_InvertClk_1(    0 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	CHECKX( 0x0c880c10, Tx.read_Cntl0() );
-	CHECKX( 0x00000000, Tx.read_Cntl1() );
+	CHECKX( 0x0c880c10, Tx.Cntl0.read() );
+	CHECKX( 0x00000000, Tx.Cntl1.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -159,19 +160,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "21a", "good sample-change" );
     try {
-	Tx.put_InvertClk_1(    0 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_InvertClk_1(    0 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x00005557 );
+	Tx.Fifo.write( 0x00005557 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x55570000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x55570000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -179,19 +180,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "21b", "good sample-change" );
     try {
-	Tx.put_InvertClk_1(    0 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_InvertClk_1(    0 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xffffaaa8 );
+	Tx.Fifo.write( 0xffffaaa8 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xaaa80000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xaaa80000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -200,19 +201,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "22a", "missing first bit change-sample" );
     try {
-	Tx.put_InvertClk_1(    0 );
-	Tx.put_OutRising_1(    1 );
-	Tx.put_InRising_1(     0 );
+	Tx.Cntl0.put_InvertClk_1(    0 );
+	Tx.Cntl0.put_OutRising_1(    1 );
+	Tx.Cntl0.put_InRising_1(     0 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x00005557 );
+	Tx.Fifo.write( 0x00005557 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x2aab0000, Tx.read_Fifo() );	// is (0x55570000 >> 1)
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x2aab0000, Tx.Fifo.read() );	// is (0x55570000 >> 1)
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -220,19 +221,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "22b", "missing first bit change-sample" );
     try {
-	Tx.put_InvertClk_1(    0 );
-	Tx.put_OutRising_1(    1 );
-	Tx.put_InRising_1(     0 );
+	Tx.Cntl0.put_InvertClk_1(    0 );
+	Tx.Cntl0.put_OutRising_1(    1 );
+	Tx.Cntl0.put_InRising_1(     0 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xffffaaa8 );
+	Tx.Fifo.write( 0xffffaaa8 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xd5540000, Tx.read_Fifo() );	// is (0xaaa80000 >> 1)
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xd5540000, Tx.Fifo.read() );	// is (0xaaa80000 >> 1)
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -242,19 +243,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "23a", "invert SCLK good sample-change" );
     try {
-	Tx.put_InvertClk_1(    1 );
-	Tx.put_OutRising_1(    1 );
-	Tx.put_InRising_1(     0 );
+	Tx.Cntl0.put_InvertClk_1(    1 );
+	Tx.Cntl0.put_OutRising_1(    1 );
+	Tx.Cntl0.put_InRising_1(     0 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x00005557 );
+	Tx.Fifo.write( 0x00005557 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x55570000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x55570000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -262,19 +263,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "23b", "invert SCLK good sample-change" );
     try {
-	Tx.put_InvertClk_1(    1 );
-	Tx.put_OutRising_1(    1 );
-	Tx.put_InRising_1(     0 );
+	Tx.Cntl0.put_InvertClk_1(    1 );
+	Tx.Cntl0.put_OutRising_1(    1 );
+	Tx.Cntl0.put_InRising_1(     0 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xffffaaa8 );
+	Tx.Fifo.write( 0xffffaaa8 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xaaa80000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xaaa80000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -283,19 +284,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "24a", "invert SCLK missing first bit change-sample" );
     try {
-	Tx.put_InvertClk_1(    1 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_InvertClk_1(    1 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x00005557 );
+	Tx.Fifo.write( 0x00005557 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x2aab0000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x2aab0000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -303,19 +304,19 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "24b", "invert SCLK missing first bit change-sample" );
     try {
-	Tx.put_InvertClk_1(    1 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_InvertClk_1(    1 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xffffaaa8 );
+	Tx.Fifo.write( 0xffffaaa8 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xd5540000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xd5540000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -324,20 +325,20 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "25a", "post input, good sample-change" );
     try {
-	Tx.put_PostInMode_1(   1 );
-	Tx.put_InvertClk_1(    0 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_PostInMode_1(   1 );
+	Tx.Cntl0.put_InvertClk_1(    0 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x00005557 );
+	Tx.Fifo.write( 0x00005557 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x2aab0000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x2aab0000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -345,20 +346,20 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "25b", "post input, good sample-change" );
     try {
-	Tx.put_PostInMode_1(   1 );
-	Tx.put_InvertClk_1(    0 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_PostInMode_1(   1 );
+	Tx.Cntl0.put_InvertClk_1(    0 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xffffaaa8 );
+	Tx.Fifo.write( 0xffffaaa8 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xd5540000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xd5540000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -373,15 +374,15 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
   CASE( "30", "common config" );
     try {
 	Tx.init_put_reset();
-	Tx.put_Speed_12(     200 );
-	Tx.put_EnableSerial_1( 1 );
-	Tx.put_ChipSelects_3( 0x4 );
-	Tx.put_ShiftLength_6( 16 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_Speed_12(     200 );
+	Tx.Cntl0.put_EnableSerial_1( 1 );
+	Tx.Cntl0.put_ChipSelects_3( 0x4 );
+	Tx.Cntl0.put_ShiftLength_6( 16 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	CHECKX( 0x0c880c10, Tx.read_Cntl0() );
-	CHECKX( 0x00000000, Tx.read_Cntl1() );
+	CHECKX( 0x0c880c10, Tx.Cntl0.read() );
+	CHECKX( 0x00000000, Tx.Cntl1.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -390,18 +391,18 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "31a", "Out Lsb >>, In Msb >>" );
     try {
-	Tx.put_OutMsbFirst_1(  0 );
-	Tx.put_InMsbFirst_1(   0 );
+	Tx.Cntl0.put_OutMsbFirst_1(  0 );
+	Tx.Cntl1.put_InMsbFirst_1(   0 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x0000c557 );
+	Tx.Fifo.write( 0x0000c557 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xc5570000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xc5570000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -410,18 +411,18 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "32a", "Out Msb <<, In Msb >>, reversing" );
     try {
-	Tx.put_OutMsbFirst_1(  1 );
-	Tx.put_InMsbFirst_1(   0 );
+	Tx.Cntl0.put_OutMsbFirst_1(  1 );
+	Tx.Cntl1.put_InMsbFirst_1(   0 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xc5570000 );
+	Tx.Fifo.write( 0xc5570000 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xeaa30000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xeaa30000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -430,18 +431,18 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "33a", "Out Lsb >>, In Lsb <<, reversing" );
     try {
-	Tx.put_OutMsbFirst_1(  0 );
-	Tx.put_InMsbFirst_1(   1 );
+	Tx.Cntl0.put_OutMsbFirst_1(  0 );
+	Tx.Cntl1.put_InMsbFirst_1(   1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x0000c557 );
+	Tx.Fifo.write( 0x0000c557 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x0000eaa3, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x0000eaa3, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -450,18 +451,18 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "34a", "Out Msb <<, In Lsb <<" );
     try {
-	Tx.put_OutMsbFirst_1(  1 );
-	Tx.put_InMsbFirst_1(   1 );
+	Tx.Cntl0.put_OutMsbFirst_1(  1 );
+	Tx.Cntl1.put_InMsbFirst_1(   1 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x35570000 );
+	Tx.Fifo.write( 0x35570000 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x00003557, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat()  );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x00003557, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -474,15 +475,15 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
   CASE( "40", "common config" );
     try {
 	Tx.init_put_reset();
-	Tx.put_Speed_12(     200 );
-	Tx.put_EnableSerial_1( 1 );
-	Tx.put_ChipSelects_3( 0x4 );
-	Tx.put_ShiftLength_6(  8 );
-	Tx.put_OutRising_1(    0 );
-	Tx.put_InRising_1(     1 );
+	Tx.Cntl0.put_Speed_12(     200 );
+	Tx.Cntl0.put_EnableSerial_1( 1 );
+	Tx.Cntl0.put_ChipSelects_3( 0x4 );
+	Tx.Cntl0.put_ShiftLength_6(  8 );
+	Tx.Cntl0.put_OutRising_1(    0 );
+	Tx.Cntl0.put_InRising_1(     1 );
 	Tx.push_regs();
-	CHECKX( 0x0c880c08, Tx.read_Cntl0() );
-	CHECKX( 0x00000000, Tx.read_Cntl1() );
+	CHECKX( 0x0c880c08, Tx.Cntl0.read() );
+	CHECKX( 0x00000000, Tx.Cntl1.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -491,17 +492,17 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "41a", "length" );
     try {
-	Tx.put_ShiftLength_6(  8 );
+	Tx.Cntl0.put_ShiftLength_6(  8 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x0000ff37 );
+	Tx.Fifo.write( 0x0000ff37 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x37000000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x37000000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -509,17 +510,17 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "41b", "length" );
     try {
-	Tx.put_ShiftLength_6(  3 );
+	Tx.Cntl0.put_ShiftLength_6(  3 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x000000ff );
+	Tx.Fifo.write( 0x000000ff );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xe0000000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xe0000000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -527,17 +528,17 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "41c", "length" );
     try {
-	Tx.put_ShiftLength_6( 24 );
+	Tx.Cntl0.put_ShiftLength_6( 24 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0x0176666f );
+	Tx.Fifo.write( 0x0176666f );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x76666f00, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x76666f00, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -545,17 +546,17 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "41d", "length" );
     try {
-	Tx.put_ShiftLength_6( 32 );
+	Tx.Cntl0.put_ShiftLength_6( 32 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xf666666f );
+	Tx.Fifo.write( 0xf666666f );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xf666666f, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xf666666f, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -563,17 +564,17 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "41e", "length" );
     try {
-	Tx.put_ShiftLength_6( 31 );
+	Tx.Cntl0.put_ShiftLength_6( 31 );
 	Tx.push_regs();
-	Tx.write_Fifo( 0xf6666667 );
+	Tx.Fifo.write( 0xf6666667 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xecccccce, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xecccccce, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -582,10 +583,10 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 //--------------------------------------
   CASE( "44", "variable length" );
     try {
-	Tx.put_VariableWidth_1( 1 );
-	Tx.put_ShiftLength_6(  3 );
+	Tx.Cntl0.put_VariableWidth_1( 1 );
+	Tx.Cntl0.put_ShiftLength_6(  3 );
 	Tx.push_regs();
-	CHECKX( 0x0c884c03, Tx.read_Cntl0() );
+	CHECKX( 0x0c884c03, Tx.Cntl0.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -593,15 +594,15 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "44a", "variable length 8" );
     try {
-	Tx.write_Fifo( 0x0800ff37 );
+	Tx.Fifo.write( 0x0800ff37 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x37000000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x37000000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -609,15 +610,15 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "44b", "variable length 12" );
     try {
-	Tx.write_Fifo( 0x0cfff337 );
+	Tx.Fifo.write( 0x0cfff337 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x33700000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x33700000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -625,15 +626,15 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "44c", "variable length 24" );
     try {
-	Tx.write_Fifo( 0x18ccccc7 );
+	Tx.Fifo.write( 0x18ccccc7 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0xccccc700, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0xccccc700, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -641,15 +642,15 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "44d", "variable length 3" );
     try {
-	Tx.write_Fifo( 0x03fffff3 );
+	Tx.Fifo.write( 0x03fffff3 );
 	do {
-	    Tx.grab_Stat();
-	} while ( Tx.get_Busy_1() );
-	CHECKX( 0x00100200, Tx.get_Stat()  );
-	CHECK(           1, Tx.get_RxLevel_3() );
-	CHECK(           1, Tx.get_TxEmpty_1() );
-	CHECKX( 0x60000000, Tx.read_Fifo() );
-	CHECKX( 0x00000280, Tx.read_Stat() );
+	    Tx.Stat.grab();
+	} while ( Tx.Stat.get_Busy_1() );
+	CHECKX( 0x00100200, Tx.Stat.get()  );
+	CHECK(           1, Tx.Stat.get_RxLevel_3() );
+	CHECK(           1, Tx.Stat.get_TxEmpty_1() );
+	CHECKX( 0x60000000, Tx.Fifo.read() );
+	CHECKX( 0x00000280, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

@@ -105,9 +105,14 @@ Environment variable 'TESTONRPI' switch in some tests.
 Live Tests:  v_*/
     These are intended to run only on RPi.
     They typicaly apply privilege capability with sudo in "make cap".
-    They may require special setup to configure gpio Fsel.
+    They may require special setup to configure gpio Fsel (./test.init).
 
-    v_rgUniSpi/  require loopback:  Wire MISO Gpio19 to MOSI Gpio20.
+    Test	    Jumper config
+    --------------  -------------
+    v_rgSpi0_a/     none needed
+    v_rgSpi0_fifo/  Jumper MISO (Gpio[9], pin 21) to MOSI (Gpio[10], pin 19)
+    v_rgSpi0_gpio/  optional
+    v_rgUniSpi/     Jumper MISO (Gpio[19], pin 35) to MOSI (Gpio[20], pin 38)
 
 
 Git:
