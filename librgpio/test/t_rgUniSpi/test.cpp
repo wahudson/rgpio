@@ -108,10 +108,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //## Address of registers
 //--------------------------------------------------------------------------
 
-  CASE( "20a", "addr_AuxIrq()" );
+  CASE( "20a", "AuxIrq.addr()" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx.addr_AuxIrq();
+	vp = Tx.AuxIrq.addr();
 	CHECKX( 0x00000000, (vp - Tx.get_base_addr())*4 );
 	CHECK(  1,                Tx.get_spi_num() );
     }
@@ -120,10 +120,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "21a", "addr_AuxEnable()" );
+  CASE( "21a", "AuxEn.addr()" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx.addr_AuxEnable();
+	vp = Tx.AuxEn.addr();
 	CHECKX( 0x00000004, (vp - Tx.get_base_addr())*4 );
 	CHECK(  1,                Tx.get_spi_num() );
     }
@@ -132,10 +132,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "22a", "addr_Cntl0() Spi1" );
+  CASE( "22a", "Cntl0.addr() Spi1" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx1.addr_Cntl0();
+	vp = Tx1.Cntl0.addr();
 	CHECKX( 0x00000080, (vp - Tx1.get_base_addr())*4 );
 	CHECK(  1,                Tx1.get_spi_num() );
     }
@@ -143,10 +143,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "22b", "addr_Cntl0() Spi2" );
+  CASE( "22b", "Cntl0.addr() Spi2" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx2.addr_Cntl0();
+	vp = Tx2.Cntl0.addr();
 	CHECKX( 0x000000c0, (vp - Tx2.get_base_addr())*4 );
 	CHECK(  2,                Tx2.get_spi_num() );
     }
@@ -155,10 +155,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "23a", "addr_Cntl1() Spi1" );
+  CASE( "23a", "Cntl1.addr() Spi1" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx1.addr_Cntl1();
+	vp = Tx1.Cntl1.addr();
 	CHECKX( 0x00000084, (vp - Tx1.get_base_addr())*4 );
 	CHECK(  1,                Tx1.get_spi_num() );
     }
@@ -166,10 +166,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "23b", "addr_Cntl1() Spi2" );
+  CASE( "23b", "Cntl1.addr() Spi2" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx2.addr_Cntl1();
+	vp = Tx2.Cntl1.addr();
 	CHECKX( 0x000000c4, (vp - Tx2.get_base_addr())*4 );
 	CHECK(  2,                Tx2.get_spi_num() );
     }
@@ -178,10 +178,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "24a", "addr_Stat() Spi1" );
+  CASE( "24a", "Stat.addr() Spi1" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx1.addr_Stat();
+	vp = Tx1.Stat.addr();
 	CHECKX( 0x00000088, (vp - Tx1.get_base_addr())*4 );
 	CHECK(  1,                Tx1.get_spi_num() );
     }
@@ -189,10 +189,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "24b", "addr_Stat() Spi2" );
+  CASE( "24b", "Stat.addr() Spi2" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx2.addr_Stat();
+	vp = Tx2.Stat.addr();
 	CHECKX( 0x000000c8, (vp - Tx2.get_base_addr())*4 );
 	CHECK(  2,                Tx2.get_spi_num() );
     }
@@ -201,10 +201,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "25a", "addr_Peek() Spi1" );
+  CASE( "25a", "Peek.addr() Spi1" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx1.addr_Peek();
+	vp = Tx1.Peek.addr();
 	CHECKX( 0x0000008c, (vp - Tx1.get_base_addr())*4 );
 	CHECK(  1,                Tx1.get_spi_num() );
     }
@@ -212,10 +212,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "25b", "addr_Peek() Spi2" );
+  CASE( "25b", "Peek.addr() Spi2" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx2.addr_Peek();
+	vp = Tx2.Peek.addr();
 	CHECKX( 0x000000cc, (vp - Tx2.get_base_addr())*4 );
 	CHECK(  2,                Tx2.get_spi_num() );
     }
@@ -224,10 +224,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "26a", "addr_Fifo() Spi1" );
+  CASE( "26a", "Fifo.addr() Spi1" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx1.addr_Fifo();
+	vp = Tx1.Fifo.addr();
 	CHECKX( 0x000000a0, (vp - Tx1.get_base_addr())*4 );
 	CHECK(  1,                Tx1.get_spi_num() );
     }
@@ -235,10 +235,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "26b", "addr_Fifo() Spi2" );
+  CASE( "26b", "Fifo.addr() Spi2" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx2.addr_Fifo();
+	vp = Tx2.Fifo.addr();
 	CHECKX( 0x000000e0, (vp - Tx2.get_base_addr())*4 );
 	CHECK(  2,                Tx2.get_spi_num() );
     }
@@ -247,10 +247,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "27a", "addr_FifoH() Spi1" );
+  CASE( "27a", "FifoH.addr() Spi1" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx1.addr_FifoH();
+	vp = Tx1.FifoH.addr();
 	CHECKX( 0x000000b0, (vp - Tx1.get_base_addr())*4 );
 	CHECK(  1,                Tx1.get_spi_num() );
     }
@@ -258,10 +258,10 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "27b", "addr_FifoH() Spi2" );
+  CASE( "27b", "FifoH.addr() Spi2" );
     try {
 	volatile uint32_t*	vp;
-	vp = Tx2.addr_FifoH();
+	vp = Tx2.FifoH.addr();
 	CHECKX( 0x000000f0, (vp - Tx2.get_base_addr())*4 );
 	CHECK(  2,                Tx2.get_spi_num() );
     }
@@ -274,50 +274,24 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //## Access Enable and IRQ bits
 //--------------------------------------------------------------------------
 
-  CASE( "30a", "read_AuxIrq() Spi1" );
+  CASE( "30a", "AuxIrq.read() Spi1" );
     try {
 	uint32_t		vv;
-	Tx1.write_AuxIrq( 0x00000002 );
-	CHECKX(           0x00000002, Tx1.read_AuxIrq() );
-	vv = Tx1.read_Spi_IRQ_1();
+	Tx1.AuxIrq.write( 0x00000002 );
+	CHECKX(           0x00000002, Tx1.AuxIrq.read() );
+	vv = Tx1.read_SpiIrq_1();
 	CHECK(  1, vv );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "30b", "read_AuxIrq() Spi1" );
+  CASE( "30b", "AuxIrq.read() Spi1" );
     try {
 	uint32_t		vv;
-	Tx1.write_AuxIrq( 0xfffffffd );
-	CHECKX(           0xfffffffd, Tx1.read_AuxIrq() );
-	vv = Tx1.read_Spi_IRQ_1();
-	CHECK(  0, vv );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-
-//--------------------------------------
-  CASE( "31a", "read_AuxIrq() Spi2" );
-    try {
-	uint32_t		vv;
-	Tx2.write_AuxIrq( 0x00000004 );
-	CHECKX(           0x00000004, Tx2.read_AuxIrq() );
-	vv = Tx2.read_Spi_IRQ_1();
-	CHECK(  1, vv );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "31b", "read_AuxIrq() Spi2" );
-    try {
-	uint32_t		vv;
-	Tx2.write_AuxIrq( 0xfffffffb );
-	CHECKX(           0xfffffffb, Tx2.read_AuxIrq() );
-	vv = Tx2.read_Spi_IRQ_1();
+	Tx1.AuxIrq.write( 0xfffffffd );
+	CHECKX(           0xfffffffd, Tx1.AuxIrq.read() );
+	vv = Tx1.read_SpiIrq_1();
 	CHECK(  0, vv );
     }
     catch (...) {
@@ -325,28 +299,24 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "32a", "read_Spi_Enable_1() Spi1" );
+  CASE( "31a", "AuxIrq.read() Spi2" );
     try {
 	uint32_t		vv;
-	Tx1.write_AuxEnable( 0x00000000 );
-	CHECKX(              0x00000000, Tx1.read_AuxEnable() );
-	Tx1.write_Spi_Enable_1( 1 );
-	CHECKX(              0x00000002, Tx1.read_AuxEnable() );
-	vv = Tx1.read_Spi_Enable_1();
+	Tx2.AuxIrq.write( 0x00000004 );
+	CHECKX(           0x00000004, Tx2.AuxIrq.read() );
+	vv = Tx2.read_SpiIrq_1();
 	CHECK(  1, vv );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "32b", "read_Spi_Enable_1() Spi1" );
+  CASE( "31b", "AuxIrq.read() Spi2" );
     try {
 	uint32_t		vv;
-	Tx1.write_AuxEnable( 0xffffffff );
-	CHECKX(              0xffffffff, Tx1.read_AuxEnable() );
-	Tx1.write_Spi_Enable_1( 0 );
-	CHECKX(              0xfffffffd, Tx1.read_AuxEnable() );
-	vv = Tx1.read_Spi_Enable_1();
+	Tx2.AuxIrq.write( 0xfffffffb );
+	CHECKX(           0xfffffffb, Tx2.AuxIrq.read() );
+	vv = Tx2.read_SpiIrq_1();
 	CHECK(  0, vv );
     }
     catch (...) {
@@ -354,28 +324,57 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
     }
 
 //--------------------------------------
-  CASE( "33a", "read_Spi_Enable_1() Spi2" );
+  CASE( "32a", "read_SpiEnable_1() Spi1" );
     try {
 	uint32_t		vv;
-	Tx2.write_AuxEnable( 0x00000000 );
-	CHECKX(              0x00000000, Tx2.read_AuxEnable() );
-	Tx2.write_Spi_Enable_1( 1 );
-	CHECKX(              0x00000004, Tx2.read_AuxEnable() );
-	vv = Tx2.read_Spi_Enable_1();
+	Tx1.AuxEn.write(     0x00000000 );
+	CHECKX(              0x00000000, Tx1.AuxEn.read() );
+	Tx1.write_SpiEnable_1( 1 );
+	CHECKX(              0x00000002, Tx1.AuxEn.read() );
+	vv = Tx1.read_SpiEnable_1();
 	CHECK(  1, vv );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "33b", "read_Spi_Enable_1() Spi2" );
+  CASE( "32b", "read_SpiEnable_1() Spi1" );
     try {
 	uint32_t		vv;
-	Tx2.write_AuxEnable( 0xffffffff );
-	CHECKX(              0xffffffff, Tx2.read_AuxEnable() );
-	Tx2.write_Spi_Enable_1( 0 );
-	CHECKX(              0xfffffffb, Tx2.read_AuxEnable() );
-	vv = Tx2.read_Spi_Enable_1();
+	Tx1.AuxEn.write(     0xffffffff );
+	CHECKX(              0xffffffff, Tx1.AuxEn.read() );
+	Tx1.write_SpiEnable_1( 0 );
+	CHECKX(              0xfffffffd, Tx1.AuxEn.read() );
+	vv = Tx1.read_SpiEnable_1();
+	CHECK(  0, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "33a", "read_SpiEnable_1() Spi2" );
+    try {
+	uint32_t		vv;
+	Tx2.AuxEn.write(     0x00000000 );
+	CHECKX(              0x00000000, Tx2.AuxEn.read() );
+	Tx2.write_SpiEnable_1( 1 );
+	CHECKX(              0x00000004, Tx2.AuxEn.read() );
+	vv = Tx2.read_SpiEnable_1();
+	CHECK(  1, vv );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "33b", "read_SpiEnable_1() Spi2" );
+    try {
+	uint32_t		vv;
+	Tx2.AuxEn.write(     0xffffffff );
+	CHECKX(              0xffffffff, Tx2.AuxEn.read() );
+	Tx2.write_SpiEnable_1( 0 );
+	CHECKX(              0xfffffffb, Tx2.AuxEn.read() );
+	vv = Tx2.read_SpiEnable_1();
 	CHECK(  0, vv );
     }
     catch (...) {
@@ -388,38 +387,38 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 // Test read/write to fake memory.
 
 //--------------------------------------
-  CASE( "40a", "read_Cntl0()" );
+  CASE( "40a", "Cntl0.read()" );
     try {
-	Tx.write_Cntl0( 0x00000000 );
-	CHECKX(         0x00000000, Tx.read_Cntl0() );
+	Tx.Cntl0.write( 0x00000000 );
+	CHECKX(         0x00000000, Tx.Cntl0.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "40b", "read_Cntl0()" );
+  CASE( "40b", "Cntl0.read()" );
     try {
-	Tx.write_Cntl0( 0xffffffff );
-	CHECKX(         0xffffffff, Tx.read_Cntl0() );
+	Tx.Cntl0.write( 0xffffffff );
+	CHECKX(         0xffffffff, Tx.Cntl0.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
-  CASE( "41a", "read_Cntl1()" );
+  CASE( "41a", "Cntl1.read()" );
     try {
-	Tx.write_Cntl1( 0x00000000 );
-	CHECKX(         0x00000000, Tx.read_Cntl1() );
+	Tx.Cntl1.write( 0x00000000 );
+	CHECKX(         0x00000000, Tx.Cntl1.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "41b", "read_Cntl1()" );
+  CASE( "41b", "Cntl1.read()" );
     try {
-	Tx.write_Cntl1( 0xffffffff );
-	CHECKX(         0xffffffff, Tx.read_Cntl1() );
+	Tx.Cntl1.write( 0xffffffff );
+	CHECKX(         0xffffffff, Tx.Cntl1.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -427,57 +426,57 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
 //--------------------------------------
 // Note Stat is a read-only register.
-  CASE( "42a", "read_Stat()" );
+  CASE( "42a", "Stat.read()" );
     try {
-	Tx.write_Stat(  0x00000000 );
-	CHECKX(         0x00000000, Tx.read_Stat() );
+	Tx.Stat.write(  0x00000000 );
+	CHECKX(         0x00000000, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "42b", "read_Stat()" );
+  CASE( "42b", "Stat.read()" );
     try {
-	Tx.write_Stat(  0xffffffff );
-	CHECKX(         0xffffffff, Tx.read_Stat() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "43a", "read_Fifo()" );
-    try {
-	Tx.write_Fifo(  0x00000000 );
-	CHECKX(         0x00000000, Tx.read_Fifo() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "43b", "read_Fifo()" );
-    try {
-	Tx.write_Fifo(  0xffffffff );
-	CHECKX(         0xffffffff, Tx.read_Fifo() );
+	Tx.Stat.write(  0xffffffff );
+	CHECKX(         0xffffffff, Tx.Stat.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
-  CASE( "44a", "read_Fifo()" );
+  CASE( "43a", "Fifo.read()" );
     try {
-	Tx.write_FifoH( 0x00000000 );
-	CHECKX(         0x00000000, Tx.read_FifoH() );
+	Tx.Fifo.write(  0x00000000 );
+	CHECKX(         0x00000000, Tx.Fifo.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "44b", "read_Fifo()" );
+  CASE( "43b", "Fifo.read()" );
     try {
-	Tx.write_FifoH( 0xffffffff );
-	CHECKX(         0xffffffff, Tx.read_FifoH() );
+	Tx.Fifo.write(  0xffffffff );
+	CHECKX(         0xffffffff, Tx.Fifo.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "44a", "FifoH.read()" );
+    try {
+	Tx.FifoH.write( 0x00000000 );
+	CHECKX(         0x00000000, Tx.FifoH.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "44b", "FifoH.read()" );
+    try {
+	Tx.FifoH.write( 0xffffffff );
+	CHECKX(         0xffffffff, Tx.FifoH.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -491,22 +490,22 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------
   CASE( "50a", "init_put_reset()" );
     try {
-	Tx.write_Cntl0( 0xfff1ffff );
-	Tx.write_Cntl1( 0xffffffff );
-	Tx.write_Stat(  0xffffffff );
-	Tx.put_Cntl0(   0xffffffff );
-	Tx.put_Cntl1(   0xffffffff );
-	Tx.put_Stat(    0xffffffff );
-	CHECKX(         0xfff1ffff, Tx.read_Cntl0() );
-	CHECKX(         0xffffffff, Tx.read_Cntl1() );
-	CHECKX(         0xffffffff, Tx.read_Stat() );
-	CHECKX(         0xffffffff, Tx.get_Cntl0() );
-	CHECKX(         0xffffffff, Tx.get_Cntl1() );
-	CHECKX(         0xffffffff, Tx.get_Stat()  );
+	Tx.Cntl0.write( 0xfff1ffff );
+	Tx.Cntl1.write( 0xffffffff );
+	Tx.Stat.write(  0xffffffff );
+	Tx.Cntl0.put(   0xffffffff );
+	Tx.Cntl1.put(   0xffffffff );
+	Tx.Stat.put(    0xffffffff );
+	CHECKX(         0xfff1ffff, Tx.Cntl0.read() );
+	CHECKX(         0xffffffff, Tx.Cntl1.read() );
+	CHECKX(         0xffffffff, Tx.Stat.read() );
+	CHECKX(         0xffffffff, Tx.Cntl0.get() );
+	CHECKX(         0xffffffff, Tx.Cntl1.get() );
+	CHECKX(         0xffffffff, Tx.Stat.get()  );
 	Tx.init_put_reset();
-	CHECKX(         0x000e0000, Tx.get_Cntl0() );
-	CHECKX(         0x00000000, Tx.get_Cntl1() );
-	CHECKX(         0x00000280, Tx.get_Stat()  );
+	CHECKX(         0x000e0000, Tx.Cntl0.get() );
+	CHECKX(         0x00000000, Tx.Cntl1.get() );
+	CHECKX(         0x00000280, Tx.Stat.get()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -515,21 +514,21 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------
   CASE( "52a", "grab_regs()" );
     try {
-	Tx.write_Cntl0( 0x55555555 );
-	Tx.write_Cntl1( 0x33333333 );
-	Tx.write_Stat(  0x66666666 );
-	Tx.write_Fifo(  0x00000000 );
-	Tx.write_FifoH( 0x00000000 );
-	Tx.put_Cntl0(   0xaaaaaaaa );
-	Tx.put_Cntl1(   0xcccccccc );
-	Tx.put_Stat(    0x99999999 );
-	CHECKX(         0xaaaaaaaa, Tx.get_Cntl0() );
-	CHECKX(         0xcccccccc, Tx.get_Cntl1() );
-	CHECKX(         0x99999999, Tx.get_Stat()  );
+	Tx.Cntl0.write( 0x55555555 );
+	Tx.Cntl1.write( 0x33333333 );
+	Tx.Stat.write(  0x66666666 );
+	Tx.Fifo.write(  0x00000000 );
+	Tx.FifoH.write( 0x00000000 );
+	Tx.Cntl0.put(   0xaaaaaaaa );
+	Tx.Cntl1.put(   0xcccccccc );
+	Tx.Stat.put(    0x99999999 );
+	CHECKX(         0xaaaaaaaa, Tx.Cntl0.get() );
+	CHECKX(         0xcccccccc, Tx.Cntl1.get() );
+	CHECKX(         0x99999999, Tx.Stat.get()  );
 	Tx.grab_regs();
-	CHECKX(         0x55555555, Tx.get_Cntl0() );
-	CHECKX(         0x33333333, Tx.get_Cntl1() );
-	CHECKX(         0x66666666, Tx.get_Stat()  );
+	CHECKX(         0x55555555, Tx.Cntl0.get() );
+	CHECKX(         0x33333333, Tx.Cntl1.get() );
+	CHECKX(         0x66666666, Tx.Stat.get()  );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -538,47 +537,23 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------
   CASE( "54a", "push_regs()" );
     try {
-	Tx.put_Cntl0(   0xaaaaaaaa );
-	Tx.put_Cntl1(   0xcccccccc );
-	Tx.put_Stat(    0x99999999 );
-	Tx.write_Cntl0( 0x55555555 );
-	Tx.write_Cntl1( 0x33333333 );
-	Tx.write_Stat(  0x66666666 );
-	Tx.write_Fifo(  0x00000000 );
-	Tx.write_FifoH( 0x00000000 );
-	CHECKX(         0x55555555, Tx.read_Cntl0() );
-	CHECKX(         0x33333333, Tx.read_Cntl1() );
-	CHECKX(         0x66666666, Tx.read_Stat()  );
+	Tx.Cntl0.put(   0xaaaaaaaa );
+	Tx.Cntl1.put(   0xcccccccc );
+	Tx.Stat.put(    0x99999999 );
+	Tx.Cntl0.write( 0x55555555 );
+	Tx.Cntl1.write( 0x33333333 );
+	Tx.Stat.write(  0x66666666 );
+	Tx.Fifo.write(  0x00000000 );
+	Tx.FifoH.write( 0x00000000 );
+	CHECKX(         0x55555555, Tx.Cntl0.read() );
+	CHECKX(         0x33333333, Tx.Cntl1.read() );
+	CHECKX(         0x66666666, Tx.Stat.read()  );
 	Tx.push_regs();
-	CHECKX(         0xaaaaaaaa, Tx.read_Cntl0() );
-	CHECKX(         0xcccccccc, Tx.read_Cntl1() );
-	CHECKX(         0x66666666, Tx.read_Stat()  );	// read-only
-	CHECKX(         0x00000000, Tx.read_Fifo()  );
-	CHECKX(         0x00000000, Tx.read_FifoH() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "56a", "grab_Stat()" );
-    try {
-	Tx.write_Cntl0( 0xffffffff );
-	Tx.write_Cntl1( 0xffffffff );
-	Tx.write_Stat(  0xaaaaaaaa );
-	Tx.put_Cntl0(   0x00000000 );
-	Tx.put_Cntl1(   0x00000000 );
-	Tx.put_Stat(    0x55555555 );
-	CHECKX(         0xffffffff, Tx.read_Cntl0() );
-	CHECKX(         0xffffffff, Tx.read_Cntl1() );
-	CHECKX(         0xaaaaaaaa, Tx.read_Stat() );
-	CHECKX(         0x00000000, Tx.get_Cntl0() );
-	CHECKX(         0x00000000, Tx.get_Cntl1() );
-	CHECKX(         0x55555555, Tx.get_Stat()  );
-	Tx.grab_Stat();
-	CHECKX(         0x00000000, Tx.get_Cntl0() );
-	CHECKX(         0x00000000, Tx.get_Cntl1() );
-	CHECKX(         0xaaaaaaaa, Tx.get_Stat()  );
+	CHECKX(         0xaaaaaaaa, Tx.Cntl0.read() );
+	CHECKX(         0xcccccccc, Tx.Cntl1.read() );
+	CHECKX(         0x66666666, Tx.Stat.read()  );	// read-only
+	CHECKX(         0x00000000, Tx.Fifo.read()  );
+	CHECKX(         0x00000000, Tx.FifoH.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -592,11 +567,11 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------
   CASE( "60a", "get_Speed_12()" );
     try {
-	Tx.put_Cntl0(  0x00000000 );
-	CHECKX(        0x00000000, Tx.get_Cntl0() );
-	Tx.put_Speed_12( 0xfff );
-	CHECKX(        0xfff00000, Tx.get_Cntl0() );
-	CHECK(         0xfff,      Tx.get_Speed_12() );
+	Tx.Cntl0.put(  0x00000000 );
+	CHECKX(        0x00000000, Tx.Cntl0.get() );
+	Tx.Cntl0.put_Speed_12( 0xfff );
+	CHECKX(        0xfff00000, Tx.Cntl0.get() );
+	CHECK(         0xfff,      Tx.Cntl0.get_Speed_12() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -604,11 +579,11 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
   CASE( "60b", "get_Speed_12()" );
     try {
-	Tx.put_Cntl0(  0xffffffff );
-	CHECKX(        0xffffffff, Tx.get_Cntl0() );
-	Tx.put_Speed_12( 0x000 );
-	CHECKX(        0x000fffff, Tx.get_Cntl0() );
-	CHECK(         0x000,      Tx.get_Speed_12() );
+	Tx.Cntl0.put(  0xffffffff );
+	CHECKX(        0xffffffff, Tx.Cntl0.get() );
+	Tx.Cntl0.put_Speed_12( 0x000 );
+	CHECKX(        0x000fffff, Tx.Cntl0.get() );
+	CHECK(         0x000,      Tx.Cntl0.get_Speed_12() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -616,11 +591,11 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
   CASE( "60c", "put_Speed_12() bad value" );
     try {
-	Tx.put_Speed_12( 0x1000 );
+	Tx.Cntl0.put_Speed_12( 0x1000 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-	CHECK( "rgUniSpi::put_field():  value exceeds 0xfff:  0x1000",
+	CHECK( "rgRegister::put_field():  value exceeds 0xfff:  0x1000",
 	    e.what()
 	);
     }
@@ -631,11 +606,11 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------
   CASE( "66a", "get_EnableSerial_1()" );
     try {
-	Tx.put_Cntl0(  0x00000000 );
-	CHECKX(        0x00000000, Tx.get_Cntl0() );
-	Tx.put_EnableSerial_1( 0x1 );
-	CHECKX(        0x00000800, Tx.get_Cntl0() );
-	CHECK(         0x1,        Tx.get_EnableSerial_1() );
+	Tx.Cntl0.put(  0x00000000 );
+	CHECKX(        0x00000000, Tx.Cntl0.get() );
+	Tx.Cntl0.put_EnableSerial_1( 0x1 );
+	CHECKX(        0x00000800, Tx.Cntl0.get() );
+	CHECK(         0x1,        Tx.Cntl0.get_EnableSerial_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -643,11 +618,11 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
   CASE( "66b", "get_EnableSerial_1()" );
     try {
-	Tx.put_Cntl0(  0xffffffff );
-	CHECKX(        0xffffffff, Tx.get_Cntl0() );
-	Tx.put_EnableSerial_1( 0x0 );
-	CHECKX(        0xfffff7ff, Tx.get_Cntl0() );
-	CHECK(         0x0,        Tx.get_EnableSerial_1() );
+	Tx.Cntl0.put(  0xffffffff );
+	CHECKX(        0xffffffff, Tx.Cntl0.get() );
+	Tx.Cntl0.put_EnableSerial_1( 0x0 );
+	CHECKX(        0xfffff7ff, Tx.Cntl0.get() );
+	CHECK(         0x0,        Tx.Cntl0.get_EnableSerial_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -655,11 +630,11 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
   CASE( "66c", "put_EnableSerial_1() bad value" );
     try {
-	Tx.put_EnableSerial_1( 0x2 );
+	Tx.Cntl0.put_EnableSerial_1( 0x2 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-	CHECK( "rgUniSpi::put_field():  value exceeds 0x1:  0x2",
+	CHECK( "rgRegister::put_field():  value exceeds 0x1:  0x2",
 	    e.what()
 	);
     }
