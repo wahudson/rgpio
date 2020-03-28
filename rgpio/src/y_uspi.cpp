@@ -42,19 +42,19 @@ class uspi_yOptLong : public yOption {
     bool		spi_ch[3];	// SPI module number requested
 
 					// registers
-    yOpVal		AuxEnable;
-    yOpVal		cntl0;
-    yOpVal		cntl1;
-    yOpVal		stat;
+    yOpVal		AuxEn;
+    yOpVal		Cntl0;
+    yOpVal		Cntl1;
+    yOpVal		Stat;
     yOpVal		rx;
     yOpVal		rxh;
 					// Aux fields
-    yOpVal		Spi_Enable_1;
+    yOpVal		SpiEnable_1;
 					// Cntl0 fields
     yOpVal		Speed_12;
     yOpVal		ChipSelects_3;
     yOpVal		PostInMode_1;
-    yOpVal		VariableCS_1;
+    yOpVal		VariableCs_1;
     yOpVal		VariableWidth_1;
     yOpVal		DoutHoldTime_2;
     yOpVal		EnableSerial_1;
@@ -66,8 +66,8 @@ class uspi_yOptLong : public yOption {
     yOpVal		ShiftLength_6;
 					// Cntl1 fields
     yOpVal		CsHighTime_3;
-    yOpVal		TxEmptyIRQ_1;
-    yOpVal		DoneIRQ_1;
+    yOpVal		TxEmptyIrq_1;
+    yOpVal		DoneIrq_1;
     yOpVal		InMsbFirst_1;
     yOpVal		KeepInput_1;
 
@@ -131,20 +131,20 @@ uspi_yOptLong::parse_options()
 
     while ( this->next() )
     {
-	     if ( is( "--cntl0="     )) { cntl0.set( this->val() ); }
-	else if ( is( "--cntl1="     )) { cntl1.set( this->val() ); }
-	else if ( is( "--stat="      )) { stat.set(  this->val() ); }
-	else if ( is( "--AuxEnable=" )) { AuxEnable.set(   val() ); }
+	     if ( is( "--Cntl0="     )) { Cntl0.set( this->val() ); }
+	else if ( is( "--Cntl1="     )) { Cntl1.set( this->val() ); }
+	else if ( is( "--Stat="      )) { Stat.set(  this->val() ); }
+	else if ( is( "--AuxEn="     )) { AuxEn.set( this->val() ); }
 
 	else if ( is( "--rx="              )) { rx.set(              val() ); }
 	else if ( is( "--rxh="             )) { rxh.set(             val() ); }
 
-	else if ( is( "--Spi_Enable_1="    )) { Spi_Enable_1.set(    val() ); }
+	else if ( is( "--SpiEnable_1="     )) { SpiEnable_1.set(     val() ); }
 
 	else if ( is( "--Speed_12="        )) { Speed_12.set(        val() ); }
 	else if ( is( "--ChipSelects_3="   )) { ChipSelects_3.set(   val() ); }
 	else if ( is( "--PostInMode_1="    )) { PostInMode_1.set(    val() ); }
-	else if ( is( "--VariableCS_1="    )) { VariableCS_1.set(    val() ); }
+	else if ( is( "--VariableCs_1="    )) { VariableCs_1.set(    val() ); }
 	else if ( is( "--VariableWidth_1=" )) { VariableWidth_1.set( val() ); }
 	else if ( is( "--DoutHoldTime_2="  )) { DoutHoldTime_2.set(  val() ); }
 	else if ( is( "--EnableSerial_1="  )) { EnableSerial_1.set(  val() ); }
@@ -161,8 +161,8 @@ uspi_yOptLong::parse_options()
 	else if ( is( "--txh"        )) { txh        = 1; }
 
 	else if ( is( "--CsHighTime_3="    )) { CsHighTime_3.set(    val() ); }
-	else if ( is( "--TxEmptyIRQ_1="    )) { TxEmptyIRQ_1.set(    val() ); }
-	else if ( is( "--DoneIRQ_1="       )) { DoneIRQ_1.set(       val() ); }
+	else if ( is( "--TxEmptyIrq_1="    )) { TxEmptyIrq_1.set(    val() ); }
+	else if ( is( "--DoneIrq_1="       )) { DoneIrq_1.set(       val() ); }
 	else if ( is( "--InMsbFirst_1="    )) { InMsbFirst_1.set(    val() ); }
 	else if ( is( "--KeepInput_1="     )) { KeepInput_1.set(     val() ); }
 
@@ -194,9 +194,9 @@ uspi_yOptLong::parse_options()
 			       PostInMode_1.Val <<endl;
     }
 
-    if (                       VariableCS_1.Val > 1 ) {
-	Error::msg( "require --VariableCS_1={0,1}:  " ) <<
-			       VariableCS_1.Val <<endl;
+    if (                       VariableCs_1.Val > 1 ) {
+	Error::msg( "require --VariableCs_1={0,1}:  " ) <<
+			       VariableCs_1.Val <<endl;
     }
 
     if (                       VariableWidth_1.Val > 1 ) {
@@ -250,14 +250,14 @@ uspi_yOptLong::parse_options()
 			       CsHighTime_3.Val <<endl;
     }
 
-    if (                       TxEmptyIRQ_1.Val > 0x1 ) {
-	Error::msg( "require --TxEmptyIRQ_1={0..1}:  " ) <<
-			       TxEmptyIRQ_1.Val <<endl;
+    if (                       TxEmptyIrq_1.Val > 0x1 ) {
+	Error::msg( "require --TxEmptyIrq_1={0..1}:  " ) <<
+			       TxEmptyIrq_1.Val <<endl;
     }
 
-    if (                       DoneIRQ_1.Val > 1 ) {
-	Error::msg( "require --DoneIRQ_1={0..1}:  " ) <<
-			       DoneIRQ_1.Val <<endl;
+    if (                       DoneIrq_1.Val > 1 ) {
+	Error::msg( "require --DoneIrq_1={0..1}:  " ) <<
+			       DoneIrq_1.Val <<endl;
     }
 
     if (                       InMsbFirst_1.Val > 1 ) {
@@ -292,15 +292,15 @@ uspi_yOptLong::print_option_flags()
 
     cout.fill('0');
     cout <<hex;
-    cout << "--cntl0       = 0x" <<setw(8) << cntl0.Val       << endl;
-    cout << "--cntl1       = 0x" <<setw(8) << cntl1.Val       << endl;
-    cout << "--stat        = 0x" <<setw(8) << stat.Val        << endl;
+    cout << "--Cntl0       = 0x" <<setw(8) << Cntl0.Val       << endl;
+    cout << "--Cntl1       = 0x" <<setw(8) << Cntl1.Val       << endl;
+    cout << "--Stat        = 0x" <<setw(8) << Stat.Val        << endl;
     cout << "--rx          = 0x" <<setw(8) << rx.Val          << endl;
     cout << "--rxh         = 0x" <<setw(8) << rxh.Val         << endl;
-    cout << "--AuxEnable   = 0x" <<setw(8) << AuxEnable.Val   << endl;
+    cout << "--AuxEn       = 0x" <<setw(8) << AuxEn.Val       << endl;
 
     cout <<dec;
-    cout << "--Spi_Enable_1    = " << Spi_Enable_1.Val    << endl;
+    cout << "--SpiEnable_1     = " << SpiEnable_1.Val     << endl;
 
     cout << "--Speed_12        = " << Speed_12.Val        << endl;
     cout << "--VariableWidth_1 = " << VariableWidth_1.Val << endl;
@@ -333,22 +333,22 @@ uspi_yOptLong::print_usage()
     "usage:  " << ProgName << " uspi  -N..  [options..] [--tx|--txh V..]\n"
     "    -N                  SPI number {1,2}\n"
     "  modify full register:\n"
-    "    --cntl0=V           Control reg 0\n"
-    "    --cntl1=V           Control reg 1\n"
-    "    --stat=V            Status reg\n"
-    "    --AuxEnable=V       AuxEnable reg\n"
+    "    --Cntl0=V           Control reg 0\n"
+    "    --Cntl1=V           Control reg 1\n"
+    "    --Stat=V            Status reg\n"
+    "    --AuxEn=V           Auxiliary Enable reg\n"
     "  data transfer:\n"
     "    --rx=N              read {1:4} words from Fifo\n"
     "    --rxh=N             read {1:4} words from FifoH\n"
     "    --tx                write args to Fifo\n"
     "    --txh               write args to FifoH\n"
     "  modify Aux bit fields:\n"
-    "    --Spi_Enable_1=0    1= Spi access enabled\n"
+    "    --SpiEnable_1=0     1= Spi access enabled\n"
     "  modify Cntl0 bits:\n"
     "    --Speed_12=0xfff    clock speed, freq=f0/(2*(speed+1))\n"
     "    --ChipSelects_3=0x7 pattern on active CS pins\n"
     "    --PostInMode_1=0    1= Post-Input mode, skip first clk\n"
-    "    --VariableCS_1=0    1= CS pattern   from TX fifo [31:29]\n"
+    "    --VariableCs_1=0    1= CS pattern   from TX fifo [31:29]\n"
     "    --VariableWidth_1=0 1= shift length from TX fifo [28:24]\n"
     "    --DoutHoldTime_2=0  extra data out hold encoded {0..3}\n"
     "    --EnableSerial_1=0  1= enable shifting\n"
@@ -360,8 +360,8 @@ uspi_yOptLong::print_usage()
     "    --ShiftLength_6=32  number of bits to shift {0..32}\n"
     "  modify Cntl1 bits:\n"
     "    --CsHighTime_3=0    additional clock cycles with CS high\n"
-    "    --TxEmptyIRQ_1=0    1= interrupt when Tx fifo is empty\n"
-    "    --DoneIRQ_1=0       1= interrupt when Spi is idle\n"
+    "    --TxEmptyIrq_1=0    1= interrupt when Tx fifo is empty\n"
+    "    --DoneIrq_1=0       1= interrupt when Spi is idle\n"
     "    --InMsbFirst_1=0    1= data In start with MSB, 0= LSB\n"
     "    --KeepInput_1=0     1= concatenate into receiver shift register\n"
     "  options:\n"
@@ -444,15 +444,15 @@ y_uspi::doit()
 		cout << "    " << n << ".GpioBase=       "
 		     <<hex << (uint32_t*) spi->get_base_addr() <<endl;
 
-		cout << "    " << n << ".addr_AuxEnable= "
-		     <<hex << (uint32_t*) spi->addr_AuxEnable() <<endl;
+		cout << "    " << n << ".AuxEn.addr=     "
+		     <<hex << (uint32_t*) spi->AuxEn.addr() <<endl;
 
-		cout << "    " << n << ".addr_Cntl0=     "
-		     <<hex << (uint32_t*) spi->addr_Cntl0() <<endl;
+		cout << "    " << n << ".Cntl0.addr=     "
+		     <<hex << (uint32_t*) spi->Cntl0.addr() <<endl;
 
 		cout << "    " << n << ".diff_Cntl0=     "
 		     <<hex
-		     << (spi->addr_Cntl0() - spi->get_base_addr())*4 <<endl;
+		     << (spi->Cntl0.addr() - spi->get_base_addr())*4 <<endl;
 
 		cout <<dec <<endl;
 	    }
@@ -474,98 +474,47 @@ y_uspi::doit()
 
 	    string		ns = "  " + std::to_string( spi->get_spi_num() );
 
-	    // direct access
-	    if (       Opx.AuxEnable.Given ) {
-		spi->write_AuxEnable(       Opx.AuxEnable.Val       );  md = 1;
-	    }
-	    if (       Opx.Spi_Enable_1.Given    ) {
-		spi->write_Spi_Enable_1(    Opx.Spi_Enable_1.Val    );  md = 1;
-	    }
+#define APPLX( X )    if ( Opx.X.Given ) { spi->X.put( Opx.X.Val );  md = 1; }
+#define APPLY( X, Y ) if ( Opx.X.Given ) { Y( Opx.X.Val );  md = 1; }
+
+	// Access Enable - hardware update first
+
+	    APPLY( AuxEn,            spi->AuxEn.write )		// register
+
+	    APPLY( SpiEnable_1,      spi->write_SpiEnable_1 )	// bit
+
+	// Registers
 
 	    if ( Opx.debug ) {
 		cout << "  Grab regs" <<endl;
 	    }
 	    spi->grab_regs();
 
-	    if ( Opx.cntl0.Given ) { spi->put_Cntl0( Opx.cntl0.Val );  md = 1; }
-	    if ( Opx.cntl1.Given ) { spi->put_Cntl1( Opx.cntl1.Val );  md = 1; }
-	    if ( Opx.stat.Given  ) { spi->put_Stat(  Opx.stat.Val  );  md = 1; }
+	    APPLX( Cntl0 )
+	    APPLX( Cntl1 )
+	    APPLX( Stat  )
 
-	// Cntl0 bits
+	// Fields
 
-	    if (     Opx.Speed_12.Given ) {
-		spi->put_Speed_12(        Opx.Speed_12.Val );         md = 1;
-	    }
+	    APPLY( Speed_12,         spi->Cntl0.put_Speed_12         )
+	    APPLY( ChipSelects_3,    spi->Cntl0.put_ChipSelects_3    )
+	    APPLY( PostInMode_1,     spi->Cntl0.put_PostInMode_1     )
+	    APPLY( VariableCs_1,     spi->Cntl0.put_VariableCs_1     )
+	    APPLY( VariableWidth_1,  spi->Cntl0.put_VariableWidth_1  )
+	    APPLY( DoutHoldTime_2,   spi->Cntl0.put_DoutHoldTime_2   )
+	    APPLY( EnableSerial_1,   spi->Cntl0.put_EnableSerial_1   )
+	    APPLY( InRising_1,       spi->Cntl0.put_InRising_1       )
+	    APPLY( ClearFifos_1,     spi->Cntl0.put_ClearFifos_1     )
+	    APPLY( OutRising_1,      spi->Cntl0.put_OutRising_1      )
+	    APPLY( InvertClk_1,      spi->Cntl0.put_InvertClk_1      )
+	    APPLY( OutMsbFirst_1,    spi->Cntl0.put_OutMsbFirst_1    )
+	    APPLY( ShiftLength_6,    spi->Cntl0.put_ShiftLength_6    )
 
-	    if (     Opx.ChipSelects_3.Given ) {
-		spi->put_ChipSelects_3(   Opx.ChipSelects_3.Val );    md = 1;
-	    }
-
-	    if (     Opx.PostInMode_1.Given ) {
-		spi->put_PostInMode_1(    Opx.PostInMode_1.Val );     md = 1;
-	    }
-
-	    if (     Opx.VariableCS_1.Given ) {
-		spi->put_VariableCS_1(    Opx.VariableCS_1.Val );     md = 1;
-	    }
-
-	    if (     Opx.VariableWidth_1.Given ) {
-		spi->put_VariableWidth_1( Opx.VariableWidth_1.Val );  md = 1;
-	    }
-
-	    if (     Opx.DoutHoldTime_2.Given ) {
-		spi->put_DoutHoldTime_2(  Opx.DoutHoldTime_2.Val );   md = 1;
-	    }
-
-	    if (     Opx.EnableSerial_1.Given ) {
-		spi->put_EnableSerial_1(  Opx.EnableSerial_1.Val );   md = 1;
-	    }
-
-	    if (     Opx.InRising_1.Given ) {
-		spi->put_InRising_1(      Opx.InRising_1.Val );       md = 1;
-	    }
-
-	    if (     Opx.ClearFifos_1.Given ) {
-		spi->put_ClearFifos_1(    Opx.ClearFifos_1.Val );     md = 1;
-	    }
-
-	    if (     Opx.OutRising_1.Given ) {
-		spi->put_OutRising_1(     Opx.OutRising_1.Val );      md = 1;
-	    }
-
-	    if (     Opx.InvertClk_1.Given ) {
-		spi->put_InvertClk_1(     Opx.InvertClk_1.Val );      md = 1;
-	    }
-
-	    if (     Opx.OutMsbFirst_1.Given ) {
-		spi->put_OutMsbFirst_1(   Opx.OutMsbFirst_1.Val );    md = 1;
-	    }
-
-	    if (     Opx.ShiftLength_6.Given ) {
-		spi->put_ShiftLength_6(   Opx.ShiftLength_6.Val );    md = 1;
-	    }
-
-	// Cntl1 bits
-
-	    if (     Opx.CsHighTime_3.Given ) {
-		spi->put_CsHighTime_3(    Opx.CsHighTime_3.Val );     md = 1;
-	    }
-
-	    if (     Opx.TxEmptyIRQ_1.Given ) {
-		spi->put_TxEmptyIRQ_1(    Opx.TxEmptyIRQ_1.Val );     md = 1;
-	    }
-
-	    if (     Opx.DoneIRQ_1.Given ) {
-		spi->put_DoneIRQ_1(       Opx.DoneIRQ_1.Val );        md = 1;
-	    }
-
-	    if (     Opx.InMsbFirst_1.Given ) {
-		spi->put_InMsbFirst_1(    Opx.InMsbFirst_1.Val );     md = 1;
-	    }
-
-	    if (     Opx.KeepInput_1.Given ) {
-		spi->put_KeepInput_1(     Opx.KeepInput_1.Val );      md = 1;
-	    }
+	    APPLY( CsHighTime_3,     spi->Cntl1.put_CsHighTime_3     )
+	    APPLY( TxEmptyIrq_1,     spi->Cntl1.put_TxEmptyIrq_1     )
+	    APPLY( DoneIrq_1,        spi->Cntl1.put_DoneIrq_1        )
+	    APPLY( InMsbFirst_1,     spi->Cntl1.put_InMsbFirst_1     )
+	    APPLY( KeepInput_1,      spi->Cntl1.put_KeepInput_1      )
 
 	    if ( md ) {			// modify registers
 		if ( Opx.debug ) {
@@ -582,7 +531,7 @@ y_uspi::doit()
 		    vv = strtoul( cp, NULL, 0 );
 		    cout.fill('0');
 		    cout << "  put_tx:  0x" <<hex <<setw(8) << vv << endl;
-		    spi->write_Fifo( vv );
+		    spi->Fifo.write( vv );
 		}
 		cout << dec;
 	    }
@@ -596,7 +545,7 @@ y_uspi::doit()
 		    vv = strtoul( cp, NULL, 0 );
 		    cout.fill('0');
 		    cout << "  put_txh:  0x" <<hex <<setw(8) << vv << endl;
-		    spi->write_FifoH( vv );
+		    spi->FifoH.write( vv );
 		}
 		cout << dec;
 	    }
@@ -611,56 +560,56 @@ y_uspi::doit()
 
 	    cout.fill('0');
 	    cout <<hex
-	     << ns << ".AuxEnable= 0x" <<setw(8) << spi->read_AuxEnable() <<endl
-	     << ns << ".Cntl0=     0x" <<setw(8) << spi->get_Cntl0()      <<endl
-	     << ns << ".Cntl1=     0x" <<setw(8) << spi->get_Cntl1()      <<endl
-	     << ns << ".Stat=      0x" <<setw(8) << spi->get_Stat()       <<endl
-	     << ns << ".Peek=      0x" <<setw(8) << spi->read_Peek()      <<endl
+	     << ns << ".AuxEn=     0x" <<setw(8) << spi->AuxEn.read()     <<endl
+	     << ns << ".Cntl0=     0x" <<setw(8) << spi->Cntl0.get()      <<endl
+	     << ns << ".Cntl1=     0x" <<setw(8) << spi->Cntl1.get()      <<endl
+	     << ns << ".Stat=      0x" <<setw(8) << spi->Stat.get()       <<endl
+	     << ns << ".Peek=      0x" <<setw(8) << spi->Peek.read()      <<endl
 	     ;
 
 	    cout.fill(' ');
 	    cout <<dec
-	     << ns << ".Spi_Enable_1   = " << spi->read_Spi_Enable_1()   <<endl
-	     << ns << ".Spi_IRQ_1      = " << spi->read_Spi_IRQ_1()      <<endl
+	     << ns << ".SpiEnable_1    = " << spi->read_SpiEnable_1()   <<endl
+	     << ns << ".SpiIrq_1       = " << spi->read_SpiIrq_1()      <<endl
 
 	     << " Cntl0" <<endl
-	     << ns << ".Speed_12       = " << spi->get_Speed_12()        <<endl
-	     << ns << ".ChipSelects_3  = " << spi->get_ChipSelects_3()   <<endl
-	     << ns << ".PostInMode_1   = " << spi->get_PostInMode_1()    <<endl
-	     << ns << ".VariableCS_1   = " << spi->get_VariableCS_1()    <<endl
-	     << ns << ".VariableWidth_1= " << spi->get_VariableWidth_1() <<endl
-	     << ns << ".DoutHoldTime_2 = " << spi->get_DoutHoldTime_2()  <<endl
-	     << ns << ".EnableSerial_1 = " << spi->get_EnableSerial_1()  <<endl
-	     << ns << ".InRising_1     = " << spi->get_InRising_1()      <<endl
-	     << ns << ".ClearFifos_1   = " << spi->get_ClearFifos_1()    <<endl
-	     << ns << ".OutRising_1    = " << spi->get_OutRising_1()     <<endl
-	     << ns << ".InvertClk_1    = " << spi->get_InvertClk_1()     <<endl
-	     << ns << ".OutMsbFirst_1  = " << spi->get_OutMsbFirst_1()   <<endl
-	     << ns << ".ShiftLength_6  = " << spi->get_ShiftLength_6()   <<endl
+	     << ns << ".Speed_12       = " << spi->Cntl0.get_Speed_12()        <<endl
+	     << ns << ".ChipSelects_3  = " << spi->Cntl0.get_ChipSelects_3()   <<endl
+	     << ns << ".PostInMode_1   = " << spi->Cntl0.get_PostInMode_1()    <<endl
+	     << ns << ".VariableCs_1   = " << spi->Cntl0.get_VariableCs_1()    <<endl
+	     << ns << ".VariableWidth_1= " << spi->Cntl0.get_VariableWidth_1() <<endl
+	     << ns << ".DoutHoldTime_2 = " << spi->Cntl0.get_DoutHoldTime_2()  <<endl
+	     << ns << ".EnableSerial_1 = " << spi->Cntl0.get_EnableSerial_1()  <<endl
+	     << ns << ".InRising_1     = " << spi->Cntl0.get_InRising_1()      <<endl
+	     << ns << ".ClearFifos_1   = " << spi->Cntl0.get_ClearFifos_1()    <<endl
+	     << ns << ".OutRising_1    = " << spi->Cntl0.get_OutRising_1()     <<endl
+	     << ns << ".InvertClk_1    = " << spi->Cntl0.get_InvertClk_1()     <<endl
+	     << ns << ".OutMsbFirst_1  = " << spi->Cntl0.get_OutMsbFirst_1()   <<endl
+	     << ns << ".ShiftLength_6  = " << spi->Cntl0.get_ShiftLength_6()   <<endl
 	     << " Cntl1" <<endl
-	     << ns << ".CsHighTime_3   = " << spi->get_CsHighTime_3()    <<endl
-	     << ns << ".TxEmptyIRQ_1   = " << spi->get_TxEmptyIRQ_1()    <<endl
-	     << ns << ".DoneIRQ_1      = " << spi->get_DoneIRQ_1()       <<endl
-	     << ns << ".InMsbFirst_1   = " << spi->get_InMsbFirst_1()    <<endl
-	     << ns << ".KeepInput_1    = " << spi->get_KeepInput_1()     <<endl
+	     << ns << ".CsHighTime_3   = " << spi->Cntl1.get_CsHighTime_3()    <<endl
+	     << ns << ".TxEmptyIrq_1   = " << spi->Cntl1.get_TxEmptyIrq_1()    <<endl
+	     << ns << ".DoneIrq_1      = " << spi->Cntl1.get_DoneIrq_1()       <<endl
+	     << ns << ".InMsbFirst_1   = " << spi->Cntl1.get_InMsbFirst_1()    <<endl
+	     << ns << ".KeepInput_1    = " << spi->Cntl1.get_KeepInput_1()     <<endl
 	     << " Status" <<endl
-	     << ns << ".TxLevel_3      = " << spi->get_TxLevel_3()   <<endl
-	     << ns << ".RxLevel_3      = " << spi->get_RxLevel_3()   <<endl
-	     << ns << ".TxFull_1       = " << spi->get_TxFull_1()    <<endl
-	     << ns << ".TxEmpty_1      = " << spi->get_TxEmpty_1()   <<endl
-	     << ns << ".RxFull_1       = " << spi->get_RxFull_1()    <<endl
-	     << ns << ".RxEmpty_1      = " << spi->get_RxEmpty_1()   <<endl
-	     << ns << ".Busy_1         = " << spi->get_Busy_1()      <<endl
-	     << ns << ".BitCount_6     = " << spi->get_BitCount_6()  <<endl
+	     << ns << ".TxLevel_3      = " << spi->Stat.get_TxLevel_3()   <<endl
+	     << ns << ".RxLevel_3      = " << spi->Stat.get_RxLevel_3()   <<endl
+	     << ns << ".TxFull_1       = " << spi->Stat.get_TxFull_1()    <<endl
+	     << ns << ".TxEmpty_1      = " << spi->Stat.get_TxEmpty_1()   <<endl
+	     << ns << ".RxFull_1       = " << spi->Stat.get_RxFull_1()    <<endl
+	     << ns << ".RxEmpty_1      = " << spi->Stat.get_RxEmpty_1()   <<endl
+	     << ns << ".Busy_1         = " << spi->Stat.get_Busy_1()      <<endl
+	     << ns << ".BitCount_6     = " << spi->Stat.get_BitCount_6()  <<endl
 	     <<endl;
 
 	    cout.fill('0');
 	    cout <<hex;
 	    for ( uint32_t jj = 1;  jj <= Opx.rx.Val;   jj++ ) {
-	      cout << ns << ".Fifo=  0x" <<setw(8) << spi->read_Fifo()  <<endl;
+	      cout << ns << ".Fifo=  0x" <<setw(8) << spi->Fifo.read()  <<endl;
 	    }
 	    for ( uint32_t jj = 1;  jj <= Opx.rxh.Val;  jj++ ) {
-	      cout << ns << ".FifoH= 0x" <<setw(8) << spi->read_FifoH() <<endl;
+	      cout << ns << ".FifoH= 0x" <<setw(8) << spi->FifoH.read() <<endl;
 	    }
 	    cout <<dec;
 
