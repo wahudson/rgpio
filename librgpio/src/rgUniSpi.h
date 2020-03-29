@@ -9,12 +9,32 @@
 // rGPIO Universal SPI Master class.  Spi1, Spi2
 //--------------------------------------------------------------------------
 
-class rgUniSpi_AuxIrq : public rgRegister {
+class rgUniSpi_AuxIrq : public rgRegister {	// Read-Only
   public:
+
+    inline
+    uint32_t	get_Spi2Irq_1()           { return  get_field(  2, 0x1    ); }
+    void	put_Spi2Irq_1(       uint32_t v ) { put_field(  2, 0x1, v ); }
+
+    uint32_t	get_Spi1Irq_1()           { return  get_field(  1, 0x1    ); }
+    void	put_Spi1Irq_1(       uint32_t v ) { put_field(  1, 0x1, v ); }
+
+    uint32_t	get_MiniUartIrq_1()       { return  get_field(  0, 0x1    ); }
+    void	put_MiniUartIrq_1(   uint32_t v ) { put_field(  0, 0x1, v ); }
 };
 
 class rgUniSpi_AuxEn : public rgRegister {
   public:
+
+    inline
+    uint32_t	get_Spi2Enable_1()        { return  get_field(  2, 0x1    ); }
+    void	put_Spi2Enable_1(    uint32_t v ) { put_field(  2, 0x1, v ); }
+
+    uint32_t	get_Spi1Enable_1()        { return  get_field(  1, 0x1    ); }
+    void	put_Spi1Enable_1(    uint32_t v ) { put_field(  1, 0x1, v ); }
+
+    uint32_t	get_MiniUartEnable_1()     { return  get_field(  0, 0x1    ); }
+    void	put_MiniuartEnable_1( uint32_t v ) { put_field(  0, 0x1, v ); }
 };
 
 class rgUniSpi_Cntl0 : public rgRegister {
@@ -81,21 +101,36 @@ class rgUniSpi_Cntl1 : public rgRegister {
     void	put_KeepInput_1(     uint32_t v ) { put_field(  0, 0x1, v ); }
 };
 
-class rgUniSpi_Stat  : public rgRegister {
+class rgUniSpi_Stat  : public rgRegister {	// Read-Only
   public:
 
     inline
     uint32_t	get_TxLevel_3()           { return  get_field( 28, 0x7    ); }
+    void	put_TxLevel_3(       uint32_t v ) { put_field( 28, 0x1, v ); }
+
     uint32_t	get_RxLevel_3()           { return  get_field( 20, 0x7    ); }
+    void	put_RxLevel_3(       uint32_t v ) { put_field( 20, 0x1, v ); }
+
     uint32_t	get_TxFull_1()            { return  get_field( 10, 0x1    ); }
+    void	put_TxFull_1(        uint32_t v ) { put_field( 10, 0x1, v ); }
+
     uint32_t	get_TxEmpty_1()           { return  get_field(  9, 0x1    ); }
+    void	put_TxEmpty_1(       uint32_t v ) { put_field(  9, 0x1, v ); }
+
     uint32_t	get_RxFull_1()            { return  get_field(  8, 0x1    ); }
+    void	put_RxFull_1(        uint32_t v ) { put_field(  8, 0x1, v ); }
+
     uint32_t	get_RxEmpty_1()           { return  get_field(  7, 0x1    ); }
+    void	put_RxEmpty_1(       uint32_t v ) { put_field(  7, 0x1, v ); }
+
     uint32_t	get_Busy_1()              { return  get_field(  6, 0x1    ); }
+    void	put_Busy_1(          uint32_t v ) { put_field(  6, 0x1, v ); }
+
     uint32_t	get_BitCount_6()          { return  get_field(  0, 0x3f   ); }
+    void	put_BitCount_6(      uint32_t v ) { put_field(  0, 0x1, v ); }
 };
 
-class rgUniSpi_Peek  : public rgRegister {
+class rgUniSpi_Peek  : public rgRegister {	// Read-Only
 };
 
 class rgUniSpi_Fifo  : public rgRegister {

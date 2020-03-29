@@ -426,9 +426,43 @@ Offset Address Range Checking:
     Some libraries use #define instead of enum, and thus are not type safe -
     any integer can be substituted.  We want to do better.
 
+Read-only Registers/Fields:
+
+    Should read-only fields have a put_() field accessor?
+
+ >  A) Read-only has put_()
+	+ Allows experimenting and testing.
+	+ Parallels rgRegister has put() for all registers.
+	- Value in hardware does not change even when put() is called.
+	- Possible user confusion.  Documentation mitigates.
+	+ Expose the hardware.  Hardware defines read-only, not library.
+
+    B) No put_()
+	+ Avoids user accidently trying to modify a read-only field.
+	+ Missing function is a compile time check, indicates a problem.
+	- Library could be wrong, and field is writeable.
+	- Makes it hard to experiment and test register.
+	- Library is enforcing an action, not the hardware.
+	- Hard to set up a read-only register value for comparison.
+
+    Note put() or write() really does write the register, and the functions
+    do what they say.
+
+    The intent of the library is to be close to the hardware and help user
+    manipulate register values.  IS to expose the hardware.
+    IS to be systematic and anti-bugging where practical.
+    NOT "do the right thing", since that is in the eye of the beholder and
+    varies depending on user intent.
+    NOT enforce policy.
+    The future may bring unexpected needs.
+    Library is at the lowest level, let higher levels provide more abstraction.
+
+    Decide to provide put_() functions for read-only registers and fields.
+    Mitigate potential user confusion with documentation.
+
 
 ----------------------------------------------------------------------------
-## Register Object
+## Register Object  rgRegister
 ----------------------------------------------------------------------------
 
     The idea is to make a register object base class, that would represent
