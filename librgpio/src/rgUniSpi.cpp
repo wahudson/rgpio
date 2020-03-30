@@ -112,28 +112,29 @@ rgUniSpi::write_SpiEnable_1( uint32_t  val )
 //--------------------------------------------------------------------------
 
 /*
-* Initialize object control/status registers to the power-on reset state.
-*    Intended for use with the put_*() field accessor functions, and can be
-*    called multiple times.
-*    Virtually all fields are zero, or are the inactive state.
+* Initialize all object registers to the power-on reset state.
 *    Hardware registers are unchanged.
+*    Intended for use with the put_*() field accessor functions.
+*    Can be called multiple times.
+*    Virtually all fields are zero, or are the inactive state.
 */
 void
 rgUniSpi::init_put_reset()
 {
-//#!! all registers?  Or just control/status?
-
     AuxIrq.put( 0x00000000 );
     AuxEn.put(  0x00000000 );
 
     Cntl0.put(  0x00000000 );
     Cntl1.put(  0x00000000 );
-    Stat.put(   0x00000280 );		// TxEmpty=1, RxEmpty=1
+    Stat.put(   0x00000000 );
     Peek.put(   0x00000000 );
     Fifo.put(   0x00000000 );
     FifoH.put(  0x00000000 );
 
     Cntl0.put_ChipSelects_3( 0x7 );	// all 3 inactive
+
+    Stat.put_TxEmpty_1( 1 );
+    Stat.put_RxEmpty_1( 1 );
 }
 
 

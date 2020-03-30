@@ -460,6 +460,70 @@ Read-only Registers/Fields:
     Decide to provide put_() functions for read-only registers and fields.
     Mitigate potential user confusion with documentation.
 
+Object Register Initialization:  init_put_reset()
+
+    Should all object registers be initialized?
+
+ >  A) Reset all object registers.
+	+ All object registers is well defined.
+	- A tiny amount more runtime.  Generally not done in an inner loop.
+	+ Is like initialization at object construction.
+	- Must manually reset for a subset of registers.
+
+    B) Reset only config registers.
+	+ Reset only those used with put_() field accessors, save run time.
+	-- Not obvious which subset should be reset.
+	- Call point has uncertainty which registers were not reset.
+
+    The init_() function prefix suggests all registers, and initialization
+    is generally expected to be all register.
+    This is a top-level convenience function.
+
+    Decide on (A) reset all object registers.  Kind of obvious now.
+
+    Ways of register initialization:
+	Should we have an init_put_zero() function?
+	What about individual register reset()?
+
+    A) init_put_zero() only
+	+ Each bit value is well understood.
+	+ Code can rely on all registers being zero.
+
+    B) init_put_reset() only
+	+ Reset to documented hardware reset condition.
+	- Call point is not clear what the bit values really are.
+	+ Gives a warm fuzzy feeling of goodness.
+	+ Good for quick and dirty.
+
+    C) Both init_put_zero() and init_put_reset()
+	+ Best of both.
+	- One more function.
+
+    D) reset() in each object register class.
+	+ Provides low-level individual register reset.
+	- One more function in each register class.
+	? Possibly implement only in non-zero reset registers.
+	- Somewhat misleading to have reset() to zero.
+	- Same ambiguities of init_put_reset() above.
+
+    How useful is the init_put_reset() really?  Clearly good for warm fuzzy.
+    Not very good to avoid explicitly setting important config bits.
+    I found it necessary to also do Reg.put( 0 ).
+    Good practice might be to set all config bits, then it is clear what
+    everything was set to, and right there to change if needed.
+    Tools like rgpio can use --reset to set the warm fuzzy condition.
+
+    Features with lots of registers benefit from top-level init_put_*()
+    functions.
+
+    If you have register-level reset(), then might as well also have
+    the top-level init_put_reset().  No need for register-level zero(), use
+    the register put(0) instead.
+
+ >  Decide to let this issue evolve.  Implement minimum functions that
+    seem useful in each case.  A missing function indicates it was not
+    worthwhile.  Unnecessary functions have a support cost.  Adding functions
+    is backward compatible, while removing them is not.
 
 ----------------------------------------------------------------------------
 ## Register Object  rgRegister
