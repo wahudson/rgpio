@@ -10,82 +10,108 @@ rgUniSpi class -- Universal SPI Master
 
 =head1		SYNOPSIS
 
-    #include "rgAddrMap.h"
-    #include "rgUniSpi.h"
+ #include "rgAddrMap.h"
+ #include "rgUniSpi.h"
 
-=head2			Constructor
+=head2		Essential Class members
 
-    rgUniSpi(
-        uint32_t        spinum,         // SPI number {1,2}
-        rgAddrMap       *amx            // object with open device file
-    );
+ class rgUniSpi {
+  public:
+				// Registers
+    rgUniSpi_AuxIrq	AuxIrq;		// Auxiliary Interrupt Req (RO)
+    rgUniSpi_AuxEn	AuxEn;		// Auxiliary Enable
 
-    volatile uint32_t*  get_base_addr()
-    uint32_t            get_spi_num()
+    rgUniSpi_Cntl0	Cntl0;		// Control 0
+    rgUniSpi_Cntl1	Cntl1;		// Control 1
+    rgUniSpi_Stat	Stat;		// Status  (RO)
+    rgUniSpi_Peek	Peek;		// Rx Fifo top entry  (RO)
+    rgUniSpi_Fifo	Fifo;		// Fifo end transaction
+    rgUniSpi_FifoH	FifoH;		// Fifo extend transaction
 
-=head2			Access Enable and IRQ bits
+  private:
+    uint32_t		SpiNum;		// SPI number {1,2}
+ };
 
-    uint32_t            read_Spi_IRQ_1();
-    uint32_t            read_Spi_Enable_1();
-    void                write_Spi_Enable_1( uint32_t  bit1 );
+=head2		Constructor
 
-=head2			Address of registers
+ rgUniSpi(
+    uint32_t		spinum,		// SPI number {1,2}
+    rgAddrMap		*amx		// object with open device file
+ );
 
-    volatile uint32_t*  addr_AuxIrq();
-    volatile uint32_t*  addr_AuxEnable();
+ uint32_t		get_spi_num()
+ volatile uint32_t*	get_base_addr()
 
-    volatile uint32_t*  addr_Cntl0();
-    volatile uint32_t*  addr_Cntl1();
-    volatile uint32_t*  addr_Stat();
-    volatile uint32_t*  addr_Peek();
-    volatile uint32_t*  addr_Fifo();
-    volatile uint32_t*  addr_FifoH();
+=head2		Access Enable and IRQ bits
 
-=head2			Direct register access
+ uint32_t		read_SpiIrq_1();
+ uint32_t		read_SpiEnable_1();
+ void			write_SpiEnable_1( uint32_t v );
 
-    uint32_t            read_AuxIrq();
-    uint32_t            read_AuxEnable();
-    uint32_t            read_Cntl0();
-    uint32_t            read_Cntl1();
-    uint32_t            read_Stat();
-    uint32_t            read_Peek();
-    uint32_t            read_Fifo();
-    uint32_t            read_FifoH();
+=head2		Object state transfer
 
-    void                write_AuxIrq(    uint32_t rval );
-    void                write_AuxEnable( uint32_t rval );
-    void                write_Cntl0(     uint32_t rval );
-    void                write_Cntl1(     uint32_t rval );
-    void                write_Stat(      uint32_t rval );
-    void                write_Fifo(      uint32_t rval );
-    void                write_FifoH(     uint32_t rval );
+ void			init_put_reset();
+ void			grab_regs();
+ void			push_regs();
 
-=head2			Object state transfer
+=head2		Register base class methods
 
-    void                init_put_reset();
-    void                grab_regs();
-    void                push_regs();
-    void                grab_Stat();
+ volatile uint32_t*	REG.addr()		    { return Addr; }
 
-=head2			Object Cntl0 Field Accessors
+ uint32_t		REG.read()		    { return *Addr; }
+ void			REG.write( uint32_t  vv )   { *Addr = vv; }
 
-    uint32_t            get_Speed_12();
-    void                put_Speed_12(        uint32_t  v );
+ void			REG.grab()		    { RegVal = *Addr; }
+ void			REG.push()		    { *Addr = RegVal; }
 
-    uint32_t            get_ChipSelects_3();
-    void                put_ChipSelects_3(   uint32_t  v );
-    ...
-    #!! incomplete function list
+ uint32_t		REG.get()		    { return RegVal; }
+ void			REG.put( uint32_t  vv )	    { RegVal = vv; }
 
-=head2			Essential Object Data (private)
+=head2		Register Field Accessors
 
- {
-    volatile unsigned   *GpioBase;      // IO base virtual address
-    uint32_t            SpiNum;         // SPI number {1,2}
-    uint32_t            Cntl0Reg;       // Control register
-    uint32_t            Cntl1Reg;       // Control register
-    uint32_t            StatReg;        // Status register
- }
+Each field has both a get_*() and a put*() of the form:
+
+ uint32_t		REG.get_FIELD();
+ void			REG.put_FIELD( uint32_t v );
+
+Only the get_*() is shown here for brevity:
+
+ uint32_t		AuxIrq.get_Spi2Irq_1();
+ uint32_t		AuxIrq.get_Spi1Irq_1();
+ uint32_t		AuxIrq.get_MiniUartIrq_1();
+
+ uint32_t		AuxEn.get_Spi2Enable_1();
+ uint32_t		AuxEn.get_Spi1Enable_1();
+ uint32_t		AuxEn.get_MiniUartEnable_1();
+
+ uint32_t		Cntl0.get_Speed_12();
+ uint32_t		Cntl0.get_ChipSelects_3();
+ uint32_t		Cntl0.get_PostInMode_1();
+ uint32_t		Cntl0.get_VariableCs_1();
+ uint32_t		Cntl0.get_VariableWidth_1();
+ uint32_t		Cntl0.get_DoutHoldTime_2();
+ uint32_t		Cntl0.get_EnableSerial_1();
+ uint32_t		Cntl0.get_InRising_1();
+ uint32_t		Cntl0.get_ClearFifos_1();
+ uint32_t		Cntl0.get_OutRising_1();
+ uint32_t		Cntl0.get_InvertClk_1();
+ uint32_t		Cntl0.get_OutMsbFirst_1();
+ uint32_t		Cntl0.get_ShiftLength_6();
+
+ uint32_t		Cntl1.get_CsHighTime_3();
+ uint32_t		Cntl1.get_TxEmptyIrq_1();
+ uint32_t		Cntl1.get_DoneIrq_1();
+ uint32_t		Cntl1.get_InMsbFirst_1();
+ uint32_t		Cntl1.get_KeepInput_1();
+
+ uint32_t		Stat.get_TxLevel_3();
+ uint32_t		Stat.get_RxLevel_3();
+ uint32_t		Stat.get_TxFull_1();
+ uint32_t		Stat.get_TxEmpty_1();
+ uint32_t		Stat.get_RxFull_1();
+ uint32_t		Stat.get_RxEmpty_1();
+ uint32_t		Stat.get_Busy_1();
+ uint32_t		Stat.get_BitCount_6();
 
 
 =head1		DESCRIPTION
@@ -94,15 +120,14 @@ This class provides access to the two Universal SPI Masters, SPI1 and SPI2,
 also referred to as Auxiliary peripherals.  SPI0 is different, and is not
 treated here.
 
+All functions are object methods.  The object knows which SPI (1 or 2) it is,
+and the object methods are the same for both.
+
 Multiple levels of access to the hardware is provided:
 
     a)  Address of registers  addr().
     b)  Direct register access  read(), write().
     c)  Object transfer grab(), push();  and modify get(), put().
-
-All functions are object methods.
-The object knows which SPI (1 or 2) it is, and the object methods are the
-same for both.
 
 =head2			Constructor
 
@@ -116,85 +141,42 @@ Argument 'amx' is the address map object with an open device file or cached
 memory block.
 The two Universal SPI Masters share the same IO memory block.
 
-=item get_base_addr()
-
-Return the object IO memory block virtual address.
-
 =item get_spi_num()
 
 Return the SPI number {1,2} this object accesses.
+
+=item get_base_addr()
+
+Return the object IO memory block virtual address.
 
 =back
 
 =head2			Access Enable and IRQ bits
 
-These functions provide direct access to bits in the AuxIrq and AuxEnable
+These functions provide direct access to bits in the AuxIrq and AuxEn
 registers, which are shared with the Mini UART peripheral.
+Update is by read/modify/write of a single bit, and is not atomic.
+To help avoid synchronization problems, the best we can do is to make it short,
+thus these are preferred over the AuxEn register functions.
 
 The Spi_Enable_1 bit must be 1 to access any registers of the
 Universal SPI Master.
 
 =over
 
-=item read_Spi_IRQ_1()
+=item read_SpiIrq_1()
 
 Read the SPI Interrupt Request bit (Read-only).
 Is 1 if an interrupt is pending.
 
-=item read_Spi_Enable_1()
+=item read_SpiEnable_1()
 
 Return the SPI Access Enable bit.
 
-=item write_Spi_Enable_1()
+=item write_SpiEnable_1()
 
 Write the SPI Access Enable bit.
 1= enabled, 0= disabled - no access.
-
-=back
-
-=head2			Address of registers
-
-addr_*()  These functions simply return the address of the specified register.
-Direct read/write to these addresses is the fastest (shortest execution time)
-way to transfer data.
-
-=head2			Direct register access
-
-=over
-
-=item read_*(), write_*()
-
-These directly read/write the 32-bit hardware registers, no value checking.
-Object state is not modified.
-Note read/write of the Fifo registers will modify the state of the Fifo.
-Note the 'Stat' register is read-only, so write_Stat() has no effect.
-
-=item read_Peek()
-
-Read the top (oldest) entry from the Receive Fifo, but the data is not
-removed from the Fifo.  This provides a means of inspecting the data without
-removing it.
-
-=item read_Fifo(), read_FifoH()
-
-Read and remove the top (oldest) entry from the Receive Fifo.
-Reading whilst the receive Fifo is empty will return the last data received.
-
-Both functions have the same effect, but read_FifoH() uses the Fifo Hold
-register address.
-
-=item write_Fifo(), write_FifoH()
-
-Write the 32-bit value to the Transmit Fifo.  Writing when the Transmit Fifo
-is full will loose the data.
-
-The write_FifoH() function sends data via the Fifo Hold register address,
-which marks the Fifo entry to hold the CSn (chip select) line.  When it
-is shifted out, the CSn line will be held low so the next Fifo entry will be
-concatenated into one transaction.  A string of such writes will all be one
-transaction, with CSn finaly brought high at the end of a normal Fifo entry.
-Note that CSn can be held low a long time with no SCLK between entries
-transmitted.
 
 =back
 
@@ -202,15 +184,20 @@ transmitted.
 
 The idea is to copy the hardware registers into the object, modify bit
 fields with accessor functions, and then write the result back to the hardware
-registers.
-Only the control and status registers are treated this way.  Data transfer is
-by direct register read and write.
+registers.  Only the control and status registers are treated this way.
+
+These are primarily convenience functions and the individual register
+grab() and push() can be used in the same way.
 
 =over
 
 =item init_put_reset()
 
-Initialize object control/status registers to the power-on reset state.
+Initialize all object registers to the power-on reset state.
+Intended for use with the put_*() field accessor functions, and can be
+called multiple times.
+Virtually all fields are zero, or are the inactive state.
+Hardware registers are unchanged.
 
 =item grab_regs()
 
@@ -221,27 +208,57 @@ Copy the Cntl0, Cntl1, and Status hardware registers into the object.
 Copy object to the Cntl0 and Cntl1 hardware registers.
 Note the hardware Status register is read-only, and is not copied.
 
-=item grab_Stat()
-
-Copy only the status register into the object.
-This saves execution time by not reading the 2 control registers.
-
 =back
 
-=head2			Object Field Accessors
+=head2			Register Classes
+
+Each hardware register is represented by a corresponding register class
+named with the feature class "rgUniSpi_" followed by the register name
+(see B<Essential Class members> in B<SYNOPSIS> above).
+
+Each register class derives from the rgRegister base class and has the
+register address, value, and associated methods.
+It also has the bit-field accessors specific to each hardware register.
+
+These object registers are public and intended to be directly used as in
+EXAMPLES below.
+
+=head2			Register base class methods
+
+These functions provide whole register operations for the object and hardware
+registers.  They inherit from the rgRegister base class and are the same
+for all registers.  They are defined inline, and thus are very efficient data
+transfers (with compiler optimization).
+
+ REG.addr()   Returns the hardware register virtual address.
+
+ REG.read()   Reads value from hardware register.
+ REG.write(v) Writes argument value to hardware register.
+
+ REG.grab()   Copies hardware register into the object.
+ REG.push()   Copies object to the hardware register.
+
+ REG.get()    Returns value from the register object.
+ REG.put(v)   Puts argument value into the register object.
+
+Direct assignment (write/read) of the hardware register address is the
+fastest (shortest execution time) way to transfer data.
+
+=head2			Register Field Accessors
 
 These are the bit-twiddling operations to insert and extract field values
 from the register value stored in the object.
 They are named according to the register field being accessed, and the
 numeric suffix is the field width.
+They are methods of each individual register object.
 
 =over
 
-=item get_*()
+=item REG.get_*()
 
 Extract and return the field value in the object.
 
-=item put_*( v )
+=item REG.put_*( v )
 
 Insert the given value into the object register field.
 Values greater than the field width throw a std::range_error exception.
@@ -274,22 +291,23 @@ This example configures SPI1 for basic operation.
     rgUniSpi           spx  ( 1, &amx );       // construct object spx
 
  // Enable access to the Universal SPI Master.
-    spx.write_Spi_Enable_1( 1 );
+    spx.write_SpiEnable_1( 1 );
 
  // Configure
-    spx.grab_regs();
-    spx.put_Speed_12( 4000 );
-    spx.put_EnableSerial_1( 1 );
-    spx.put_ShiftLength_6( 8 );
-    spx.push_regs();
+    spx.init_put_reset();			// reset register values
+    spx.Cntl0.put_Speed_12( 4000 );		// configure bits ...
+    spx.Cntl0.put_get_ChipSelects_3( 1 );
+    spx.Cntl0.put_EnableSerial_1( 1 );
+    spx.Cntl0.put_ShiftLength_6( 8 );
+    spx.push_regs();				// push to hardware
 
  // Transfer data
-    spx.write_Fifo( 0x37 );	// write to  Tx fifo
-    data = spx.read_Fifo();	// read from Rx fifo
+    spx.Fifo.write( 0x37 );	// write to  Tx fifo
+    data = spx.Fifo.read();	// read from Rx fifo
 
  // Transfer data with register address
     volatile uint32_t*		fifo_addr;
-    fifo_addr  = addr_Fifo();	// get the fifo address
+    fifo_addr  = Fifo.addr();	// get the fifo address
     fifo_addr* = 0x37;		// write to  Tx fifo
     data = fifo_addr*;		// read from Rx fifo
 
@@ -305,6 +323,7 @@ In the librgpio/ source tree:
 
  src/rgUniSpi.h
  src/rgUniSpi.cpp
+ src/rgRegister.h	register base class
 
 
 =head1		SEE ALSO
@@ -314,7 +333,7 @@ In the librgpio/ source tree:
  rgpio-uspi(1)
 
  BCM2835 ARM Peripherals (2012)
-    p.20-27 Universal SPI Master (2x)
+    p.20-27  ch 2.3 Universal SPI Master
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
