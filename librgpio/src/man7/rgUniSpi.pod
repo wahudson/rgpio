@@ -162,7 +162,7 @@ rising edge.
     MISO  XXXXXXXXXXXXXXXX______X______X______XXXXXXXXXXXXX
                             d0     d1     d2
 
-    Inverted clock:  (InvertClk_1= 1)
+    Inverted clock:  (InvertClk_1 = 1)
           ____________    ___    ___    ___________________
     SCLK              |__|   |__|   |__|
               edge    1  2   1  2   1  2
@@ -330,7 +330,7 @@ to change configuration.
 
 Data length (width) is the number of bits to shift in the FIFO entry, and
 in variable mode it is limited to 24-bits.
-With OutMsbFirst_1=1, bit [23] becomes the most significant bit shifted out
+With (OutMsbFirst_1 = 1), bit [23] becomes the most significant bit shifted out
 first, and the receive data will arrive as normal.
 
 This allows variable transaction lengths without having to change
@@ -385,17 +385,18 @@ Note interaction with B<InRising_1> and B<OutRising_1>.
 
 =item B<OutMsbFirst_1>      - Output MSB first.
 
- 1= MSB first, shift out bit 31
- 0= LSB first, shift out bit 0
+ 1= MSB first, shift left  out bit 31
+ 0= LSB first, shift right out bit 0
 
-Note B<ShiftLength_6> has an effect on data position in the word.
+This controls the Tx shift direction for data output to MOSI.
+See B<Data Shifting Direction> above.
 
 =item B<ShiftLength_6>      - Number of bits to shift.
 
 Is the number of bits to shift in each Tx FIFO entry.
 Valid values are {1..32}.  Zero outputs no SCLK pulse, while values greater
 than 32 appear to continue shifting beyond the 32-bit register width.
-This field is ignored when (VariableWidth_1= 1).
+This field is ignored when (VariableWidth_1 = 1).
 
 =back
 
@@ -431,10 +432,11 @@ waiting the minimum CS high time.
 
 =item B<InMsbFirst_1>       - Input MSB first.
 
- 1= MSB first, shift into bit 0
- 0= LSB first, shift into bit 31
+ 1= MSB first, shift left  into bit 0
+ 0= LSB first, shift right into bit 31
 
-Note B<ShiftLength_6> has an effect on data position in the word.
+This controls the Rx shift direction for data input from MISO.
+See B<Data Shifting Direction> above.
 
 =item B<KeepInput_1>        - Keep receiver shift register input.
 
@@ -450,7 +452,7 @@ This does not save FIFO entries, but may save CPU operations concatenating bits.
 
 =head2			Stat Register
 
-The status (Stat) register is read-only.
+The status register is read-only.
 
 =over
 
