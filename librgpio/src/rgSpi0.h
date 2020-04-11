@@ -23,19 +23,19 @@ class rgSpi0_CntlStat : public rgRegister {
     void	put_CsPolarity_3(    uint32_t v ) { put_field( 21, 0x7, v ); }
 
     uint32_t	get_RxFullStop_1()        { return  get_field( 20, 0x1    ); }
-//  void	put_RxFullStop_1(    uint32_t v ) { put_field( 20, 0x1, v ); }
+    void	put_RxFullStop_1(    uint32_t v ) { put_field( 20, 0x1, v ); }
 
     uint32_t	get_RxHalf_1()            { return  get_field( 19, 0x1    ); }
-//  void	put_RxHalf_1(        uint32_t v ) { put_field( 19, 0x1, v ); }
+    void	put_RxHalf_1(        uint32_t v ) { put_field( 19, 0x1, v ); }
 
     uint32_t	get_TxHasSpace_1()        { return  get_field( 18, 0x1    ); }
-//  void	put_TxHasSpace_1(    uint32_t v ) { put_field( 18, 0x1, v ); }
+    void	put_TxHasSpace_1(    uint32_t v ) { put_field( 18, 0x1, v ); }
 
     uint32_t	get_RxHasData_1()         { return  get_field( 17, 0x1    ); }
-//  void	put_RxHasData_1(     uint32_t v ) { put_field( 17, 0x1, v ); }
+    void	put_RxHasData_1(     uint32_t v ) { put_field( 17, 0x1, v ); }
 
     uint32_t	get_TxEmpty_1()           { return  get_field( 16, 0x1    ); }
-//  void	put_TxEmpty_1(       uint32_t v ) { put_field( 16, 0x1, v ); }
+    void	put_TxEmpty_1(       uint32_t v ) { put_field( 16, 0x1, v ); }
 
     uint32_t	get_LossiEnable_1()       { return  get_field( 13, 0x1    ); }
     void	put_LossiEnable_1(   uint32_t v ) { put_field( 13, 0x1, v ); }

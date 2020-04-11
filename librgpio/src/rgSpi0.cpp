@@ -48,24 +48,23 @@ rgSpi0::rgSpi0(
 //--------------------------------------------------------------------------
 
 /*
-* Initialize object control/status registers to the power-on reset state.
-*    Intended for use with the put_*() field accessor functions, and can be
-*    called multiple times.
-*    Virtually all fields are zero, or are the inactive state.
+* Initialize all object registers to the power-on reset state.
 *    Hardware registers are unchanged.
-# #!! Need to validate values against hardware reset.
+*    Intended for use with the put_*() field accessor functions.
+*    Can be called multiple times.
+*    Virtually all fields are zero, or are the inactive state.
 */
 void
 rgSpi0::init_put_reset()
 {
-    CntlStat.put( 0x00040000 );		// TxHasSpace_1 is read-only
+    CntlStat.put( 0x00000000 );
     Fifo.put(     0x00000000 );		// include Fifo object state
     ClkDiv.put(   0x00000000 );
     DmaLen.put(   0x00000000 );
     Lossi.put(    0x00000000 );
     DmaReq.put(   0x00000000 );
 
-//  CntlStat.put_TxHasSpace_1(     1 );
+    CntlStat.put_TxHasSpace_1(     1 );
     CntlStat.put_ReadEnable_1(     1 );
 
     Lossi.put_LossiHoldDly_4(    0x1 );
