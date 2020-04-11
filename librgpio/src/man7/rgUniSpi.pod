@@ -8,75 +8,111 @@
 
 rgUniSpi  Hardware Description -- Universal SPI Master
 
-
 =head1		SYNOPSIS
 
-Hardware registers of the Universal SPI Master.
-All are 32-bits, but may have sparcely populated fields.
+Auxiliary registers shared by Spi1, Spi2, and Mini UART:
 
-    Reg Name	BCM Doc Name
-    --------	-------------
+    rgUniSpi
+    Register	BCM Name	Description
+    --------	--------	------------------
+    AuxIrq	AUXIRQ		Auxiliary Interrupt Request  (RO)
+    AuxEn	AUXENB		Auxiliary Enable
+
+       Reg.Field		Bits	Description
+    ------.---------------	----	----------------------
+    AuxIrq.Spi2Irq_1		[2]	Spi2 interrupt pending  (RO)
+    AuxIrq.Spi1Irq_1		[1]	Spi1 interrupt pending  (RO)
+    AuxIrq.MiniUartIrq_1	[0]	Mini UART interrupt pending  (RO)
+
+    AuxEn.Spi2Enable_1		[2]	Spi2 enable
+    AuxEn.Spi1Enable_1		[1]	Spi1 enable
+    AuxEn.MiniUartEnable_1	[0]	Mini UART enable
+
+Hardware registers of each Universal SPI Master (Spi1 and Spi2):
+
+    rgUniSpi
+    Register	BCM Name	Description
+    --------	-------------	------------------
     Cntl0	AUXSPIx_CNTL0	Control register 0
     Cntl1	AUXSPIx_CNTL1	Control register 1
-    Stat	AUXSPIx_STAT	Status register
-    Peek	AUXSPIx_PEEK	Show received data
+    Stat	AUXSPIx_STAT	Status register     (RO)
+    Peek	AUXSPIx_PEEK	Show received data  (RO)
     Fifo	AUXSPIx_IO	FIFO - Write Tx, Read Rx
     FifoH	AUXSPIx_TXHOLD	same, but hold CS to extend transaction
 
-    Field Name		Register Bits
-    ---------------     -------------
-    Speed_12		Cntl0[31:20]
-    ChipSelects_3	Cntl0[19:17]
-    PostInMode_1	Cntl0[16]
-    VariableCs_1	Cntl0[15]
-    VariableWidth_1	Cntl0[14]
-    DoutHoldTime_2	Cntl0[13:12]
-    EnableSerial_1	Cntl0[11]
-    InRising_1		Cntl0[10]
-    ClearFifos_1	Cntl0[9]
-    OutRising_1		Cntl0[8]
-    InvertClk_1		Cntl0[7]
-    OutMsbFirst_1	Cntl0[6]
-    ShiftLength_6	Cntl0[5:0]
+      Reg.Field			Bits
+    ---------------------     	-------
+    Cntl0.Speed_12		[31:20]
+    Cntl0.ChipSelects_3		[19:17]
+    Cntl0.PostInMode_1		[16]
+    Cntl0.VariableCs_1		[15]
+    Cntl0.VariableWidth_1	[14]
+    Cntl0.DoutHoldTime_2	[13:12]
+    Cntl0.EnableSerial_1	[11]
+    Cntl0.InRising_1		[10]
+    Cntl0.ClearFifos_1		[9]
+    Cntl0.OutRising_1		[8]
+    Cntl0.InvertClk_1		[7]
+    Cntl0.OutMsbFirst_1		[6]
+    Cntl0.ShiftLength_6		[5:0]
 
-    CsHighTime_3	Cntl1[10:8]
-    TxEmptyIrq_1	Cntl1[7]
-    DoneIrq_1		Cntl1[6]
-    InMsbFirst_1	Cntl1[1]
-    KeepInput_1		Cntl1[0]
+    Cntl1.CsHighTime_3		[10:8]
+    Cntl1.TxEmptyIrq_1		[7]
+    Cntl1.DoneIrq_1		[6]
+    Cntl1.InMsbFirst_1		[1]
+    Cntl1.KeepInput_1		[0]
 
-    TxLevel_3		Stat[30:28]
-    RxLevel_3		Stat[32:20]
-    TxFull_1		Stat[10]
-    TxEmpty_1		Stat[9]
-    RxFull_1		Stat[8]
-    RxEmpty_1		Stat[7]
-    Busy_1		Stat[6]
-    BitCount_6		Stat[5:0]
+    Stat.TxLevel_3		[30:28]  (RO)
+    Stat.RxLevel_3		[32:20]  (RO)
+    Stat.TxFull_1		[10]     (RO)
+    Stat.TxEmpty_1		[9]      (RO)
+    Stat.RxFull_1		[8]      (RO)
+    Stat.RxEmpty_1		[7]      (RO)
+    Stat.Busy_1			[6]      (RO)
+    Stat.BitCount_6		[5:0]    (RO)
 
-Bit field names incorporate the number of bits in the field.
-This makes the field size self documenting, and slightly more klunky.
+    (RO) = Read-only, otherwise all are Read-write.
 
+Field names incorporate the number of bits in the field, making the field
+size self documenting.
+
+All registers are 32-bits.
+Unspecified bit fields in each register are typically reserved, and should
+be write as 0, and read as don't care.
+
+=head2			Abbreviations in Register/Field names
+
+ Fifo    First In First Out (FIFO) memory
+ Cs      Chip Select (CS)
+ Irq     Interrupt Request (IRQ)
+ Msb     Most Significant Bit (MSB)
+ Rx      Receive FIFO
+ Tx      Transmit FIFO
 
 =head1		DESCRIPTION
 
 This documentation describes the operation of the two Universal SPI Masters
-SPI1, SPI2.  A different SPI0 master is described elsewhere.
-See BCM doc chapter 2.3  Universal SPI Master  (p. 20-27), also referred to
-as Auxiliary peripherals.
+SPI1, SPI2 (also referred to as Auxiliary peripherals).
+A different SPI0 master is described elsewhere.
 
 SPI stands for Serial Peripheral Interface bus.
 The Universal SPI Master is essentially a shift register controller.
 
+=head2			Features
+
+ - Single beat bit length between 1 and 32 bits.
+ - Single beat variable bit length between 1 and 24 bits.
+ - Multi beat infinite bit length.
+ - 3 independent chip selects per master.
+ - 4 entries 32-bit wide transmit and receive FIFOs.
+ - Data out on rising or falling clock edge.
+ - Data in on rising or falling clock edge.
+ - Clock inversion (Idle high or idle low).
+ - Wide clocking range.
+ - Programmable data out hold time.
+ - Shift in/out MS or LS bit first.
 
 =head2			Hardware Signals
-
-Generic SPI signals are often called:
-
-    SCLK	Serial Clock, driven by master
-    MOSI	Master Out Slave In  data
-    MISO	Master In  Slave Out data
-    CS 		Chip Select (also called CE Chip Enable)
 
 GPIO Alternate Function names (hardware signals) are:
 
@@ -88,6 +124,15 @@ GPIO Alternate Function names (hardware signals) are:
     spi1_CE2_n	Chip Enable 2 (driven by master)
 
     spi2_*      same for SPI2.
+
+Generic SPI signals are often called:
+
+    SCLK	Serial Clock, driven by master
+    MOSI	Master Out Slave In  data
+    MISO	Master In  Slave Out data
+    CS 		Chip Select (also called CE Chip Enable)
+
+=head2			Signal Timing
 
 In these waveforms we reference the first (1) and second (2) edges of the
 SCLK clock pulses.  The B<InvertClk_1> bit determines which edge is the
@@ -134,7 +179,7 @@ data bit is output on MOSI.  The slave must sample it on the first SCLK
 edge, and the master must change it on the second SCLK edge.  Otherwise that
 first data bit (d0) is lost.
 
-It is intended that data be sampled on the opposit edge from the one that
+It is intended that data be sampled on the opposite edge from the one that
 changes the data, for both master and slave, as this gives the most timing
 margin:  e.g.
 
@@ -148,38 +193,258 @@ In this way the slave can use the first SCLK to load the shift register,
 and the following N-1 clocks to shift it out on MISO.
 
 
-=head2			Data Shifting in/out
+=head2			Hardware FIFO
 
-With  OutMsbFirst_1= 0 and InMsbFirst_1= 0:
-The LSB in the FIFO is shifted out first, and
-bits are shifted into bit 31 of Rx, which is shifted right.  Thus
+There is one Transmit (Tx) FIFO having 4 entries of 32 bits, and accessed
+by writing either register Fifo or FifoH.
 
-    Tx:  0x00003557  becomes
-    Rx:  0x35570000
+There is one Receive (Rx) FIFO having 4 entries of 32 bits, and accessed
+by reading either register Fifo or FifoH.
 
+As in typical FIFO operation, Writing pushes a new entry into the FIFO, and
+Reading removes an entry.  The various status fields are updated as a side
+effect.
+
+The only difference between registers Fifo and FifoH is in how the CS lines
+are handled after the entry is sent on MOSI:  Entries written to Fifo will
+de-assert CS, and entries written to FifoH will hold CS asserted.
+(Think of an extra flag bit being set on the FIFO entry depending on which
+register is written.)  There is no difference reading either register.
+This is the mechanism to make arbitrarily long transactions.
+
+The B<Peek> register allows reading the top entry in the receive Fifo without
+removing it.
+
+
+=head2			Data Shifting Direction
+
+It is instructive to see what parts of the 32-bit data word are shifted
+out on Tx and shifted in on Rx, when only a sub-set of bits are shifted.
+Here we put SPI1 in loop-back, by tying MISO (input) to MOSI (output).
+Observe the result of sending one transaction of 12 bits.
+
+    ShiftLength_6 = 12
+
+    OutMsbFirst_1 = 0  InMsbFirst_1 = 0
+    Tx:  0xfffff567  > shift right, out LSB
+    Rx:  0x56700000  > shift right, into MSB
+
+    OutMsbFirst_1 = 1  InMsbFirst_1 = 1
+    Tx:  0x567fffff  < shift left, out MSB
+    Rx:  0x00000567  < shift left, into LSB
+
+    OutMsbFirst_1 = 0  InMsbFirst_1 = 1
+	Tx LSB shift right into Rx LSB shift right
+    Tx:  0xfffff567  > shift right, out LSB
+    Rx:  0x00000e6a  < shift left, into LSB, bits are reversed
+
+    OutMsbFirst_1 = 1  InMsbFirst_1 = 0
+    Tx:  0x567fffff  < shift left, out MSB
+    Rx:  0xe6a00000  > shift right, into MSB, bits are reversed
 
 
 =head1		REGISTER BIT FIELDS
 
 The numeric suffix on the field name indicates the number of bits in the field.
 
+=head2			AuxIrq Register
+
+Indicates interrupt pending status for Spi1, Spi2, and the Mini UART.
+
+=over
+
+=item B<Spi2Irq_1>          - Spi2 interrupt pending.  (RO)
+
+=item B<Spi1Irq_1>          - Spi1 interrupt pending.  (RO)
+
+=item B<MiniUartIrq_1>      - Mini UART interrupt pending.  (RO)
+
+ 1= interrupt pending
+ 0= not
+
+=back
+
+=head2			AuxEn Register
+
+Provides enable controls for Spi1, Spi2, and the Mini UART.
+If the enable bit is zero, there is no access to the peripheral, not even to
+read or write the registers!
+
+=over
+
+=item B<Spi2Enable_1>       - Spi2 enable.
+
+=item B<Spi1Enable_1>       - Spi1 enable.
+
+=item B<MiniUartEnable_1>   - Mini UART enable.
+
+ 1= enabled
+ 0= not
+
+=back
+
 =head2			Cntl0 Register
 
 =over
 
-=item B<OutRising_1>        - MOSI data output changes on which SCLK edge.
+=item B<Speed_12>           - Sets the SCLK clock frequency.
 
-1= rising, 0= falling.
-If 1, data out changes on the rising  edge of SCLK.
-If 0, data out changes on the falling edge of SCLK.
+Frequency = system_clock_freq / (2 * (Speed_12 + 1))
 
+=item B<ChipSelects_3>      - The pattern output on the CS pins when active.
 
-=item B<InvertClk_1>        - Invert the SPI clock.
+ 1= high level
+ 0= low level
 
-If 0, the SCLK signal idle state is low, default at reset.
-If 1, the SCLK signal idle state is high.
-This inversion is internally observed by the other configuration features,
-i.e.  OutRising_1 and InRising_1.
+Bit positions are {CE2, CE1, CE0}, left to right.
+When inactive, all three CS lines are held high.
+There is no control to invert the CS signals, so all three are active low.
+For example, setting (ChipSelects_3 = 0x3) would set only CE2 low, and
+setting (ChipSelects_3 = 0x7) would not activate any CS line.
+
+Note bit combinations could be used to access multiple slave devices, or encode
+device selection.
+
+=item B<PostInMode_1>       - Enable Post Input mode.
+
+ 1= Post Input mode
+ 0= Normal mode
+
+Essentially MISO is sampled on edge 2 but with SCLK delayed one cycle.  Thus
+data on the first SCLK is skipped, and data one bit-time after the last SCLK
+is sampled.  CS is extended as necessary.
+
+=item B<VariableCs_1>       - Variable Chip Select pattern.
+
+ 1= variable, pattern from Tx FIFO[31:29] - 3 bits
+ 0= normal,   pattern from ChipSelects_3
+
+Intended to be used with B<VariableWidth_1>.
+This allows selecting different slave devices from the Tx FIFO without having
+to change configuration.
+
+=item B<VariableWidth_1>    - Variable data length.
+
+ 1= variable, width from Tx FIFO[28:24] - 5 bits
+ 0= normal,   width from ShiftLength_6
+
+Data length (width) is the number of bits to shift in the FIFO entry, and
+in variable mode it is limited to 24-bits.
+With OutMsbFirst_1=1, bit [23] becomes the most significant bit shifted out
+first, and the receive data will arrive as normal.
+
+This allows variable transaction lengths without having to change
+configuration.  See B<VariableCs_1>.
+
+=item B<DoutHoldTime_2>     - Extra data out hold time.
+
+ 00= none
+ 01= 1 system clock extra
+ 10= 4 system clocks extra
+ 11= 7 system clocks extra
+
+Provides hold time beyond the SCLK edge on which MOSI data changes.
+Make it easier for a slave to sample the previous MOSI data on the same edge
+in which the master changes it.
+The hold time is in system clock cycles, which also determines SCLK frequency
+(see B<Speed_12>).
+
+=item B<EnableSerial_1>     - Enable serial shifting.
+
+ 1= enable
+ 0= disable
+
+The FIFOs can still be read/written while disabled.
+
+=item B<InRising_1>         - MISO sampled on SCLK rising edge.
+
+ 1= rising
+ 0= falling
+
+=item B<ClearFifos_1>       - Clear Rx and Tx FIFOs
+
+ 1= clear
+ 0= normal operation
+
+The BCM doc says "FIFOs are held in reset (and thus flushed)".
+This bit is not one-shot, it stays set until re-written zero.
+
+=item B<OutRising_1>        - MOSI changes on SCLK rising edge.
+
+ 1= rising
+ 0= falling
+
+=item B<InvertClk_1>        - Invert the SCLK clock.
+
+ 1= invert, SCLK idle high, edge 1 is falling
+ 0= normal, SCLK idle low,  edge 1 is rising
+
+Changing this bit has immediate effect and can introduce a spurious SCLK edge.
+Recommend changing only when CS is inactive.
+Note interaction with B<InRising_1> and B<OutRising_1>.
+
+=item B<OutMsbFirst_1>      - Output MSB first.
+
+ 1= MSB first, shift out bit 31
+ 0= LSB first, shift out bit 0
+
+Note B<ShiftLength_6> has an effect on data position in the word.
+
+=item B<ShiftLength_6>      - Number of bits to shift.
+
+Is the number of bits to shift in each Tx FIFO entry.
+Valid values are {1..32}.  Zero outputs no SCLK pulse, while values greater
+than 32 appear to continue shifting beyond the 32-bit register width.
+This field is ignored when (VariableWidth_1= 1).
+
+=back
+
+=head2			Cntl1 Register
+
+=over
+
+=item B<CsHighTime_3>       - Additional CS high time
+
+Value range {0..7}.
+Minimum CS high (inactive) time is (CsHighTime_3 + 1) SCLK cycles.
+Intended for slave devices requiring more time between transactions.
+
+=item B<TxEmptyIrq_1>       - Interrupt when Tx FIFO is empty.
+
+ 1= interrupt
+ 0= not
+
+Signal an interrupt when the last entry has been read from the transmit FIFO.
+At that moment, the interface will be busy shifting out that data, and the
+receive FIFO will not yet contain the last received data.
+
+Intend for the interrupt handler to use the Status register to determine the
+actual FIFO state.
+
+=item B<DoneIrq_1>          - Interrupt when done (idle).
+
+ 1= interrupt
+ 0= not
+
+Signal an interrupt when the module has finished all activities, including
+waiting the minimum CS high time.
+
+=item B<InMsbFirst_1>       - Input MSB first.
+
+ 1= MSB first, shift into bit 0
+ 0= LSB first, shift into bit 31
+
+Note B<ShiftLength_6> has an effect on data position in the word.
+
+=item B<KeepInput_1>        - Keep receiver shift register input.
+
+ 1= keep previous input
+ 0= normal, clear before shifting in new data
+
+The input shift register is not cleared between transactions (CS cycles).
+Thus small shift lengths are accumulated, but the whole 32-bit shift register
+is still copied into a new Rx FIFO entry on each transaction.
+This does not save FIFO entries, but may save CPU operations concatenating bits.
 
 =back
 
@@ -199,29 +464,35 @@ The number of words in the Receive Fifo {0..4}.
 
 =item B<TxFull_1>           - Transmit Fifo is full.
 
-1= full, 0= not full, can accept at least one more word.
+ 1= full
+ 0= not
 
 =item B<TxEmpty_1>          - Transmit Fifo is empty.
 
-1= empty, 0= not.
+ 1= empty
+ 0= not
 
 =item B<RxFull_1>           - Receive Fifo is full.
 
-1= full, 0= not.
+ 1= full
+ 0= not
 
 =item B<RxEmpty_1>          - Receive Fifo is empty.
 
-1= empty, 0= not.
+ 1= empty
+ 0= not
 
 =item B<Busy_1>             - The module is busy transferring data.
 
-1= busy, 0= not.
-It will be clear when the Transmit Fifo is empty and the module has finished
+ 1= busy
+ 0= not
+
+It will be zero when the Transmit Fifo is empty and the module has finished
 all activities, including waiting the minimum CS high time.
 
 =item B<BitCount_6>         - The number of bits still to be processed.
 
-Starts with 'ShiftLength_6' and counts down.
+Starts with B<ShiftLength_6> and counts down.
 
 =back
 
@@ -237,7 +508,13 @@ In the librgpio/ source tree:
 =head1		SEE ALSO
 
  rgUniSpi(3)
+ rgpio-uspi(1)
+ rgSpi0(7)
+ rgSpi0(3)
 
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.8-10   ch 2.   Auxiliaries: UART1 & SPI1, SPI2
+    p.20-27  ch 2.3  Universal SPI Master
  https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
