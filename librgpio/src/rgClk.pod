@@ -356,8 +356,6 @@ In the librgpio/ source tree:
 
  src/rgClk.h		clock manager class
  src/rgClk.cpp
- src/rgClkMan.h		clock manager base class
- src/rgClkMan.cpp
  src/rgRegister.h	register base class
 
 

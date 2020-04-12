@@ -594,11 +594,40 @@ rgClk		enumerated clocks {Clk0, Clk1, Clk2, ...}
     ...  inherited from rgClkMan
 }
 
+Files:
+
     Possibly put these simple derived classes in the same file as the
     base class, just to avoid file explosion.
-    OR better put all classes in rgClk.h file, which better fits the style
-    of other features.  It also makes the base class more of an
-    implementation detail.
+
+    Initial implementation used a separate file for the base class and the
+    two derived register classes:
+	rgClkMan.h:  rgClk_Cntl, rgClk_Divr, rgClkMan
+	rgClk.h:     rgClk
+
+    This arrangement is good for using the base class, but became awkward in
+    finding the register field accessors, which must be ahead of the rgClkMan
+    class that contains the registers.  It did not follow the pattern typical
+    for other features.
+
+    Decided to put the base class in the same file:  (2020-04-11)
+	rgClk.h:  rgClk_Cntl, rgClk_Divr, rgClkMan, rgClk
+
+    This arrangement parallels the other features.  The base class is
+    really an implementation detail, and not generally intended to be used
+    directly.  It is there for the sole purpose of deriving additional
+    clock classes should the need arise.
+
+    The .cpp files could still be separate, but then a single header file
+    would be used for both rgClkMan.cpp and rgClk.cpp.  This is OK, but a
+    bit irregular.  Separate files keeps the class code separate, but that
+    is not required.
+
+    Decided to also put both classes in the same .cpp file:
+	rgClk.cpp:  rgClkMan::, rgClk::
+
+    This parallels the .h file and puts all the clock code together.
+    Before, I was finding separate files for the base class to be a bit
+    annoying in looking up functions of the full clock feature.
 
 Enumerated clock managers:
 
@@ -738,13 +767,13 @@ rgClkMan	base class
 Methods:  (in addition to rgRegister base class)
 
 			Direct control:  (modify register fields)
-    enable_clock()		Set Enable=1
-    disable_clock()		Set Enable=0
-    wait_disable()		Set Enable=0, wait for not Busy.
+ ?  enable_clock()		Set Enable=1
+ ?  disable_clock()		Set Enable=0
+ ?  wait_disable()		Set Enable=0, wait for not Busy.
 
     wait_while_Busy()		Wait for not Busy.  Handle Enable=1
 
-    kill_generator()		Kill the clock generator.
+ ?  kill_generator()		Kill the clock generator.
 
 			Object state operations:
     init_put_reset()		Object registers set to power-on reset state.
