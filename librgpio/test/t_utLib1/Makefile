@@ -10,12 +10,10 @@ IC         = ../../src
 		# all include files for test program dependency
 INCS       = \
 	../src/utLib1.h
-#	$(IC)/rgAddrMap.h
 
 		# objects not including main()
 OBJS       = \
 	../obj/utLib1.o
-#	$(OJ)/rgAddrMap.o
 
 		# compiler flags
 CXXFLAGS   = -Wall -std=c++11  -I ../src

@@ -1,4 +1,4 @@
-# 2017-05-19  William A. Hudson
+# 2019-11-17  William A. Hudson
 #
 # Compile and run this test.
 # Use OBJS, but not build them.  Outputs in ./
@@ -6,6 +6,7 @@
 SHELL      = /bin/sh
 OJ         = ../../obj
 IC         = ../../src
+LB         = ../../lib
 
 		# all include files for test program dependency
 INCS       = \
@@ -16,8 +17,7 @@ INCS       = \
 		# objects not including main()
 OBJS       = \
 	../obj/utLib1.o \
-	$(OJ)/rgAddrMap.o \
-	$(OJ)/rgClock.o
+	$(LB)/librgpio.a
 
 LIBS       = -lcap
 

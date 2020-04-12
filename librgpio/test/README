@@ -14,9 +14,6 @@ README		this file
 
 bin/		commands for Test (none)
 
-lib/		Test library
-??  TestLib1.pm		Library for testing programs.
-
 opt/		External command installations (none)
 
 ../lib/		librgpio.a  Archive library
@@ -126,6 +123,4 @@ Git:
 Issues:
 -------
     Field accessor functions are not all tested.
-
-    t_*/Makefile  should use librgpio.a instead of .o files.
 

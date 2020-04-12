@@ -11,6 +11,7 @@ LB         = ../../lib
 		# all include files for test program dependency
 INCS       = \
 	../src/utLib1.h \
+	$(IC)/rgAddrMap.h \
 	$(IC)/rgClk.h
 
 		# objects not including main()
