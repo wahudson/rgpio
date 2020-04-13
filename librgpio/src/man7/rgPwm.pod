@@ -30,12 +30,12 @@ field names.
 
      Reg.Field			Bits  BCM name
     ----.---------------	----  --------
-    Cntl.Ch2_MsEnable_1		[15]  MSEN2
+    Cntl.Ch2_MsEnable_1		[15]  MSEN2       Mark/Space Enable
     Cntl.Ch2_UseFifo_1		[13]  USEF2
     Cntl.Ch2_Invert_1		[12]  POLA2
     Cntl.Ch2_IdleBit_1		[11]  SBIT2
     Cntl.Ch2_Repeat_1		[10]  RPTL2
-    Cntl.Ch2_SerMode_1		[9]   MODE2
+    Cntl.Ch2_SerMode_1		[9]   MODE2       Serializer mode
     Cntl.Ch2_Enable_1		[8]   PWEN2
 
     Cntl.ClearFifo_1		[6]   CLRF1  (WO)
@@ -59,8 +59,8 @@ field names.
     Stat.Ch1_GapErr_1		[4]   GAPO1
     Stat.FifoReadErr_1		[3]   RERR1
     Stat.FifoWriteErr_1		[2]   WERR1
-    Stat.FifoEmpty_1		[1]   EMPT1  (RO)?
-    Stat.FifoFull_1		[0]   FULL1  (RO)?
+    Stat.FifoEmpty_1		[1]   EMPT1  (RO)
+    Stat.FifoFull_1		[0]   FULL1  (RO)
 
     DmaConf.DmaEnable_1		[31]    ENAB
     DmaConf.DmaPanicLev_8	[15:8]  PANIC
@@ -74,8 +74,16 @@ field size self documenting.
 Unspecified bit fields in each register are typically reserved, and should
 be write as 0, and read as don't care.
 
-Note:  Ch3 and Ch4 probably are non-functional, likely left over from a
-previous chip design.  Treat as reserved.
+Note:  Ch3 and Ch4 are non-functional, not available in the B0 chip.
+Treat as reserved.
+
+=head2			Abbreviations in Register/Field names
+
+ Fifo    First In First Out (FIFO) buffer
+ Ms      Mark/Space
+ Ser     Serializer
+ Lev     Level
+ Req     Request
 
 
 =head1		DESCRIPTION
@@ -144,8 +152,8 @@ make a very low frequency clock since M and N are 32-bit numbers.
 =head2		C) Serializer mode.
 
 Data pattern is shifted out, one bit per clock cycle, MSB (Most Significant
-Bit) first.  [BCM doc p.142]
-Data is taken as 32-bit words from the Data register, or Fifo.  ???
+Bit) first [BCM doc p.142].
+Data is taken as 32-bit words from the Data register, or FIFO.
 
 The data is repeated every M clock cycles, truncated or zero-padded
 with the idle-bit value, depending on range M.
@@ -155,6 +163,44 @@ with the idle-bit value, depending on range M.
 
     Out  _____|XXXXXXXXXXXX|__________________|XXXXXXXXXXXX|________
 
+
+=head2			M Range
+
+Each channel has a 32-bit Range register (B<Ch1Range>, B<Ch2Range>).
+The register value is interpreted as an unsigned 32-bit integer M
+representing the number of clock cycles in one cycle of operation.
+
+=head2			N or Data
+
+Each channel has a 32-bit Data register (B<Ch1Data>, B<Ch2Data>).
+
+In B<C) Serializer mode>, it holds the data bit pattern.
+In B<A) PWM mode> and in B<B) Mark/Space mode> it is interpreted as an
+unsigned 32-bit integer N.
+
+Alternatively the FIFO buffer is use used for these purposes when the
+corresponding (B<Ch2_UseFifo_1> = 1).
+
+=head2			FIFO Buffer
+
+There is one 8-entry by 32-bit First In First Out (FIFO) buffer that can be
+used in place of the data registers (B<Ch1Data>, B<Ch2Data>).
+It is intended for the Serializer Mode, but could be used in the other
+modes as well (??).
+
+When only one channel is using the FIFO, it can presumably use the full depth.
+
+When two channels share the FIFO they use alternate entries.  Thus in a
+string of words written to the FIFO, one channel gets the odd entries, and
+the other channel gets the even entries.
+It is not clear which channel goes first when both are simultaneously enabled.
+(??)
+
+This tight coupling means the two channels should operate in lock-step.  If
+the cycle Range is not the same, then the shorter channel will wait, issuing
+(e.g. B<Ch2_IdleBit_1>) values.
+
+See BDM doc p.146 "FIF1 Register".
 
 =head2			Hardware Signals
 
@@ -197,7 +243,7 @@ This bit has no effect when Ch2_SerMode_1=1.
 =item B<Ch2_UseFifo_1>      - Use Fifo or Data register.
 
  1= use Fifo
- 0= use Data register
+ 0= use Data register Ch2Data
 
 Select data source for Serializer or parameter N.
 
@@ -221,7 +267,8 @@ Not used in Mark/Space mode.
 
 No effect when Ch2_UseFifo_1=0.
 Note when both channels share the Fifo, the last valid data value for each
-channel is not well defined, so both channels should set Ch*_Repeat_1=0.
+channel is not well defined, so both channels should set Ch*_Repeat_1=0 to
+not repeat last Fifo entry.
 
 =item B<Ch2_SerMode_1>      - Enable Serializer mode.
 
@@ -251,6 +298,8 @@ value will clear all the Error bits that were set.
 
 =item B<Ch2_Active_1>       - Active state of channel.  (RO)
 
+=item B<Ch1_Active_1>       -
+
  1= Active, output is transmitting.
  0= Not active, not transmitting.
 
@@ -260,6 +309,8 @@ value will clear all the Error bits that were set.
  0= Not
 
 =item B<Ch2_GapErr_1>       - Gap occurred flag.
+
+=item B<Ch1_GapErr_1>       -
 
  1= Gap has occurred.    (Write 1 to clear.)
  0= Not
@@ -284,27 +335,30 @@ value will clear all the Error bits that were set.
  1= Fifo is Full.
  0= Not
 
-=item B<Ch1_*>              - Same as Ch2_* above ...
-
 =back
 
 =head2			DmaConf register
 
-See BCM doc.
+=over
 
-=head2			Fifo register (WO)
+=item B<DmaEnable_1>        - DMA Enable.
 
-See BCM doc.
+ 1= DMA Enabled.
+ 0= Not
 
-=head2			Ch2Range, Ch1Range  registers
+Is used to start DMA.
 
-Register value is interpreted as an unsigned 32-bit integer M representing
-the number of clock cycles in one cycle of operation.
+=item B<DmaPanicLev_8>      - DMA Panic Threshold.
 
-=head2			Ch2Data, Ch1Data  registers
+Fifo level below which a DMA panic signal is sent.
+Default value is 7, and Fifo depth is at least 8 entries.
 
-Register interpretation depends on mode.
-See BCM doc.
+=item B<DmaReqLev_8>        - DMA Request Threshold.
+
+Fifo level below which a DMA panic signal is sent.
+Default value is 7, and Fifo depth is at least 8 entries.
+
+=back
 
 
 =head1		BUGS
@@ -327,7 +381,8 @@ In the librgpio/ source tree:
  rgPwm(3)
  rgpio-pwm(1)
 
- BCM doc:  Chapter 9 "Pulse Width Modulator" (p.138-147).
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+ Chapter 9 "Pulse Width Modulator" (p.138-147).
  https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata

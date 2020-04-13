@@ -135,7 +135,7 @@ Operation with rgpio:
 
 	Data pattern is shifted out, one bit per clock cycle, MSB (Most
 	Significant Bit) first.  [BCM doc p.142]
-	Data is taken as 32-bit words from the Data register, or Fifo.  ???
+	Data is taken as 32-bit words from the Data register, or Fifo.
 
 	The data is repeated every M clock cycles, truncated or zero-padded
 	with the idle-bit value, depending on range M.
@@ -148,6 +148,11 @@ Operation with rgpio:
 
     Note Mark/Space mode can make a very low frequency clock since M, and N,
     are 32-bit numbers.
+
+FIFO:
+    FIFO depth:  The BCM doc wording states "eight 32-bit words", while the
+    block diagram shows "16x32 bit fifo".  Which is it?
+    Experiment shows it is 8-entries deep.
 
 Register Operation:
 
