@@ -74,6 +74,7 @@ class uspi_yOptLong : public yOption {
     bool		tx;
     bool		txh;
 
+    bool		reset;
     bool		verbose;
     bool		debug;
     bool		TESTOP;
@@ -103,6 +104,7 @@ uspi_yOptLong::uspi_yOptLong( yOption  *opx )
     tx          = 0;
     txh         = 0;
 
+    reset       = 0;
     verbose     = 0;
     debug       = 0;
     TESTOP      = 0;
@@ -153,6 +155,7 @@ uspi_yOptLong::parse_options()
 	else if ( is( "--InMsbFirst_1="    )) { InMsbFirst_1.set(    val() ); }
 	else if ( is( "--KeepInput_1="     )) { KeepInput_1.set(     val() ); }
 
+	else if ( is( "--reset"      )) { reset      = 1; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
 	else if ( is( "--debug"      )) { debug      = 1; }
@@ -165,7 +168,7 @@ uspi_yOptLong::parse_options()
 	}
     }
 
-    if ( !( spi_ch[1] | spi_ch[2] ) ) {		// default
+    if ( !( spi_ch[1] || spi_ch[2] ) ) {	// default
 	spi_ch[1] = 1;
     }
 
@@ -301,6 +304,7 @@ uspi_yOptLong::print_option_flags()
     cout << "--tx          = " << tx           << endl;
     cout << "--txh         = " << txh          << endl;
 
+    cout << "--reset       = " << reset        << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
 
@@ -356,6 +360,7 @@ uspi_yOptLong::print_usage()
     "    --InMsbFirst_1=0    1= data In start with MSB, 0= LSB\n"
     "    --KeepInput_1=0     1= concatenate into receiver shift register\n"
     "  options:\n"
+    "    --reset             init reset values before modifications\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
@@ -476,10 +481,19 @@ y_uspi::doit()
 
 	// Registers
 
-	    if ( Opx.debug ) {
-		cout << "  Grab regs" <<endl;
+	    if ( Opx.reset ) {
+		if ( Opx.debug ) {
+		    cout << "  Init reset" <<endl;
+		}
+		spi->init_put_reset();
+		md = 1;
 	    }
-	    spi->grab_regs();
+	    else {
+		if ( Opx.debug ) {
+		    cout << "  Grab regs" <<endl;
+		}
+		spi->grab_regs();
+	    }
 
 	    APPLX( Cntl0 )
 	    APPLX( Cntl1 )
