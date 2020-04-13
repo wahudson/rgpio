@@ -69,8 +69,6 @@ class io_yOptLong : public yOption {
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
-
-    int			doit();
 };
 
 

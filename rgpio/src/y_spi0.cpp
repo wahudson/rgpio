@@ -84,14 +84,10 @@ class spi0_yOptLong : public yOption {
   public:
     spi0_yOptLong( yOption  *opx );	// constructor
 
-    uint32_t		uint();
-
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
     void		trace_msg( const char* text );
-
-    int			doit();		//#!! not here
 };
 
 
@@ -111,15 +107,6 @@ spi0_yOptLong::spi0_yOptLong( yOption  *opx )
     TESTOP      = 0;
 }
 
-
-/*
-* Return arg as an uint32_t.
-*/
-uint32_t
-spi0_yOptLong::uint()
-{
-    return  strtoul( this->val(), NULL, 0 );
-}
 
 /*
 * Parse options.

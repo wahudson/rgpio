@@ -81,13 +81,9 @@ class uspi_yOptLong : public yOption {
   public:
     uspi_yOptLong( yOption  *opx );	// constructor
 
-    uint32_t		uint();
-
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
-
-    int			doit();		//#!! not here
 };
 
 
@@ -112,15 +108,6 @@ uspi_yOptLong::uspi_yOptLong( yOption  *opx )
     TESTOP      = 0;
 }
 
-
-/*
-* Return arg as an uint32_t.
-*/
-uint32_t
-uspi_yOptLong::uint()
-{
-    return  strtoul( this->val(), NULL, 0 );
-}
 
 /*
 * Parse options.
