@@ -165,6 +165,10 @@ uspi_yOptLong::parse_options()
 	}
     }
 
+    if ( !( spi_ch[1] | spi_ch[2] ) ) {		// default
+	spi_ch[1] = 1;
+    }
+
     // Cntl0 bits
     if (                       Speed_12.Val > 0xfff ) {
 	Error::msg( "require --Speed_12={0..4095}:  " ) <<
@@ -317,19 +321,19 @@ uspi_yOptLong::print_usage()
 {
     cout <<
     "    Universal SPI Master control\n"
-    "usage:  " << ProgName << " uspi  -N..  [options..] [--tx|--txh V..]\n"
-    "    -N                  SPI number {1,2}\n"
+    "usage:  " << ProgName << " uspi  [-1][-2] [options..] [--tx|--txh V..]\n"
+    "    -1 -2               SPI number, default -1\n"
     "  modify full register:\n"
     "    --Cntl0=V           Control reg 0\n"
     "    --Cntl1=V           Control reg 1\n"
-    "    --Stat=V            Status reg\n"
+    "    --Stat=V            Status reg (RO)\n"
     "    --AuxEn=V           Auxiliary Enable reg\n"
     "  data transfer:\n"
     "    --rx=N              read {1:4} words from Fifo\n"
     "    --rxh=N             read {1:4} words from FifoH\n"
     "    --tx                write args to Fifo\n"
     "    --txh               write args to FifoH\n"
-    "  modify Aux bit fields:\n"
+    "  modify AuxEn bits:\n"
     "    --SpiEnable_1=0     1= Spi access enabled\n"
     "  modify Cntl0 bits:\n"
     "    --Speed_12=0xfff    clock speed, freq=f0/(2*(speed+1))\n"
