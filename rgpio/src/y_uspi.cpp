@@ -577,11 +577,11 @@ y_uspi::doit()
 
 	    cout.fill('0');
 	    cout <<hex
-	     << ns << ".AuxEn=     0x" <<setw(8) << spi->AuxEn.read()     <<endl
-	     << ns << ".Cntl0=     0x" <<setw(8) << spi->Cntl0.get()      <<endl
-	     << ns << ".Cntl1=     0x" <<setw(8) << spi->Cntl1.get()      <<endl
-	     << ns << ".Stat=      0x" <<setw(8) << spi->Stat.get()       <<endl
-	     << ns << ".Peek=      0x" <<setw(8) << spi->Peek.read()      <<endl
+	     << ns << ".AuxEn    = 0x" <<setw(8) << spi->AuxEn.read()     <<endl
+	     << ns << ".Cntl0    = 0x" <<setw(8) << spi->Cntl0.get()      <<endl
+	     << ns << ".Cntl1    = 0x" <<setw(8) << spi->Cntl1.get()      <<endl
+	     << ns << ".Stat     = 0x" <<setw(8) << spi->Stat.get()       <<endl
+	     << ns << ".Peek     = 0x" <<setw(8) << spi->Peek.read()      <<endl
 	     ;
 
 	    cout.fill(' ');
