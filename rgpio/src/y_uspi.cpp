@@ -85,6 +85,7 @@ class uspi_yOptLong : public yOption {
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
+    void		trace_msg( const char* text );
 };
 
 
@@ -372,6 +373,23 @@ uspi_yOptLong::print_usage()
 }
 
 
+/*
+* Output a trace message.
+*    This function provides custom configuration of:
+*    Option for conditional output.  Output stream used.
+*    Argument text should have no prefix or suffix new-line.
+* call:
+*    trace_msg( "text" );
+*/
+void
+uspi_yOptLong::trace_msg( const char* text )
+{
+    if ( verbose ) {
+	cout << "+ " << text <<endl;
+    }
+}
+
+
 //--------------------------------------------------------------------------
 // Constructor
 //--------------------------------------------------------------------------
@@ -406,10 +424,6 @@ y_uspi::doit()
 	}
 
 	if ( Error::has_err() )  return 1;
-
-	if ( Opx.verbose ) {
-	    cout << "Universal SPI Master:" << endl;
-	}
 
     // SPI channels
 	const int		SpiMax = 2;
@@ -468,7 +482,9 @@ y_uspi::doit()
 		continue;
 	    }
 
-	    string		ns = "  " + std::to_string( spi->get_spi_num() );
+	    cout << "Spi" << spi->get_spi_num() << ":" <<endl;
+
+	    string		ns = "   " + std::to_string( spi->get_spi_num() );
 
 #define APPLX( X )    if ( Opx.X.Given ) { spi->X.put( Opx.X.Val );  md = 1; }
 #define APPLY( X, Y ) if ( Opx.X.Given ) { Y( Opx.X.Val );  md = 1; }
@@ -482,16 +498,12 @@ y_uspi::doit()
 	// Registers
 
 	    if ( Opx.reset ) {
-		if ( Opx.debug ) {
-		    cout << "  Init reset" <<endl;
-		}
+		Opx.trace_msg( "Init reset" );
 		spi->init_put_reset();
 		md = 1;
 	    }
 	    else {
-		if ( Opx.debug ) {
-		    cout << "  Grab regs" <<endl;
-		}
+		Opx.trace_msg( "Grab regs" );
 		spi->grab_regs();
 	    }
 
@@ -522,20 +534,20 @@ y_uspi::doit()
 	    APPLY( KeepInput_1,      spi->Cntl1.put_KeepInput_1      )
 
 	    if ( md ) {			// modify registers
-		if ( Opx.debug ) {
-		    cout << "  Modify regs" <<endl;
-		}
+		Opx.trace_msg( "Modify regs" );
 		spi->push_regs();
 	    }
 
 	    if ( Opx.tx ) {
 		char*		cp;
 		uint32_t	vv;
+
+		Opx.trace_msg( "Write Tx Fifo" );
 		while ( (cp = Opx.next_arg()) )
 		{
 		    vv = strtoul( cp, NULL, 0 );
 		    cout.fill('0');
-		    cout << "  put_tx:  0x" <<hex <<setw(8) << vv << endl;
+		    cout << ns << ".write_Fifo:  0x" <<hex <<setw(8) << vv << endl;
 		    spi->Fifo.write( vv );
 		}
 		cout << dec;
@@ -545,11 +557,13 @@ y_uspi::doit()
 	    if ( Opx.txh ) {
 		char*		cp;
 		uint32_t	vv;
+
+		Opx.trace_msg( "Write Tx FifoH" );
 		while ( (cp = Opx.next_arg()) )
 		{
 		    vv = strtoul( cp, NULL, 0 );
 		    cout.fill('0');
-		    cout << "  put_txh:  0x" <<hex <<setw(8) << vv << endl;
+		    cout << ns << ".write_FifoH:  0x" <<hex <<setw(8) << vv << endl;
 		    spi->FifoH.write( vv );
 		}
 		cout << dec;
@@ -557,9 +571,7 @@ y_uspi::doit()
 	    //#!! Note --txh works for only one Spi.
 
 	    if ( md || Opx.tx || Opx.txh ) {	// modify registers
-		if ( Opx.debug ) {
-		    cout << "  Grab regs" <<endl;
-		}
+		Opx.trace_msg( "Grab regs" );
 		spi->grab_regs();
 	    }
 
@@ -606,18 +618,21 @@ y_uspi::doit()
 	     << ns << ".RxEmpty_1      = " << spi->Stat.get_RxEmpty_1()   <<endl
 	     << ns << ".Busy_1         = " << spi->Stat.get_Busy_1()      <<endl
 	     << ns << ".BitCount_6     = " << spi->Stat.get_BitCount_6()  <<endl
-	     <<endl;
+	     ;
 
 	    cout.fill('0');
 	    cout <<hex;
+
+	    if ( Opx.rx.Val ) Opx.trace_msg( "Read Rx Fifo" );
 	    for ( uint32_t jj = 1;  jj <= Opx.rx.Val;   jj++ ) {
-	      cout << ns << ".Fifo=  0x" <<setw(8) << spi->Fifo.read()  <<endl;
+	      cout << ns << ".read_Fifo:  0x" <<setw(8) << spi->Fifo.read()  <<endl;
 	    }
+
+	    if ( Opx.rxh.Val ) Opx.trace_msg( "Read Rx FifoH" );
 	    for ( uint32_t jj = 1;  jj <= Opx.rxh.Val;  jj++ ) {
-	      cout << ns << ".FifoH= 0x" <<setw(8) << spi->FifoH.read() <<endl;
+	      cout << ns << ".read_FifoH: 0x" <<setw(8) << spi->FifoH.read() <<endl;
 	    }
 	    cout <<dec;
-
 	}
 
     }
