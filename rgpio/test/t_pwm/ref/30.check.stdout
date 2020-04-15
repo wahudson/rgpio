@@ -2,14 +2,14 @@ PWM:
 + Grab regs
 + Modify regs
 + Grab regs
-   Cntl=     0x00000040
-   Stat=     0x00000020
-   DmaConf=  0x80000000
-   Fifo=     0x00000000
-   Ch2Range= 0x00000000
-   Ch2Data=  0x00000000
-   Ch1Range= 0x00000000
-   Ch1Data=  0x00000000
+   Cntl      = 0x00000040
+   Stat      = 0x00000020
+   DmaConf   = 0x80000000
+   Fifo      = 0x00000000
+   Ch2Range  = 0x00000000
+   Ch2Data   = 0x00000000
+   Ch1Range  = 0x00000000
+   Ch1Data   = 0x00000000
  Cntl
    Ch2_MsEnable_1  = 0
    Ch2_UseFifo_1   = 0

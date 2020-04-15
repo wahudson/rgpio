@@ -1,11 +1,11 @@
-   Cntl=     0x11111111
-   Stat=     0x22222222
-   DmaConf=  0x33333333
-   Fifo=     0x00000000
-   Ch2Range= 0x44444444
-   Ch2Data=  0x55555555
-   Ch1Range= 0x66666666
-   Ch1Data=  0x77777777
+   Cntl      = 0x11111111
+   Stat      = 0x22222222
+   DmaConf   = 0x33333333
+   Fifo      = 0x00000000
+   Ch2Range  = 0x44444444
+   Ch2Data   = 0x55555555
+   Ch1Range  = 0x66666666
+   Ch1Data   = 0x77777777
  Cntl
    Ch2_MsEnable_1  = 0
    Ch2_UseFifo_1   = 0
