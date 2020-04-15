@@ -549,11 +549,11 @@ y_spi0::doit()
 
 	    cout.fill('0');
 	    cout <<hex
-		<< "   CntlStat= 0x" <<setw(8) << Spx.CntlStat.read()  <<endl
-		<< "   ClkDiv=   0x" <<setw(8) << Spx.ClkDiv.read()    <<endl
-		<< "   DmaLen=   0x" <<setw(8) << Spx.DmaLen.read()    <<endl
-		<< "   Lossi=    0x" <<setw(8) << Spx.Lossi.read()     <<endl
-		<< "   DmaReq=   0x" <<setw(8) << Spx.DmaReq.read()    <<endl
+		<< "   CntlStat  = 0x" <<setw(8) << Spx.CntlStat.read()  <<endl
+		<< "   ClkDiv    = 0x" <<setw(8) << Spx.ClkDiv.read()    <<endl
+		<< "   DmaLen    = 0x" <<setw(8) << Spx.DmaLen.read()    <<endl
+		<< "   Lossi     = 0x" <<setw(8) << Spx.Lossi.read()     <<endl
+		<< "   DmaReq    = 0x" <<setw(8) << Spx.DmaReq.read()    <<endl
 		;
 
 	    cout.fill(' ');
