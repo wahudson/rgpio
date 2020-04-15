@@ -48,16 +48,16 @@ run_test( "11", "clock no args",
     Stderr => q(),
     Stdout => q(
 	Clk0:
-	  0.Cntl    = 0x00000000
-	  0.Divr    = 0x00000000
-	  0.Mash_2    = 0
-	  0.Flip_1    = 0
-	  0.Busy_1    = 0
-	  0.Kill_1    = 0
-	  0.Enable_1  = 0
-	  0.Source_4  = 0
-	  0.DivI_12   = 0
-	  0.DivF_12   = 0
+	   0.Cntl    = 0x00000000
+	   0.Divr    = 0x00000000
+	   0.Mash_2    = 0
+	   0.Flip_1    = 0
+	   0.Busy_1    = 0
+	   0.Kill_1    = 0
+	   0.Enable_1  = 0
+	   0.Source_4  = 0
+	   0.DivI_12   = 0
+	   0.DivF_12   = 0
     ),
 );
 
@@ -115,18 +115,18 @@ run_test( "18a", "clock verbose",
     0,
     Stderr => q(),
     Stdout => q(
-	+ Grab regs
 	Clk1:
-	  1.Cntl    = 0x00000000
-	  1.Divr    = 0x00000000
-	  1.Mash_2    = 0
-	  1.Flip_1    = 0
-	  1.Busy_1    = 0
-	  1.Kill_1    = 0
-	  1.Enable_1  = 0
-	  1.Source_4  = 0
-	  1.DivI_12   = 0
-	  1.DivF_12   = 0
+	+ Grab regs
+	   1.Cntl    = 0x00000000
+	   1.Divr    = 0x00000000
+	   1.Mash_2    = 0
+	   1.Flip_1    = 0
+	   1.Busy_1    = 0
+	   1.Kill_1    = 0
+	   1.Enable_1  = 0
+	   1.Source_4  = 0
+	   1.DivI_12   = 0
+	   1.DivF_12   = 0
     ),
 );
 
@@ -135,21 +135,21 @@ run_test( "18b", "clock verbose with modify",
     0,
     Stderr => q(),
     Stdout => q(
+	Clk1:
 	+ Grab regs
 	+ Modify regs
 	+ BusyCount= 0
 	+ Grab regs
-	Clk1:
-	  1.Cntl    = 0x5a000006
-	  1.Divr    = 0x5a000000
-	  1.Mash_2    = 0
-	  1.Flip_1    = 0
-	  1.Busy_1    = 0
-	  1.Kill_1    = 0
-	  1.Enable_1  = 0
-	  1.Source_4  = 6
-	  1.DivI_12   = 0
-	  1.DivF_12   = 0
+	   1.Cntl    = 0x5a000006
+	   1.Divr    = 0x5a000000
+	   1.Mash_2    = 0
+	   1.Flip_1    = 0
+	   1.Busy_1    = 0
+	   1.Kill_1    = 0
+	   1.Enable_1  = 0
+	   1.Source_4  = 6
+	   1.DivI_12   = 0
+	   1.DivF_12   = 0
     ),
 );
 
@@ -164,16 +164,16 @@ run_test( "20", "modify default clock",
     Stderr => q(),
     Stdout => q(
 	Clk0:
-	  0.Cntl    = 0x5a000600
-	  0.Divr    = 0x5a000000
-	  0.Mash_2    = 3
-	  0.Flip_1    = 0
-	  0.Busy_1    = 0
-	  0.Kill_1    = 0
-	  0.Enable_1  = 0
-	  0.Source_4  = 0
-	  0.DivI_12   = 0
-	  0.DivF_12   = 0
+	   0.Cntl    = 0x5a000600
+	   0.Divr    = 0x5a000000
+	   0.Mash_2    = 3
+	   0.Flip_1    = 0
+	   0.Busy_1    = 0
+	   0.Kill_1    = 0
+	   0.Enable_1  = 0
+	   0.Source_4  = 0
+	   0.DivI_12   = 0
+	   0.DivF_12   = 0
     ),
 );
 
