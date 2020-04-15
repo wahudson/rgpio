@@ -357,12 +357,18 @@ y_clk::doit()
 	{
 	    bool		md = 0;		// modify flag
 	    rgClk		*clx;
+	    const char*		cs;		// clk name string
 
 	    clx = Cpx[ii];
 
 	    if ( clx == NULL ) {
 		continue;
 	    }
+
+	// Heading
+	    cs = clx->cstr_clk_enum( clx->get_clk_enum() );
+
+	    cout << cs << ":" << endl;		// full clock name
 
 	    Opx.trace_msg( "Grab regs" );
 	    clx->grab_regs();
@@ -414,15 +420,10 @@ y_clk::doit()
 
 	// Output
 
-	    const char*		cs;		// clk name string
-	    string		cp  ( "  " );	// output prefix
-
-	    cs = clx->cstr_clk_enum( clx->get_clk_enum() );
+	    string		cp  ( "   " );	// output prefix
 
 	    // prefix clock number as an integer, looks clean
 	    cp += to_string( clx->get_clk_enum() ) + ".";
-
-	    cout << cs << ":" << endl;		// full clock name
 
 	    cout.fill('0');
 	    cout <<hex
