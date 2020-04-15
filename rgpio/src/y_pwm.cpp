@@ -513,14 +513,14 @@ y_pwm::doit()
 
 	    cout.fill('0');
 	    cout <<hex
-		<< "   Cntl=     0x" <<setw(8) << Pwx.Cntl.get()     <<endl
-		<< "   Stat=     0x" <<setw(8) << Pwx.Stat.get()     <<endl
-		<< "   DmaConf=  0x" <<setw(8) << Pwx.DmaConf.get()  <<endl
-		<< "   Fifo=     0x" <<setw(8) << Pwx.Fifo.read()     <<endl
-		<< "   Ch2Range= 0x" <<setw(8) << Pwx.Ch2Range.get() <<endl
-		<< "   Ch2Data=  0x" <<setw(8) << Pwx.Ch2Data.get()  <<endl
-		<< "   Ch1Range= 0x" <<setw(8) << Pwx.Ch1Range.get() <<endl
-		<< "   Ch1Data=  0x" <<setw(8) << Pwx.Ch1Data.get()  <<endl
+		<< "   Cntl      = 0x" <<setw(8) << Pwx.Cntl.get()     <<endl
+		<< "   Stat      = 0x" <<setw(8) << Pwx.Stat.get()     <<endl
+		<< "   DmaConf   = 0x" <<setw(8) << Pwx.DmaConf.get()  <<endl
+		<< "   Fifo      = 0x" <<setw(8) << Pwx.Fifo.read()     <<endl
+		<< "   Ch2Range  = 0x" <<setw(8) << Pwx.Ch2Range.get() <<endl
+		<< "   Ch2Data   = 0x" <<setw(8) << Pwx.Ch2Data.get()  <<endl
+		<< "   Ch1Range  = 0x" <<setw(8) << Pwx.Ch1Range.get() <<endl
+		<< "   Ch1Data   = 0x" <<setw(8) << Pwx.Ch1Data.get()  <<endl
 		;
 		// Fifo for debug, is (WO), is not in grab_regs()
 
