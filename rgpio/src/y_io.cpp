@@ -38,14 +38,15 @@ class io_yOptLong : public yOption {
 
   public:	// option values
 
-    bool		hex;
+    // Beware namespace clash with 'hex' io manipulator.
     bool		bin;
 
-    bool		fsel;
     bool		w0;
     bool		w1;
+    bool		fsel;
     bool		pud;
     bool		all;
+    bool		raw;
 
     const char*		set;
     const char*		clr;
@@ -56,11 +57,49 @@ class io_yOptLong : public yOption {
     bool		debug;
     bool		TESTOP;
 
+  public:	// register args
+
+    bool		PinLevel_w0;
+    bool		PinLevel_w1;
+    bool		EventStatus_w0;
+    bool		EventStatus_w1;
+    bool		rgPinSet_w0;
+    bool		rgPinSet_w1;
+    bool		rgPinClr_w0;
+    bool		rgPinClr_w1;
+    bool		rgPinRead_w0;
+    bool		rgPinRead_w1;
+    bool		rgEventStatus_w0;
+    bool		rgEventStatus_w1;
+    bool		rgDetectRising_w0;
+    bool		rgDetectRising_w1;
+    bool		rgDetectFalling_w0;
+    bool		rgDetectFalling_w1;
+    bool		rgDetectHigh_w0;
+    bool		rgDetectHigh_w1;
+    bool		rgDetectLow_w0;
+    bool		rgDetectLow_w1;
+    bool		rgDetectAsyncRising_w0;
+    bool		rgDetectAsyncRising_w1;
+    bool		rgDetectAsyncFalling_w0;
+    bool		rgDetectAsyncFalling_w1;
+    bool		rgPullUpDown;
+    bool		rgPullUpDownClk_w0;
+    bool		rgPullUpDownClk_w1;
+    bool		rgFsel0;
+    bool		rgFsel1;
+    bool		rgFsel2;
+    bool		rgFsel3;
+    bool		rgFsel4;
+    bool		rgFsel5;
+
   public:	// data values
 
     bool		modify;
     uint32_t		mask_n;
     uint32_t		value_n;
+
+    rgIoPin		*Gpxx;		// for register operations
 
   public:
 //    io_yOptLong( int argc,  char* argv[] );	// constructor
@@ -69,6 +108,8 @@ class io_yOptLong : public yOption {
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
+    void		do_reg( rgIoPin::rgIoReg_enum reg );
+    void		out_reg( const char* name,  uint32_t val );
 };
 
 
@@ -81,14 +122,14 @@ class io_yOptLong : public yOption {
 io_yOptLong::io_yOptLong( yOption  *opx )
     : yOption( opx )
 {
-    hex         = 0;
     bin         = 0;
 
-    fsel        = 0;
     w0          = 0;
     w1          = 0;
+    fsel        = 0;
     pud         = 0;
     all         = 0;
+    raw         = 0;
 
     set         = "";
     clr         = "";
@@ -98,6 +139,40 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     verbose     = 0;
     debug       = 0;
     TESTOP      = 0;
+			// register args
+    PinLevel_w0             = 0;
+    PinLevel_w1             = 0;
+    EventStatus_w0          = 0;
+    EventStatus_w1          = 0;
+    rgPinSet_w0             = 0;
+    rgPinSet_w1             = 0;
+    rgPinClr_w0             = 0;
+    rgPinClr_w1             = 0;
+    rgPinRead_w0            = 0;
+    rgPinRead_w1            = 0;
+    rgEventStatus_w0        = 0;
+    rgEventStatus_w1        = 0;
+    rgDetectRising_w0       = 0;
+    rgDetectRising_w1       = 0;
+    rgDetectFalling_w0      = 0;
+    rgDetectFalling_w1      = 0;
+    rgDetectHigh_w0         = 0;
+    rgDetectHigh_w1         = 0;
+    rgDetectLow_w0          = 0;
+    rgDetectLow_w1          = 0;
+    rgDetectAsyncRising_w0  = 0;
+    rgDetectAsyncRising_w1  = 0;
+    rgDetectAsyncFalling_w0 = 0;
+    rgDetectAsyncFalling_w1 = 0;
+    rgPullUpDown            = 0;
+    rgPullUpDownClk_w0      = 0;
+    rgPullUpDownClk_w1      = 0;
+    rgFsel0                 = 0;
+    rgFsel1                 = 0;
+    rgFsel2                 = 0;
+    rgFsel3                 = 0;
+    rgFsel4                 = 0;
+    rgFsel5                 = 0;
 
     modify      = 0;
     mask_n      = 0;
@@ -113,14 +188,13 @@ io_yOptLong::parse_options()
 {
     while ( this->next() )
     {
-	     if ( is( "--hex"        )) { hex        = 1; }
-	else if ( is( "--bin"        )) { bin        = 1; }
-
-	else if ( is( "--fsel"       )) { fsel       = 1; }
+	     if ( is( "--bin"        )) { bin        = 1; }
 	else if ( is( "--w0"         )) { w0         = 1; }
 	else if ( is( "--w1"         )) { w1         = 1; }
+	else if ( is( "--fsel"       )) { fsel       = 1; }
 	else if ( is( "--pud"        )) { pud        = 1; }
 	else if ( is( "--all"        )) { all        = 1; }
+	else if ( is( "--raw"        )) { raw        = 1; }
 
 	else if ( is( "--set="       )) { set        = this->val(); }
 	else if ( is( "--clr="       )) { clr        = this->val(); }
@@ -142,12 +216,13 @@ io_yOptLong::parse_options()
     if ( !( (get_argc() > 0) || w0 || w1 || fsel || pud || all ) ) {
 	// no reg specified
 	w0 = 1;
+	w1 = 1;
     }
 
     if ( all ) {	// show all register groups
-	fsel =1;
 	w0   =1;
 	w1   =1;
+	fsel =1;
 	pud  =1;
     }
 
@@ -186,6 +261,108 @@ io_yOptLong::parse_options()
     }
 
     modify = ( *clr || *set || *mask || *value );
+
+    if ( modify ) {
+	if ( w0 || w1 || fsel || pud || all ) {
+	    Error::msg( "modification invalid with --w0 --w1 --fsel --pud --all\n" );
+	}
+	// To avoid accidental broad changes.
+    }
+
+    if ( w0 ) {
+	if ( raw ) {
+	    rgPinSet_w0             = 1;
+	    rgPinClr_w0             = 1;
+	    rgPinRead_w0            = 1;
+	    rgEventStatus_w0        = 1;
+	}
+	else {
+	    PinLevel_w0             = 1;
+	    EventStatus_w0          = 1;
+	}
+	rgDetectRising_w0       = 1;
+	rgDetectFalling_w0      = 1;
+	rgDetectHigh_w0         = 1;
+	rgDetectLow_w0          = 1;
+	rgDetectAsyncRising_w0  = 1;
+	rgDetectAsyncFalling_w0 = 1;
+    }
+
+    if ( w1 ) {
+	if ( raw ) {
+	    rgPinSet_w1             = 1;
+	    rgPinClr_w1             = 1;
+	    rgPinRead_w1            = 1;
+	    rgEventStatus_w1        = 1;
+	}
+	else {
+	    PinLevel_w1             = 1;
+	    EventStatus_w1          = 1;
+	}
+	rgDetectRising_w1       = 1;
+	rgDetectFalling_w1      = 1;
+	rgDetectHigh_w1         = 1;
+	rgDetectLow_w1          = 1;
+	rgDetectAsyncRising_w1  = 1;
+	rgDetectAsyncFalling_w1 = 1;
+    }
+
+    if ( pud ) {
+	rgPullUpDown            = 1;
+	rgPullUpDownClk_w0      = 1;
+	rgPullUpDownClk_w1      = 1;
+    }
+
+    if ( fsel ) {
+	rgFsel0                 = 1;
+	rgFsel1                 = 1;
+	rgFsel2                 = 1;
+	rgFsel3                 = 1;
+	rgFsel4                 = 1;
+	rgFsel5                 = 1;
+    }
+
+    while ( get_argc() > 0 )		// Register arguments
+    {
+	     if ( is( "PinLevel_w0"           )) { PinLevel_w0           = 1; }
+	else if ( is( "PinLevel_w1"           )) { PinLevel_w1           = 1; }
+	else if ( is( "EventStatus_w0"        )) { EventStatus_w0        = 1; }
+	else if ( is( "EventStatus_w1"        )) { EventStatus_w1        = 1; }
+	else if ( is( "rgPinSet_w0"           )) { rgPinSet_w0           = 1; }
+	else if ( is( "rgPinSet_w1"           )) { rgPinSet_w1           = 1; }
+	else if ( is( "rgPinClr_w0"           )) { rgPinClr_w0           = 1; }
+	else if ( is( "rgPinClr_w1"           )) { rgPinClr_w1           = 1; }
+	else if ( is( "rgPinRead_w0"          )) { rgPinRead_w0          = 1; }
+	else if ( is( "rgPinRead_w1"          )) { rgPinRead_w1          = 1; }
+	else if ( is( "rgEventStatus_w0"      )) { rgEventStatus_w0      = 1; }
+	else if ( is( "rgEventStatus_w1"      )) { rgEventStatus_w1      = 1; }
+	else if ( is( "rgDetectRising_w0"     )) { rgDetectRising_w0     = 1; }
+	else if ( is( "rgDetectRising_w1"     )) { rgDetectRising_w1     = 1; }
+	else if ( is( "rgDetectFalling_w0"    )) { rgDetectFalling_w0    = 1; }
+	else if ( is( "rgDetectFalling_w1"    )) { rgDetectFalling_w1    = 1; }
+	else if ( is( "rgDetectHigh_w0"       )) { rgDetectHigh_w0       = 1; }
+	else if ( is( "rgDetectHigh_w1"       )) { rgDetectHigh_w1       = 1; }
+	else if ( is( "rgDetectLow_w0"        )) { rgDetectLow_w0        = 1; }
+	else if ( is( "rgDetectLow_w1"        )) { rgDetectLow_w1        = 1; }
+	else if ( is( "rgDetectAsyncRising_w0")) { rgDetectAsyncRising_w0= 1; }
+	else if ( is( "rgDetectAsyncRising_w1")) { rgDetectAsyncRising_w1= 1; }
+	else if ( is( "rgDetectAsyncFalling_w0")) { rgDetectAsyncFalling_w0= 1;}
+	else if ( is( "rgDetectAsyncFalling_w1")) { rgDetectAsyncFalling_w1= 1;}
+	else if ( is( "rgPullUpDown"          )) { rgPullUpDown          = 1; }
+	else if ( is( "rgPullUpDownClk_w0"    )) { rgPullUpDownClk_w0    = 1; }
+	else if ( is( "rgPullUpDownClk_w1"    )) { rgPullUpDownClk_w1    = 1; }
+	else if ( is( "rgFsel0"               )) { rgFsel0               = 1; }
+	else if ( is( "rgFsel1"               )) { rgFsel1               = 1; }
+	else if ( is( "rgFsel2"               )) { rgFsel2               = 1; }
+	else if ( is( "rgFsel3"               )) { rgFsel3               = 1; }
+	else if ( is( "rgFsel4"               )) { rgFsel4               = 1; }
+	else if ( is( "rgFsel5"               )) { rgFsel5               = 1; }
+	else {
+	    Error::msg( "unknown register:  " ) << this->current_option() <<endl;
+	}
+
+	next_arg();
+    }
 }
 
 
@@ -197,13 +374,12 @@ io_yOptLong::print_option_flags()
 {
     // Beware namespace clash with 'hex'.
 
-    cout << "--hex         = " << hex          << endl;
-    cout << "--bin         = " << bin          << endl;
-    cout << "--fsel        = " << fsel         << endl;
     cout << "--w0          = " << w0           << endl;
     cout << "--w1          = " << w1           << endl;
+    cout << "--fsel        = " << fsel         << endl;
     cout << "--pud         = " << pud          << endl;
     cout << "--all         = " << all          << endl;
+    cout << "--raw         = " << raw          << endl;
     cout << "--set         = " << set          << endl;
     cout << "--clr         = " << clr          << endl;
     cout << "--mask        = " << mask         << endl;
@@ -237,16 +413,18 @@ io_yOptLong::print_usage()
     cout <<
     "    IO pin operations\n"
     "usage:  " << ProgName << " io [options..]  [reg..]\n"
-    "    reg                 register enum name\n"
+    "    reg                 register name, rg* enum or pseudo name\n"
 //  "  output format:  (one of)\n"
 //  "    --hex               word format hexadecimal (default)\n"
 //  " #  --bin               word format binary\n"
     "  register groups:  (accumulate)\n"
-    "    --w0                word 0 registers (default)\n"
-    "    --w1                word 1 registers\n"
+    "    --w0                pin Level, Event, Detect word 0 (default)\n"
+    "    --w1                pin Level, Event, Detect word 1 (default)\n"
     "    --fsel              Fsel function select registers\n"
     "    --pud               pin PullUpDown registers\n"
-    "    --all               all registers plus PinSet, PinClr\n"
+    "    --all               all registers above\n"
+    "  register group modifiers on --w0 --w1:\n"
+    "    --raw               rg* instead of pseudo PinLevel, EventStatus\n"
     "  modify:  (32-bit values)\n"
     "    --set=0xff..        set mask bits\n"
     "    --clr=0xff..        clear mask bits\n"
@@ -262,6 +440,45 @@ io_yOptLong::print_usage()
 
 // Hidden options:
 //       --TESTOP       test mode show all options
+}
+
+
+/*
+* Apply modification and output enum register.
+*/
+void
+io_yOptLong::do_reg( rgIoPin::rgIoReg_enum reg )
+{
+    if (      *(this->set) ) {
+	this->Gpxx->set_reg( reg, this->mask_n );
+    }
+    else if ( *(this->clr) ) {
+	this->Gpxx->clr_reg( reg, this->mask_n );
+    }
+    else if ( this->mask_n ) {
+	this->Gpxx->modify_reg( reg, this->mask_n, this->value_n );
+    }
+
+    out_reg( rgIoPin::str_IoReg_enum( reg ), this->Gpxx->read_reg( reg ) );
+}
+
+/*
+* Output register value in hex and binary.
+*/
+void
+io_yOptLong::out_reg( const char* name,  uint32_t vv )
+{
+    cout.fill('0');
+    cout <<std::hex << "0x" <<right <<setw(8)  << vv;
+
+    cout.fill(' ');
+    cout << "  " <<left <<setw(23) << name;
+
+    if ( this->verbose ) {
+	cout << "  " << cstr_bits32( vv );
+    }
+
+    cout <<std::dec <<right <<endl;	// restore defaults
 }
 
 
@@ -300,6 +517,8 @@ y_io::doit()
 
 	rgIoPin			Gpx  ( AddrMap );	// constructor
 
+	Opx.Gpxx = &Gpx;	// for register operations
+
 	if ( Opx.debug ) {
 	    cout.fill('0');
 	    cout <<hex;
@@ -309,157 +528,78 @@ y_io::doit()
 		 << "  addr rgPinRead_w0" <<endl;
 	}
 
-	const int		RegLimit = 30;
-	rgIoPin::rgIoReg_enum	regarg[RegLimit];	// arg registers
-	int			regcnt = 0;
-	char			*arg;
-
-    // Register groups
-	if ( Opx.fsel ) {
-	    regarg[regcnt++] = rgIoPin::rgFsel0;
-	    regarg[regcnt++] = rgIoPin::rgFsel1;
-	    regarg[regcnt++] = rgIoPin::rgFsel2;
-	    regarg[regcnt++] = rgIoPin::rgFsel3;
-	    regarg[regcnt++] = rgIoPin::rgFsel4;
-	    regarg[regcnt++] = rgIoPin::rgFsel5;
-	}
-
-	if ( Opx.w0 ) {
-	    regarg[regcnt++] = rgIoPin::rgPinRead_w0;
-	    regarg[regcnt++] = rgIoPin::rgEventStatus_w0;
-	    regarg[regcnt++] = rgIoPin::rgDetectRising_w0;
-	    regarg[regcnt++] = rgIoPin::rgDetectFalling_w0;
-	    regarg[regcnt++] = rgIoPin::rgDetectHigh_w0;
-	    regarg[regcnt++] = rgIoPin::rgDetectLow_w0;
-	    regarg[regcnt++] = rgIoPin::rgDetectAsyncRising_w0;
-	    regarg[regcnt++] = rgIoPin::rgDetectAsyncFalling_w0;
-	}
-
-	if ( Opx.w1 ) {
-	    regarg[regcnt++] = rgIoPin::rgPinRead_w1;
-	    regarg[regcnt++] = rgIoPin::rgEventStatus_w1;
-	    regarg[regcnt++] = rgIoPin::rgDetectRising_w1;
-	    regarg[regcnt++] = rgIoPin::rgDetectFalling_w1;
-	    regarg[regcnt++] = rgIoPin::rgDetectHigh_w1;
-	    regarg[regcnt++] = rgIoPin::rgDetectLow_w1;
-	    regarg[regcnt++] = rgIoPin::rgDetectAsyncRising_w1;
-	    regarg[regcnt++] = rgIoPin::rgDetectAsyncFalling_w1;
-	}
-
-	if ( Opx.pud ) {
-	    regarg[regcnt++] = rgIoPin::rgPullUpDown;
-	    regarg[regcnt++] = rgIoPin::rgPullUpDownClk_w0;
-	    regarg[regcnt++] = rgIoPin::rgPullUpDownClk_w1;
-	}
-
-	if ( Opx.all ) {
-	    regarg[regcnt++] = rgIoPin::rgPinSet_w0;
-	    regarg[regcnt++] = rgIoPin::rgPinSet_w1;
-	    regarg[regcnt++] = rgIoPin::rgPinClr_w0;
-	    regarg[regcnt++] = rgIoPin::rgPinClr_w1;
-	}
-
-    // Argument register list
-	while ( (arg = Opx.next_arg()) )
-	{
-	    try {
-		regarg[regcnt] = rgIoPin::find_IoReg_enum( arg );
-		regcnt++;
-	    }
-	    catch ( range_error& e ) {
-		Error::msg( "unknown register:  " ) << arg <<endl
-		    << "    " <<  e.what() << endl;
-	    }
-
-	    if ( regcnt > RegLimit ) {
-		Error::msg( "max register args:  " ) << RegLimit <<endl;
-		break;
-	    }
-	}
-	if ( Error::has_err() )  return 1;
-
 	if ( Opx.verbose ) {
 	    cout << "IO Pin Registers:                      28   24   20   16   12    8    4    0" << endl;
 	}
 
-    // Process registers
-	if ( Opx.modify ) {
-	    cout << "Modify:" << endl;
+#define APPLX( X ) if ( Opx.X ) { Opx.do_reg( rgIoPin::X ); }
+
+	if ( Opx.PinLevel_w0 ) {
+	    if (      *(Opx.set) ) { Gpx.set_PinLevel_w0( Opx.mask_n ); }
+	    else if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w0( Opx.mask_n ); }
+	    else if ( Opx.mask_n ) {
+		Gpx.set_PinLevel_w0( Opx.mask_n &    Opx.value_n  );
+		Gpx.clr_PinLevel_w0( Opx.mask_n & (~ Opx.value_n) );
+	    }
+	    Opx.out_reg( "PinLevel_w0", Gpx.read_PinLevel_w0() );
 	}
 
-	for ( int ii=0;  ii<regcnt;  ii++ )
-	{
-	    rgIoPin::rgIoReg_enum	reg = regarg[ii];
-	    bool			ok = 0;
-
-	    if ( Opx.modify ) {
-
-		if (      (reg == rgIoPin::rgPinSet_w0) && *Opx.set ) {
-				   Gpx.set_PinLevel_w0( Opx.mask_n );
-		    ok = 1;
-		}
-		else if ( (reg == rgIoPin::rgPinSet_w1) && *Opx.set ) {
-				   Gpx.set_PinLevel_w1( Opx.mask_n );
-		    ok = 1;
-		}
-		else if ( (reg == rgIoPin::rgPinClr_w0) && *Opx.clr ) {
-				   Gpx.clr_PinLevel_w0( Opx.mask_n );
-		    ok = 1;
-		}
-		else if ( (reg == rgIoPin::rgPinClr_w1) && *Opx.clr ) {
-				   Gpx.clr_PinLevel_w1( Opx.mask_n );
-		    ok = 1;
-		}
-		else if ( (reg == rgIoPin::rgPinRead_w0) ||
-			  (reg == rgIoPin::rgPinRead_w1) ) {
-		    ok = 0;	// read-only
-		}
-		else if ( (reg == rgIoPin::rgEventStatus_w0) && *Opx.clr ) {
-				     Gpx.clr_EventStatus_w0( Opx.mask_n );
-		    ok = 1;
-		}
-		else if ( (reg == rgIoPin::rgEventStatus_w1) && *Opx.clr ) {
-				     Gpx.clr_EventStatus_w1( Opx.mask_n );
-		    ok = 1;
-		}
-		else {		// generic register
-		    if ( *Opx.set ) {
-			Gpx.set_reg( reg, Opx.mask_n );
-		    }
-		    else if ( *Opx.clr ) {
-			Gpx.clr_reg( reg, Opx.mask_n );
-		    }
-		    else {
-			Gpx.modify_reg( reg, Opx.mask_n, Opx.value_n );
-		    }
-		    ok = 1;
-		}
-
-		if ( ! ok ) {
-		    Error::msg( "inappropriate operation on register:  " )
-			<< Gpx.str_IoReg_enum( reg ) <<endl;
-		    continue;
-		}
-	    }
-
-	    uint32_t	vv = Gpx.read_reg( reg );
-
-	    if ( Opx.verbose ) {
-		cout <<setfill('0')
-		     << "0x" <<setw(8)  <<hex  << vv
-		     <<setfill(' ')
-		     << "  " <<setw(23) <<left << Gpx.str_IoReg_enum( reg )
-		     << "  "                   << cstr_bits32( vv )
-		     <<endl;
-	    }
-	    else {
-		cout <<setfill('0')
-		     << "0x" <<setw(8)  <<hex  << vv
-		     << "  "                   << Gpx.str_IoReg_enum( reg )
-		     <<endl;
-	    }
+	if ( Opx.EventStatus_w0 ) {
+	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w0( Opx.mask_n ); }
+	    Opx.out_reg( "EventStatus_w0", Gpx.read_EventStatus_w0() );
 	}
-	cout.fill(' ');
+
+	APPLX( rgPinSet_w0             )
+	APPLX( rgPinClr_w0             )
+	APPLX( rgPinRead_w0            )
+	APPLX( rgEventStatus_w0        )
+	APPLX( rgDetectRising_w0       )
+	APPLX( rgDetectFalling_w0      )
+	APPLX( rgDetectHigh_w0         )
+	APPLX( rgDetectLow_w0          )
+	APPLX( rgDetectAsyncRising_w0  )
+	APPLX( rgDetectAsyncFalling_w0 )
+
+	if ( Opx.w1 && (Opx.w0) ) { cout <<endl; }
+
+	if ( Opx.PinLevel_w1 ) {
+	    if (      *(Opx.set) ) { Gpx.set_PinLevel_w1( Opx.mask_n ); }
+	    else if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w1( Opx.mask_n ); }
+	    else if ( Opx.mask_n ) {
+		Gpx.set_PinLevel_w1( Opx.mask_n &    Opx.value_n  );
+		Gpx.clr_PinLevel_w1( Opx.mask_n & (~ Opx.value_n) );
+	    }
+	    Opx.out_reg( "PinLevel_w1", Gpx.read_PinLevel_w1() );
+	}
+
+	if ( Opx.EventStatus_w1 ) {
+	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w1( Opx.mask_n ); }
+	    Opx.out_reg( "EventStatus_w1", Gpx.read_EventStatus_w1() );
+	}
+
+	APPLX( rgPinSet_w1             )
+	APPLX( rgPinClr_w1             )
+	APPLX( rgPinRead_w1            )
+	APPLX( rgEventStatus_w1        )
+	APPLX( rgDetectRising_w1       )
+	APPLX( rgDetectFalling_w1      )
+	APPLX( rgDetectHigh_w1         )
+	APPLX( rgDetectLow_w1          )
+	APPLX( rgDetectAsyncRising_w1  )
+	APPLX( rgDetectAsyncFalling_w1 )
+
+	if ( Opx.pud && (Opx.w0 || Opx.w1) ) { cout <<endl; }
+	APPLX( rgPullUpDown            )
+	APPLX( rgPullUpDownClk_w0      )
+	APPLX( rgPullUpDownClk_w1      )
+
+	if ( Opx.fsel && (Opx.w0 || Opx.w1 || Opx.pud) ) { cout <<endl; }
+	APPLX( rgFsel0                 )
+	APPLX( rgFsel1                 )
+	APPLX( rgFsel2                 )
+	APPLX( rgFsel3                 )
+	APPLX( rgFsel4                 )
+	APPLX( rgFsel5                 )
 
     }
     catch ( std::exception& e ) {

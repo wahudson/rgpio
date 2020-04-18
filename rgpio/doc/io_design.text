@@ -1,0 +1,421 @@
+2020-04-16
+		rgpio-io  IO Pins Design
+		------------------------
+
+Sub-commands:
+
+rgpio-io	All IO Pin register access.
+    Intended to provide access to the full IO register set, but not be the
+    best way to set every register.
+
+rgpio-fsel	Function Select registers.
+
+rgpio-pud	Pull Up/Down registers.
+
+
+----------------------------------------------------------------------------
+## Initial Version - before 2020-04-16
+----------------------------------------------------------------------------
+
+    % rgpio io --help
+	IO pin operations
+    usage:  rgpio io [options..]  [reg..]
+	reg                 register enum name
+      register groups:  (accumulate)
+	--w0                word 0 registers (default)
+	--w1                word 1 registers
+	--fsel              Fsel function select registers
+	--pud               pin PullUpDown registers
+	--all               all registers plus PinSet, PinClr
+      modify:  (32-bit values)
+	--set=0xff..        set mask bits
+	--clr=0xff..        clear mask bits
+	--mask=0xff..       mask to select bits of --value
+	--value=0x00..      bit values selected by --mask
+      options:
+	--help              show this usage
+	-v, --verbose       verbose output, show registers in binary
+	--debug             debug output
+      (options with GNU= only)
+
+    The initial version provided access to all the IO (Input Output) registers
+    in a simple direct manner.  Good to get started, but several issues became
+    apparent.
+
+    The register groups work great for selecting a useful subset of registers
+    for display, but really bad for modification.  Probably don't want to set
+    a whole group to the same value, especially --all or --fsel.
+    Also _w0 and _w1 of the same register are different IO pins, and so
+    probably don't want to set them to the same value.
+    This issue is a major pitfall, and all too easy to for user to accidentally
+    add modification with the --all option.
+
+    For the IO pin levels, three registers work together to provide atomic
+    access and modification:
+	rgPinRead_w0	read-only,  no write
+	rgPinSet_w0	set-only,   no read
+	rgPinClr_w0	clear-only, no read
+
+    Acting directly on these registers is good for display, but somewhat
+    awkward to get a bit pattern set.
+
+    The initial version would error on inappropriate operations, like
+    writing a read-only register.  A good warning, but contributed to the
+    awkwardness.
+
+     % rgpio io --all
+     0x00000000  rgFsel0
+     0x00000000  rgFsel1
+     0x00000000  rgFsel2
+     0x00000000  rgFsel3
+     0x00000000  rgFsel4
+     0x00000000  rgFsel5
+     0x00000000  rgPinRead_w0
+     0x00000000  rgEventStatus_w0
+     0x00000000  rgDetectRising_w0
+     0x00000000  rgDetectFalling_w0
+     0x00000000  rgDetectHigh_w0
+     0x00000000  rgDetectLow_w0
+     0x00000000  rgDetectAsyncRising_w0
+     0x00000000  rgDetectAsyncFalling_w0
+     0x00000000  rgPinRead_w1
+     0x00000000  rgEventStatus_w1
+     0x00000000  rgDetectRising_w1
+     0x00000000  rgDetectFalling_w1
+     0x00000000  rgDetectHigh_w1
+     0x00000000  rgDetectLow_w1
+     0x00000000  rgDetectAsyncRising_w1
+     0x00000000  rgDetectAsyncFalling_w1
+     0x00000000  rgPullUpDown
+     0x00000000  rgPullUpDownClk_w0
+     0x00000000  rgPullUpDownClk_w1
+     0x00000000  rgPinSet_w0
+     0x00000000  rgPinSet_w1
+     0x00000000  rgPinClr_w0
+     0x00000000  rgPinClr_w1
+
+----------------------------------------------------------------------------
+## Improvement Ideas  (2020-04-16)
+----------------------------------------------------------------------------
+
+Pseudo Registers:
+
+    Idea is to introduce pseudo-register names for registers that have
+    irregular methods of changing their value, i.e. not plain read/write.
+    These new names could then have the "do the right thing" behavior, and
+    the  rgIoPin::rgIoReg_enum  registers can have very literal write/set/clr
+    operations.
+    This idea already exists in the rgIoPin class as the "PinLevel
+    abstraction register".
+
+    PinLevel_w0
+	--read:  read rgPinRead_w0
+	--set:   set  rgPinSet_w0
+	--clr:   clr  rgPinClr_w0
+
+    EventStatus_w0
+	Writing a 1 clears that bit, writing 0 has no effect.
+	--read:  read rgEventStatus_w0
+	--clr:   set  rgEventStatus_w0  clears the bit
+	--set:   No operation, cannot set bits.
+
+    Note all registers can be read, even write-only registers.
+
+    Thus the display list could look like:
+	0x00000000  PinLevel_w0
+	0x00000000  rgPinRead_w0
+	0x00000000  rgPinSet_w0
+	0x00000000  rgPinClr_w0
+	0x00000000  EventStatus_w0
+	0x00000000  rgEventStatus_w0
+
+   The register name becomes the mechanism to indicate "do the right thing",
+   and no need for special options.
+
+Display vs Modification:
+
+    All these registers have no side-effects when read.
+
+    Any number of registers can be displayed together.  Great for read-only
+    viewing.
+
+    Modification of registers needs to be more focused.  Generally do not
+    want to modify the same bit in all registers.  However some groups,
+    like all the rgDetect*_w0 registers might make sense.
+
+    The existing groups work good for display:
+	--w0
+	--w1
+	--fsel
+	--pud
+	--all
+    Dis-allow modification of the display groups.
+
+    Make new groups for modification, if needed:
+	--detect --w0   rgDetect*_w0,  (--w0 default)
+	--detect --w1   rgDetect*_w1
+
+    Modification of enumerated registers in the argument list is fine, as
+    user intent is explicit.
+
+    An essential property is that the register modification options do not
+    change the register set selected.  This allows previewing the registers
+    to be modified.
+    
+Bit Range Caution:
+
+    On the RPi3:
+	Pins [27:0]   are available on header pins.
+	Pins [53:28]  may be used internally
+	Pins [63:54]  don't exist
+    On the Compute Module:
+	Pins [45:0]   are available
+
+    Idea is to provide some protection against accident.
+    Default is to dis-allow operation on (pins > 27).
+    We want to allow modification of anything, but avoid a gaping pitfall.
+
+    --Caution   option to allow modification of any bit position.
+    --Caution!
+    --CAUTION
+
+    This way the user is signaling his awareness of issues.
+    Kind of cute, but could get annoying on a Compute Module.
+
+ >  -f, --force
+
+    Is more common, and short -f more acceptable.
+
+Display Register Group options:
+
+    Seems like --w0 and --w1 should be modifiers to select a subset of
+    other register groups.
+
+	--fsel
+	--pud
+	--all
+
+	PinLevel_w0
+	rgPinRead_w0
+	rgPinSet_w0
+	rgPinClr_w0
+
+	EventStatus_w0
+	rgEventStatus_w0
+
+	rgDetectRising_w0
+	rgDetectFalling_w0
+	rgDetectHigh_w0
+	rgDetectLow_w0
+	rgDetectAsyncRising_w0
+	rgDetectAsyncFalling_w0
+
+    Maybe a name for PinLevel, EventStatus, and Detect registers, which seem
+    like a good group to always see together.  Avoid too many groups.
+ >	--io
+	--pin
+
+	--level
+	--event
+	--detect
+
+    Option to display pseudo register vs rg* enum register:
+    For reading, the pseudo register is the same as the rg* register, thus
+    kind of redundant to have both.
+    Let pseudo register be default, as it might be more common use.
+ >	--raw	display rg registers instead of pseudo registers
+	--real
+	--rg
+	I like --raw, as the pseudo register is kind of cooked.
+
+    Maybe separate register groups in display, similar to other features
+    like uspi or pwm.
+
+Usage Options:  (2020-04-17 not used)
+
+    usage:  rgpio io [options..]  [reg..]
+	reg                 register name, rg* enum or pseudo name
+      register groups:  (accumulate)
+	--io                pin Level, Event, and Detect registers (default)
+	--fsel              Fsel function select registers
+	--pud               pin PullUpDown registers
+	--all               all registers
+      register group modifiers:
+	--w0                word 0 registers (default)
+	--w1                word 1 registers
+	--raw               rg* registers instead of pseudo registers
+      modify:  (32-bit values)
+	--set=0xff..        set mask bits
+	--clr=0xff..        clear mask bits
+	--mask=0xff..       mask to select bits of --value
+	--value=0x00..      bit values selected by --mask
+      options:
+	--help              show this usage
+	-v, --verbose       verbose output, show registers in binary
+	--debug             debug output
+      (options with GNU= only)
+
+
+    Option combinations:
+
+    --all		All registers, pseudo, enum, w0 and w1
+    --all --w0		All w0, not rgFsel*, not rgPullUpDown
+    --all --w1		All w1, not rgFsel*, not rgPullUpDown
+
+    --all --raw		All registers, not pseudo PinLevel EventStatus
+
+    --io		PinLevel, EventStatus, rgDetect*,   --w0 default
+    --io --raw		rgPin*, rgEventStatus_*, rgDetect*, no pseudo
+
+    --io --w1		PinLevel, EventStatus, rgDetect*,   --w1 only
+    --io --w1 --raw	rgPin*, rgEventStatus_*, rgDetect*, no pseudo only
+
+    --io --w0		same as --io
+    --io --w0 --raw	same as --io --raw
+
+    Note the default behavior of --w0 is different with --all and --io.
+    This makes --all mean everything, which is more useful than having a
+    minor non-uniformity.
+    OR maybe let both --w0 --w1 be the default.  This would show the full
+    set of registers in each group (--io, --fsel, --pud)
+
+    [none]		same as --io --w0
+    --w0  	 	same as --io --w0
+    --w1  	 	same as --io --w1
+    --raw  	 	same as --io --w0 --raw
+
+    --pud		all rgPullUpDown*
+    --pud --w0		rgPullUpDown and rgPullUpDownClk_w0 only
+    --pud --w1		rgPullUpDown and rgPullUpDownClk_w1 only
+
+    Thus the --w0 and --w1 modifiers reduce the set of registers by exclusion
+    (instead of being additive operators).
+	--w0		Exclude *_w1 registers.
+	--w1		Exclude *_w0 registers.
+
+    Note --all --w0 excludes rgPullUpDownClk, and rgPullUpDownClk_w1, but
+    keeps rgPullUpDown_w0.  This is consistent.
+
+    The usage defines --w0 and --w1 in an inclusive sense, which is
+    intuitively easier to understand than exclusion.
+
+    The --raw modifier is more of a substitution operation.
+	[default]	show PinLevel, EventStatus;  not corresponding rg*
+	--raw		show only rg* registers, not PinLevel, not EventStatus
+
+Default for --w0 --w1:
+
+    A) --w0 is default
+	+ Show the most commonly used registers on RPi3.
+	+ Consistent.
+	-- Bad that --all does not show all registers by default.
+
+    B) both --w0 and --w1 is default
+	++ Show the full set of registers in each group (--io, --fsel, --pud)
+	- Must apply --w0 to restrict to common RPi3 situation.
+	- More clutter by default, when you want only w0.
+	+ Consistent.
+	+ Handy to not have to do --w0 --w1.
+
+ >  C) --w0 is default and --all be an exception to also show --w1.
+	+ Show the most commonly used registers on RPi3.
+	++ Common sense behavior.
+	- Minor exception.
+
+    I favor C), but B) could be good too.  (2020-04-17)
+    The trade-off seems to be (in default case) seeing extra w1 registers vs
+    having to apply --w0 --w1 to see all registers in a group.
+
+    Probably do NOT want --w0 to mean "show ONLY w0 registers".
+    Maybe B) is better.  Try it.
+
+IO register --io alternative:  (2020-04-17 did this)
+
+    The IO registers (PinLevel, EventStatus, and Detect*) are essentially
+    the only ones to have *_w0 and *_w1 (word0 and word1) registers.
+    [The rgPullUpDown registers are really operated in a different Feature.]
+    Thus the --io option could be replaced by:
+	--w0   IO registers word 0
+	--w1   IO registers word 1
+
+    Actually this was the meaning in the initial version, but was not
+    documented that way.
+    This would save one option, and everything could still work like above.
+    Could still have both --w0 and --w1 as default.
+
+    usage:  rgpio io [options..]  [reg..]
+	reg                 register name, rg* enum or pseudo name
+      register groups:  (accumulate)
+	--w0                pin Level, Event, Detect word 0 (default)
+	--w1                pin Level, Event, Detect word 1 (default)
+	--fsel              Fsel function select registers
+	--pud               pin PullUpDown registers
+	--all               all registers
+      register group modifiers on --w0, --w1:
+	--raw               rg* instead of pseudo PinLevel, EventStatus
+      modify:  (32-bit values)
+	--set=0xff..        set mask bits
+	--clr=0xff..        clear mask bits
+	--mask=0xff..       mask to select bits of --value
+	--value=0x00..      bit values selected by --mask
+      options:
+	--help              show this usage
+	-v, --verbose       verbose output, show registers in binary
+	--debug             debug output
+      (options with GNU= only)
+
+----------------------------------------------------------------------------
+## Internal Code
+----------------------------------------------------------------------------
+
+    The old version (before 2020-04-16) used an array to hold a list of
+    register enum values (rgIoPin::rgIoReg_enum).  It allowed duplicate
+    registers, and output all registers in the list order, which might
+    vary.  Not easy to separate the register groups on output.
+
+    Adding new pseudo register names reduces any advantage of uniformity.
+    Indexing an array by rgIoReg_enum is less useful, and is problematic
+    anyway.
+
+    Decide to adopt register handling method used in rgpio-uspi, where there
+    is a flag for each register.  In this case register names come from the
+    argument list, instead of options.  This structure seems to have the
+    best flexibility.
+
+----------------------------------------------------------------------------
+## Bit list output
+----------------------------------------------------------------------------
+
+    Idea is table with bit number down, and registers across.
+    Intended for display only, not modification modes?
+    Not intended for rgPullUpDown programming.
+
+    Argument list selects bit numbers to view.  Maybe with a range notation.
+
+    usage:  rgpio io --col [options..]  [bit..]
+
+    Essentially always show same set of register, with rgFsel* being encoded.
+    This eliminates the w0, w1 distinction, and bits go 0 to 53.
+    This gives about 9 columns of values, plus bit number column.
+
+    Heading label is challenging because of long names.
+
+    Bit  Fsel  Lev  Stat  Rise  Fall  High  Low   AsynRise  AsynFall
+    26   In    0    0     0     0     0     0     0         0
+    27   Alt2  0    0     0     0     0     0     0         0
+
+
+    Bit  Fsel
+    .    .     PinLevel
+    .    .     .     EventStatus
+    .    .     .     .     rgDetectRising
+    .    .     .     .     .     rgDetectFalling
+    .    .     .     .     .     .     rgDetectHigh
+    .    .     .     .     .     .     .     rgDetectLow
+    .    .     .     .     .     .     .     .     rgDetectAsyncRising
+    .    .     .     .     .     .     .     .     .     rgDetectAsyncFalling
+    26   In    0     0     0     0     0     0     0     0
+    27   Alt2  0     0     0     0     0     0     0     0
+
+    Looks great!  Maybe in future.  (2020-04-17)
+
