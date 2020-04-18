@@ -365,6 +365,63 @@ IO register --io alternative:  (2020-04-17 did this)
       (options with GNU= only)
 
 ----------------------------------------------------------------------------
+## Error Handling - register access
+----------------------------------------------------------------------------
+
+    For the rgpio-io command, how should non-read/write registers be handled?
+
+    Operations that cannot complete correctly should draw an error.
+    Generally want no operation to complete if any operation would be
+    an error, where practical.
+
+    Registers that are not normal read/write tend to have exceptions.
+
+    Note all registers can be read, but may always return zero.
+    Thus reading should not be an error.  Let user see register value.
+
+    Here:
+	Set	- means writing 1 results in register bit becoming 1.
+		--set=MASK  write the MASK value to the register.
+
+	Clr	- means writing 1 results in register bit becoming 0.
+		--clr=MASK  write the MASK value to the register.
+
+	Modify	- means read and modify with (mask, value).
+		--mask=M --value=V
+
+    Want the --set and --clr to have the intuitive meaning.
+    For these special registers, it means literally writing the pattern
+    to the register.
+    For read/write registers, it means read/modify/write to affect only
+    the bits in the mask.
+
+    Read-only:   (e.g. rgPinRead_w0)
+	Error on {Set, Clr, Modify} operation.
+
+    Set-only:    (e.g. rgPinSet_w0)
+	Error on {Clr, Modify} operation.
+	--set=MASK  writes MASK directly to register
+
+    Clear-only:  (e.g. rgPinClr_w0)
+	Error on {Set, Modify} operation.
+	--clr=MASK  writes MASK directly to register
+
+    Read-clear:  (e.g. rgEventStatus_w0)
+	Error on {Set, Modify} operation.
+	--clr=MASK  writes MASK directly to register
+
+    Read/write:  (e.g. rgDetectLow_w0)
+	No errors.
+	Is a read/modify/write operation.
+	--set=MASK  writes (Read | MASK)    directly to register
+	--clr=MASK  writes (Read & (~MASK)) directly to register
+	--mask=MASK --value=V  writes ((Read & ~MASK) | (V & MASK))
+
+    I did try mixing Error messages with successful register modification.
+    The results seemed a bit messy.
+    Decided to flag errors before attempting modification.  (2020-04-17)
+
+----------------------------------------------------------------------------
 ## Internal Code
 ----------------------------------------------------------------------------
 
@@ -381,6 +438,14 @@ IO register --io alternative:  (2020-04-17 did this)
     is a flag for each register.  In this case register names come from the
     argument list, instead of options.  This structure seems to have the
     best flexibility.
+
+Output registers:
+
+    Output is in same order regardless of argument list order.
+
+    Having the registers always output in the same order works out quite
+    nice, and works well with human sense of spatial location.
+    Blank lines separating register groups also helps (e.g. --all).
 
 ----------------------------------------------------------------------------
 ## Bit list output

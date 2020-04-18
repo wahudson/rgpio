@@ -108,7 +108,8 @@ class io_yOptLong : public yOption {
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
-    void		do_reg( rgIoPin::rgIoReg_enum reg );
+    void		do_reg(  rgIoPin::rgIoReg_enum reg );
+    void		out_reg( rgIoPin::rgIoReg_enum reg );
     void		out_reg( const char* name,  uint32_t val );
 };
 
@@ -363,6 +364,43 @@ io_yOptLong::parse_options()
 
 	next_arg();
     }
+
+    if ( modify ) {
+	if (                          rgPinSet_w0      && !(*set) ) {
+	    Error::msg(   "set only:  rgPinSet_w0"      ) <<endl;
+	}
+	if (                          rgPinSet_w1      && !(*set) ) {
+	    Error::msg(   "set only:  rgPinSet_w1"      ) <<endl;
+	}
+
+	if (                          rgPinClr_w0      && !(*clr) ) {
+	    Error::msg( "clear only:  rgPinClr_w0"      ) <<endl;
+	}
+	if (                          rgPinClr_w1      && !(*clr) ) {
+	    Error::msg( "clear only:  rgPinClr_w1"      ) <<endl;
+	}
+
+	if (                          rgPinRead_w0                ) {
+	    Error::msg(  "read only:  rgPinRead_w0"     ) <<endl;
+	}
+	if (                          rgPinRead_w1                ) {
+	    Error::msg(  "read only:  rgPinRead_w1"     ) <<endl;
+	}
+
+	if (                          EventStatus_w0   && !(*clr) ) {
+	    Error::msg( "clear only:  EventStatus_w0"   ) <<endl;
+	}
+	if (                          EventStatus_w1   && !(*clr) ) {
+	    Error::msg( "clear only:  EventStatus_w1"   ) <<endl;
+	}
+
+	if (                          rgEventStatus_w0 && !(*clr) ) {
+	    Error::msg( "clear only:  rgEventStatus_w0" ) <<endl;
+	}
+	if (                          rgEventStatus_w1 && !(*clr) ) {
+	    Error::msg( "clear only:  rgEventStatus_w1" ) <<endl;
+	}
+    }
 }
 
 
@@ -459,6 +497,15 @@ io_yOptLong::do_reg( rgIoPin::rgIoReg_enum reg )
 	this->Gpxx->modify_reg( reg, this->mask_n, this->value_n );
     }
 
+    out_reg( reg );
+}
+
+/*
+* Output enum register.
+*/
+void
+io_yOptLong::out_reg( rgIoPin::rgIoReg_enum reg )
+{
     out_reg( rgIoPin::str_IoReg_enum( reg ), this->Gpxx->read_reg( reg ) );
 }
 
@@ -536,6 +583,7 @@ y_io::doit()
 
 #define APPLX( X ) if ( Opx.X ) { Opx.do_reg( rgIoPin::X ); }
 
+    // Word 0
 	if ( Opx.PinLevel_w0 ) {
 	    if (      *(Opx.set) ) { Gpx.set_PinLevel_w0( Opx.mask_n ); }
 	    else if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w0( Opx.mask_n ); }
@@ -551,10 +599,25 @@ y_io::doit()
 	    Opx.out_reg( "EventStatus_w0", Gpx.read_EventStatus_w0() );
 	}
 
-	APPLX( rgPinSet_w0             )
-	APPLX( rgPinClr_w0             )
-	APPLX( rgPinRead_w0            )
-	APPLX( rgEventStatus_w0        )
+	if ( Opx.rgPinSet_w0 ) {
+	    if ( *(Opx.set) ) { Gpx.set_PinLevel_w0( Opx.mask_n ); }
+	    Opx.out_reg( rgIoPin::rgPinSet_w0 );
+	}
+
+	if ( Opx.rgPinClr_w0 ) {
+	    if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w0( Opx.mask_n ); }
+	    Opx.out_reg( rgIoPin::rgPinClr_w0 );
+	}
+
+	if ( Opx.rgPinRead_w0 ) {
+	    Opx.out_reg( rgIoPin::rgPinRead_w0 );
+	}
+
+	if ( Opx.rgEventStatus_w0 ) {
+	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w0( Opx.mask_n ); }
+	    Opx.out_reg( rgIoPin::rgEventStatus_w0 );
+	}
+
 	APPLX( rgDetectRising_w0       )
 	APPLX( rgDetectFalling_w0      )
 	APPLX( rgDetectHigh_w0         )
@@ -562,6 +625,7 @@ y_io::doit()
 	APPLX( rgDetectAsyncRising_w0  )
 	APPLX( rgDetectAsyncFalling_w0 )
 
+    // Word 1
 	if ( Opx.w1 && (Opx.w0) ) { cout <<endl; }
 
 	if ( Opx.PinLevel_w1 ) {
@@ -579,10 +643,25 @@ y_io::doit()
 	    Opx.out_reg( "EventStatus_w1", Gpx.read_EventStatus_w1() );
 	}
 
-	APPLX( rgPinSet_w1             )
-	APPLX( rgPinClr_w1             )
-	APPLX( rgPinRead_w1            )
-	APPLX( rgEventStatus_w1        )
+	if ( Opx.rgPinSet_w1 ) {
+	    if ( *(Opx.set) ) { Gpx.set_PinLevel_w1( Opx.mask_n ); }
+	    Opx.out_reg( rgIoPin::rgPinSet_w1 );
+	}
+
+	if ( Opx.rgPinClr_w1 ) {
+	    if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w1( Opx.mask_n ); }
+	    Opx.out_reg( rgIoPin::rgPinClr_w1 );
+	}
+
+	if ( Opx.rgPinRead_w1 ) {
+	    Opx.out_reg( rgIoPin::rgPinRead_w1 );
+	}
+
+	if ( Opx.rgEventStatus_w1 ) {
+	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w1( Opx.mask_n ); }
+	    Opx.out_reg( rgIoPin::rgEventStatus_w1 );
+	}
+
 	APPLX( rgDetectRising_w1       )
 	APPLX( rgDetectFalling_w1      )
 	APPLX( rgDetectHigh_w1         )
@@ -590,11 +669,13 @@ y_io::doit()
 	APPLX( rgDetectAsyncRising_w1  )
 	APPLX( rgDetectAsyncFalling_w1 )
 
+    // Pud
 	if ( Opx.pud && (Opx.w0 || Opx.w1) ) { cout <<endl; }
 	APPLX( rgPullUpDown            )
 	APPLX( rgPullUpDownClk_w0      )
 	APPLX( rgPullUpDownClk_w1      )
 
+    // Fsel
 	if ( Opx.fsel && (Opx.w0 || Opx.w1 || Opx.pud) ) { cout <<endl; }
 	APPLX( rgFsel0                 )
 	APPLX( rgFsel1                 )
