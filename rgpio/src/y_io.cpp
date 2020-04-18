@@ -469,16 +469,18 @@ void
 io_yOptLong::out_reg( const char* name,  uint32_t vv )
 {
     cout.fill('0');
-    cout <<std::hex << "0x" <<right <<setw(8)  << vv;
+    cout << "0x" <<std::hex <<setw(8)  << vv;
 
     cout.fill(' ');
-    cout << "  " <<left <<setw(23) << name;
-
     if ( this->verbose ) {
-	cout << "  " << cstr_bits32( vv );
+	cout << "  " <<left <<setw(23) << name;
+	cout << "  "                   << cstr_bits32( vv ) <<endl;
+    }
+    else {
+	cout << "  "                   << name <<endl;
     }
 
-    cout <<std::dec <<right <<endl;	// restore defaults
+    cout <<std::dec <<right;	// restore defaults
 }
 
 
