@@ -1,12 +1,14 @@
     IO pin operations
 usage:  rgpio io [options..]  [reg..]
-    reg                 register enum name
+    reg                 register name, rg* enum or pseudo name
   register groups:  (accumulate)
-    --w0                word 0 registers (default)
-    --w1                word 1 registers
+    --w0                pin Level, Event, Detect word 0 (default)
+    --w1                pin Level, Event, Detect word 1 (default)
     --fsel              Fsel function select registers
     --pud               pin PullUpDown registers
-    --all               all registers plus PinSet, PinClr
+    --all               all registers above
+  register group modifiers on --w0 --w1:
+    --raw               rg* instead of pseudo PinLevel, EventStatus
   modify:  (32-bit values)
     --set=0xff..        set mask bits
     --clr=0xff..        clear mask bits

@@ -47,14 +47,23 @@ run_test( "11", "io no args",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  rgPinRead_w0
-	0x00000000  rgEventStatus_w0
+	0x00000000  PinLevel_w0
+	0x00000000  EventStatus_w0
 	0x00000000  rgDetectRising_w0
 	0x00000000  rgDetectFalling_w0
 	0x00000000  rgDetectHigh_w0
 	0x00000000  rgDetectLow_w0
 	0x00000000  rgDetectAsyncRising_w0
 	0x00000000  rgDetectAsyncFalling_w0
+
+	0x00000000  PinLevel_w1
+	0x00000000  EventStatus_w1
+	0x00000000  rgDetectRising_w1
+	0x00000000  rgDetectFalling_w1
+	0x00000000  rgDetectHigh_w1
+	0x00000000  rgDetectLow_w1
+	0x00000000  rgDetectAsyncRising_w1
+	0x00000000  rgDetectAsyncFalling_w1
     ),
 );
 
@@ -84,7 +93,6 @@ run_test( "20", "io --set",
     0,
     Stderr => q(),
     Stdout => q(
-	Modify:
 	0x00000fff  rgDetectLow_w0
     ),
 );
@@ -94,7 +102,6 @@ run_test( "20b", "io --clr",
     0,
     Stderr => q(),
     Stdout => q(
-	Modify:
 	0x00000000  rgDetectLow_w0
     ),
 );
