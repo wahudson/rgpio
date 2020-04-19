@@ -98,7 +98,7 @@ rgpio-pud	Pull Up/Down registers.
 ## Improvement Ideas  (2020-04-16)
 ----------------------------------------------------------------------------
 
-Pseudo Registers:
+Pseudo Registers:  (Virtual Registers)
 
     Idea is to introduce pseudo-register names for registers that have
     irregular methods of changing their value, i.e. not plain read/write.
@@ -129,8 +129,13 @@ Pseudo Registers:
 	0x00000000  EventStatus_w0
 	0x00000000  rgEventStatus_w0
 
-   The register name becomes the mechanism to indicate "do the right thing",
-   and no need for special options.
+    The register name becomes the mechanism to indicate "do the right thing",
+    and no need for special options.
+
+    (2020-04-18) The pseudo-register EventStatus_w0 was operated just like
+    the real register, and thus is redundant.  Removed it.
+
+    Decided to refer to pseudo registers as "virtual" in documentation.
 
 Display vs Modification:
 

@@ -61,8 +61,6 @@ class io_yOptLong : public yOption {
 
     bool		PinLevel_w0;
     bool		PinLevel_w1;
-    bool		EventStatus_w0;
-    bool		EventStatus_w1;
     bool		rgPinSet_w0;
     bool		rgPinSet_w1;
     bool		rgPinClr_w0;
@@ -143,8 +141,6 @@ io_yOptLong::io_yOptLong( yOption  *opx )
 			// register args
     PinLevel_w0             = 0;
     PinLevel_w1             = 0;
-    EventStatus_w0          = 0;
-    EventStatus_w1          = 0;
     rgPinSet_w0             = 0;
     rgPinSet_w1             = 0;
     rgPinClr_w0             = 0;
@@ -275,12 +271,11 @@ io_yOptLong::parse_options()
 	    rgPinSet_w0             = 1;
 	    rgPinClr_w0             = 1;
 	    rgPinRead_w0            = 1;
-	    rgEventStatus_w0        = 1;
 	}
 	else {
 	    PinLevel_w0             = 1;
-	    EventStatus_w0          = 1;
 	}
+	rgEventStatus_w0        = 1;
 	rgDetectRising_w0       = 1;
 	rgDetectFalling_w0      = 1;
 	rgDetectHigh_w0         = 1;
@@ -294,12 +289,11 @@ io_yOptLong::parse_options()
 	    rgPinSet_w1             = 1;
 	    rgPinClr_w1             = 1;
 	    rgPinRead_w1            = 1;
-	    rgEventStatus_w1        = 1;
 	}
 	else {
 	    PinLevel_w1             = 1;
-	    EventStatus_w1          = 1;
 	}
+	rgEventStatus_w1        = 1;
 	rgDetectRising_w1       = 1;
 	rgDetectFalling_w1      = 1;
 	rgDetectHigh_w1         = 1;
@@ -327,8 +321,6 @@ io_yOptLong::parse_options()
     {
 	     if ( is( "PinLevel_w0"           )) { PinLevel_w0           = 1; }
 	else if ( is( "PinLevel_w1"           )) { PinLevel_w1           = 1; }
-	else if ( is( "EventStatus_w0"        )) { EventStatus_w0        = 1; }
-	else if ( is( "EventStatus_w1"        )) { EventStatus_w1        = 1; }
 	else if ( is( "rgPinSet_w0"           )) { rgPinSet_w0           = 1; }
 	else if ( is( "rgPinSet_w1"           )) { rgPinSet_w1           = 1; }
 	else if ( is( "rgPinClr_w0"           )) { rgPinClr_w0           = 1; }
@@ -385,13 +377,6 @@ io_yOptLong::parse_options()
 	}
 	if (                          rgPinRead_w1                ) {
 	    Error::msg(  "read only:  rgPinRead_w1"     ) <<endl;
-	}
-
-	if (                          EventStatus_w0   && !(*clr) ) {
-	    Error::msg( "clear only:  EventStatus_w0"   ) <<endl;
-	}
-	if (                          EventStatus_w1   && !(*clr) ) {
-	    Error::msg( "clear only:  EventStatus_w1"   ) <<endl;
 	}
 
 	if (                          rgEventStatus_w0 && !(*clr) ) {
@@ -451,7 +436,7 @@ io_yOptLong::print_usage()
     cout <<
     "    IO pin operations\n"
     "usage:  " << ProgName << " io [options..]  [reg..]\n"
-    "    reg                 register name, rg* enum or pseudo name\n"
+    "    reg                 register name, as shown with --all\n"
 //  "  output format:  (one of)\n"
 //  "    --hex               word format hexadecimal (default)\n"
 //  " #  --bin               word format binary\n"
@@ -462,7 +447,7 @@ io_yOptLong::print_usage()
     "    --pud               pin PullUpDown registers\n"
     "    --all               all registers above\n"
     "  register group modifiers on --w0 --w1:\n"
-    "    --raw               rg* instead of pseudo PinLevel, EventStatus\n"
+    "    --raw               show rgPin* instead of virtual PinLevel*\n"
     "  modify:  (32-bit values)\n"
     "    --set=0xff..        set mask bits\n"
     "    --clr=0xff..        clear mask bits\n"
@@ -594,11 +579,6 @@ y_io::doit()
 	    Opx.out_reg( "PinLevel_w0", Gpx.read_PinLevel_w0() );
 	}
 
-	if ( Opx.EventStatus_w0 ) {
-	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w0( Opx.mask_n ); }
-	    Opx.out_reg( "EventStatus_w0", Gpx.read_EventStatus_w0() );
-	}
-
 	if ( Opx.rgPinSet_w0 ) {
 	    if ( *(Opx.set) ) { Gpx.set_PinLevel_w0( Opx.mask_n ); }
 	    Opx.out_reg( rgIoPin::rgPinSet_w0 );
@@ -636,11 +616,6 @@ y_io::doit()
 		Gpx.clr_PinLevel_w1( Opx.mask_n & (~ Opx.value_n) );
 	    }
 	    Opx.out_reg( "PinLevel_w1", Gpx.read_PinLevel_w1() );
-	}
-
-	if ( Opx.EventStatus_w1 ) {
-	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w1( Opx.mask_n ); }
-	    Opx.out_reg( "EventStatus_w1", Gpx.read_EventStatus_w1() );
 	}
 
 	if ( Opx.rgPinSet_w1 ) {
