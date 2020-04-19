@@ -11,13 +11,15 @@ rgpio-io -- IO Pin register access
 =head1		SYNOPSIS
 
  rgpio io [options..]  [reg..]
-    reg                 register enum name
+    reg                 register name, as shown with --all
   register groups:  (accumulate)
-    --w0                word 0 registers (default)
-    --w1                word 1 registers
+    --w0                pin Level, Event, Detect word 0 (default)
+    --w1                pin Level, Event, Detect word 1 (default)
     --fsel              Fsel function select registers
     --pud               pin PullUpDown registers
-    --all               all registers plus PinSet, PinClr
+    --all               all registers above
+  register group modifiers on --w0 --w1:
+    --raw               show rgPin* instead of virtual PinLevel*
   modify:  (32-bit values)
     --set=0xff..        set mask bits
     --clr=0xff..        clear mask bits
@@ -56,6 +58,8 @@ For registers that set/clear bits on write, the process is:
 This command is intended to provide raw register access, and does not
 provide higher level compound operations.
 
+Register function is described in BCM doc, or B<rgIoPin>(7).
+
 Note:  The IO lines (and these registers) are typically a shared resource
 among multiple asynchronous processes, where each process may use only a few
 lines (bits).
@@ -63,21 +67,23 @@ The read-modify-write process of updating registers is not atomic.
 Therefor a synchronization problem exists, and is typically solved by
 externally synchronizing the processes.
 
+Note:  The IO line output register is updated by writing 1-bits to rgPinSet_w0
+or rgPinClr_w0.  This bit-slice update IS atomic.
 
 =head1		OPTIONS
 
 =head2			Register Groups
 
-These options are an alias for a list of registers.
-Multiple register groups can be specified or combined with individual registers.
-There is no check for duplicate registers, which will then be repeated.
+These options are an alias for a list of registers.  Multiple register
+groups can be specified or combined with individual registers.  Duplicate
+registers are removed.
 
 =over
 
 =item B<--w0>               - Register set word 0.  (default)
 
- rgPinRead_w0
- rgEventStatus_w0
+ PinLevel_w0              (virtual read-write)
+ rgEventStatus_w0         (read-clear)
  rgDetectRising_w0
  rgDetectFalling_w0
  rgDetectHigh_w0
@@ -86,12 +92,12 @@ There is no check for duplicate registers, which will then be repeated.
  rgDetectAsyncFalling_w0
 
 Bits [31:0] correspond to IO lines [31:0].
-Note that only bits [27:0] are accessable on Raspberry Pi-3 40-pin header.
+Note that only bits [27:0] are accessible on Raspberry Pi-3 40-pin header.
 
 =item B<--w1>               - Register set word 1.
 
- rgPinRead_w1
- rgEventStatus_w1
+ PinLevel_w1              (virtual read-write)
+ rgEventStatus_w1         (read-clear)
  rgDetectRising_w1
  rgDetectFalling_w1
  rgDetectHigh_w1
@@ -101,7 +107,7 @@ Note that only bits [27:0] are accessable on Raspberry Pi-3 40-pin header.
 
 Bits [21:0] represent IO lines [53:32].
 Bits [31:22] are reserved.
-These lines are accessable on the Raspberry Pi compute module.
+These lines are accessible on the Raspberry Pi compute module.
 
 =item B<--fsel>             - Fsel function select registers.
 
@@ -123,27 +129,44 @@ to use.  Use rgpio-fsel(1) as a better interface to these registers.
 
 These control programming of the weak hardware pull-up/down on each IO pin
 through a special sequence (see "BCM2835 ARM Peripherals").
-The programmed pull-up/down is rememberd thru power-down (is non-volatile)
+The programmed pull-up/down is remembered thru power-down (is non-volatile)
 and cannot be read back.
 
-=item B<--all>              - All registers plus PinSet, PinClr
+=item B<--all>              - All registers above.
 
- rgPinSet_w0
- rgPinSet_w1
- rgPinClr_w0
- rgPinClr_w1
+Is a shorthand for --w0 --w1 --fsel --pud.
 
-Show all 29 registers, that is, all register groups above plus these 4
-write-only registers.
-Writing these 4 registers will set/clear bits in the pin output register, and
-cannot be read back.  Reading them returns an undefined value.
+=back
+
+=head2			Register group modifiers on --w0 --w1
+
+=over
+
+=item B<--raw>              - real rgPin* instead of virtual PinLevel
+
+This option displays the three rgPin*_w0 registers instead of the virtual
+PinLevel_w0 register shown by default.  (same for _w1)
+
+ PinLevel_w0        virtual read-write:
+    rgPinSet_w0         Set-only,   no read.
+    rgPinClr_w0         Clear-only, no read.
+    rgPinRead_w0        Read-only,  no write.
+
+ PinLevel_w1        virtual read-write:
+    rgPinSet_w1         Set-only,   no read.
+    rgPinClr_w1         Clear-only, no read.
+    rgPinRead_w1        Read-only,  no write.
 
 =back
 
 =head2			Modify Register Value
 
+Registers to be modified must be specified in the argument list.
+Register groups are disallowed to avoid accidents (e.g. the same bit in
+_w0 and _w1 is two different IO lines).
+
 These options modify bits in registers of the argument list.
-Normal R/W registers are updated by a read/modify/write process.
+Normal read/write registers are updated by a read/modify/write process.
 The special access registers are updated by writing the value to the
 register address and the hardware performs the set or clear operation.
 
@@ -155,8 +178,6 @@ register address and the hardware performs the set or clear operation.
 
 These two options work independently to set or clear register bits for which
 the given mask bit is a 1.  Other bits (with mask bit 0) are unchanged.
-Applies only to normal R/W registers or special access registers that
-perform the hardware set or clear operation.
 
 =item B<--mask=0xffffffff>  - mask to select bits of --value
 
@@ -169,9 +190,10 @@ Register x is updated by:
 
     x = (x & (~ mask) ) | (value & mask);
 
-Applies only to the normal R/W registers.
-
 =back
+
+The virtual register PinLevel_w0 is modified by writing the underlying
+rgPinSet_w0, rgPinClr_w0 registers.
 
 =head2			Options
 
@@ -192,10 +214,13 @@ additional column showing the same value in binary is added.
 =head1		EXAMPLES
 
  Show all registers.
- % rgpio io --fsel --w0 --w1
+ % rgpio io --all
 
  Show registers in binary with --verbose.
  % rgpio io -v
+
+ Show real registers instead of virtual PinLevl_w0.
+ % rgpio io --raw --w0
 
  Set select bits to 1.
  % rgpio io --set=0x00000123  rgDetectLow_w0
@@ -204,7 +229,7 @@ additional column showing the same value in binary is added.
  % rgpio io --set=0x00000123  rgDetectLow_w0
 
  Modify a single register to set bits [7:4] to 0x5 (binary 0101).
- % rgpio io --mask=0x000000f0 --value=0x00000050  rgDetectHigh_w0
+ % rgpio io -v --mask=0x000000f0 --value=0x00000050  rgDetectHigh_w0
  0x00000050  rgDetectHigh_w0   0000 0000 0000 0000 0000 0000 0101 0000
 
 
@@ -224,6 +249,8 @@ In the source directory tree:
 
 B<rgpio>(1)
 B<rgpio-fsel>(1)
+B<rgIoPin>(3)
+B<rgIoPin>(7)
 B<librgpio>(3)
 
  BCM2835 ARM Peripherals (2012)
