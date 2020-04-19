@@ -48,7 +48,7 @@ run_test( "11", "io no args",
     Stderr => q(),
     Stdout => q(
 	0x00000000  PinLevel_w0
-	0x00000000  EventStatus_w0
+	0x00000000  rgEventStatus_w0
 	0x00000000  rgDetectRising_w0
 	0x00000000  rgDetectFalling_w0
 	0x00000000  rgDetectHigh_w0
@@ -57,7 +57,7 @@ run_test( "11", "io no args",
 	0x00000000  rgDetectAsyncFalling_w0
 
 	0x00000000  PinLevel_w1
-	0x00000000  EventStatus_w1
+	0x00000000  rgEventStatus_w1
 	0x00000000  rgDetectRising_w1
 	0x00000000  rgDetectFalling_w1
 	0x00000000  rgDetectHigh_w1
@@ -181,7 +181,7 @@ run_test( "25c", "io modify invalid with reg groups",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
-	Error:  clear only:  EventStatus_w0
+	Error:  clear only:  rgEventStatus_w0
     ),
     Stdout => q(),
 );
@@ -234,7 +234,7 @@ run_test( "32", "io --w0",
     Stderr => q(),
     Stdout => q(
 	0x00000000  PinLevel_w0
-	0x00000000  EventStatus_w0
+	0x00000000  rgEventStatus_w0
 	0x00000000  rgDetectRising_w0
 	0x00000000  rgDetectFalling_w0
 	0x00000000  rgDetectHigh_w0
