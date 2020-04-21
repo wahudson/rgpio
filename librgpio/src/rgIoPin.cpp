@@ -159,10 +159,10 @@ rgIoPin::modify_reg(
 
 /*
 * Set register bits according to mask.
-*    Intended as a user convenience.
-*    Does read/modify/write only for normal read/write capable registers.
+*    Direct write to set-only registers.
+*    Does read/modify/write on normal read/write capable registers.
 * exception:
-*    Throw 'logic_error' on non-normal read/write registers.
+*    Throw 'logic_error' on non-setable registers.
 */
 void
 rgIoPin::set_reg(
@@ -170,16 +170,36 @@ rgIoPin::set_reg(
     uint32_t		mask
 )
 {
-    modify_reg( reg, mask, mask );
+    if ( (reg == rgPinSet_w0)      ||
+	 (reg == rgPinSet_w1)
+    ) {
+	write_reg( reg, mask );		// hardware does set
+    }
+    else if (
+	 (reg == rgPinClr_w0)      ||
+	 (reg == rgPinClr_w1)      ||
+	 (reg == rgPinRead_w0)     ||
+	 (reg == rgPinRead_w1)     ||
+	 (reg == rgEventStatus_w0) ||
+	 (reg == rgEventStatus_w1)
+    ) {
+	std::ostringstream	css;
+	css << "inappropriate register in rgIoPin::set_reg():  "
+	    << this->str_IoReg_enum( reg );
+	throw std::logic_error ( css.str() );
+    }
+    else {
+	modify_reg( reg, mask, mask );
+    }
 }
 
 
 /*
 * Clear register bits according to mask.
-*    Intended as a user convenience.
-*    Does read/modify/write only for normal read/write capable registers.
+*    Direct write to clear-only registers.
+*    Does read/modify/write on normal read/write capable registers.
 * exception:
-*    Throw 'logic_error' on non-normal read/write registers.
+*    Throw 'logic_error' on non-clearable registers.
 */
 void
 rgIoPin::clr_reg(
@@ -187,7 +207,27 @@ rgIoPin::clr_reg(
     uint32_t		mask
 )
 {
-    modify_reg( reg, mask, 0 );
+    if ( (reg == rgPinClr_w0)      ||
+	 (reg == rgPinClr_w1)      ||
+	 (reg == rgEventStatus_w0) ||
+	 (reg == rgEventStatus_w1)
+    ) {
+	write_reg( reg, mask );		// hardware does clear
+    }
+    else if (
+	 (reg == rgPinSet_w0)      ||
+	 (reg == rgPinSet_w1)      ||
+	 (reg == rgPinRead_w0)     ||
+	 (reg == rgPinRead_w1)
+    ) {
+	std::ostringstream	css;
+	css << "inappropriate register in rgIoPin::clr_reg():  "
+	    << this->str_IoReg_enum( reg );
+	throw std::logic_error ( css.str() );
+    }
+    else {
+	modify_reg( reg, mask, 0 );
+    }
 }
 
 

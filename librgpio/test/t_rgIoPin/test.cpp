@@ -284,32 +284,29 @@ rgIoPin			Tx;
     }
 
 //--------------------------------------------------------------------------
-//## Generic access Exceptions on non-normal read/write registers.
+//## Generic access on non-normal read/write registers.
 //--------------------------------------------------------------------------
-// Mix modify_reg(), set_reg(), and clr_reg() -- all are read/modify/write.
+// Mix modify_reg(), set_reg(), and clr_reg() -- all on fake memory.
 
 //--------------------------------------
-  CASE( "25a", "set_reg( rgPinSet_w0 ) write-only reg" );
+  CASE( "25a", "set_reg( rgPinSet_w0 ) set-only reg" );
     try {
-	Tx.set_reg( rgIoPin::rgPinSet_w0, 0x000ff000 );
-	FAIL( "no throw" );
-    }
-    catch ( logic_error& e ) {
-	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinSet_w0",
-	    e.what()
-	);
+	Tx.write_reg( rgIoPin::rgPinSet_w0, 0xffff0000 );
+	CHECKX( 0xffff0000, Tx.read_reg( rgIoPin::rgPinSet_w0 ) );
+	Tx.set_reg(   rgIoPin::rgPinSet_w0, 0x00ffff00 );
+	CHECKX( 0x00ffff00, Tx.read_reg( rgIoPin::rgPinSet_w0 ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "25b", "clr_reg( rgPinSet_w1 ) write-only reg" );
+  CASE( "25b", "clr_reg( rgPinSet_w1 ) set-only reg" );
     try {
 	Tx.clr_reg( rgIoPin::rgPinSet_w1, 0x000ff000 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinSet_w1",
+	CHECK( "inappropriate register in rgIoPin::clr_reg():  rgPinSet_w1",
 	    e.what()
 	);
     }
@@ -318,13 +315,13 @@ rgIoPin			Tx;
     }
 
 //--------------------------------------
-  CASE( "26a", "set_reg( rgPinClr_w0 ) write-only reg" );
+  CASE( "26a", "set_reg( rgPinClr_w0 ) clear-only reg" );
     try {
 	Tx.set_reg( rgIoPin::rgPinClr_w0, 0x000ff000 );
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinClr_w0",
+	CHECK( "inappropriate register in rgIoPin::set_reg():  rgPinClr_w0",
 	    e.what()
 	);
     }
@@ -332,15 +329,12 @@ rgIoPin			Tx;
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "26b", "clr_reg( rgPinClr_w1 ) write-only reg" );
+  CASE( "26b", "clr_reg( rgPinClr_w1 ) clear-only reg" );
     try {
-	Tx.set_reg( rgIoPin::rgPinClr_w1, 0x000ff000 );
-	FAIL( "no throw" );
-    }
-    catch ( logic_error& e ) {
-	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgPinClr_w1",
-	    e.what()
-	);
+	Tx.write_reg( rgIoPin::rgPinClr_w1, 0xffff0000 );
+	CHECKX( 0xffff0000, Tx.read_reg( rgIoPin::rgPinClr_w1 ) );
+	Tx.clr_reg(   rgIoPin::rgPinClr_w1, 0x00ffff00 );
+	CHECKX( 0x00ffff00, Tx.read_reg( rgIoPin::rgPinClr_w1 ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -382,7 +376,7 @@ rgIoPin			Tx;
 	FAIL( "no throw" );
     }
     catch ( logic_error& e ) {
-	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgEventStatus_w0",
+	CHECK( "inappropriate register in rgIoPin::set_reg():  rgEventStatus_w0",
 	    e.what()
 	);
     }
@@ -392,13 +386,10 @@ rgIoPin			Tx;
 
   CASE( "28b", "clr_reg( rgEventStatus_w1 ) read-clear reg" );
     try {
-	Tx.clr_reg( rgIoPin::rgEventStatus_w1, 0x000ff000 );
-	FAIL( "no throw" );
-    }
-    catch ( logic_error& e ) {
-	CHECK( "inappropriate register in rgIoPin::modify_reg():  rgEventStatus_w1",
-	    e.what()
-	);
+	Tx.write_reg( rgIoPin::rgEventStatus_w1, 0xffff0000 );
+	CHECKX( 0xffff0000, Tx.read_reg( rgIoPin::rgEventStatus_w1 ) );
+	Tx.clr_reg(   rgIoPin::rgEventStatus_w1, 0x00ffff00 );
+	CHECKX( 0x00ffff00, Tx.read_reg( rgIoPin::rgEventStatus_w1 ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
