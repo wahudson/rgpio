@@ -1,0 +1,394 @@
+2020-04-19
+		rgpio - IO Pin Registers Design
+		-------------------------------
+
+Raspberry Pi GPIO Tool and Library
+
+See also:  doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://elinux.org/BCM2835_datasheet_errata
+
+See:  p.89-104  6. General Purpose I/O (GPIO)
+
+----------------------------------------------------------------------------
+## Discussion - IO Pin Registers
+----------------------------------------------------------------------------
+
+    This Feature operates the GPIO pins and registers.  Here the the term
+    "pin" refers to the physical pin identified by register bit position,
+    NOT the header pin number on the RPi PCB.
+
+Possible Class Names:
+ >  rgIoPin	enum method (older)
+ >  rgIoPins	register objects method - this file
+    rgIoReg
+
+    Two different implementations were made.
+
+    The original method used an enum (enumerated type) to index an array
+    of register values (class rgIoPin).  Actually the enum was the register
+    address offset, and addresses were computed on the fly.
+
+    The new method uses register objects, with each register being a public
+    member (class rgIoPins).
+
+    The class names are similar, but distinct, so they can be run in parallel.
+    Probably obsolete the enum method.
+    I like the name without the plural 's', but renaming things is awkward
+    and confusing.  Oh well.
+
+Comparison of implementations:
+
+    Note the capabilities (read, write, set, clear) are NOT uniform over all
+    registers.
+
+    A) rgIoPin     enum method
+	read_reg( E )
+	set_reg( E, M )
+	clr_reg( E, M )
+	modify_reg( E, M, V )
+
+	Functions take an enum argument to identify the register.  In this way
+	one set of functions operate on all registers.
+
+	The functions must switch on enum to handle the special capabilities
+	of some registers.  This is run-time inefficient.
+
+	An non-existing capability (e.g. no Set on a clear-only register) is
+	detected at run-time.
+
+	A common use is code statically selecting a register to set.
+	    e.g.  set_reg( rgPinClr_w0, 0x00000f00 )
+	This will throw a run-time exception, setting a clear-only register.
+	It would be better if this kind of mistake was caught at compile time.
+
+	The static register selection (i.e. above) is essentially a double
+	selection.  Once when the enum is specified, and again within the
+	set_reg() function to select the correct operation.
+
+	It can be easier to walk a list of registers, possibly by incrementing
+	an enum value (except strict type checking requires helper functions).
+	Or possibly walk a list of enums.
+	However, the special registers still must be handled specially.
+
+	Has all the disadvantages of enums, and is not really gaining any
+	of the advantages.
+
+ >  B) rgIoPins    object method
+	REG.read()
+	REG.set( M )
+	REG.clr( M )
+	REG.modify( M, V )
+
+	Each register object has the same (similar) set of functions inherited
+	from a base class.
+
+	The special registers overload these function names for the special
+	operations (polymorphism).  These can be implemented as a base
+	class and thus share over multiple similar registers.
+
+	There is no switching on an enum, thus more efficient.
+	The common use case of statically selecting a register works naturally.
+
+	Incorrect function call is caught at compile time.
+	    e.g.  PinClr_w0.set( 0x00000f00 )
+	There is no set() function in the PinClr_w0 register.
+
+	There are lots of registers, but still only a very few functions
+	from the user view.
+
+	Walking a list of registers can be done by putting either pointers,
+	or copies of the register, into a list.  Effectively the same as
+	putting enums in a list.
+
+	It would be possible to make an iterator function that returns a
+	pointer to the next register.  (Same for an enum.)  An interesting
+	alternative to walking a list.
+
+    The enum method would be very much equivalent to the object method
+    IF the registers were all uniform in capability.  Since they are not,
+    the object method is superior in efficiency and compile time checks.
+    Dealing with register lists seems roughly equivalent in both cases.
+
+    Actual implementation suggests the object method is roughly half the code.
+    And the enum method had many top level special functions to help
+    mitigate the special register issues.  This made for even more complexity.
+
+    Thus the object method seem to be a clear win in this case.
+
+Polymorphism:
+
+    Is when a group of objects all have the same interface, but internally
+    are different.  This makes for a nice abstraction in the use of the
+    objects.
+
+    We could make all the IO registers polymorphic, and thus able to call
+    any of the read(), set(), clr(), modify() functions on any of the
+    registers.  However this would loose the compile-time check for
+    invalid operations (i.e. setting a clear-only register).
+
+    In this case (IO registers) we do not really need the benefits of
+    polymorphism.  We seldom need to treat all registers as if they were
+    the same (e.g. clear each register).  Typically individual registers
+    are manipulated for specific effect.  Thus it is much more useful to get
+    a compile-time failure on an invalid operation.
+
+----------------------------------------------------------------------------
+## Operation - IO Pin Registers
+----------------------------------------------------------------------------
+
+    See BCM doc.
+    See rgIoPins(7)
+
+    At this point it is best to just describe it in the man page.
+    Hardware operation does not affect the class design too much.
+
+----------------------------------------------------------------------------
+## Class Design - IO Pin Registers
+----------------------------------------------------------------------------
+
+    Names of registers and bit-fields in the BCM documentation are rather
+    short and confusing when out of context.  Choose better names that are
+    more meaningful at the program call point.
+
+Register Names:  (in address offset order)
+
+    rgIoPins               Mode         rgIoPin enum
+    ------------------     -------      -----------------------
+    Fsel0                  R/W          rgFsel0
+    Fsel1                  R/W		rgFsel1
+    Fsel2                  R/W		rgFsel2
+    Fsel3                  R/W		rgFsel3
+    Fsel4                  R/W		rgFsel4
+    Fsel5                  R/W		rgFsel5
+
+    PinSet_w0              -/Set        rgPinSet_w0
+    PinSet_w1              -/Set        rgPinSet_w1
+
+    PinClr_w0              -/Clear      rgPinClr_w0
+    PinClr_w1              -/Clear      rgPinClr_w1
+
+    PinRead_w0             R/-          rgPinRead_w0
+    PinRead_w1             R/-          rgPinRead_w1
+
+    EventStatus_w0         R/Clear      rgEventStatus_w0
+    EventStatus_w1         R/Clear      rgEventStatus_w1
+
+    DetectRise_w0          R/W		rgDetectRising_w0
+    DetectRise_w1          R/W		rgDetectRising_w1
+
+    DetectFall_w0          R/W		rgDetectFalling_w0
+    DetectFall_w1          R/W		rgDetectFalling_w1
+
+    DetectHigh_w0          R/W		rgDetectHigh_w0
+    DetectHigh_w1          R/W		rgDetectHigh_w1
+
+    DetectLow_w0           R/W		rgDetectLow_w0
+    DetectLow_w1           R/W		rgDetectLow_w1
+
+    DetectAsyncRise_w0     R/W		rgDetectAsyncRising_w0
+    DetectAsyncRise_w1     R/W		rgDetectAsyncRising_w1
+
+    DetectAsyncFall_w0     R/W		rgDetectAsyncFalling_w0
+    DetectAsyncFall_w1     R/W		rgDetectAsyncFalling_w1
+
+    PullUpDown             R/W		rgPullUpDown
+    PullUpDownClk_w0       R/W		rgPullUpDownClk_w0
+    PullUpDownClk_w1       R/W		rgPullUpDownClk_w1
+
+    ----						Virtual Register
+    PinLevel_w0            R/W          rgPinLevel_w0
+    PinLevel_w1            R/W          rgPinLevel_w1
+
+
+Possible alternate names considered:
+    Trying to shorten the names to 15 characters or less.
+    12345678901234567890
+
+    DetectAsyncRise_w0
+    DetectAsynRise_w0
+    DetectAsRise_w0
+    DetectARise_w0
+
+    PullUpDn
+    PullUpDnClk_w0
+
+    DetRise_w0
+    DetFall_w0
+    DetHigh_w0
+    DetLow_w0
+    DetAsyncRise_w0
+    DetAsyncFall_w0
+
+    Detect
+    Det
+    Dct
+    Dec
+    Dtec
+    Dtet
+    Dect
+    Dtct
+    Detec
+    Dtect
+    Dex
+    Dtx
+
+    Sense
+    Latch
+    Event
+
+    Nothing seems to work very well.
+    Shortening Async to Asyn seems reasonable.
+    No good abbreviations for Detect.  Not even much shorter equivalent names.
+    The full word Detect seems to really help meaning.
+    If a few names must be long, no sense in trying to shorten PullUpDownClk_w0.
+    Decide to keep longer names.  (Same conclusion from enum class.)
+
+Register Classes:
+
+    Register objects contain the register address, but have no register
+    value storage.
+
+    There are a lot of register objects, so it would be nice if they could use
+    the same register class.
+
+    Typically, each register has its own class to prevent accidental cross-
+    copying (changing the address) between different registers.  (see:
+    architecture.text rgRegister;  pwm_design.text)
+    In this case there is little need for copying, since there is no register
+    value, and thus less likely to be a hazard.
+
+    Decide to reuse common register classes.  If the need arises, make
+    separate classes for each register.  The register classes not not
+    intended to be used outside of the feature class.
+
+Base Register Classes:
+
+    The idea is to make a small inheritance hierarchy of register classes
+    that covers the range of register write abilities (e.g. clear-only,
+    set-only, normal read-write).
+
+    rgReg			Base class for any write-style.
+	Addr				register address
+	init_addr()
+	addr()
+	read()
+	write(V)
+
+    rgReg_rw	-> rgReg	Normal read/write.
+	modify(M,V)
+	set(M)
+	clr(M)
+
+    rgReg_set	-> rgReg	Set-only
+	set(M)
+
+    rgReg_clr	-> rgReg	Clear-only
+	clr(M)
+
+Virtual PinLevel Register Class:
+
+    Has 3 addresses corresponding to the three real registers.
+    It has all the methods of a normal rgReg_rw register.
+
+    rgReg_PinLevel	-> rgReg
+	Addr			PinRead inherited address
+	AddrSet			PinSet
+	AddrClr			PinClr
+
+	init_addr()		inherited
+	init_addr_set()
+	init_addr_clr()
+
+	set(M)			write PinSet
+	clr(M)			write PinClr
+	modify(M,V)		read PinRead, write PinSet, PinClr
+
+			inherited
+	addr()			PinRead as normal
+	read()			PinRead as normal
+	write()			overload - write PinSet, PinClr
+
+    rgReg_3rw  - Possible class name to be more generic.
+    rgReg_rw3
+
+    As inherited, write() writes PinRead, but that has no effect.
+    Possibly overload write() to be a null operation, or exception, or
+    use PinSet, PinClr.  The latter would make it seem like a complete
+    read/write register.
+
+    Note write() probably is too broad an operation, i.e. change all bits,
+    for most use.  Provide it mostly for symmetry, and so user does not
+    have to resort to address pointers.
+
+Files:  rgIoPins.h
+
+    The base classes are quite generic, so are named that way.
+
+    Decide to put the base classes rgReg* in the same file as the feature
+    class to minimize files.  Should other uses arise, they can be pulled
+    out into their own file.
+
+----------------------------------------------------------------------------
+## rgIoPins Object - IO Pin Registers
+----------------------------------------------------------------------------
+
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
+
+					// Virtual register
+    rgReg_3rw		PinLevel_w0;
+
+					// Real registers
+    rgReg_rw		Fsel0;
+    rgReg_rw		Fsel1;
+    rgReg_rw		Fsel2;
+    rgReg_rw		Fsel3;
+    rgReg_rw		Fsel4;
+    rgReg_rw		Fsel5;
+
+    rgReg_set		PinSet_w0;
+    rgReg_set		PinSet_w1;
+
+    rgReg_clr		PinClr_w0;
+    rgReg_clr		PinClr_w1;
+
+    rgReg_rw		PinRead_w0;
+    rgReg_rw		PinRead_w1;
+
+    rgReg_clr		EventStatus_w0;
+    rgReg_clr		EventStatus_w1;
+
+    rgReg_rw		DetectRise_w0;
+    rgReg_rw		DetectRise_w1;
+
+    rgReg_rw		DetectFall_w0;
+    rgReg_rw		DetectFall_w1;
+
+    rgReg_rw		DetectHigh_w0;
+    rgReg_rw		DetectHigh_w1;
+
+    rgReg_rw		DetectLow_w0;
+    rgReg_rw		DetectLow_w1;
+
+    rgReg_rw		DetectAsyncRise_w0;
+    rgReg_rw		DetectAsyncRise_w1;
+
+    rgReg_rw		DetectAsyncFall_w0;
+    rgReg_rw		DetectAsyncFall_w1;
+
+    rgReg_rw		PullUpDown;
+    rgReg_rw		PullUpDownClk_w0;
+    rgReg_rw		PullUpDownClk_w1;
+}
+
+Methods:
+
+    get_base_addr()		GpioBase address
+
