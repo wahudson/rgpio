@@ -13,6 +13,11 @@ rgpio-fsel	Function Select registers.
 rgpio-pud	Pull Up/Down registers.
 
 
+History:  y_io.cpp
+  < 2020-04-16  Initial version  rgIoPin::
+  < 2020-04-20  Virtual register PinLevel_w0, major refactor.
+  > 2020-04-21  Refactor to rgIoPins:: register objects.  Rename registers.
+
 ----------------------------------------------------------------------------
 ## Initial Version - before 2020-04-16
 ----------------------------------------------------------------------------

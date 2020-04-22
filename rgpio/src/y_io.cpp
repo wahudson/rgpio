@@ -15,7 +15,7 @@ using namespace std;
 #include "yOption.h"
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
+#include "rgIoPins.h"	// object registers
 
 #include "yUtil.h"
 #include "y_io.h"
@@ -61,43 +61,42 @@ class io_yOptLong : public yOption {
 
     bool		PinLevel_w0;
     bool		PinLevel_w1;
-    bool		rgPinSet_w0;
-    bool		rgPinSet_w1;
-    bool		rgPinClr_w0;
-    bool		rgPinClr_w1;
-    bool		rgPinRead_w0;
-    bool		rgPinRead_w1;
-    bool		rgEventStatus_w0;
-    bool		rgEventStatus_w1;
-    bool		rgDetectRising_w0;
-    bool		rgDetectRising_w1;
-    bool		rgDetectFalling_w0;
-    bool		rgDetectFalling_w1;
-    bool		rgDetectHigh_w0;
-    bool		rgDetectHigh_w1;
-    bool		rgDetectLow_w0;
-    bool		rgDetectLow_w1;
-    bool		rgDetectAsyncRising_w0;
-    bool		rgDetectAsyncRising_w1;
-    bool		rgDetectAsyncFalling_w0;
-    bool		rgDetectAsyncFalling_w1;
-    bool		rgPullUpDown;
-    bool		rgPullUpDownClk_w0;
-    bool		rgPullUpDownClk_w1;
-    bool		rgFsel0;
-    bool		rgFsel1;
-    bool		rgFsel2;
-    bool		rgFsel3;
-    bool		rgFsel4;
-    bool		rgFsel5;
+
+    bool		PinSet_w0;
+    bool		PinSet_w1;
+    bool		PinClr_w0;
+    bool		PinClr_w1;
+    bool		PinRead_w0;
+    bool		PinRead_w1;
+    bool		EventStatus_w0;
+    bool		EventStatus_w1;
+    bool		DetectRise_w0;
+    bool		DetectRise_w1;
+    bool		DetectFall_w0;
+    bool		DetectFall_w1;
+    bool		DetectHigh_w0;
+    bool		DetectHigh_w1;
+    bool		DetectLow_w0;
+    bool		DetectLow_w1;
+    bool		DetectAsyncRise_w0;
+    bool		DetectAsyncRise_w1;
+    bool		DetectAsyncFall_w0;
+    bool		DetectAsyncFall_w1;
+    bool		PullUpDown;
+    bool		PullUpDownClk_w0;
+    bool		PullUpDownClk_w1;
+    bool		Fsel0;
+    bool		Fsel1;
+    bool		Fsel2;
+    bool		Fsel3;
+    bool		Fsel4;
+    bool		Fsel5;
 
   public:	// data values
 
     bool		modify;
     uint32_t		mask_n;
     uint32_t		value_n;
-
-    rgIoPin		*Gpxx;		// for register operations
 
   public:
 //    io_yOptLong( int argc,  char* argv[] );	// constructor
@@ -106,8 +105,7 @@ class io_yOptLong : public yOption {
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
-    void		do_reg(  rgIoPin::rgIoReg_enum reg );
-    void		out_reg( rgIoPin::rgIoReg_enum reg );
+    void		do_rw(   const char* name,  rgReg_rw *rp );
     void		out_reg( const char* name,  uint32_t val );
 };
 
@@ -139,37 +137,38 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     debug       = 0;
     TESTOP      = 0;
 			// register args
-    PinLevel_w0             = 0;
-    PinLevel_w1             = 0;
-    rgPinSet_w0             = 0;
-    rgPinSet_w1             = 0;
-    rgPinClr_w0             = 0;
-    rgPinClr_w1             = 0;
-    rgPinRead_w0            = 0;
-    rgPinRead_w1            = 0;
-    rgEventStatus_w0        = 0;
-    rgEventStatus_w1        = 0;
-    rgDetectRising_w0       = 0;
-    rgDetectRising_w1       = 0;
-    rgDetectFalling_w0      = 0;
-    rgDetectFalling_w1      = 0;
-    rgDetectHigh_w0         = 0;
-    rgDetectHigh_w1         = 0;
-    rgDetectLow_w0          = 0;
-    rgDetectLow_w1          = 0;
-    rgDetectAsyncRising_w0  = 0;
-    rgDetectAsyncRising_w1  = 0;
-    rgDetectAsyncFalling_w0 = 0;
-    rgDetectAsyncFalling_w1 = 0;
-    rgPullUpDown            = 0;
-    rgPullUpDownClk_w0      = 0;
-    rgPullUpDownClk_w1      = 0;
-    rgFsel0                 = 0;
-    rgFsel1                 = 0;
-    rgFsel2                 = 0;
-    rgFsel3                 = 0;
-    rgFsel4                 = 0;
-    rgFsel5                 = 0;
+    PinLevel_w0        = 0;
+    PinLevel_w1        = 0;
+
+    PinSet_w0          = 0;
+    PinSet_w1          = 0;
+    PinClr_w0          = 0;
+    PinClr_w1          = 0;
+    PinRead_w0         = 0;
+    PinRead_w1         = 0;
+    EventStatus_w0     = 0;
+    EventStatus_w1     = 0;
+    DetectRise_w0      = 0;
+    DetectRise_w1      = 0;
+    DetectFall_w0      = 0;
+    DetectFall_w1      = 0;
+    DetectHigh_w0      = 0;
+    DetectHigh_w1      = 0;
+    DetectLow_w0       = 0;
+    DetectLow_w1       = 0;
+    DetectAsyncRise_w0 = 0;
+    DetectAsyncRise_w1 = 0;
+    DetectAsyncFall_w0 = 0;
+    DetectAsyncFall_w1 = 0;
+    PullUpDown         = 0;
+    PullUpDownClk_w0   = 0;
+    PullUpDownClk_w1   = 0;
+    Fsel0              = 0;
+    Fsel1              = 0;
+    Fsel2              = 0;
+    Fsel3              = 0;
+    Fsel4              = 0;
+    Fsel5              = 0;
 
     modify      = 0;
     mask_n      = 0;
@@ -268,88 +267,88 @@ io_yOptLong::parse_options()
 
     if ( w0 ) {
 	if ( raw ) {
-	    rgPinSet_w0             = 1;
-	    rgPinClr_w0             = 1;
-	    rgPinRead_w0            = 1;
+	    PinSet_w0           = 1;
+	    PinClr_w0           = 1;
+	    PinRead_w0          = 1;
 	}
 	else {
-	    PinLevel_w0             = 1;
+	    PinLevel_w0         = 1;
 	}
-	rgEventStatus_w0        = 1;
-	rgDetectRising_w0       = 1;
-	rgDetectFalling_w0      = 1;
-	rgDetectHigh_w0         = 1;
-	rgDetectLow_w0          = 1;
-	rgDetectAsyncRising_w0  = 1;
-	rgDetectAsyncFalling_w0 = 1;
+	EventStatus_w0      = 1;
+	DetectRise_w0       = 1;
+	DetectFall_w0       = 1;
+	DetectHigh_w0       = 1;
+	DetectLow_w0        = 1;
+	DetectAsyncRise_w0  = 1;
+	DetectAsyncFall_w0  = 1;
     }
 
     if ( w1 ) {
 	if ( raw ) {
-	    rgPinSet_w1             = 1;
-	    rgPinClr_w1             = 1;
-	    rgPinRead_w1            = 1;
+	    PinSet_w1           = 1;
+	    PinClr_w1           = 1;
+	    PinRead_w1          = 1;
 	}
 	else {
-	    PinLevel_w1             = 1;
+	    PinLevel_w1         = 1;
 	}
-	rgEventStatus_w1        = 1;
-	rgDetectRising_w1       = 1;
-	rgDetectFalling_w1      = 1;
-	rgDetectHigh_w1         = 1;
-	rgDetectLow_w1          = 1;
-	rgDetectAsyncRising_w1  = 1;
-	rgDetectAsyncFalling_w1 = 1;
+	EventStatus_w1      = 1;
+	DetectRise_w1       = 1;
+	DetectFall_w1       = 1;
+	DetectHigh_w1       = 1;
+	DetectLow_w1        = 1;
+	DetectAsyncRise_w1  = 1;
+	DetectAsyncFall_w1  = 1;
     }
 
     if ( pud ) {
-	rgPullUpDown            = 1;
-	rgPullUpDownClk_w0      = 1;
-	rgPullUpDownClk_w1      = 1;
+	PullUpDown          = 1;
+	PullUpDownClk_w0    = 1;
+	PullUpDownClk_w1    = 1;
     }
 
     if ( fsel ) {
-	rgFsel0                 = 1;
-	rgFsel1                 = 1;
-	rgFsel2                 = 1;
-	rgFsel3                 = 1;
-	rgFsel4                 = 1;
-	rgFsel5                 = 1;
+	Fsel0               = 1;
+	Fsel1               = 1;
+	Fsel2               = 1;
+	Fsel3               = 1;
+	Fsel4               = 1;
+	Fsel5               = 1;
     }
 
     while ( get_argc() > 0 )		// Register arguments
     {
-	     if ( is( "PinLevel_w0"           )) { PinLevel_w0           = 1; }
-	else if ( is( "PinLevel_w1"           )) { PinLevel_w1           = 1; }
-	else if ( is( "rgPinSet_w0"           )) { rgPinSet_w0           = 1; }
-	else if ( is( "rgPinSet_w1"           )) { rgPinSet_w1           = 1; }
-	else if ( is( "rgPinClr_w0"           )) { rgPinClr_w0           = 1; }
-	else if ( is( "rgPinClr_w1"           )) { rgPinClr_w1           = 1; }
-	else if ( is( "rgPinRead_w0"          )) { rgPinRead_w0          = 1; }
-	else if ( is( "rgPinRead_w1"          )) { rgPinRead_w1          = 1; }
-	else if ( is( "rgEventStatus_w0"      )) { rgEventStatus_w0      = 1; }
-	else if ( is( "rgEventStatus_w1"      )) { rgEventStatus_w1      = 1; }
-	else if ( is( "rgDetectRising_w0"     )) { rgDetectRising_w0     = 1; }
-	else if ( is( "rgDetectRising_w1"     )) { rgDetectRising_w1     = 1; }
-	else if ( is( "rgDetectFalling_w0"    )) { rgDetectFalling_w0    = 1; }
-	else if ( is( "rgDetectFalling_w1"    )) { rgDetectFalling_w1    = 1; }
-	else if ( is( "rgDetectHigh_w0"       )) { rgDetectHigh_w0       = 1; }
-	else if ( is( "rgDetectHigh_w1"       )) { rgDetectHigh_w1       = 1; }
-	else if ( is( "rgDetectLow_w0"        )) { rgDetectLow_w0        = 1; }
-	else if ( is( "rgDetectLow_w1"        )) { rgDetectLow_w1        = 1; }
-	else if ( is( "rgDetectAsyncRising_w0")) { rgDetectAsyncRising_w0= 1; }
-	else if ( is( "rgDetectAsyncRising_w1")) { rgDetectAsyncRising_w1= 1; }
-	else if ( is( "rgDetectAsyncFalling_w0")) { rgDetectAsyncFalling_w0= 1;}
-	else if ( is( "rgDetectAsyncFalling_w1")) { rgDetectAsyncFalling_w1= 1;}
-	else if ( is( "rgPullUpDown"          )) { rgPullUpDown          = 1; }
-	else if ( is( "rgPullUpDownClk_w0"    )) { rgPullUpDownClk_w0    = 1; }
-	else if ( is( "rgPullUpDownClk_w1"    )) { rgPullUpDownClk_w1    = 1; }
-	else if ( is( "rgFsel0"               )) { rgFsel0               = 1; }
-	else if ( is( "rgFsel1"               )) { rgFsel1               = 1; }
-	else if ( is( "rgFsel2"               )) { rgFsel2               = 1; }
-	else if ( is( "rgFsel3"               )) { rgFsel3               = 1; }
-	else if ( is( "rgFsel4"               )) { rgFsel4               = 1; }
-	else if ( is( "rgFsel5"               )) { rgFsel5               = 1; }
+	     if ( is( "PinLevel_w0"        )) { PinLevel_w0        = 1; }
+	else if ( is( "PinLevel_w1"        )) { PinLevel_w1        = 1; }
+	else if ( is( "PinSet_w0"          )) { PinSet_w0          = 1; }
+	else if ( is( "PinSet_w1"          )) { PinSet_w1          = 1; }
+	else if ( is( "PinClr_w0"          )) { PinClr_w0          = 1; }
+	else if ( is( "PinClr_w1"          )) { PinClr_w1          = 1; }
+	else if ( is( "PinRead_w0"         )) { PinRead_w0         = 1; }
+	else if ( is( "PinRead_w1"         )) { PinRead_w1         = 1; }
+	else if ( is( "EventStatus_w0"     )) { EventStatus_w0     = 1; }
+	else if ( is( "EventStatus_w1"     )) { EventStatus_w1     = 1; }
+	else if ( is( "DetectRise_w0"      )) { DetectRise_w0      = 1; }
+	else if ( is( "DetectRise_w1"      )) { DetectRise_w1      = 1; }
+	else if ( is( "DetectFall_w0"      )) { DetectFall_w0      = 1; }
+	else if ( is( "DetectFall_w1"      )) { DetectFall_w1      = 1; }
+	else if ( is( "DetectHigh_w0"      )) { DetectHigh_w0      = 1; }
+	else if ( is( "DetectHigh_w1"      )) { DetectHigh_w1      = 1; }
+	else if ( is( "DetectLow_w0"       )) { DetectLow_w0       = 1; }
+	else if ( is( "DetectLow_w1"       )) { DetectLow_w1       = 1; }
+	else if ( is( "DetectAsyncRise_w0" )) { DetectAsyncRise_w0 = 1; }
+	else if ( is( "DetectAsyncRise_w1" )) { DetectAsyncRise_w1 = 1; }
+	else if ( is( "DetectAsyncFall_w0" )) { DetectAsyncFall_w0 = 1; }
+	else if ( is( "DetectAsyncFall_w1" )) { DetectAsyncFall_w1 = 1; }
+	else if ( is( "PullUpDown"         )) { PullUpDown         = 1; }
+	else if ( is( "PullUpDownClk_w0"   )) { PullUpDownClk_w0   = 1; }
+	else if ( is( "PullUpDownClk_w1"   )) { PullUpDownClk_w1   = 1; }
+	else if ( is( "Fsel0"              )) { Fsel0              = 1; }
+	else if ( is( "Fsel1"              )) { Fsel1              = 1; }
+	else if ( is( "Fsel2"              )) { Fsel2              = 1; }
+	else if ( is( "Fsel3"              )) { Fsel3              = 1; }
+	else if ( is( "Fsel4"              )) { Fsel4              = 1; }
+	else if ( is( "Fsel5"              )) { Fsel5              = 1; }
 	else {
 	    Error::msg( "unknown register:  " ) << this->current_option() <<endl;
 	}
@@ -358,32 +357,32 @@ io_yOptLong::parse_options()
     }
 
     if ( modify ) {
-	if (                          rgPinSet_w0      && !(*set) ) {
-	    Error::msg(   "set only:  rgPinSet_w0"      ) <<endl;
+	if (                          PinSet_w0      && !(*set) ) {
+	    Error::msg(   "set only:  PinSet_w0"      ) <<endl;
 	}
-	if (                          rgPinSet_w1      && !(*set) ) {
-	    Error::msg(   "set only:  rgPinSet_w1"      ) <<endl;
-	}
-
-	if (                          rgPinClr_w0      && !(*clr) ) {
-	    Error::msg( "clear only:  rgPinClr_w0"      ) <<endl;
-	}
-	if (                          rgPinClr_w1      && !(*clr) ) {
-	    Error::msg( "clear only:  rgPinClr_w1"      ) <<endl;
+	if (                          PinSet_w1      && !(*set) ) {
+	    Error::msg(   "set only:  PinSet_w1"      ) <<endl;
 	}
 
-	if (                          rgPinRead_w0                ) {
-	    Error::msg(  "read only:  rgPinRead_w0"     ) <<endl;
+	if (                          PinClr_w0      && !(*clr) ) {
+	    Error::msg( "clear only:  PinClr_w0"      ) <<endl;
 	}
-	if (                          rgPinRead_w1                ) {
-	    Error::msg(  "read only:  rgPinRead_w1"     ) <<endl;
+	if (                          PinClr_w1      && !(*clr) ) {
+	    Error::msg( "clear only:  PinClr_w1"      ) <<endl;
 	}
 
-	if (                          rgEventStatus_w0 && !(*clr) ) {
-	    Error::msg( "clear only:  rgEventStatus_w0" ) <<endl;
+	if (                          PinRead_w0                ) {
+	    Error::msg(  "read only:  PinRead_w0"     ) <<endl;
 	}
-	if (                          rgEventStatus_w1 && !(*clr) ) {
-	    Error::msg( "clear only:  rgEventStatus_w1" ) <<endl;
+	if (                          PinRead_w1                ) {
+	    Error::msg(  "read only:  PinRead_w1"     ) <<endl;
+	}
+
+	if (                          EventStatus_w0 && !(*clr) ) {
+	    Error::msg( "clear only:  EventStatus_w0" ) <<endl;
+	}
+	if (                          EventStatus_w1 && !(*clr) ) {
+	    Error::msg( "clear only:  EventStatus_w1" ) <<endl;
 	}
     }
 }
@@ -447,7 +446,7 @@ io_yOptLong::print_usage()
     "    --pud               pin PullUpDown registers\n"
     "    --all               all registers above\n"
     "  register group modifiers on --w0 --w1:\n"
-    "    --raw               show rgPin* instead of virtual PinLevel*\n"
+    "    --raw               show real instead of virtual PinLevel*\n"
     "  modify:  (32-bit values)\n"
     "    --set=0xff..        set mask bits\n"
     "    --clr=0xff..        clear mask bits\n"
@@ -467,31 +466,22 @@ io_yOptLong::print_usage()
 
 
 /*
-* Apply modification and output enum register.
+* Apply modification and output object register.
 */
 void
-io_yOptLong::do_reg( rgIoPin::rgIoReg_enum reg )
+io_yOptLong::do_rw( const char* name, rgReg_rw *rp )
 {
     if (      *(this->set) ) {
-	this->Gpxx->set_reg( reg, this->mask_n );
+	rp->set( this->mask_n );
     }
     else if ( *(this->clr) ) {
-	this->Gpxx->clr_reg( reg, this->mask_n );
+	rp->clr( this->mask_n );
     }
     else if ( this->mask_n ) {
-	this->Gpxx->modify_reg( reg, this->mask_n, this->value_n );
+	rp->modify( this->mask_n, this->value_n );
     }
 
-    out_reg( reg );
-}
-
-/*
-* Output enum register.
-*/
-void
-io_yOptLong::out_reg( rgIoPin::rgIoReg_enum reg )
-{
-    out_reg( rgIoPin::str_IoReg_enum( reg ), this->Gpxx->read_reg( reg ) );
+    out_reg( name, rp->read() );
 }
 
 /*
@@ -505,7 +495,7 @@ io_yOptLong::out_reg( const char* name,  uint32_t vv )
 
     cout.fill(' ');
     if ( this->verbose ) {
-	cout << "  " <<left <<setw(23) << name;
+	cout << "  " <<left <<setw(18) << name;
 	cout << "  "                   << cstr_bits32( vv ) <<endl;
     }
     else {
@@ -549,115 +539,111 @@ y_io::doit()
 
 	if ( Error::has_err() )  return 1;
 
-	rgIoPin			Gpx  ( AddrMap );	// constructor
-
-	Opx.Gpxx = &Gpx;	// for register operations
+	rgIoPins		Gpx  ( AddrMap );	// constructor
 
 	if ( Opx.debug ) {
 	    cout.fill('0');
 	    cout <<hex;
 	    cout <<setw(8) << (void*) Gpx.get_base_addr()
 		 << "  GpioBase" <<endl;
-	    cout <<setw(8) << (void*) Gpx.addr_reg( rgIoPin::rgPinRead_w0 )
-		 << "  addr rgPinRead_w0" <<endl;
+	    cout <<setw(8) << (void*) Gpx.PinRead_w0.addr()
+		 << "  PinRead_w0.addr()" <<endl;
 	}
 
 	if ( Opx.verbose ) {
-	    cout << "IO Pin Registers:                      28   24   20   16   12    8    4    0" << endl;
+	    cout << "IO Pin Registers:                 28   24   20   16   12    8    4    0" << endl;
 	}
 
-#define APPLX( X ) if ( Opx.X ) { Opx.do_reg( rgIoPin::X ); }
+#define APPLY( X, Y ) if ( Opx.X ) { Opx.do_rw( Y, &(Gpx.X) ); }
 
     // Word 0
 	if ( Opx.PinLevel_w0 ) {
-	    if (      *(Opx.set) ) { Gpx.set_PinLevel_w0( Opx.mask_n ); }
-	    else if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w0( Opx.mask_n ); }
+	    if (      *(Opx.set) ) { Gpx.PinLevel_w0.set( Opx.mask_n ); }
+	    else if ( *(Opx.clr) ) { Gpx.PinLevel_w0.clr( Opx.mask_n ); }
 	    else if ( Opx.mask_n ) {
-		Gpx.set_PinLevel_w0( Opx.mask_n &    Opx.value_n  );
-		Gpx.clr_PinLevel_w0( Opx.mask_n & (~ Opx.value_n) );
+		Gpx.PinLevel_w0.modify( Opx.mask_n, Opx.value_n );
 	    }
-	    Opx.out_reg( "PinLevel_w0", Gpx.read_PinLevel_w0() );
+	    Opx.out_reg( "PinLevel_w0", Gpx.PinLevel_w0.read() );
 	}
 
-	if ( Opx.rgPinSet_w0 ) {
-	    if ( *(Opx.set) ) { Gpx.set_PinLevel_w0( Opx.mask_n ); }
-	    Opx.out_reg( rgIoPin::rgPinSet_w0 );
+	if ( Opx.PinSet_w0 ) {
+	    if ( *(Opx.set) ) {       Gpx.PinSet_w0.set( Opx.mask_n ); }
+	    Opx.out_reg( "PinSet_w0", Gpx.PinSet_w0.read() );
 	}
 
-	if ( Opx.rgPinClr_w0 ) {
-	    if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w0( Opx.mask_n ); }
-	    Opx.out_reg( rgIoPin::rgPinClr_w0 );
+	if ( Opx.PinClr_w0 ) {
+	    if ( *(Opx.clr) ) {       Gpx.PinClr_w0.clr( Opx.mask_n ); }
+	    Opx.out_reg( "PinClr_w0", Gpx.PinClr_w0.read() );
 	}
 
-	if ( Opx.rgPinRead_w0 ) {
-	    Opx.out_reg( rgIoPin::rgPinRead_w0 );
+	if ( Opx.PinRead_w0 ) {
+	    Opx.out_reg( "PinRead_w0", Gpx.PinRead_w0.read() );
 	}
 
-	if ( Opx.rgEventStatus_w0 ) {
-	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w0( Opx.mask_n ); }
-	    Opx.out_reg( rgIoPin::rgEventStatus_w0 );
+	if ( Opx.EventStatus_w0 ) {
+	    if ( *(Opx.clr) ) {         Gpx.EventStatus_w0.clr( Opx.mask_n ); }
+	    Opx.out_reg( "EventStatus_w0", Gpx.EventStatus_w0.read() );
 	}
 
-	APPLX( rgDetectRising_w0       )
-	APPLX( rgDetectFalling_w0      )
-	APPLX( rgDetectHigh_w0         )
-	APPLX( rgDetectLow_w0          )
-	APPLX( rgDetectAsyncRising_w0  )
-	APPLX( rgDetectAsyncFalling_w0 )
+	APPLY( DetectRise_w0,      "DetectRise_w0"      )
+	APPLY( DetectFall_w0,      "DetectFall_w0"      )
+	APPLY( DetectHigh_w0,      "DetectHigh_w0"      )
+	APPLY( DetectLow_w0,       "DetectLow_w0"       )
+	APPLY( DetectAsyncRise_w0, "DetectAsyncRise_w0" )
+	APPLY( DetectAsyncFall_w0, "DetectAsyncFall_w0" )
 
     // Word 1
 	if ( Opx.w1 && (Opx.w0) ) { cout <<endl; }
 
 	if ( Opx.PinLevel_w1 ) {
-	    if (      *(Opx.set) ) { Gpx.set_PinLevel_w1( Opx.mask_n ); }
-	    else if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w1( Opx.mask_n ); }
+	    if (      *(Opx.set) ) { Gpx.PinLevel_w1.set( Opx.mask_n ); }
+	    else if ( *(Opx.clr) ) { Gpx.PinLevel_w1.clr( Opx.mask_n ); }
 	    else if ( Opx.mask_n ) {
-		Gpx.set_PinLevel_w1( Opx.mask_n &    Opx.value_n  );
-		Gpx.clr_PinLevel_w1( Opx.mask_n & (~ Opx.value_n) );
+		Gpx.PinLevel_w1.modify( Opx.mask_n, Opx.value_n );
 	    }
-	    Opx.out_reg( "PinLevel_w1", Gpx.read_PinLevel_w1() );
+	    Opx.out_reg( "PinLevel_w1", Gpx.PinLevel_w1.read() );
 	}
 
-	if ( Opx.rgPinSet_w1 ) {
-	    if ( *(Opx.set) ) { Gpx.set_PinLevel_w1( Opx.mask_n ); }
-	    Opx.out_reg( rgIoPin::rgPinSet_w1 );
+	if ( Opx.PinSet_w1 ) {
+	    if ( *(Opx.set) ) {       Gpx.PinSet_w1.set( Opx.mask_n ); }
+	    Opx.out_reg( "PinSet_w1", Gpx.PinSet_w1.read() );
 	}
 
-	if ( Opx.rgPinClr_w1 ) {
-	    if ( *(Opx.clr) ) { Gpx.clr_PinLevel_w1( Opx.mask_n ); }
-	    Opx.out_reg( rgIoPin::rgPinClr_w1 );
+	if ( Opx.PinClr_w1 ) {
+	    if ( *(Opx.clr) ) {       Gpx.PinClr_w1.clr( Opx.mask_n ); }
+	    Opx.out_reg( "PinClr_w1", Gpx.PinClr_w1.read() );
 	}
 
-	if ( Opx.rgPinRead_w1 ) {
-	    Opx.out_reg( rgIoPin::rgPinRead_w1 );
+	if ( Opx.PinRead_w1 ) {
+	    Opx.out_reg( "PinRead_w1", Gpx.PinRead_w1.read() );
 	}
 
-	if ( Opx.rgEventStatus_w1 ) {
-	    if ( *(Opx.clr) ) { Gpx.clr_EventStatus_w1( Opx.mask_n ); }
-	    Opx.out_reg( rgIoPin::rgEventStatus_w1 );
+	if ( Opx.EventStatus_w1 ) {
+	    if ( *(Opx.clr) ) {         Gpx.EventStatus_w1.clr( Opx.mask_n ); }
+	    Opx.out_reg( "EventStatus_w1", Gpx.EventStatus_w1.read() );
 	}
 
-	APPLX( rgDetectRising_w1       )
-	APPLX( rgDetectFalling_w1      )
-	APPLX( rgDetectHigh_w1         )
-	APPLX( rgDetectLow_w1          )
-	APPLX( rgDetectAsyncRising_w1  )
-	APPLX( rgDetectAsyncFalling_w1 )
+	APPLY( DetectRise_w1,      "DetectRise_w1"      )
+	APPLY( DetectFall_w1,      "DetectFall_w1"      )
+	APPLY( DetectHigh_w1,      "DetectHigh_w1"      )
+	APPLY( DetectLow_w1,       "DetectLow_w1"       )
+	APPLY( DetectAsyncRise_w1, "DetectAsyncRise_w1" )
+	APPLY( DetectAsyncFall_w1, "DetectAsyncFall_w1" )
 
     // Pud
 	if ( Opx.pud && (Opx.w0 || Opx.w1) ) { cout <<endl; }
-	APPLX( rgPullUpDown            )
-	APPLX( rgPullUpDownClk_w0      )
-	APPLX( rgPullUpDownClk_w1      )
+	APPLY( PullUpDown,         "PullUpDown"         )
+	APPLY( PullUpDownClk_w0,   "PullUpDownClk_w0"   )
+	APPLY( PullUpDownClk_w1,   "PullUpDownClk_w1"   )
 
     // Fsel
 	if ( Opx.fsel && (Opx.w0 || Opx.w1 || Opx.pud) ) { cout <<endl; }
-	APPLX( rgFsel0                 )
-	APPLX( rgFsel1                 )
-	APPLX( rgFsel2                 )
-	APPLX( rgFsel3                 )
-	APPLX( rgFsel4                 )
-	APPLX( rgFsel5                 )
+	APPLY( Fsel0,              "Fsel0"              )
+	APPLY( Fsel1,              "Fsel1"              )
+	APPLY( Fsel2,              "Fsel2"              )
+	APPLY( Fsel3,              "Fsel3"              )
+	APPLY( Fsel4,              "Fsel4"              )
+	APPLY( Fsel5,              "Fsel5"              )
 
     }
     catch ( std::exception& e ) {
