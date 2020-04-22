@@ -15,6 +15,7 @@ README			this file
 
 doc/		    Documentation
     architecture.text	Architecture description
+    version.text	Version log
 
 src/		    Source code
     Makefile		for building the tool

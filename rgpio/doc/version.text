@@ -1,0 +1,38 @@
+2020-04-22  William A. Hudson
+
+		Version Numbering
+		-----------------
+
+See:  librgpio/doc/version.text
+	Tag log for whole repository.
+
+----------------------------------------------------------------------------
+## Version Log - rgpio/src/yVersion.h
+----------------------------------------------------------------------------
+
+Version       Date        Description
+------------  ----------  --------------------------
+0.14.0-dev    2020-04-22  io:  New register names.
+0.10.0-pre    2020-03-25  Initial version system
+
+----------------------------------------------------------------------------
+## Discussion
+----------------------------------------------------------------------------
+
+    Both librgpio and rgpio will have separate version numbers.
+
+Reference:
+    Semantic Versioning 2.0.0
+    https://semver.org/
+    Strategy for versioning software.  Essentially X.Y.Z (Major.Minor.Patch).
+
+Version:  X.Y.Z-PreRelease
+
+        Major X= backwards incompatible API changes
+        Minor Y= backwards compatible API additions/changes
+        Patch Z= Bug fixes not affecting the API
+	-PreRelease    = optional string
+	+BuildMetadata = optional string
+
+    In development, version numbers might not get updated.
+
