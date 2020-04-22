@@ -15,6 +15,7 @@ README			this file
 doc/		    Documentation
     architecture.text	Architecture description
     clock_design.text	Clock Manager design
+    iopin_design.text	IO Pin Registers Design
     mem_barrier.text	Memory Barrier notes
     privilege.text	Process Privilege Control
     pwm_design.text	PWM (Pulse Width Modulator) design
@@ -42,9 +43,11 @@ src/		    Source code
     rgClock.pod
     rgFselPin.cpp	GPIO Pin Function Select class
     rgFselPin.h
-    rgIoPin.cpp		GPIO IO Pin control class
+    rgIoPin.cpp		GPIO IO Pin control class (enum, deprecated)
     rgIoPin.h
     rgIoPin.pod
+    rgIoPins.cpp	GPIO IO Pin Registers class (object registers)
+    rgIoPins.h
     rgPwm.cpp		PWM Pulse Width Modulator class
     rgPwm.h
     rgRegister.cpp	Register base class

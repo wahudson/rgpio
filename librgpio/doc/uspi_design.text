@@ -64,6 +64,8 @@ Possible Class Names:
     rgAuxSpi
 
  >  rgMiniUart		Mini Uart
+    rgMinUart
+    rgMiUart
     rgMUart
     rgAuxUart
 
