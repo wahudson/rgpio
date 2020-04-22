@@ -19,7 +19,7 @@ rgpio-io -- IO Pin register access
     --pud               pin PullUpDown registers
     --all               all registers above
   register group modifiers on --w0 --w1:
-    --raw               show rgPin* instead of virtual PinLevel*
+    --raw               show real instead of virtual PinLevel*
   modify:  (32-bit values)
     --set=0xff..        set mask bits
     --clr=0xff..        clear mask bits
@@ -37,8 +37,8 @@ rgpio-io -- IO Pin register access
 This command provides access to the set of pin GPIO registers.  All registers
 are 32-bits wide, and may contain reserved fields.
 
-Register names are the same as the enumerated type rgIoPin::rgIoReg_enum
-(see file rgIoPin.h) and are listed in the register group options below.
+Register names are the same as in the "rgIoPins" class
+(see file rgIoPins.h) and are listed in the register group options below.
 The names are a little long, but aid in the use of the librgpio library.
 
 The default operation is to directly read and display the specified registers.
@@ -58,7 +58,7 @@ For registers that set/clear bits on write, the process is:
 This command is intended to provide raw register access, and does not
 provide higher level compound operations.
 
-Register function is described in BCM doc, or B<rgIoPin>(7).
+Register function is described in BCM doc, or B<rgIoPins>(7).
 
 Note:  The IO lines (and these registers) are typically a shared resource
 among multiple asynchronous processes, where each process may use only a few
@@ -67,8 +67,8 @@ The read-modify-write process of updating registers is not atomic.
 Therefor a synchronization problem exists, and is typically solved by
 externally synchronizing the processes.
 
-Note:  The IO line output register is updated by writing 1-bits to rgPinSet_w0
-or rgPinClr_w0.  This bit-slice update IS atomic.
+Note:  The IO line output register is updated by writing 1-bits to PinSet_w0
+or PinClr_w0.  This bit-slice update IS atomic.
 
 =head1		OPTIONS
 
@@ -82,28 +82,28 @@ registers are removed.
 
 =item B<--w0>               - Register set word 0.  (default)
 
- PinLevel_w0              (virtual read-write)
- rgEventStatus_w0         (read-clear)
- rgDetectRising_w0
- rgDetectFalling_w0
- rgDetectHigh_w0
- rgDetectLow_w0
- rgDetectAsyncRising_w0
- rgDetectAsyncFalling_w0
+ PinLevel_w0            (virtual read-write)
+ EventStatus_w0         (read-clear)
+ DetectRise_w0
+ DetectFall_w0
+ DetectHigh_w0
+ DetectLow_w0
+ DetectAsyncRise_w0
+ DetectAsyncFall_w0
 
 Bits [31:0] correspond to IO lines [31:0].
 Note that only bits [27:0] are accessible on Raspberry Pi-3 40-pin header.
 
 =item B<--w1>               - Register set word 1.
 
- PinLevel_w1              (virtual read-write)
- rgEventStatus_w1         (read-clear)
- rgDetectRising_w1
- rgDetectFalling_w1
- rgDetectHigh_w1
- rgDetectLow_w1
- rgDetectAsyncRising_w1
- rgDetectAsyncFalling_w1
+ PinLevel_w1            (virtual read-write)
+ EventStatus_w1         (read-clear)
+ DetectRise_w1
+ DetectFall_w1
+ DetectHigh_w1
+ DetectLow_w1
+ DetectAsyncRise_w1
+ DetectAsyncFall_w1
 
 Bits [21:0] represent IO lines [53:32].
 Bits [31:22] are reserved.
@@ -111,21 +111,21 @@ These lines are accessible on the Raspberry Pi compute module.
 
 =item B<--fsel>             - Fsel function select registers.
 
- rgFsel0
- rgFsel1
- rgFsel2
- rgFsel3
- rgFsel4
- rgFsel5
+ Fsel0
+ Fsel1
+ Fsel2
+ Fsel3
+ Fsel4
+ Fsel5
 
 These are the raw function select registers, which are not very convenient
 to use.  Use rgpio-fsel(1) as a better interface to these registers.
 
 =item B<--pud>              - Pin PullUpDown registers.
 
- rgPullUpDown
- rgPullUpDownClk_w0
- rgPullUpDownClk_w1
+ PullUpDown
+ PullUpDownClk_w0
+ PullUpDownClk_w1
 
 These control programming of the weak hardware pull-up/down on each IO pin
 through a special sequence (see "BCM2835 ARM Peripherals").
@@ -142,20 +142,20 @@ Is a shorthand for --w0 --w1 --fsel --pud.
 
 =over
 
-=item B<--raw>              - real rgPin* instead of virtual PinLevel
+=item B<--raw>              - show real instead of virtual PinLevel*
 
-This option displays the three rgPin*_w0 registers instead of the virtual
+This option displays the three Pin*_w0 registers instead of the virtual
 PinLevel_w0 register shown by default.  (same for _w1)
 
  PinLevel_w0        virtual read-write:
-    rgPinSet_w0         Set-only,   no read.
-    rgPinClr_w0         Clear-only, no read.
-    rgPinRead_w0        Read-only,  no write.
+     PinSet_w0          Set-only,   no read.
+     PinClr_w0          Clear-only, no read.
+     PinRead_w0         Read-only,  no write.
 
  PinLevel_w1        virtual read-write:
-    rgPinSet_w1         Set-only,   no read.
-    rgPinClr_w1         Clear-only, no read.
-    rgPinRead_w1        Read-only,  no write.
+     PinSet_w1          Set-only,   no read.
+     PinClr_w1          Clear-only, no read.
+     PinRead_w1         Read-only,  no write.
 
 =back
 
@@ -193,7 +193,7 @@ Register x is updated by:
 =back
 
 The virtual register PinLevel_w0 is modified by writing the underlying
-rgPinSet_w0, rgPinClr_w0 registers.
+PinSet_w0, PinClr_w0 registers.
 
 =head2			Options
 
@@ -223,14 +223,15 @@ additional column showing the same value in binary is added.
  % rgpio io --raw --w0
 
  Set select bits to 1.
- % rgpio io --set=0x00000123  rgDetectLow_w0
+ % rgpio io --set=0x00000123  DetectLow_w0
 
  Clear select bits to 0.
- % rgpio io --set=0x00000123  rgDetectLow_w0
+ % rgpio io --clr=0x00000123  DetectLow_w0
 
  Modify a single register to set bits [7:4] to 0x5 (binary 0101).
- % rgpio io -v --mask=0x000000f0 --value=0x00000050  rgDetectHigh_w0
- 0x00000050  rgDetectHigh_w0   0000 0000 0000 0000 0000 0000 0101 0000
+ % rgpio io -v --mask=0x000000f0 --value=0x00000050  DetectHigh_w0
+ IO Pin Registers:             28   24   20   16   12    8    4    0
+ 0x00000050  DetectHigh_w0   0000 0000 0000 0000 0000 0000 0101 0000
 
 
 =head1		ENVIRONMENT
@@ -242,15 +243,15 @@ none
 
 In the source directory tree:
 
- librgpio/src/rgIoPin.h
+ librgpio/src/rgIoPins.h
 
 
 =head1		SEE ALSO
 
 B<rgpio>(1)
 B<rgpio-fsel>(1)
-B<rgIoPin>(3)
-B<rgIoPin>(7)
+B<rgIoPins>(3)
+B<rgIoPins>(7)
 B<librgpio>(3)
 
  BCM2835 ARM Peripherals (2012)
