@@ -19,7 +19,7 @@
 #include "utLib1.h"		// unit test library
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
+#include "rgIoPins.h"
 #include "rgSpi0.h"
 
 using namespace std;
@@ -36,12 +36,12 @@ using namespace std;
 *    CHECK( "0 00 00", cstr_spi0_gpio( &Gx ) );
 */
 const char*
-cstr_spi0_gpio( rgIoPin  *gx )
+cstr_spi0_gpio( rgIoPins  *gx )
 {
     static char		cr[12];
     uint32_t		reg;
 
-    reg = gx->read_PinLevel_w0() & SPI0_G;
+    reg = gx->PinLevel_w0.read() & SPI0_G;
 
     cr[0] = (reg & 0x0800) ? '1' : '0';		// SCLK
     cr[1] = ' ';
@@ -77,7 +77,7 @@ rgAddrMap		Bx;
     }
 
 rgSpi0			Tx   ( &Bx );		// test object
-rgIoPin			Gx   ( &Bx );		// GPIO pins
+rgIoPins		Gx   ( &Bx );		// GPIO pins
 
 
 //--------------------------------------------------------------------------
@@ -143,7 +143,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00041008, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00041008, Tx.CntlStat.read() );
-	CHECKX(            0x00000980, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000980, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "1 00 11", cstr_spi0_gpio( &Gx ) );
 	//                   ^         SCLK idle state is 1
     }
@@ -160,7 +160,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00041040, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00041040, Tx.CntlStat.read() );
-	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000180, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   no change in CE0_n or CE1_n
     }
@@ -177,7 +177,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00241000, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00241000, Tx.CntlStat.read() );
-	CHECKX(            0x00000080, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000080, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 01", cstr_spi0_gpio( &Gx ) );
 	//                        ^    CE0_n idle low
     }
@@ -193,7 +193,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00441000, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00441000, Tx.CntlStat.read() );
-	CHECKX(            0x00000100, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000100, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 10", cstr_spi0_gpio( &Gx ) );
 	//                         ^   CE1_n idle low
     }
@@ -209,7 +209,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00841000, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00841000, Tx.CntlStat.read() );
-	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000180, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   there is no CE2_n, no effect
     }
@@ -225,7 +225,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00641000, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00641000, Tx.CntlStat.read() );
-	CHECKX(            0x00000000, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000000, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 00", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   both CE0_n, CE1_n idle low
     }
@@ -247,7 +247,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00041000, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00041000, Tx.CntlStat.read() );
-	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000180, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
     }
     catch (...) {
@@ -262,7 +262,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00041080, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00051080, Tx.CntlStat.read() );
-	CHECKX(            0x00000080, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000080, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 01", cstr_spi0_gpio( &Gx ) );
 	//                        ^    CE0_n is active
 	Tx.grab_regs();
@@ -286,7 +286,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	Tx.push_regs();
 	Tx.grab_regs();
 	CHECKX(            0x00041000, Tx.CntlStat.get() );
-	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000180, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^    CE0_n is idle
 	Tx.grab_regs();
@@ -311,7 +311,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00041001, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00041001, Tx.CntlStat.read() );
-	CHECKX(            0x00000180, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000180, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 11", cstr_spi0_gpio( &Gx ) );
 	//                        ^^   both CE0_n, CE1_n idle
     }
@@ -325,7 +325,7 @@ rgIoPin			Gx   ( &Bx );		// GPIO pins
 	CHECKX(            0x00041081, Tx.CntlStat.get() );
 	Tx.push_regs();
 	CHECKX(            0x00051081, Tx.CntlStat.read() );
-	CHECKX(            0x00000100, (Gx.read_PinLevel_w0() & SPI0_G) );
+	CHECKX(            0x00000100, (Gx.PinLevel_w0.read() & SPI0_G) );
 	CHECK(              "0 00 10", cstr_spi0_gpio( &Gx ) );
 	//                         ^   CE1_n is active
 	Tx.grab_regs();
