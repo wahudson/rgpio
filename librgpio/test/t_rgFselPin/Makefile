@@ -12,7 +12,7 @@ LB         = ../../lib
 INCS       = \
 	../src/utLib1.h \
 	$(IC)/rgAddrMap.h \
-	$(IC)/rgIoPin.h \
+	$(IC)/rgIoPins.h \
 	$(IC)/rgFselPin.h
 
 		# objects not including main()
