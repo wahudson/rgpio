@@ -9,7 +9,7 @@
 #include "utLib1.h"		// unit test library
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
+#include "rgIoPins.h"
 #include "rgFselPin.h"
 
 using namespace std;
@@ -24,19 +24,11 @@ int main()
 //--------------------------------------------------------------------------
 
 rgAddrMap		Bx;
-rgIoPin			Px;
+Bx.open_fake_mem();
+
+rgIoPins		Px  ( &Bx );
 rgFselPin		Fx  ( &Px );
 
-
-  CASE( "00", "Common object" );
-    try {
-	Bx.open_fake_mem();
-	Px.init_addr( &Bx );
-	PASS( "Common object" );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
 
 //--------------------------------------------------------------------------
 //## Constructor
@@ -116,7 +108,6 @@ rgFselPin		Fx  ( &Px );
 	FAIL( "unexpected exception" );
     }
 
-
 //--------------------------------------------------------------------------
 //## fselreg_bit()  Register field position
 //--------------------------------------------------------------------------
@@ -124,10 +115,11 @@ rgFselPin		Fx  ( &Px );
   CASE( "60", "fselreg_bit()" );
     try {
 	int			loc;
-	rgIoPin::rgIoReg_enum	reg;
-	reg = rgFselPin::fselreg_bit( 11, &loc );
+	rgReg_rw		*rp;
+	rp = Fx.fselreg_bit( 11, &loc );
 	CHECK( 3, loc );
-	CHECK( "rgFsel1", rgIoPin::str_IoReg_enum( reg ) );
+	CHECK( 1, rp->addr() - Px.get_base_addr() );
+	// offset is Fsel register number
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -136,7 +128,7 @@ rgFselPin		Fx  ( &Px );
   CASE( "61", "fselreg_bit() bit > 53" );
     try {
 	int			loc;
-	rgFselPin::fselreg_bit( 54, &loc );
+	Fx.fselreg_bit( 54, &loc );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
@@ -151,32 +143,32 @@ rgFselPin		Fx  ( &Px );
   CASE( "62", "fselreg_bit()" );
     try {
 	int			loc;
-	rgIoPin::rgIoReg_enum	reg;
+	rgReg_rw		*rp;
 
 	for ( int k=0;  k<=9;  k++ ) {
-	    reg = rgFselPin::fselreg_bit( k, &loc );
+	    rp = Fx.fselreg_bit( k, &loc );
 	    CHECK( k*3, loc );
-	    CHECK( "rgFsel0", rgIoPin::str_IoReg_enum( reg ) );
+	    CHECK( 0, rp->addr() - Px.get_base_addr() );
 	}
 
 	for ( int k=10;  k<=19;  k++ ) {
-	    reg = rgFselPin::fselreg_bit( k, &loc );
+	    rp = Fx.fselreg_bit( k, &loc );
 	    CHECK( (k-10)*3, loc );
-	    CHECK( "rgFsel1", rgIoPin::str_IoReg_enum( reg ) );
+	    CHECK( 1, rp->addr() - Px.get_base_addr() );
 	}
 
 	for ( int k=20;  k<=29;  k++ ) {
-	    reg = rgFselPin::fselreg_bit( k, &loc );
+	    rp = Fx.fselreg_bit( k, &loc );
 	    CHECK( (k-20)*3, loc );
-	    CHECK( "rgFsel2", rgIoPin::str_IoReg_enum( reg ) );
+	    CHECK( 2, rp->addr() - Px.get_base_addr() );
 	}
 
 	// .. 30, 40
 
 	for ( int k=50;  k<=53;  k++ ) {
-	    reg = rgFselPin::fselreg_bit( k, &loc );
+	    rp = Fx.fselreg_bit( k, &loc );
 	    CHECK( (k-50)*3, loc );
-	    CHECK( "rgFsel5", rgIoPin::str_IoReg_enum( reg ) );
+	    CHECK( 5, rp->addr() - Px.get_base_addr() );
 	}
 
     }
