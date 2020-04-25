@@ -4,14 +4,14 @@
 #define rgFselPin_P
 
 //--------------------------------------------------------------------------
-// GPIO Pin Function Select class
+// rGPIO Pin Function Select class
 //--------------------------------------------------------------------------
 
 class rgFselPin {
   private:
-    rgIoPin		*IoPinX;	// IO register object
+    rgIoPins		*IoPinX;	// IO register object
 
-    uint32_t		FselReg[6];	// Function Select register values
+    rgReg_rw		FselReg[6];	// Function Select registers
 
   private:
     static const char*	ModeStr[];	// Fsel mode string names,
@@ -30,7 +30,7 @@ class rgFselPin {
     // Values are the BCM Function Select register mode values.
 
   public:
-    rgFselPin( rgIoPin  *xx );		// constructor
+    rgFselPin( rgIoPins  *xx );		// constructor
 
   public:
 		// Direct access
@@ -46,10 +46,10 @@ class rgFselPin {
 
 		// Register field position
 
-    static rgIoPin::rgIoReg_enum	fselreg_bit(
-					    int		bit,
-					    int		*loc
-					);
+    rgReg_rw*		fselreg_bit(
+			    int		bit,
+			    int		*pos
+			);
 
 		// Enum string conversion
 

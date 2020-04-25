@@ -16,7 +16,7 @@
 using namespace std;
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
+#include "rgIoPins.h"
 #include "rgFselPin.h"
 
 #include "rgAltFuncName.h"

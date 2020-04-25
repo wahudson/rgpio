@@ -1,6 +1,6 @@
 // 2018-01-01  William A. Hudson
 
-// GPIO Pin Function Select class.
+// rGPIO Pin Function Select class.
 //
 // See:  BCM2835 ARM Peripherals (2012)
 //	p.89-101  6.  General Purpose I/O (GPIO)
@@ -17,31 +17,31 @@
 using namespace std;
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
+#include "rgIoPins.h"
 #include "rgFselPin.h"
 
 
 /*
 * Constructor.
-* Pass in an initialized rgIoPin object, e.g.
+* Pass in an initialized rgIoPins object, e.g.
 *    rgAddrMap	amx;		// address map object
 *    amx.open_dev_gpiomem();	// select and open device file
-*    rgIoPin	gpx  ( &amx );	// construct with address map
+*    rgIoPins	gpx  ( &amx );	// construct with address map
 * call:
 *    rgFselPin	fx   ( &gpx );	// construct with io pin object
 */
 rgFselPin::rgFselPin(
-    rgIoPin		*xx
+    rgIoPins		*xx
 )
 {
-    IoPinX   = xx;
+    IoPinX   = xx;		//#!! not really needed
 
-    FselReg[0] = 0;
-    FselReg[1] = 0;
-    FselReg[2] = 0;
-    FselReg[3] = 0;
-    FselReg[4] = 0;
-    FselReg[5] = 0;
+    FselReg[0] = xx->Fsel0;	// copy register objects
+    FselReg[1] = xx->Fsel1;
+    FselReg[2] = xx->Fsel2;
+    FselReg[3] = xx->Fsel3;
+    FselReg[4] = xx->Fsel4;
+    FselReg[5] = xx->Fsel5;
 }
 
 
@@ -50,8 +50,13 @@ rgFselPin::rgFselPin(
 //--------------------------------------------------------------------------
 
 /*
-* Read Function Select pin.
+* Read Function Select mode of a pin number.
 *    No copy in the object.
+* call:
+*    read_Fsel_bit( bit )
+*        bit = IO pin bit number {0..53}
+* return:
+*    ()  = Fsel mode enum {In, .., Alt5}
 * exceptions:
 *    Throw range_error for bit out-of-range.
 */
@@ -60,25 +65,30 @@ rgFselPin::read_Fsel_bit(
     int			bit
 )
 {
-    rgIoPin::rgIoReg_enum	reg;
+    rgReg_rw			*rp;	// register pointer
     int				pos;
     uint32_t			rv;
     uint32_t			mode;
 
-    reg = fselreg_bit( bit, &pos );
+    rp = fselreg_bit( bit, &pos );	// get register and field position
 
-    rv = IoPinX->read_reg( reg );
+    rv = rp->read();
 
     mode = (rv >> pos) & 0x7;
 
     return  rgFselPin::rgFsel_enum( mode );
+	// explicit int to enum conversion, in range of enum
 }
 
 
 /*
-* Modify Function Select pin.
+* Modify Function Select mode of a pin number.
 *    Does read/modify/write.
 *    No copy in the object.
+* call:
+*    modify_Fsel_bit( bit, mode )
+*        bit  = IO pin bit number {0..53}
+*        mode = function select mode {f_In, f_Out, .. f_Alt5}
 * exceptions:
 *    Throw range_error for bit out-of-range.
 */
@@ -88,38 +98,37 @@ rgFselPin::modify_Fsel_bit(
     rgFselPin::rgFsel_enum	mode
 )
 {
-    rgIoPin::rgIoReg_enum	reg;
+    rgReg_rw			*rp;	// register pointer
     int				pos;
     uint32_t			mask;
     uint32_t			value;
 
-    reg = fselreg_bit( bit, &pos );
+    rp = fselreg_bit( bit, &pos );	// get register and field position
 
     mask  = (                 0x7) << pos;
     value = ((uint32_t)mode & 0x7) << pos;
 
-    IoPinX->modify_reg( reg, mask, value );
+    rp->modify( mask, value );
 }
 
 
 //--------------------------------------------------------------------------
 // Register field position
 //--------------------------------------------------------------------------
-// Convert bit number into register enum and field position in register.
-// Class methods.
 
 /*
-* Get Fsel register and field position for bit number.
+* Get Fsel register pointer and field position for a bit number.
+*    The field position pos is the LSB of the 3-bit Fsel mode value.
 * call:
-*    reg = fselreg_bit( bit, &pos )
-*    bit  = pin bit number 0..53
-*    pos  = field position within register, {0,3,6,..,27}
+*    rp = fselreg_bit( bit, &pos )
+*        bit  = pin bit number 0..53
+*        pos  = field position within register, {0,3,6,..,27}
 * return:
-*    ()  = rgIoReg_enum  of the Fsel register for that bit
+*    ()  = pointer to the Fsel register for that bit
 * exceptions:
 *    Throw range_error for bit out-of-range.
 */
-rgIoPin::rgIoReg_enum
+rgReg_rw*
 rgFselPin::fselreg_bit(
     int			bit,		// pin bit number
     int			*pos
@@ -139,8 +148,7 @@ rgFselPin::fselreg_bit(
 
 //  cout << "bit=" << bit << "  rnum=" << rnum << "  pos=" << *pos <<endl;
 
-    return  rgIoPin::rgIoReg_enum( rgIoPin::rgFsel0 + rnum );
-	    // explicit enum conversion from int
+    return  &( FselReg[rnum] );
 }
 
 
