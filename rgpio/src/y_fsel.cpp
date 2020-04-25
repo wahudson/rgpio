@@ -15,7 +15,7 @@ using namespace std;
 #include "yOption.h"
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
+#include "rgIoPins.h"
 #include "rgFselPin.h"
 
 #include "rgAltFuncName.h"
@@ -224,7 +224,7 @@ y_fsel::doit()
 
 	if ( Error::has_err() )  return 1;
 
-	rgIoPin			Gpx  ( AddrMap );	// constructor
+	rgIoPins		Gpx  ( AddrMap );	// constructor
 	rgFselPin		Fpx  ( &Gpx );		// constructor
 
 	if ( Opx.debug ) {
@@ -232,8 +232,8 @@ y_fsel::doit()
 	    cout <<hex;
 	    cout <<setw(8) << (void*) Gpx.get_base_addr()
 		 << "  GpioBase" <<endl;
-	    cout <<setw(8) << (void*) Gpx.addr_reg( rgIoPin::rgPinRead_w0 )
-		 << "  addr rgPinRead_w0" <<endl;
+	    cout <<setw(8) << (void*) Gpx.PinRead_w0.addr()
+		 << "  addr PinRead_w0" <<endl;
 	}
 
 	const int		BitLimit = 64;
