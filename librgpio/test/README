@@ -50,7 +50,8 @@ Test suites:  (2017-05-20)
  u   s  t_rgClk/	rgClk		General Clock Manager class.
  u   s  t_rgClock/	rgClock		General Purpose Clock class.
  u   s  t_rgFselPin/	rgFselPin	Pin Function Select class.
- u   s  t_rgIoPin/	rgIoPin		GPIO IO Pin control class.
+ u   s  t_rgIoPin/	rgIoPin		GPIO IO Pin control class (enum).
+ u   s  t_rgIoPins/	rgIoPins	GPIO IO Pin control class (objects).
  u   s  t_rgPwm/	rgPwm		PWM Pulse Width Modulator class.
  u   s  t_rgRegister/	rgRegister	Register base class.
  u   s  t_rgSpi0/	rgSpi0		SPI0 Master class.
