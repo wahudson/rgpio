@@ -55,6 +55,7 @@ Test suites:  (2017-05-20)
  u   s  t_rgPwm/	rgPwm		PWM Pulse Width Modulator class.
  u   s  t_rgRegister/	rgRegister	Register base class.
  u   s  t_rgSpi0/	rgSpi0		SPI0 Master class.
+ u   s  t_rgSysTimer/	rgSysTimer	System Timer class.
  u   s  t_rgUniSpi/	rgUniSpi	Universal SPI Master class.
  u   s  t_utLib1/	utLib1		Unit Test Library.
 				    Live RPi tests
