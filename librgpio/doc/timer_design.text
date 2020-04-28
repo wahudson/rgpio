@@ -1,0 +1,309 @@
+2019-04-25
+		rgpio - System Timer Design
+		---------------------------
+
+Raspberry Pi GPIO Tool and Library
+
+See also:  doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    Referenced by RaspberryPi.
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://elinux.org/BCM2835_datasheet_errata
+
+See:  p.172-174  ch 12.  System Timer
+See also:  p.196  ch 14.  Timer (ARM side)
+
+----------------------------------------------------------------------------
+## Discussion - System Timer
+----------------------------------------------------------------------------
+
+Possible Class Names:
+ >  rgSysTimer		this timer
+    rgSysTime
+    rgSysTim
+ >  rgCpuTimer		for the ARM side timer
+    rgCpuTime
+    rgCpuTim
+
+    rgTimer
+    rgSyTimer
+
+Documentation:
+    Where to put detailed documentation on operation and configuration?
+    Man page sections:
+
+    rgSysTimer(7)      - describes BCM hardware function
+    rgSysTimer(3)      - describes librgpio API calls, and limited function
+    rgpio_systime(1)   - describes rgpio sub-command
+
+    Probably want a single source describing operation, manpage (7).  The
+    Library and the utility 'rgpio' command both do the same operations, and
+    thus have a lot of overlap.  Let them both reference it for hardware
+    behavior.
+
+rgpio sub-command:
+    systimer
+    stime
+    timer
+
+    cputime
+    ctime
+
+Shared resource:
+
+    Be aware that the system timer is also used by the operating system (OS).
+    Probably don't want a broad operation like write all registers at once.
+
+----------------------------------------------------------------------------
+## Operation - System Timer
+----------------------------------------------------------------------------
+
+Function:
+
+    The System Timer is a free running 64-bit counter driven by the
+    "timer clock".  It is accessed as two 32-bit read-only registers
+    (TimeW1, TimeW0).  The reset state is 0x0 (zero).
+
+    The BCM doc states:  "The free running counter is driven by the timer
+    clock and stopped whenever the processor is stopped in debug mode."
+    This seems to suggest that the counter cannot be stopped in normal
+    operation.
+
+    What is the "timer clock"?  Is it a clock manager?  Or is it one of the
+    system clocks?
+
+    There four 32-bit comparison registers (Cmp0,.. Cmp3) that are compared
+    to the low word (TimeW0) of the counter.  When a match occurs, the
+    corresponding Status register match bit is set (presumably latched).
+    A match interrupt (presumably logic OR of all 4 match bits) is then
+    sent to the interrupt controller.
+
+    The status match bits are always available for reading, and are cleared
+    by writing a 1 to the match bit.
+
+Use:
+
+    The timer counter seems ideal as a real-time clock - it runs continuously
+    at a fixed clock rate and cannot be stopped or cleared (except when the
+    cpu is stopped).
+
+    It seems likely this is the Linux high-resolution timer
+    CLOCK_MONOTONIC_RAW  clock_gettime(2).
+
+    Beware the comparison registers may be used by the Linux kernel, but
+    the timer can be read anytime without harm.
+
+Reading 64-bit timer:
+
+    All registers are read as 32-bit words.
+    Reading the timer requires reading two separate registers, which is not
+    atomic.  Thus some inference will be needed to assure the two words
+    are consistent.
+
+    In hardware, when word 0 overflows, then word 1 is incremented.
+
+    The idea is to read this sequence:
+	w1a = W1.read()
+	w0  = W0.read()
+	w1b = W1.read()
+    Now w0 is the reference time, and we infer which w1a or w1b goes with it:
+    If (w1a == w1b), then no problem, both are valid.
+    If w0 is large (i.e. w0 > 0xf0000000), then it has not overflowed, use w1a.
+    If w0 is small (i.e. w0 < 0x0fffffff), then it likely overflowed, use w1b.
+    In either case, the difference (|w1b - w1a| <= 1) should be true.
+
+    We are assuming that the time between reading words is much less than
+    the time to overflow the w0 value.
+    Word 0 counter:  2^32 = 4.29e9 counts at 1 ns/count is 4.29 seconds.
+    It is unlikely the process will be interrupted this long.
+    (And if it is 1 us/count, 4290 seconds is over 1 hour).
+
+    The comparison to large and small needs some refinement.
+    Possibly do not read w1b if it is not used.
+
+	w1 = W1.read()
+	w0 = W0.read()
+	if ( w0 < 0x7fffffff ) then  w1 = W1.read()
+	return (w1,w0)
+
+    Possibly always read both to have constant execution time.
+
+	w1a = W1.read()
+	w0  = W0.read()
+	w1b = W1.read()
+	if ( w1b == w1a ) then
+	    w1 = w1a
+	else
+	    if ( w0 < 0x7fffffff ) then  w1 = w1b;  else w1 = w1a;
+	return (w1,w0)
+
+    Note word 1, incrementing at 1 second per count will overflow in
+    2^32 / ( 60 sec/min * 60 min/hr * 24 hr/day * 365 day/year) = 136 years.
+    Thus we never expect word 1 to overflow, since it powers-on at zero.
+
+Experiments on RPi:  (2020-04-27)
+
+    Timer (TimeW1= 0) after power up.
+
+    The clock appears to have a 1.0 us period.  What a shame!  This counter
+    could have easily run at 10 ns, or even 1 ns, which would have been
+    very useful for hardware measurements.
+
+    Compare registers Cmp0 and Cmp2 seem to be in use by the OS.  The
+    remaining Cmp1 and Cmp3 are always set to zero, and when the timer
+    matches, the match bits remain set (Match1_1= 1, Match3_1= 1).
+
+----------------------------------------------------------------------------
+## Class Design - System Timer
+----------------------------------------------------------------------------
+
+    Names of registers and bit-fields in the BCM documentation are rather
+    short and confusing when out of context.  Choose better names that are
+    more meaningful at the program call point.
+
+Register Names:
+
+    rgSysTimer		BCM	Description
+    ------------	----	------------------
+    Stat		CS	Status  (read-clear)
+
+    TimeW0		CLO	Counter word 0, low  32-bits (RO)
+    TimeW1		CHI	Counter word 1, high 32-bits (RO)
+    TimeDw		--	Counter double word, virtual register (RO)
+
+    Cmp0		C0	Compare value
+    Cmp1		C1
+    Cmp2		C2
+    Cmp3		C3
+
+    Register names are public objects derived from base class rgRegister.
+    Thus want good name choices when viewed at the user call point.
+
+Field Names:
+
+     Reg.Field			Bits  BCM	possible alternatives
+    ----.---------------	----  -----
+    Stat.Match3_1		[3]   M3	.
+    Stat.Match2_1		[2]   M2	.
+    Stat.Match1_1		[1]   M1	.
+    Stat.Match0_1		[0]   M0	.
+
+    (RO) = Read-only, otherwise all fields are read-write.
+
+Field Naming:
+
+    Choose names that are somewhat descriptive and meaningful at the call
+    point in user code.  The BCM field names are way too short, and often
+    too cryptic or misleading.
+    Try to limit name length to 15 characters or less, including the "_1"
+    field width numeral.
+
+    Single-bit fields should name the thing that the '1' level does.  Avoid
+    ambiguous terms like "polarity", where 1 could be normal or inverted.
+
+    Name components typically include the thing they apply to and the
+    behavior they control.
+
+    Abbreviations appropriate for this context are:
+	Cmp    Compare
+
+Function Names:
+
+    All register and field accessor functions are methods of each register
+    object.
+
+    The full register operations are inherited from rgRegister class.
+    These are:
+
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
+
+    Another name for "grab" is "pull", but I like the quirkyness of "grab".
+
+    Field accessor functions are defined in each register derived class.
+    A single class can be made for the two register channels (nice!).
+    These are named like:  (same as rgUniSpi)
+
+	get_FIELD_N()	get object FIELD value of width N
+	put_FIELD_N(V)	set object FIELD value of width N
+
+Register Classes:
+
+    Each unique register gets its own class name:
+	rgSysTimer_Stat
+	rgSysTimer_TimeW0
+	rgSysTimer_TimeW1
+	rgSysTimer_TimeDw	virtual double-word register
+
+    The compare registers could use rgRegister directly.
+    The main issue is protecting against cross copying vs more classes.
+
+    Only the Status register has any bit fields.
+
+    Having register values in the object seems useful.  Otherwise could
+    derive from rgReg class, which does direct read/write only (no data
+    value).
+
+Virtual register:  TimeDw
+
+    Was an initial idea to make a virtual register consisting of the two
+    words of the timer counter.
+    Not much thought of how that would work so far.
+
+----------------------------------------------------------------------------
+## rgSysTimer Object - System Timer
+----------------------------------------------------------------------------
+
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
+
+    rgSysTimer_Stat	Stat;		Status  (read-clear)
+
+    rgSysTimer_TimeW0	TimeW0;		Counter word 0, low  32-bits (RO)
+    rgSysTimer_TimeW1	TimeW1;		Counter word 1, high 32-bits (RO)
+    rgSysTimer_TimeDw	TimeDw;		Counter double word, virtual (RO)
+
+    rgRegister		Cmp0;		Compare value
+    rgRegister		Cmp1;
+    rgRegister		Cmp2;
+    rgRegister		Cmp3;
+}
+
+Methods:
+
+    get_base_addr()		GpioBase address
+
+			Object state operations:
+ ?  init_put_reset()		Object registers set to power-on reset state.
+ ?  init_put_zero()		Object registers set to zero.
+
+    grab_regs()			Read all registers (not Fifo) into object.
+ ?  push_regs()			Write object to hardware registers (not Fifo).
+
+
+    All these have both get_() and put_(V):
+			Field accessors of object state:
+    get_()
+    put_(V)
+    ...
+
+     Reg.Field			Bits  BCM
+    ----.---------------	----  -----
+    Stat.get_Match3_1()		[3]   M3
+    Stat.get_Match2_1()		[2]   M2
+    Stat.get_Match1_1()		[1]   M1
+    Stat.get_Match0_1()		[0]   M0
+

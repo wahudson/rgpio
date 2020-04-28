@@ -21,6 +21,7 @@ INCS       = \
 	rgPwm.h \
 	rgRegister.h \
 	rgSpi0.h \
+	rgSysTimer.h \
 	rgUniSpi.h \
 	rgVersion.h
 
@@ -36,6 +37,7 @@ OBJS       = \
 	$(OJ)/rgPwm.o \
 	$(OJ)/rgRegister.o \
 	$(OJ)/rgSpi0.o \
+	$(OJ)/rgSysTimer.o \
 	$(OJ)/rgUniSpi.o
 
 		# link libraries, required by rgAddrMap
@@ -119,6 +121,9 @@ $(OJ)/rgRegister.o:	rgRegister.cpp  rgRegister.h
 
 $(OJ)/rgSpi0.o:		rgSpi0.cpp  rgSpi0.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgSpi0.cpp
+
+$(OJ)/rgSysTimer.o:	rgSysTimer.cpp  rgSysTimer.h  rgAddrMap.h
+	g++ $(CXXFLAGS) -o $@  -c rgSysTimer.cpp
 
 $(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgUniSpi.cpp
