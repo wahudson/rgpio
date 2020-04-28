@@ -19,6 +19,7 @@ using namespace std;
 #include "y_io.h"
 #include "y_pwm.h"
 #include "y_spi0.h"
+#include "y_timer.h"
 #include "y_uspi.h"
 
 #include "Error.h"
@@ -160,6 +161,7 @@ yOptLong::print_usage()
     "    clock        Clock generator\n"
     "    pwm          PWM Pulse Width Modulator\n"
     "    spi0         SPI0 Master\n"
+    "    timer        System Timer\n"
     "    uspi         Universal SPI Master, Spi1, Spi2\n"
     "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
@@ -254,6 +256,10 @@ main( int	argc,
 	}
 	else if ( Opx.feature == "spi0"    ) {
 	    y_spi0		usx  ( &Opx, &Amx );	// constructor
+	    retv = usx.doit();
+	}
+	else if ( Opx.feature == "timer"    ) {
+	    y_timer		usx  ( &Opx, &Amx );	// constructor
 	    retv = usx.doit();
 	}
 	else if ( Opx.feature == "uspi"    ) {

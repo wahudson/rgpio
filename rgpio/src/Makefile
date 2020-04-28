@@ -25,6 +25,7 @@ INCS       = \
 	y_io.h \
 	y_pwm.h \
 	y_spi0.h \
+	y_timer.h \
 	y_uspi.h \
 	yOpVal.h \
 	yOption.h \
@@ -41,6 +42,7 @@ OBJS       = \
 	$(OJ)/y_io.o \
 	$(OJ)/y_pwm.o \
 	$(OJ)/y_spi0.o \
+	$(OJ)/y_timer.o \
 	$(OJ)/y_uspi.o \
 	$(OJ)/yOpVal.o \
 	$(OJ)/yOption.o \
@@ -114,6 +116,9 @@ $(OJ)/y_pwm.o:		y_pwm.cpp  y_pwm.h  $(INCS)
 
 $(OJ)/y_spi0.o:		y_spi0.cpp  y_spi0.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_spi0.cpp
+
+$(OJ)/y_timer.o:	y_timer.cpp  y_timer.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_timer.cpp
 
 $(OJ)/y_uspi.o:		y_uspi.cpp  y_uspi.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_uspi.cpp

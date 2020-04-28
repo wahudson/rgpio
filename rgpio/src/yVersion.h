@@ -10,7 +10,7 @@
 class yVersion {
 
   public:
-    inline static  const char *	get_Version() { return  "0.14.1-dev"; };
+    inline static  const char *	get_Version() { return  "0.15.0-dev"; };
 
 };
 
