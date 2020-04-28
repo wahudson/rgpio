@@ -32,24 +32,14 @@ class rgSysTimer_TimeW0 : public rgRegister {
 class rgSysTimer_TimeW1 : public rgRegister {
 };
 
-//#!! Initial idea not fully implemented.
-class rgSysTimer_TimeDw : public rgRegister {
-  private:
-//  volatile uint32_t	*Addr;		// inherited, W0
-    volatile uint32_t	*AddrW1;	// register address
+class rgSysTimer_TimeDw {	// Virtual 64-bit timer counter register
+  public:
+    rgRegister		W1;		// 32-bit registers
+    rgRegister		W0;
 
   public:
-		// constructor
-			rgSysTimer_TimeDw()	{ AddrW1 = 0; }
 
-    volatile uint32_t*	addr_w1()		{ return AddrW1; }
-
-    uint64_t		read64();
-
-		// Initialization:  (private, used by feature constructor)
-  public:
-    inline void		init_addr_W1( volatile uint32_t* aptr)
-			    {AddrW1 = aptr; }
+    uint64_t		grab64();	// returns coherent value
 };
 
 

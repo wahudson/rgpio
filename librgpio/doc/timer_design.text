@@ -258,9 +258,46 @@ Register Classes:
 
 Virtual register:  TimeDw
 
-    Was an initial idea to make a virtual register consisting of the two
-    words of the timer counter.
-    Not much thought of how that would work so far.
+    Make a virtual register consisting of the two words of the timer counter,
+    in addition to the individual W1 and W0 registers.  It would keep a
+    coherent view of the 64-bit counter.
+
+    Idea to make a virtual register class consisting of the two words of the
+    timer counter.  It would contain all the timer operations instead of
+    having them at the top level:
+
+ >  A) Virtual register TimeDw
+	+ Gives context (boundaries) for the operations.
+	+ Clear that only registers in TimeDw can be involved.
+	- More storage for another object.
+	+ Can be copied outside of rgSysTimer.
+
+    B) Timer operations in rgSysTimer
+	+ The timer counter is what the top class is about.
+	- Not clear how many registers might be involved.
+	- More top level functions.
+
+    Seems clear benefit to putting full counter operations in the virtual
+    class.
+
+    TimeDw:: {
+	rgRegister	W1;	// 32-bit registers
+	rgRegister	W0;
+
+	grab64()	coherent copy 64-bit counter into object
+
+	get64()		get object register value
+    }
+
+    Let the virtual 64-bit register contain two 32-bit registers.  This is
+    better than inheriting from rgRegister, or building up from scratch.
+
+    Seems best to indicate 64-bit value on these functions.  Plain grab()
+    and get() would not be as clear at the call point.  NOT trying to make
+    this polymorphic with regular 32-bit registers.
+
+    Possibly let grab64() return the coherent 64-bit value, since that
+    is a common use.
 
 ----------------------------------------------------------------------------
 ## rgSysTimer Object - System Timer

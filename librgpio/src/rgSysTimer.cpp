@@ -20,8 +20,46 @@ using namespace std;
 
 
 //==========================================================================
-//## rgSysTimer_TimeDw::  Double Register Class
+//## rgSysTimer_TimeDw::  Virtual 64-bit timer counter class
 //==========================================================================
+
+/*
+* Grab coherent 64-bit System Timer value.
+*    Reading the two 32-bit counter register values is not atomic.
+*    Special fixup is applied when the w0 counter rolls over after the w1
+*    count was read.
+* call:
+*    grab64()
+* return:
+*    ()  = 64-bit System Timer value.
+*/
+uint64_t
+rgSysTimer_TimeDw::grab64()
+{
+    uint64_t		rv;	// return value
+    uint32_t		w0;
+    uint32_t		w1a;
+    uint32_t		w1b;
+
+    w1a = W1.read();
+    w0  = W0.read();	// reference time point
+    w1b = W1.read();
+
+    W0.put( w0  );
+    W1.put( w1a );
+
+    if ( w1a != w1b ) {		// fixup w0 rollover
+	if ( w0 < 0x80000000 ) {
+	    W1.put( w1b );
+	}
+    }
+
+    rv = W1.get();
+    rv = (rv << 32) | W0.get();
+
+    return  rv;
+}
+
 
 //==========================================================================
 //## rgSysTimer::  Main Class
@@ -56,8 +94,8 @@ rgSysTimer::rgSysTimer(
 
     // Virtual Registers
 
-    TimeDw.init_addr(    TimeW0.addr() );
-    TimeDw.init_addr_W1( TimeW1.addr() );
+    TimeDw.W0.init_addr( TimeW0.addr() );
+    TimeDw.W1.init_addr( TimeW1.addr() );
 }
 
 
@@ -79,3 +117,4 @@ rgSysTimer::grab_regs()
     Cmp2.grab();
     Cmp3.grab();
 }
+
