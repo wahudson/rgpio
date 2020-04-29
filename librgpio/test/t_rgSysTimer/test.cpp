@@ -5,7 +5,7 @@
 //    20-29  Address of registers  addr()
 //    30-39  Direct register access  read(), write()
 //    40-49  Full register get(), put(), grab(), push()
-//    50-59  .
+//    50-59  Virtual register rgSysTimer_TimeDw:: class
 //    60-98  .
 //--------------------------------------------------------------------------
 
@@ -98,8 +98,9 @@ rgSysTimer		Tx   ( &Bx );		// test object
   CASE( "15", "rgSysTimer_TimeDw constructor init" );
     try {
 	rgSysTimer_TimeDw	tx;
-	CHECK( 1, tx.addr()     == NULL );
-	CHECK( 1, tx.addr_w1()  == NULL );
+	CHECK( 1, tx.W0.addr()  == NULL );
+	CHECK( 1, tx.W1.addr()  == NULL );
+	CHECK( 1, tx.W1B.addr() == NULL );
 	PASS( "constructor" );
     }
     catch (...) {
@@ -139,7 +140,7 @@ rgSysTimer		Tx   ( &Bx );		// test object
   CASE( "16d", "rgSysTimer_TimeDw copy constructor" );
     try {
 	rgSysTimer_TimeDw	rx  ( Tx.TimeDw );
-	CHECKX( 0x04, (rx.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x04, (rx.W0.addr() - Tx.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -177,8 +178,9 @@ rgSysTimer		Tx   ( &Bx );		// test object
 
   CASE( "23", "TimeDw.addr() virtual register" );
     try {
-	CHECKX( 0x04, (Tx.TimeDw.addr()    - Tx.get_base_addr())*4 );
-	CHECKX( 0x08, (Tx.TimeDw.addr_w1() - Tx.get_base_addr())*4 );
+	CHECKX( 0x04, (Tx.TimeDw.W0.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x08, (Tx.TimeDw.W1.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x08, (Tx.TimeDw.W1B.addr() - Tx.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -348,6 +350,76 @@ rgSysTimer		Tx   ( &Bx );		// test object
 	Tx.TimeW0.push();
 	CHECKX(           0xbeef0303, Tx.TimeW0.read()  );
 	CHECKX(           0xbeef0303, Tx.TimeW0.get()   );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Virtual register rgSysTimer_TimeDw:: class
+//--------------------------------------------------------------------------
+
+  CASE( "50", "init TimeDw" );
+    try {
+	Tx.TimeW0.write(  0x22222222 );
+	Tx.TimeW1.write(  0x77777777 );
+	CHECKX(           0x22222222, Tx.TimeDw.W0.read()  );
+	CHECKX(           0x77777777, Tx.TimeDw.W1.read()  );
+	CHECKX(           0x77777777, Tx.TimeDw.W1B.read()  );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "51", "TimeDw.grab64()" );
+    try {
+	Tx.TimeW0.write(  0x22222222 );
+	Tx.TimeW1.write(  0x77777777 );
+	CHECK( 1, 0x7777777722222222 == Tx.TimeDw.grab64() );
+	CHECK( 0, 0x7777777722222221 == Tx.TimeDw.grab64() );  // not equal
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "53a", "TimeDw.get64() rollover before" );
+    try {
+	Tx.TimeDw.W0.put(    0x0000ffff );
+	Tx.TimeDw.W1.put(    0x00000001 );
+	Tx.TimeDw.W1B.put(   0x00000002 );
+	CHECKX(              0x0000ffff, Tx.TimeDw.W0.get()  );
+	CHECKX(              0x00000001, Tx.TimeDw.W1.get()  );
+	CHECKX(              0x00000002, Tx.TimeDw.W1B.get() );
+	CHECK( 1, 0x000000020000ffff == Tx.TimeDw.get64() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "53b", "TimeDw.get64() rollover after" );
+    try {
+	Tx.TimeDw.W0.put(    0xff000000 );
+	Tx.TimeDw.W1.put(    0x00000001 );
+	Tx.TimeDw.W1B.put(   0x00000002 );
+	CHECKX(              0xff000000, Tx.TimeDw.W0.get()  );
+	CHECKX(              0x00000001, Tx.TimeDw.W1.get()  );
+	CHECKX(              0x00000002, Tx.TimeDw.W1B.get() );
+	CHECK( 1, 0x00000001ff000000 == Tx.TimeDw.get64() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "53c", "TimeDw.get64() no rollover" );
+    try {
+	Tx.TimeDw.W0.put(    0x0000ffff );
+	Tx.TimeDw.W1.put(    0x00000003 );
+	Tx.TimeDw.W1B.put(   0x00000003 );
+	CHECKX(              0x0000ffff, Tx.TimeDw.W0.get()  );
+	CHECKX(              0x00000003, Tx.TimeDw.W1.get()  );
+	CHECKX(              0x00000003, Tx.TimeDw.W1B.get() );
+	CHECK( 1, 0x000000030000ffff == Tx.TimeDw.get64() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
