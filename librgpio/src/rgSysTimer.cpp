@@ -24,29 +24,45 @@ using namespace std;
 //==========================================================================
 
 /*
-* Grab coherent 64-bit System Timer value.
+* Grab System Timer words for coherent preperation.
+*    Read the two 32-bit counter registers in preperation for making a
+*    coherent 64-bit value.  The required order is:  W1, W0, W1B
+*    Intended to be used before get64().
+* call:
+*    grab()
+*/
+void
+rgSysTimer_TimeDw::grab()
+{
+    W1.grab();
+    W0.grab();		// reference time point
+    W1B.grab();
+}
+
+
+/*
+* Get coherent 64-bit System Timer value.
 *    Reading the two 32-bit counter register values is not atomic.
 *    Special fixup is applied when the w0 counter rolls over after the w1
-*    count was read.
+*    count was read.  Required read order:  W1, W0, W1B
+*    Intended to run after grab(), which is split out for testing.
+*    Note:  Can be called repeatedly to get the same value.
 * call:
-*    grab64()
+*    get64()
 * return:
 *    ()  = 64-bit System Timer value.
 */
 uint64_t
-rgSysTimer_TimeDw::grab64()
+rgSysTimer_TimeDw::get64()
 {
     uint64_t		rv;	// return value
-    uint32_t		w0;
     uint32_t		w1a;
+    uint32_t		w0;
     uint32_t		w1b;
 
-    w1a = W1.read();
-    w0  = W0.read();	// reference time point
-    w1b = W1.read();
-
-    W0.put( w0  );
-    W1.put( w1a );
+    w1a = W1.get();
+    w0  = W0.get();		// reference time point
+    w1b = W1B.get();
 
     if ( w1a != w1b ) {		// fixup w0 rollover
 	if ( w0 < 0x80000000 ) {
@@ -54,8 +70,8 @@ rgSysTimer_TimeDw::grab64()
 	}
     }
 
-    rv = W1.get();
-    rv = (rv << 32) | W0.get();
+    rv = W1.get();		// 64-bit value
+    rv = (rv << 32) | w0;
 
     return  rv;
 }
@@ -96,6 +112,8 @@ rgSysTimer::rgSysTimer(
 
     TimeDw.W0.init_addr( TimeW0.addr() );
     TimeDw.W1.init_addr( TimeW1.addr() );
+
+    TimeDw.W1B.init_addr( TimeW1.addr() );
 }
 
 
@@ -105,6 +123,7 @@ rgSysTimer::rgSysTimer(
 
 /*
 * Read hardware registers into the object.
+* Note values are NOT coherent.
 */
 void
 rgSysTimer::grab_regs()
@@ -112,6 +131,7 @@ rgSysTimer::grab_regs()
     Stat.grab();
     TimeW0.grab();
     TimeW1.grab();
+    TimeDw.grab();	// virtual double-word register
     Cmp0.grab();
     Cmp1.grab();
     Cmp2.grab();

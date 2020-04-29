@@ -9,7 +9,7 @@
 // rGPIO  System Timer class
 //--------------------------------------------------------------------------
 
-class rgSysTimer_Stat : public rgRegister {
+class rgSysTimer_Stat : public rgRegister {	//#!! read-clear
   public:
 
     inline
@@ -34,12 +34,18 @@ class rgSysTimer_TimeW1 : public rgRegister {
 
 class rgSysTimer_TimeDw {	// Virtual 64-bit timer counter register
   public:
+    rgRegister		W1B;		// second W1 (private)
+
+  public:
     rgRegister		W1;		// 32-bit registers
     rgRegister		W0;
 
   public:
+    void		grab();		// grab W1, W0, W1B
+    uint64_t		get64();	// get coherent 64-bit value
 
-    uint64_t		grab64();	// returns coherent value
+					// read coherent 64-bit value
+    uint64_t		grab64()	{ grab();  return  get64(); }
 };
 
 

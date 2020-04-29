@@ -299,6 +299,36 @@ Virtual register:  TimeDw
     Possibly let grab64() return the coherent 64-bit value, since that
     is a common use.
 
+Virtual Register class:  rgSysTimer_TimeDw
+
+    An initial implementation of grab64() combined reading W1, W0 registers
+    with deducing the coherent 64-bit value.  This looked great, but it was
+    not possible to test the two reads of W1 getting different values due
+    to W0 rollover.
+
+    Decided to split the reads into grab(), and the coherency deduction into
+    get64().  Also decided to use rgRegister objects for all 3 read values,
+    which provided good testability access with little extra coding.
+
+    The new class looks like:
+
+    class rgSysTimer_TimeDw {	// Virtual 64-bit timer counter register
+      public:
+	rgRegister	W1B;		// second W1 (private)
+	rgRegister	W1;		// 32-bit registers
+	rgRegister	W0;
+      public:
+	void		grab();		// grab W1, W0, W1B
+	uint64_t	get64();	// get coherent 64-bit value
+	uint64_t	grab64()	{ grab();  return  get64(); }
+    };
+
+    Here W1, W0 are intended for public access.
+    W1B is for private use, but made public for testability.
+    grab() does the 3 reads in required order (W1, W0, W1B).
+    get64() does the coherency deduction, but no reading.
+    grab64() combines these as a common convenient operation.
+
 ----------------------------------------------------------------------------
 ## rgSysTimer Object - System Timer
 ----------------------------------------------------------------------------
@@ -328,8 +358,6 @@ Methods:
  ?  init_put_zero()		Object registers set to zero.
 
     grab_regs()			Read all registers (not Fifo) into object.
- ?  push_regs()			Write object to hardware registers (not Fifo).
-
 
     All these have both get_() and put_(V):
 			Field accessors of object state:
