@@ -185,19 +185,19 @@ timer_yOptLong::print_usage()
     cout <<
     "    System Timer\n"
     "usage:  " << ProgName << " timer [options..]\n"
-    "  modify:\n"
+    "  modify registers:\n"
     "    --Stat=V            Status (read-clear)\n"
     "    --TimeW1=V          Counter word 1, high 32-bits (RO)\n"
     "    --TimeW0=V          Counter word 0, low  32-bits (RO)\n"
-    "    --Cmp3=V            Compare low 32-bits\n"
+    "    --Cmp3=V            Compare to TimeW0\n"
     "    --Cmp2=V            ..\n"
     "    --Cmp1=V            ..\n"
     "    --Cmp0=V            ..\n"
     "  modify Stat bit fields:  (write 1 to clear)\n"
-    "    --Match3_1=V        Cmp3 matched\n"
-    "    --Match2_1=V        Cmp2 matched\n"
-    "    --Match1_1=V        Cmp1 matched\n"
-    "    --Match0_1=V        Cmp0 matched\n"
+    "    --Match3_1=0        Cmp3 matched\n"
+    "    --Match2_1=0        Cmp2 matched\n"
+    "    --Match1_1=0        Cmp1 matched\n"
+    "    --Match0_1=0        Cmp0 matched\n"
     "  options:\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output\n"
@@ -273,6 +273,7 @@ y_timer::doit()
 
 	    Opx.trace_msg( "Grab regs" );
 	    Stx.grab_regs();
+	    Stx.Stat.put( 0 );		// read-clear
 
 #define APPLY( X, Y ) if ( Opx.X.Given ) { Stx.Y( Opx.X.Val );  md = 1; }
 
@@ -323,7 +324,7 @@ y_timer::doit()
 
 	    cout.fill(' ');
 	    cout <<dec
-		<< "   TimeW0    = " << Stx.TimeW0.get()   <<endl
+		<< "   TimeDw    = " << Stx.TimeDw.get64()      <<endl
 		<< " Stat" <<endl
 		<< "   Match3_1  = " << Stx.Stat.get_Match3_1() <<endl
 		<< "   Match2_1  = " << Stx.Stat.get_Match2_1() <<endl
