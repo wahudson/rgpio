@@ -256,6 +256,16 @@ main( int	argc,
 	    cout << "    ck0ctl= " << (uint32_t*)ck0ctl << endl;
 	}
 
+    // Check system clock resolution
+	if ( 1 ) {
+	    rv = clock_getres( CLKID, &tpA );
+	    if ( rv ) {
+		Error::msg( "clock_getres() failed\n" );
+	    }
+	    cout << "    getres.tv_sec  = " << tpA.tv_sec  << endl;
+	    cout << "    getres.tv_nsec = " << tpA.tv_nsec << endl;
+	}
+
     // Main Loop
 	n_samp = Opx.nsamp_n;
 	if ( n_samp > DatSize ) {
