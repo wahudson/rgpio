@@ -19,7 +19,7 @@
 using namespace std;
 
 #include "rgAddrMap.h"
-#include "rgIoPin.h"
+#include "rgIoPins.h"
 #include "rgClock.h"
 #include "rgUniSpi.h"
 
@@ -251,11 +251,11 @@ main( int	argc,
 	    cout << "Using Fake memory" <<endl;
 	}
 
-	rgIoPin			Gpx  ( &Amx );		// constructor
+	rgIoPins		Gpx  ( &Amx );		// constructor
 //	rgClock			Ckx  ( 0, &Amx );	// constructor
 	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
 
-	volatile uint32_t*	pinread = Gpx.addr_PinRead_w0();
+	volatile uint32_t*	pinread = Gpx.PinRead_w0.addr();
 
 
     // Main Loop
