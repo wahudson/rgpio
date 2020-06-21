@@ -1,0 +1,346 @@
+2020-06-14
+		rgpio - IIC (I2C) Design
+		------------------------
+
+Raspberry Pi GPIO Tool and Library
+
+See also:  doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    Referenced by RaspberryPi.
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://elinux.org/BCM2835_datasheet_errata
+
+See:  p.28-37  ch 3. BSC (Broadcom Serial Controller)
+
+----------------------------------------------------------------------------
+## Discussion - I2C Master
+----------------------------------------------------------------------------
+
+    This hardware interface is a master, fast-mode (400Kb/s) BSC controller.
+    There are three BSC masters, here named:  iic0, iic1, iic2
+    Note that the iic2 master is dedicated to the HDMI interface, and is
+    not available for general use.
+    There is also a BCS Slave, which does both SPI and I2C slave operation,
+    in a different feature.
+
+    The BCM doc states:
+    "The Broadcom Serial Control bus is a proprietary bus compliant with the
+    Philips I2C bus/interface version 2.1 January 2000."
+
+Possible Class Names:
+    rgIIC
+ >  rgIic	better fits camel-case style
+    rgI2C
+    rgI2c
+    rgBSC
+    rgBsc	maybe use this for the SPI/I2C Slave controller
+
+    Naming rationale:
+    The BSC (Broadcom Serial Controller) is quite literal, but not widely
+    recognized.
+
+    This bus interface is commonly thought of as I2C "I Squared C" -
+    (Inter Integrated Circuit).  Thus I2C would be good, but does not fit so
+    well with camel-case.  Also it is a bit awkward with a number as part of
+    the name, when a trailing number is used to indicate which interface,
+    e.g. I2C0, I2C1 or I2c0, I2c1.
+
+    Decided on IIC, or camel-case Iic.  It avoids the unit number problems,
+    and is a little better with camel-case.  Not very commonly used though.
+    We will see how it turns out.
+
+Operation with rgpio:
+    A) Use only base field name
+	% rgpio iic  --ClkDiv_16=42
+
+    B) Use register prefix.  The dot looks good.
+	% rgpio iic  --ClkDiv.ClkDiv_16=42
+
+----------------------------------------------------------------------------
+## Operation - I2C Master
+----------------------------------------------------------------------------
+
+    The registers are described in the BCM doc, but with very little functional
+    operation.
+
+References for I2C:
+
+    Understanding the I2C Bus - Texas Instruments
+	www.ti.com # lit # pdf # slva704
+	A nice, simple, short introduction.  7 pages
+
+    https://en.wikipedia.org/wiki/I%C2%B2C
+
+    UM10204 I2C-bus specification and user manual - NXP ...
+	https://www.nxp.com/docs/en/user-guide/UM10204.pdf
+	https://www.i2c-bus.org/specification/
+	Version 6, April 2014, 64 pages
+
+    THE I2C-BUS SPECIFICATION VERSION 2.1 JANUARY 2000
+	www.csd.uoc.gr # reading # i2c_spec
+	Seems like Philips original.  46 pages.  URL .gr is Greece
+
+    The I2C-bus and how to use it (including specifications)
+	https://www.google.com/search?client=ubuntu&channel=fs&q=The+I+2+C-bus+and+how+to+use+it%2C+April+1995&ie=utf-8&oe=utf-8
+	Philips Semiconductors, April 1995, 24 pages
+
+    I2C bus specifications
+	espace.cern.ch # SiteAssets # SitePages # Documents # I...
+	Apr 21, 2016 - Compliance to the Philips Semiconductor I2C
+	specification v2.1. # Single
+	Seems specialized for CERN use.  13 pages
+
+I2C Protocol:
+    Is not described in the BCM doc, and is fairly complex.  Probably
+    rely on external references.
+
+FIFO:
+    The data FIFO is 16 entries of 8 bits each.
+
+    The BCM doc does not make it clear whether there is one or two FIFOs.
+    Control and Status Register operation would remain the same, but the
+    difference would be ability to queue up Tx data while a Rx transfer is
+    in progress.
+
+    The I2C bus only sends N data bytes in one direction for each Start address
+    byte.  Thus it could use the same data FIFO for either Receive (Rx) or
+    Transmit (Tx).  The switch would be based on the Cntl.ReadPacket_1 value.
+    This differs from SPI, which has two FIFOs that operate simultaneously.
+
+Questions:
+
+    Is the SCL and SDA drivers on GPIO pins configured for open-drain
+    output?
+
+    Are repeated-Start conditions sent?
+    When is Stop vs Repeated Start sent?
+
+
+----------------------------------------------------------------------------
+## Class Design - I2C Master
+----------------------------------------------------------------------------
+
+    Names of registers and bit-fields in the BCM documentation are rather
+    short and confusing when out of context.  Choose better names that are
+    more meaningful at the program call point.
+
+Register Names:
+
+    rgIic		BCM	Description
+    ------------	----	------------------
+    Cntl		C	Control
+    Stat		S	Status
+    DatLen		DLEN	Data Length
+    Addr		A	Slave Address
+    Fifo		FIFO	Data FIFO
+    ClkDiv		DIV	Clock Divider			Divr
+    Delay		DEL	Data Delay			Dely
+    ClkStr		CLKT	Clock Stretch Timeout	ClkR  ClkStrtch ClkStrch
+
+    Register names are public objects derived from base class rgRegister.
+    Thus want good name choices when viewed at the user call point.
+
+Field Names:
+
+     Reg.Field			Bits  BCM	possible alternatives
+    ----.---------------	----  -----     ---------------------
+    Cntl.IicEnable_1		[15]  I2CEN	Enable_1  EnableOp_1  EnableDev
+    Cntl.IrqRxHalf_1		[10]  INTR
+    Cntl.IrqTxHalf_1		[9]   INTT
+    Cntl.IrqDone_1		[8]   INTD
+    Cntl.StartTrans_1		[7]   ST    (WO)	Start_1
+    Cntl.ClearFifo_2		[5:4] CLEAR (WO)	Clear_2
+    Cntl.ReadPacket_1		[0]   READ		ReadTrans_1
+
+    Stat.ClkTimeout_1		[9]   CLKT (R/C)
+    Stat.AckErr_1		[8]   ERR  (R/C)
+    Stat.RxFull_1		[7]   RXF  (RO)
+    Stat.TxEmpty_1		[6]   TXE  (RO)
+    Stat.RxHasData_1		[5]   RXD  (RO)
+    Stat.TxHasSpace_1		[4]   TXD  (RO)
+    Stat.RxHalf_1		[3]   RXR  (RO)
+    Stat.TxHalf_1		[2]   TXW  (RO)
+    Stat.TransDone_1		[1]   DONE (R/C)	Done_1
+    Stat.TransActive_1		[0]   TA   (RO)		Active_1
+
+    DatLen.DataLen_16		[15:0]  DLEN	TransLen_16  ByteLen_16
+
+    Addr.SlaveAddr_7		[6:0]   ADDR
+
+    Fifo.Data_8			[7:0]   DATA	Byte_8  Word_8
+
+    ClkDiv.ClkDiv_16		[15:0]  CDIV	DivI_16
+
+    Delay.Fall2Out_16		[31:16] FEDL	EdgeFall_16
+    Delay.Rise2In_16		[15:0]  REDL	EdgeRise_16
+
+    ClkStr.TimeOut_16		[15:0]  TOUT	Timeout_16
+
+    (WO) = Write-only, (RO) = Read-only, (R/C) = Read/Clear,
+    otherwise all fields are read-write.
+
+Field Naming:
+
+    Choose names that are somewhat descriptive and meaningful at the call
+    point in user code.  The BCM field names are way too short, and often
+    too cryptic or misleading.
+    Try to limit name length to 15 characters or less, including the "_1"
+    field width numeral.
+
+    Single-bit fields should name the thing that the '1' level does.  Avoid
+    ambiguous terms like "polarity", where 1 could be normal or inverted.
+
+    Name components typically include the thing they apply to and the
+    behavior they control.
+
+    Abbreviations appropriate for this context are:
+	Iic    I2C
+	Irq    Interrupt Request
+	Rx     Receive FIFO
+	Tx     Transmit FIFO
+	Clk    Clock
+	Ack    Acknowledge
+	Trans  Transfer
+	Addr   Address
+	Div    Divisor
+
+    IicEnable_1 - Identify the whole module as being enabled.
+	Idea was to identify what is being enabled.  Plain Enable_1 might
+	also work.  The prefix Iic somewhat parallels other interfaces.
+
+    DataLen_16 - Transfer length is in number of data bytes.
+	TransLen_16 leaves this ambiguous, but register DatLen helps.
+	Although DatLen.DataLen_16 seems a bit redundant.
+
+    Fifo.Data_8 - Probably not have a field accessor, since the FIFO has
+	side-effects and is typically accessed directly.
+
+    Fall2Out_16 -
+    Rise2In_16 -
+	Try to help identify what is being delayed.
+	EdgeFall_16 is closer to the BCM doc, but not at all clear.
+
+    Registers with only one-field:
+	A field accessor is provided for uniformity, and to cover the case
+	where reserved bits are not zero.  It also helps document the valid
+	bits at the function call point.
+
+    Fifo Register:
+	A field name is not really used.
+	Read/Write of the hardware register has side-effects as part of normal
+	FIFO operation.  Thus the Fifo is NOT included in the global
+	grab_regs() and push_regs() function.
+
+Function Names:
+
+    All register and field accessor functions are methods of each register
+    object.
+
+    The full register operations are inherited from rgRegister class.
+    These are:
+
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
+
+    Another name for "grab" is "pull", but I like the quirkyness of "grab".
+
+    Field accessor functions are defined in each register derived class.
+    These are named like:  (same as rgUniSpi)
+
+	get_FIELD_N()	get object FIELD value of width N
+	put_FIELD_N(V)	set object FIELD value of width N
+
+Register Classes:
+
+    Each unique register gets its own class name:
+	rgIic_Cntl
+	rgIic_Stat
+	...
+
+----------------------------------------------------------------------------
+## rgIic Object - I2C Master
+----------------------------------------------------------------------------
+
+FeatureAddr:
+    Each I2C Master has a separate address page for FeatureAddr.  Thus the
+    constructor has a table of addresses, which seemd clearer than creating
+    more intermediate names to pass values from the header file.
+
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
+    uint32_t		IicNum;		// I2C unit number {0,1,2}
+    uint32_t		FeatureAddr;	// BCM doc value, in constructor
+
+    rgIic_Cntl		Cntl;		// Control
+    rgIic_Stat		Stat;		// Status
+    rgIic_DatLen	DatLen;		// Data Length
+    rgIic_Addr		Addr;		// Slave Address
+    rgIic_Fifo		Fifo;		// Data FIFO
+    rgIic_ClkDiv	ClkDiv;		// Clock Divider
+    rgIic_Delay		Delay;		// Data Delay
+    rgIic_ClkStr	ClkStr;		// Clock Stretch Timeout
+}
+
+Methods:
+
+    get_base_addr()		GpioBase address
+
+			Object state operations:
+    init_put_reset()		Object registers set to power-on reset state.
+ ?  init_put_zero()		Object registers set to zero.
+
+    grab_regs()			Read all registers (not Fifo) into object.
+    push_regs()			Write object to hardware registers (not Fifo).
+
+
+    All these have both get_() and put_(V):
+			Field accessors of object state:
+    get_()
+    put_(V)
+    ...
+
+    Cntl.get_IicEnable_1()	[15]  I2CEN
+    Cntl.get_IrqRxHalf_1()	[10]  INTR
+    Cntl.get_IrqTxHalf_1()	[9]   INTT
+    Cntl.get_IrqDone_1()	[8]   INTD
+    Cntl.get_StartTrans_1()	[7]   ST
+    Cntl.get_ClearFifo_2()	[5:4] CLEAR
+    Cntl.get_ReadPacket_1()	[0]   READ
+
+    Stat.get_ClkTimeout_1()	[9]   CLKT
+    Stat.get_AckErr_1()		[8]   ERR
+    Stat.get_RxFull_1()		[7]   RXF  (RO)
+    Stat.get_TxEmpty_1()	[6]   TXE  (RO)
+    Stat.get_RxHasData_1()	[5]   RXD  (RO)
+    Stat.get_TxHasSpace_1()	[4]   TXD  (RO)
+    Stat.get_RxHalf_1()		[3]   RXR  (RO)
+    Stat.get_TxHalf_1()		[2]   TXW  (RO)
+    Stat.get_TransDone_1()	[1]   DONE
+    Stat.get_TransActive_1()	[0]   TA   (RO)
+
+    DatLen.get_DataLen_16()	[15:0]  DLEN
+
+    Addr.get_SlaveAddr_7()	[6:0]   ADDR
+
+ ?  Fifo.get_Data_8()		[7:0]   DATA
+
+    ClkDiv.get_ClkDiv_16()	[15:0]  CDIV
+
+    Delay.get_Fall2Out_16()	[31:16] FEDL
+    Delay.get_Rise2In_16()	[15:0]  REDL
+
+    ClkStr.get_TimeOut_16()	[15:0]  TOUT
+

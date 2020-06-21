@@ -16,6 +16,7 @@ INCS       = \
 	rgClk.h \
 	rgClock.h \
 	rgFselPin.h \
+	rgIic.h \
 	rgIoPin.h \
 	rgIoPins.h \
 	rgPwm.h \
@@ -32,6 +33,7 @@ OBJS       = \
 	$(OJ)/rgClk.o \
 	$(OJ)/rgClock.o \
 	$(OJ)/rgFselPin.o \
+	$(OJ)/rgIic.o \
 	$(OJ)/rgIoPin.o \
 	$(OJ)/rgIoPins.o \
 	$(OJ)/rgPwm.o \
@@ -106,6 +108,9 @@ $(OJ)/rgClock.o:	rgClock.cpp  rgClock.h  rgAddrMap.h
 
 $(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPin.h
 	g++ $(CXXFLAGS) -o $@  -c rgFselPin.cpp
+
+$(OJ)/rgIic.o:		rgIic.cpp  rgIic.h  rgAddrMap.h
+	g++ $(CXXFLAGS) -o $@  -c rgIic.cpp
 
 $(OJ)/rgIoPin.o:	rgIoPin.cpp  rgIoPin.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgIoPin.cpp
