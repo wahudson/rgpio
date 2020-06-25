@@ -16,6 +16,7 @@ using namespace std;
 #include "y_clk.h"
 #include "y_clock.h"
 #include "y_fsel.h"
+#include "y_iic.h"
 #include "y_io.h"
 #include "y_pwm.h"
 #include "y_spi0.h"
@@ -159,6 +160,7 @@ yOptLong::print_usage()
     "    fsel         Pin Function Select\n"
     "    clk          Clock generator\n"
     "    clock        Clock generator\n"
+    "    iic          I2C Master\n"
     "    pwm          PWM Pulse Width Modulator\n"
     "    spi0         SPI0 Master\n"
     "    timer        System Timer\n"
@@ -249,6 +251,10 @@ main( int	argc,
 	else if ( Opx.feature == "clock"    ) {
 	    y_clock		cx  ( &Opx, &Amx );	// constructor
 	    retv = cx.doit();
+	}
+	else if ( Opx.feature == "iic"     ) {
+	    y_iic		icx  ( &Opx, &Amx );	// constructor
+	    retv = icx.doit();
 	}
 	else if ( Opx.feature == "pwm"     ) {
 	    y_pwm		pwx  ( &Opx, &Amx );	// constructor
