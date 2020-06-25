@@ -396,17 +396,14 @@ y_iic::doit()
 		continue;
 	    }
 
+	    rgIic_Stat	Sx = icx->Stat;		// saved copy
 	    string	ns = "   " + std::to_string( icx->get_iic_num());
 
 	// Heading
 
 	    cout << "Iic" << icx->get_iic_num() << ":" <<endl;
 
-	    Opx.trace_msg( "Grab regs" );
-	    icx->grab_regs();
-	    icx->Stat.put( 0 );		// read-clear
-
-	// Registers
+	// Reset
 
 	    if ( Opx.reset ) {
 		Opx.trace_msg( "Init reset" );
@@ -416,7 +413,11 @@ y_iic::doit()
 	    else {
 		Opx.trace_msg( "Grab regs" );
 		icx->grab_regs();
+		Sx = icx->Stat;			// copy of initial grab
+		icx->Stat.put( 0 );		// Stat is read-clear
 	    }
+
+	// Registers
 
 #define APPLY( X, Y ) if ( Opx.X.Given ) { icx->Y( Opx.X.Val );  md = 1; }
 
@@ -455,8 +456,16 @@ y_iic::doit()
 
 	    if ( md ) {			// modified registers
 		Opx.trace_msg( "Modify regs" );
-		icx->push_regs();
+		icx->Cntl.push();
 		icx->Stat.push();
+		icx->DatLen.push();
+		icx->Addr.push();
+		icx->ClkDiv.push();
+		icx->Delay.push();
+		icx->ClkStr.push();
+	    }
+	    else {
+		icx->Stat.put( Sx.get() );	// restore original grab
 	    }
 
 	// Tx FIFO
@@ -474,6 +483,7 @@ y_iic::doit()
 		    icx->Fifo.write( vv );
 		}
 		cout << dec;
+		md = 1;
 	    }
 	    //#!! Note --tx works for only one IIC channel.
 
