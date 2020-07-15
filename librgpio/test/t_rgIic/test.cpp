@@ -904,7 +904,7 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
 	Tx.Addr.put(     0xffffffff );
 	CHECKX(          0xffffffff, Tx.Addr.get() );
 	Tx.Addr.put_SlaveAddr_7( 0x00 );
-	CHECKX(          0xffffff00, Tx.Addr.get() );
+	CHECKX(          0xffffff80, Tx.Addr.get() );
 	CHECKX(                0x00, Tx.Addr.get_SlaveAddr_7() );
     }
     catch (...) {
@@ -914,7 +914,7 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
 //--------------------------------------
 // ClkDiv
 
-  CASE( "84b", "get_DataLen_16()" );
+  CASE( "84b", "get_ClkDiv_16()" );
     try {
 	Tx.ClkDiv.put(   0xffffffff );
 	CHECKX(          0xffffffff, Tx.ClkDiv.get() );
@@ -929,7 +929,7 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
 //--------------------------------------
 // Delay
 
-  CASE( "85b", "get_DataLen_16()" );
+  CASE( "85b", "get_Fall2Out_16()" );
     try {
 	Tx.Delay.put(   0xffffffff );
 	CHECKX(          0xffffffff, Tx.Delay.get() );
@@ -941,7 +941,7 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "86b", "get_DataLen_16()" );
+  CASE( "86b", "get_Rise2In_16()" );
     try {
 	Tx.Delay.put(   0xffffffff );
 	CHECKX(          0xffffffff, Tx.Delay.get() );
@@ -956,7 +956,7 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
 //--------------------------------------
 // ClkStr
 
-  CASE( "87b", "get_DataLen_16()" );
+  CASE( "87b", "get_TimeOut_16()" );
     try {
 	Tx.ClkStr.put(   0xffffffff );
 	CHECKX(          0xffffffff, Tx.ClkStr.get() );

@@ -78,8 +78,8 @@ class rgIic_DatLen : public rgRegister {
 
 class rgIic_Addr   : public rgRegister {
   public:
-    uint32_t	get_SlaveAddr_7()         { return  get_field(  0, 0xff   ); }
-    void	put_SlaveAddr_7(     uint32_t v ) { put_field(  0, 0xff, v); }
+    uint32_t	get_SlaveAddr_7()         { return  get_field(  0, 0x7f   ); }
+    void	put_SlaveAddr_7(     uint32_t v ) { put_field(  0, 0x7f, v); }
 };
 
 class rgIic_Fifo   : public rgRegister {
