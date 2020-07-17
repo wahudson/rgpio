@@ -1,7 +1,7 @@
 // 2020-04-19  William A. Hudson
 
-#ifndef rgIoPin_P
-#define rgIoPin_P
+#ifndef rgIoPins_P
+#define rgIoPins_P
 
 //--------------------------------------------------------------------------
 // rGPIO  Io Pin Registers.
