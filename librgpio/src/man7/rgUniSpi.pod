@@ -196,18 +196,20 @@ and the following N-1 clocks to shift it out on MISO.
 =head2			Hardware FIFO
 
 There is one Transmit (Tx) FIFO having 4 entries of 32 bits, and accessed
-by writing either register Fifo or FifoH.
+by writing either register B<Fifo> or B<FifoH>.
+Writing when full has no effect.
 
 There is one Receive (Rx) FIFO having 4 entries of 32 bits, and accessed
-by reading either register Fifo or FifoH.
+by reading either register B<Fifo> or B<FifoH>.
+Reading when empty will return the last data received.
 
 As in typical FIFO operation, Writing pushes a new entry into the FIFO, and
 Reading removes an entry.  The various status fields are updated as a side
 effect.
 
-The only difference between registers Fifo and FifoH is in how the CS lines
-are handled after the entry is sent on MOSI:  Entries written to Fifo will
-de-assert CS, and entries written to FifoH will hold CS asserted.
+The only difference between registers B<Fifo> and B<FifoH> is in how the CS
+lines are handled after the entry is sent on MOSI:  Entries written to B<Fifo>
+will de-assert CS, and entries written to B<FifoH> will hold CS asserted.
 (Think of an extra flag bit being set on the FIFO entry depending on which
 register is written.)  There is no difference reading either register.
 This is the mechanism to make arbitrarily long transactions.
