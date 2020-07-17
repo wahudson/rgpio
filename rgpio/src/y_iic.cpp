@@ -487,12 +487,26 @@ y_iic::doit()
 	    }
 	    //#!! Note --tx works for only one IIC channel.
 
+	// Rx FIFO
+
+	    if ( Opx.rx.Val ) {
+		Opx.trace_msg( "Read Rx Fifo" );
+		cout.fill('0');
+		cout <<hex;
+		for ( uint32_t jj = 1;  jj <= Opx.rx.Val;  jj++ ) {
+		    cout << ns << ".read_Fifo:  0x" <<setw(8)
+			 << icx->Fifo.read() <<endl;
+		}
+		cout <<dec;
+		md = 1;
+	    }
+
+	// Output
+
 	    if ( md ) {			// modified registers
 		Opx.trace_msg( "Grab regs" );
 		icx->grab_regs();
 	    }
-
-	// Output
 
 	    cout.fill('0');
 	    cout <<hex
@@ -541,18 +555,6 @@ y_iic::doit()
 		<< OUTD( ".TimeOut_16    = ", ClkStr.get_TimeOut_16()  )
 		;
 
-	// Rx FIFO
-
-	    if ( Opx.rx.Val ) {
-		Opx.trace_msg( "Read Rx Fifo" );
-		cout.fill('0');
-		cout <<hex;
-		for ( uint32_t jj = 1;  jj <= Opx.rx.Val;  jj++ ) {
-		    cout << ns << ".read_Fifo:  0x" <<setw(8)
-			 << icx->Fifo.read() <<endl;
-		}
-		cout <<dec;
-	    }
 	}
 
     }
