@@ -159,6 +159,10 @@ $(MAN)/man7/rgClk.7:		man7/rgClk.pod
 	pod2man -s 7 -n rgClk  --center='librgpio Raspberry Pi GPIO' \
 	    man7/rgClk.pod  $@
 
+$(MAN)/man7/rgIic.7:		man7/rgIic.pod
+	pod2man -s 7 -n rgIic  --center='librgpio Raspberry Pi GPIO' \
+	    man7/rgIic.pod  $@
+
 $(MAN)/man7/rgPwm.7:		man7/rgPwm.pod
 	pod2man -s 7 -n rgPwm  --center='librgpio Raspberry Pi GPIO' \
 	    man7/rgPwm.pod  $@

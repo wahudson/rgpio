@@ -1,0 +1,460 @@
+# 2020-06-18  William A. Hudson
+
+# rgIic  Hardware Register Description.
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgIic  Hardware Description -- I2C Master
+
+=head1		SYNOPSIS
+
+Hardware registers of each I2C Master (iic0, iic1, iic2):
+
+    rgIic
+    Register	BCM Name	Description
+    --------	--------        ------------------
+    Cntl	C		Control
+    Stat	S		Status
+    DatLen	DLEN		Data Length
+    Addr	A		Slave Address
+    Fifo	FIFO		Data FIFO
+    ClkDiv	DIV		Clock Divider
+    Delay	DEL		Data Delay
+    ClkStr	CLKT		Clock Stretch Timeout
+
+     Reg.Field			Bits    BCM
+    ----.---------------	------  -----
+    Cntl.IicEnable_1		[15]    I2CEN
+    Cntl.IrqRxHalf_1		[10]    INTR
+    Cntl.IrqTxHalf_1		[9]     INTT
+    Cntl.IrqDone_1		[8]     INTD
+    Cntl.StartTrans_1		[7]     ST    (WO)
+    Cntl.ClearFifo_2		[5:4]   CLEAR (WO)
+    Cntl.ReadPacket_1		[0]     READ
+
+    Stat.ClkTimeout_1		[9]     CLKT (R/C)
+    Stat.AckErr_1		[8]     ERR  (R/C)
+    Stat.RxFull_1		[7]     RXF  (RO)
+    Stat.TxEmpty_1		[6]     TXE  (RO)
+    Stat.RxHasData_1		[5]     RXD  (RO)
+    Stat.TxHasSpace_1		[4]     TXD  (RO)
+    Stat.RxHalf_1		[3]     RXR  (RO)
+    Stat.TxHalf_1		[2]     TXW  (RO)
+    Stat.TransDone_1		[1]     DONE (R/C)
+    Stat.TransActive_1		[0]     TA   (RO)
+
+    DatLen.DataLen_16		[15:0]  DLEN
+
+    Addr.SlaveAddr_7		[6:0]   ADDR
+
+    Fifo.Data_8			[7:0]   DATA
+
+    ClkDiv.ClkDiv_16		[15:0]  CDIV
+
+    Delay.Fall2Out_16		[31:16] FEDL
+    Delay.Rise2In_16		[15:0]  REDL
+
+    ClkStr.TimeOut_16		[15:0]  TOUT
+
+    (WO) = Write-only, (RO) = Read-only, (R/C) = Read/Clear,
+    otherwise all are read-write.
+
+Field names incorporate the number of bits in the field, making the field
+size self documenting.
+
+All registers are 32-bits.
+Unspecified bit fields in each register are typically reserved, and should
+be write as 0, and read as don't care.
+
+=head2			Abbreviations in Register/Field names
+
+ Clk     Clock
+ Trans   Transfer
+ Fifo    First In First Out (FIFO) memory
+ Rx      Receive FIFO
+ Tx      Transmit FIFO
+ Irq     Interrupt Request (IRQ)
+
+
+=head1		DESCRIPTION
+
+This documentation describes the operation of the three I2C Master controllers.
+All three have the same interface structure.
+I2C stands for "Inter-Integrated Circuit".
+
+The BCM doc describes it as the Broadcom Serial Controller (BSC), and the bus
+as a proprietary bus compliant with I2C.
+
+=head2			Features
+
+ - I2C single Master only operation.
+ - Fast mode, 400 K bits/s
+ - Clock stretching wait states are supported.
+ - Both 7-bit and 10-bit addressing is supported.
+ - Timing completely software controllable via registers.
+ - Compliant with the Philips I2C bus/interface version 2.1 January 2000.
+
+=head2			Hardware Signals
+
+GPIO Alternate Function names (hardware signals) are:
+
+    iic0_SCL	Serial Clock, driven by master
+    iic0_SDA	Serial Data
+
+    iic1_SCL	..
+    iic1_SDA	..
+
+There is an iic2 interface, but no GPIO Alternate Function pins are identified
+for it.
+
+=head2			Signal Electrical Characteristics
+
+Both SCL and SDA are bidirectional signals having open-drain (open-collector)
+drivers.
+
+=head2			Signal Timing
+
+Start and Stop conditions are indicated by an SDA edge when SCL is high.
+Normal data changes are allowed only when SCL is low.
+
+          _______     ___     _     _     ___     _________
+    SCL          |___|   |___|  ...  |___|   |___|
+          _____     ___________     ___ _______     _______
+    SDA        |___|_______|___ ... ___|_______|___|
+               ^                                   ^
+          | Start|         Data Transfer         |Stop | Idle
+
+See I2C documentation elsewhere for protocol operation.
+
+=head2			Hardware FIFO
+
+The data FIFO is 16 entries of 8 bits each.
+
+The BCM doc does not make it clear whether there is one or two FIFOs.
+Control and Status Register operation would remain the same, but the
+difference would be ability to queue up Tx data while a Rx transfer is
+in progress.
+
+The I2C bus only sends N data bytes in one direction for each Start address
+byte.  Thus it could use the same data FIFO for either Receive (Rx) or
+Transmit (Tx).  This differs from SPI, which has two FIFOs which operate
+simultaneously.
+
+?? There is one Transmit (Tx) FIFO having 16 entries of 8 bits and accessed
+by writing register Fifo.
+
+?? There is one Receive (Rx) FIFO having 16 entries of 8 bits and accessed
+by reading register Fifo.
+
+As in typical FIFO operation, Writing pushes a new entry into the FIFO, and
+Reading removes an entry.  The various status fields are updated as a side
+effect.
+
+
+=head1		REGISTER BIT FIELDS
+
+The numeric suffix on the field name indicates the number of bits in the field.
+
+=head2			Cntl Register
+
+Control register.
+
+=over
+
+=item B<IicEnable_1>        - Enable the I2C interface.
+
+ 1= Enabled
+ 0= Disabled
+
+Enables interface activity.  When disabled, hardware transfers are not
+performed, but software register access is allowed.
+
+[Can operation be suspended in the middle of a transfer?
+Intended only as a way to disable all interrupt sources?
+]
+
+=item B<IrqRxHalf_1>        - Interrupt on Rx FIFO over "half" full.
+
+ 1= Generate interrupt while Stat.RxHalf_1=1
+ 0= Not
+
+The interrupt remains active until the condition is cleared by reading
+sufficient data from the Rx FIFO.
+
+=item B<IrqTxHalf_1>        - Interrupt on Tx FIFO under "half" full.
+
+ 1= Generate interrupt while Stat.TxHalf_1=1
+ 0= Not
+
+The interrupt remains active until the condition is cleared by writing
+sufficient data to the Tx FIFO.
+
+=item B<IrqDone_1>          - Interrupt on Transfer Done.
+
+ 1= Generate interrupt while Stat.TransDone_1=1
+ 0= Not
+
+The interrupt remains active until the condition is cleared by writing
+a 1 to the B<Stat.TransDone_1> field.
+
+=item B<StartTrans_1>       - Start Transfer.  (WO)
+
+ 1= Start a new transfer
+ 0= No action
+
+Writing 1 is a one-shot operation, and always reads back as 0.
+
+=item B<ClearFifo_2>        - Clear FIFO.  (WO)
+
+ 0= No action
+ 1= Clear
+ 2= Clear
+ 3= Clear
+
+Clear both Rx and Tx FIFO in a one-shot operation, always reads back as 0.
+If both B<StartTrans_1> and B<ClearFifo_2> are set in the same write register
+operation, the FIFOs are cleared before the new transfer is started.
+Note:  The 2 bits are redundant to maintain compatibility with previous chip
+version.
+
+=item B<ReadPacket_1>       - I2C transfer Read/Write type.
+
+ 1= Read
+ 0= Write
+
+This is the Read/Write bit value in the Start byte of the transfer,
+sent along with the slave address.
+
+=back
+
+=head2			Stat Register
+
+Status register.
+(RO) = Read-only.  (R/C) = Read/Clear, cleared by writing 1.
+
+=over
+
+=item B<ClkTimeout_1>       - Slave clock stretch timeout.  (R/C)
+
+ 1= Timeout
+ 0= Not
+
+Slave has held the SCL signal low (clock stretching) for longer
+than specified by B<ClkStr.TimeOut_16>.
+Cleared by writing 1.  Writing 0 has no effect.
+
+=item B<AckErr_1>           - Slave acknowledge error.  (R/C)
+
+ 1= Slave acknowledge error
+ 0= Not
+
+Slave has not acknowledged its address or a data byte written to it.
+Cleared by writing 1.  Writing 0 has no effect.
+
+=item B<RxFull_1>           - Rx FIFO is Full.  (RO)
+
+ 1= Rx FIFO is full
+ 0= Not
+
+When full, no more SCL clocks will be generated and no further serial data
+will be received.  (Assuming Read transfers.)
+
+=item B<TxEmpty_1>          - Tx FIFO is Empty.  (RO)
+
+ 1= Tx FIFO is empty
+ 0= Not
+
+When empty, no more SCL clocks will be generated and no further serial data
+bytes will be sent.  (Assuming Write transfers.)
+
+=item B<RxHasData_1>        - Rx FIFO has data.  (RO)
+
+ 1= Rx FIFO contains at least 1 byte.
+ 0= Is empty.
+
+Software reads from an empty FIFO will return invalid data.
+
+=item B<TxHasSpace_1>       - Tx FIFO has space.  (RO)
+
+ 1= Tx FIFO has space for at least 1 byte.
+ 0= Is full.
+
+Software writes to a full Tx FIFO are ignored.
+
+=item B<RxHalf_1>           - Rx FIFO is over "half" full.  (RO)
+
+ 1= Rx FIFO is over "half" full and a Read transfer is underway.
+ 0= Not
+
+Here "half" is fuzzy, but the idea is to signal that more data should be
+read from the FIFO before it overflows.
+
+=item B<TxHalf_1>           - Tx FIFO is under "half" full.  (RO)
+
+ 1= Tx FIFO is under "half" full and a Write transfer is underway.
+ 0= Not
+
+Here "half" is fuzzy, but the idea is to signal that more data should be
+written to the FIFO before it goes empty.
+
+=item B<TransDone_1>        - Transfer Done.  (R/C)
+
+ 1= Transfer completed
+ 0= Not
+
+The specified number of bytes in B<DatLen.DataLen_16> have been transferred.
+Cleared by writing 1.  Writing 0 has no effect.
+
+=item B<TransActive_1>      - Transfer Active.  (RO)
+
+ 1= Transfer is in progress.
+ 0= Idle
+
+=back
+
+=head2			DatLen Register
+
+Data length register.  Is effectively two registers:
+
+ a) Write sets the number of data bytes to be read or written.
+ b) Read returns the number of data bytes remaining in the transfer.
+
+=over
+
+=item B<DataLen_16>        - Data Transfer Length.
+
+On write:  Is the number of data bytes to be transferred (read or write),
+not counting the Start byte.  The value can be left over multiple packets,
+i.e. no need to re-write the same value.
+
+ On Read:
+ TransActive_1  TransDone_1   Read returns
+      1              0        number of bytes remaining
+      1              1        0, no bytes remain
+      0              0        last value written
+      0              1        ?
+
+=back
+
+=head2			Addr Register
+
+Address register.
+
+=over
+
+=item B<SlaveAddr_7>        - Slave Address
+
+Slave address of the I2C device.
+The value can be left across multiple transfers.
+
+=back
+
+=head2			Fifo Register
+
+The data FIFO is 16 entries of 1 byte each.
+
+=over
+
+=item B<Data_8>             - Fifo Data
+
+Write puts a data byte in the transmit Tx FIFO.
+Read pulls a data byte from the receive Rx FIFO.
+
+Data writes to a full FIFO will be ignored and data reads from an empty
+FIFO will result in invalid data.
+The FIFO can be cleared using B<Cntl.ClearFifo_2> field.
+
+=back
+
+=head2			ClkDiv Register
+
+Clock divider register.
+
+=over
+
+=item B<ClkDiv_16>          - Clock Divisor value.
+
+The value is always rounded down to an even number.
+
+ SCL clock frequency is:
+    Fscl = Fcore / ClkDiv_16
+ where
+    Fcore = core clock frequency, nominally 150 MHz.
+
+The reset value of 1500 (0x05dc) should result in a 100 kHz SCL clock
+frequency.  A value of zero is the maximum value 65536 (0x10000).
+
+[The BCM doc is inconsistent between the equation and divisor values.]
+What specifies the core clock frequency?
+
+=back
+
+=head2			Delay Register
+
+Data delay register.  Provides fine control of the SDA signal sample/change
+point.
+
+Caution:  Delay values should be less than (ClkDiv_16 / 2).
+Otherwise the delay may be longer than the SCL clock high or low time, causing
+the controller to malfunction.
+
+=over
+
+=item B<Fall2Out_16>        - Falling Edge Delay to output.
+
+Number of core clock cycles to wait after the falling edge of SCL before
+outputting next data bit.  (Change when SCL is low.)
+
+=item B<Rise2In_16>         - Rising Edge Delay to input.
+
+Number of core clock cycles to wait after the rising edge of SCL before
+sampling the next data bit.  (Sample when SCL is high.)
+
+=back
+
+=head2			ClkStr Register
+
+Clock Stretch Timeout register.
+Provides a timeout on how long the master waits for a slave stretching the
+clock before deciding that the slave has hung.
+
+=over
+
+=item B<TimeOut_16>         - Clock Stretch Timeout value.
+
+Number of SCL clock cycles to wait after the rising edge of SCL before
+deciding that the slave is not responding.
+A value of 0 disables timeout.
+
+When a timeout occurs, the B<Stat.ClkTimeout_1> status bit is set.
+
+=back
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgIic.h
+ src/rgIic.cpp
+
+
+=head1		SEE ALSO
+
+ rgIic(3)
+ rgpio-iic(1)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.28-37  ch 3.  BSC (Broadcom Serial Controller)
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+ UM10204 I2C-bus specification and user manual
+    https://www.nxp.com/docs/en/user-guide/UM10204.pdf
+    Version 6, April 2014, 64 pages
+
+=cut
+
