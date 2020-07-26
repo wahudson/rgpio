@@ -81,7 +81,7 @@ be write as 0, and read as don't care.
 =head1		DESCRIPTION
 
 This documentation describes the operation of the three I2C Master controllers.
-All three have the same interface structure.
+All three have the same interface structure described here.
 I2C stands for "Inter-Integrated Circuit".
 
 The BCM doc describes it as the Broadcom Serial Controller (BSC), and the bus
@@ -106,13 +106,25 @@ GPIO Alternate Function names (hardware signals) are:
     iic1_SCL	..
     iic1_SDA	..
 
-There is an iic2 interface, but no GPIO Alternate Function pins are identified
-for it.
+There is also an iic2 interface, but it is dedicated to the HDMI interface and
+should not be accessed by user programs.  No GPIO Alternate Function pins are
+identified for it.
 
 =head2			Signal Electrical Characteristics
 
 Both SCL and SDA are bidirectional signals having open-drain (open-collector)
-drivers.
+drivers.  They each require a pull-up resistor to the 3.3 V power supply,
+which may be provided internally, or externally.
+
+Normal GPIO pin outputs have push-pull drivers.  When the GPIO pins are
+configured for SCL and SDA, the driver is operated in an open-drain mode,
+essentially by disabling the pull-up FET (Field Effect Transistor).
+
+Be aware the internal GPIO pin pull up/down resistors can be configured to
+pull up, pull down, or be turned off.
+
+Note that RPi-3 and earlier boards have 1.8 kohm pullup resistors on the
+iic1 pins Gpio[2] and Gpio[3].  RPi-4 does not.  See RPi schematics.
 
 =head2			Signal Timing
 
@@ -121,8 +133,8 @@ Normal data changes are allowed only when SCL is low.
 
           _______     ___     _     _     ___     _________
     SCL          |___|   |___|  ...  |___|   |___|
-          _____     ___________     ___ _______     _______
-    SDA        |___|_______|___ ... ___|_______|___|
+          _____     _______ ___     ___ _______     _______
+    SDA        |___X_______X___ ... ___X_______|___|
                ^                                   ^
           | Start|         Data Transfer         |Stop | Idle
 
@@ -130,27 +142,31 @@ See I2C documentation elsewhere for protocol operation.
 
 =head2			Hardware FIFO
 
-The data FIFO is 16 entries of 8 bits each.
+There is only one data FIFO, which has 16 entries of 8 bits.
 
-The BCM doc does not make it clear whether there is one or two FIFOs.
-Control and Status Register operation would remain the same, but the
-difference would be ability to queue up Tx data while a Rx transfer is
-in progress.
+The FIFO has 4 data ports:  Processor Writes to the B<Fifo> register inserts
+entries, and Reads remove entries.  The I2C receiver (Rx) inserts entries,
+and the transmitter (Tx) removes entries.
+The Processor can read or write while the I2C master is active.
+The various FIFO status fields are updated as entries are inserted or removed.
 
 The I2C bus only sends N data bytes in one direction for each Start address
-byte.  Thus it could use the same data FIFO for either Receive (Rx) or
-Transmit (Tx).  This differs from SPI, which has two FIFOs which operate
+byte.  Thus it can use the same data FIFO for both Receive (Rx) and
+Transmit (Tx).  This differs from SPI, which has two FIFOs that operate
 simultaneously.
 
-?? There is one Transmit (Tx) FIFO having 16 entries of 8 bits and accessed
-by writing register Fifo.
+It seems likely a previous chip version had two FIFOs.
+Control and Status Register operation would remain the same, but two FIFOs
+would have the ability to queue up Tx data while a Rx transfer is in progress.
+Instead with a single FIFO, we see processor reads can return FIFO data from
+previous processor writes.
 
-?? There is one Receive (Rx) FIFO having 16 entries of 8 bits and accessed
-by reading register Fifo.
+The documentation refers to Rx and Tx FIFOs as if they are separate, but
+keep in mind they are one and the same.
 
-As in typical FIFO operation, Writing pushes a new entry into the FIFO, and
-Reading removes an entry.  The various status fields are updated as a side
-effect.
+Some FIFO flags for Rx and Tx are redundant with a single FIFO.  It may be
+best to use the flags as if they were separate FIFOs, i.e. use Tx flags
+when sending, and Rx flags when receiving.
 
 
 =head1		REGISTER BIT FIELDS
@@ -213,11 +229,11 @@ Writing 1 is a one-shot operation, and always reads back as 0.
  2= Clear
  3= Clear
 
-Clear both Rx and Tx FIFO in a one-shot operation, always reads back as 0.
+Clear the FIFO in a one-shot operation, always reads back as 0.
 If both B<StartTrans_1> and B<ClearFifo_2> are set in the same write register
-operation, the FIFOs are cleared before the new transfer is started.
+operation, the FIFO is cleared before the new transfer is started.
 Note:  The 2 bits are redundant to maintain compatibility with previous chip
-version.
+version [perhaps when there were separate Rx and Tx FIFOs].
 
 =item B<ReadPacket_1>       - I2C transfer Read/Write type.
 
@@ -291,6 +307,10 @@ Software writes to a full Tx FIFO are ignored.
 Here "half" is fuzzy, but the idea is to signal that more data should be
 read from the FIFO before it overflows.
 
+Observation indicates that (B<RxHalf_1> = 1) when the FIFO has >= 12 entries
+and (B<ReadPacket_1> = 1), and is zero otherwise.  It does not depend on
+B<TransDone_1> or B<TransActive_1>.
+
 =item B<TxHalf_1>           - Tx FIFO is under "half" full.  (RO)
 
  1= Tx FIFO is under "half" full and a Write transfer is underway.
@@ -298,6 +318,8 @@ read from the FIFO before it overflows.
 
 Here "half" is fuzzy, but the idea is to signal that more data should be
 written to the FIFO before it goes empty.
+
+Observation suggests this bit is non-functional, and seems to be stuck zero.
 
 =item B<TransDone_1>        - Transfer Done.  (R/C)
 
@@ -316,25 +338,29 @@ Cleared by writing 1.  Writing 0 has no effect.
 
 =head2			DatLen Register
 
-Data length register.  Is effectively two registers:
-
- a) Write sets the number of data bytes to be read or written.
- b) Read returns the number of data bytes remaining in the transfer.
+Data length register.
 
 =over
 
 =item B<DataLen_16>        - Data Transfer Length.
 
-On write:  Is the number of data bytes to be transferred (read or write),
-not counting the Start byte.  The value can be left over multiple packets,
-i.e. no need to re-write the same value.
+Is the number of data bytes remaining to be sent or received.
+It behaves as a single register that counts down, and does not remember the
+last processor write value.
 
- On Read:
- TransActive_1  TransDone_1   Read returns
-      1              0        number of bytes remaining
-      1              1        0, no bytes remain
-      0              0        last value written
-      0              1        ?
+Processor writes are ignored unless (B<TransDone_1> = 0).
+
+Starting a transfer with (B<DataLen_16> = 0) will send only the address byte,
+followed by a STOP condition.
+
+The BCM Doc indicates additional functionality:  Reading when
+(B<TransActive_1> = 0) and (B<TransDone_1> = 0) returns the value last written
+by the processor.  Essentially it would have a second register holding the
+original number of bytes.  That value can be left over multiple packets,
+i.e. no need to re-write the same value.
+This behavior is not observed (perhaps it was in a previous chip version).
+
+Bummer!  Each transaction must clear TransDone_1 and then re-write DataLen_16.
 
 =back
 
@@ -353,18 +379,25 @@ The value can be left across multiple transfers.
 
 =head2			Fifo Register
 
-The data FIFO is 16 entries of 1 byte each.
+The single data FIFO is 16 entries of 8-bits each, and is used for both
+transmit (Tx) and receive (Rx).
+There appears to be no mechanism that keeps Rx data separate from Tx data.
+Thus a Fifo register read can return data inserted by a Fifo register write,
+and it is likely Fifo register writes can mix data with received Rx data.
 
 =over
 
 =item B<Data_8>             - Fifo Data
 
-Write puts a data byte in the transmit Tx FIFO.
-Read pulls a data byte from the receive Rx FIFO.
+Write inserts a data byte in the FIFO, intended for transmit (Tx).
+Read removes a data byte from the FIFO, expected from receive (Rx).
 
 Data writes to a full FIFO will be ignored and data reads from an empty
-FIFO will result in invalid data.
+FIFO will return invalid data.
 The FIFO can be cleared using B<Cntl.ClearFifo_2> field.
+
+Note reads from an empty FIFO may appear to return the last valid value, but
+that is just coincidence and often is whatever register was read last.
 
 =back
 
@@ -383,11 +416,20 @@ The value is always rounded down to an even number.
  where
     Fcore = core clock frequency, nominally 150 MHz.
 
-The reset value of 1500 (0x05dc) should result in a 100 kHz SCL clock
-frequency.  A value of zero is the maximum value 65536 (0x10000).
+The BCM Doc states:  The reset value of 1500 (0x05dc) should result in a
+100 kHz SCL clock frequency.  A value of zero is the maximum value 65536
+(0x10000).
+
+Note the actual clock frequency depends on the processor core clock frequency,
+which may vary with operating system power-save and thermal management.
+
+Observation on Raspberry Pi 3B indicates:  A value of (ClkDiv_16 = 2500)
+gives a 10 us period (100 kHz) when processor is idle,
+and a 6.25 us period (160 kHz) when busy.
 
 [The BCM doc is inconsistent between the equation and divisor values.]
 What specifies the core clock frequency?
+Is there an associated Clock Manager?
 
 =back
 
@@ -451,6 +493,10 @@ In the librgpio/ source tree:
  https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
+
+ Understanding the I2C Bus
+    https://www.ti.com/lit/pdf/slva704
+    Texas Instruments, Application Report SLVA704 - June 2015, 7 pages
 
  UM10204 I2C-bus specification and user manual
     https://www.nxp.com/docs/en/user-guide/UM10204.pdf

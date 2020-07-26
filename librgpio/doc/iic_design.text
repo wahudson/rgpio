@@ -69,8 +69,9 @@ Operation with rgpio:
 
 References for I2C:
 
-    Understanding the I2C Bus - Texas Instruments
-	www.ti.com # lit # pdf # slva704
+    Understanding the I2C Bus
+	Texas Instruments, Application Report SLVA704 - June 2015
+	https://www.ti.com/lit/pdf/slva704
 	A nice, simple, short introduction.  7 pages
 
     https://en.wikipedia.org/wiki/I%C2%B2C
@@ -93,6 +94,9 @@ References for I2C:
 	Apr 21, 2016 - Compliance to the Philips Semiconductor I2C
 	specification v2.1. # Single
 	Seems specialized for CERN use.  13 pages
+
+    Some I2C tools:
+	% apt-cache show  i2c-tools
 
 I2C Protocol:
     Is not described in the BCM doc, and is fairly complex.  Probably
