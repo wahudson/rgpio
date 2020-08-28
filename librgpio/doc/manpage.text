@@ -1,0 +1,149 @@
+2020-08-22  William A. Hudson
+
+		rgpio - Manpage Documentation
+		-----------------------------
+
+----------------------------------------------------------------------------
+## Discussion - Manpage Documentation
+----------------------------------------------------------------------------
+
+Have decided on using traditional man pages for documentation.
+
+    Man page documentation is a very important part of the library.
+    It is one thing to fiddle the bits in a register field, but you really
+    need to have a model of the feature operation and behavior in order
+    to make it meaningful.
+
+Types of documentation:
+
+    We have 3 catagories (man sections):
+    (1)  'rgpio' command and sub-commands
+    (3)  library 'librgpio' classes and API calls
+    (7)  peripheral (Feature) hardware registers and behavior
+
+    Each Feature (peripheral) tends to have documentation in all three
+    catagories.  Want to avoid overlap and duplication as much as reasonable.
+    Each manpage can reference the man pages in other sections.
+
+    Each feature class will have a manpage named after the class in sections
+    (3) and (7).
+    A corresponding rgpio sub-command will have a manpage in section (1),
+    but will be named after the sub-command instead of the class.
+
+    e.g.
+	man(3)		man(7)		man(1)
+	------		------		------
+	rgClk		rgClk		rgpio-clk
+	rgUniSpi	rgUniSpi	rgpio-uspi
+
+    e.g.
+	rgPwm(7)      - describes BCM hardware function
+	rgPwm(3)      - describes librgpio API calls, and limited function
+	rgpio-pwm(1)  - describes rgpio pwm command
+
+----------------------------------------------------------------------------
+## Finding Manpages
+----------------------------------------------------------------------------
+
+    The library and rgpio tool are split into two separate directory trees.
+    Both have man pages.
+
+	librgpio/		library
+	    man/
+		man3/
+		man7/
+	rgpio/			tool 'rgpio'
+	    man/
+		man1/
+
+Ways to find man pages:
+
+    All these use the 'man' command, with various methods of helping it find
+    the librgpio man pages.
+
+    A) Install in standard locations.
+	+ 'man' works without any adaptation.
+	-- Must install man pages.
+	- Only works for the globally installed version.
+	- Do not want to support global install at this time.
+
+    B) Set MANPATH in your shell.
+	+ 'man' works.
+	- Depends on shell environment.
+
+ >  C) Set PATH, let 'man' command find corresponding man/ directories.
+	+ Finds man pages corresponding to the command directory.
+	- Depends on shell environment.
+	+ 'man' works.
+
+    D) Helper command, e.g. 'rgman', find man pages where it is.
+	+ Can be a symlink in user/bin/ directory.
+	- Is another command.
+
+ >  E) "rgpio man" sub-command.
+	+ Built into rgpio, no separate command.
+	+ Essentially rgpio knows where its source tree is.
+	+ rgpio can be a symlink in user/bin/ directory.
+	- Relies on $PATH or symlink to find rgpio command source tree.
+
+    These are not mutually exclusive.
+
+    Overall I like (E) "rgpio man" sub-command best, as it allows multiple
+    versions of rgpio to be found via different symlink names in users bin/
+    directory.  That allows each version to find its own version of the
+    man pages.
+
+Combine manpage dirs from librgpio and rgpio with symlinks:
+
+    Only rgpio has a bin/ directory, so it makes sense to consolidate the
+    man pages there.
+
+    rgpio-v1.1/		source directory
+	librgpio/		library
+	    man/
+		man3/
+		man7/
+	rgpio/			tool 'rgpio'
+	    librgpio  -> ../librgpio
+	    bin/
+	    man/
+		man1/
+		man3  -> ../librgpio/man/man3
+		man7  -> ../librgpio/man/man7
+
+   Now method (C) is enabled, only needs PATH augmented:
+       PATH=...rgpio-v1.1/rgpio/bin:$PATH
+
+   Now method (D) or (E) are enabled by:
+       /home/<user>/bin/
+	   rgpio  -> .../rgpio-v1.1/rgpio/bin/rgpio	# (E)
+	   rgpio2 -> .../rgpio-v1.2/rgpio/bin/rgpio	# (E)
+
+	   rgman  -> .../rgpio-v1.1/rgpio/bin/rgman	# (D)
+
+	These commands can use "readlink -f" to find absolute cononical path
+	to the associated source directory, and thus the man pages.
+
+   The rgpio/librgpio symlink is an extra indirection allowing the user
+   to apply another version of librgpio to the rgpio command.
+   Is more flexible than going up two levels, e.g.
+       man3  -> ../../librgpio/man/man3
+
+   We symlink the man3 and man7 directories to avoid managing many more
+   symlinks of the individual man pages.  Fortunately rgpio itself does
+   not have any man pages in those sections.
+
+Finding tool install dir:
+
+    Want to find the rgpio tool directory.  Assume rgpio is in a bin/ directory
+    and the man pages are in an associated man/ directory.  (as above)
+
+    Use "/proc/self/exe", which is a symlink to the full pathname of the
+    executable file of a running process.  Use readlink(2).
+    From that, back up one directory and add man/.  e.g.
+
+	/proc/self/exe -> /home/pi/work/rgpio/rgpio/bin/rgpio
+
+	ToolDir = /home/pi/work/rgpio/rgpio
+	ManDir  = /home/pi/work/rgpio/rgpio/man
+
