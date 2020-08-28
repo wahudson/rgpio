@@ -12,8 +12,8 @@ OJ         = ../obj
 MAN        = ../man
 
 		# the librgpio library
-INCDIR     = ../../librgpio/src
-LIBDIR     = ../../librgpio/lib
+INCDIR     = ../librgpio/src
+LIBDIR     = ../librgpio/lib
 LIBS       = $(LIBDIR)/librgpio.a
 
 		# all include files for main program dependency
