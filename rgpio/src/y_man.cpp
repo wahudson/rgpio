@@ -40,6 +40,8 @@ class man_yOptLong : public yOption {
 
   public:	// option values
 
+    bool		list;
+
     bool		verbose;
     bool		debug;
     bool		TESTOP;
@@ -63,6 +65,7 @@ class man_yOptLong : public yOption {
 man_yOptLong::man_yOptLong( yOption  *opx )
     : yOption( opx )
 {
+    list        = 0;
     verbose     = 0;
     debug       = 0;
     TESTOP      = 0;
@@ -77,7 +80,9 @@ man_yOptLong::parse_options()
 {
     while ( this->next() )
     {
-	     if ( is( "--verbose"    )) { verbose    = 1; }
+	     if ( is( "--list"       )) { list       = 1; }
+	else if ( is( "-l"           )) { list       = 1; }
+	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
 	else if ( is( "--debug"      )) { debug      = 1; }
 	else if ( is( "--TESTOP"     )) { TESTOP     = 1; }
@@ -103,6 +108,7 @@ man_yOptLong::print_option_flags()
 
     cout <<dec;
 
+    cout << "--list        = " << list         << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
 
@@ -130,6 +136,7 @@ man_yOptLong::print_usage()
     "    3                   librgpio classes,       e.g.  rgClk\n"
     "    7                   peripheral description, e.g.  rgClk\n"
     "  options:\n"
+    "    -l, --list          list available man pages\n"
     "    --help              show this usage\n"
 //  "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
@@ -242,19 +249,26 @@ y_man::doit()
     // Form man command, see also:  man(1), manpath(1)
 	string			cmd;
 
-	cmd = "man --manpath=";
-	cmd += buff;
-	cmd += "/man ";
-
-	if ( Opx.get_argc() == 0 ) {	// default manpage
-	    cmd += "rgpio";
+	if ( Opx.list ) {
+	    cmd = "ls -1 -L ";
+	    cmd += buff;
+	    cmd += "/man/man?/ ";
 	}
-	else {				// additional arguments
-	    char*		arg;
-	    while ( ( arg = Opx.next_arg() ) )
-	    {
-		cmd += " ";
-		cmd += arg;
+	else {
+	    cmd = "man --manpath=";
+	    cmd += buff;
+	    cmd += "/man ";
+
+	    if ( Opx.get_argc() == 0 ) {	// default manpage
+		cmd += "rgpio";
+	    }
+	    else {				// additional arguments
+		char*		arg;
+		while ( ( arg = Opx.next_arg() ) )
+		{
+		    cmd += " ";
+		    cmd += arg;
+		}
 	    }
 	}
 
