@@ -6,7 +6,7 @@ A C++ library to manipulate the Raspberry Pi GPIO peripherals.
 
 Revision control:  git
 
-Files:  (2020-03-24)
+Files:  (2020-08-30)
 ------
 README			this file
 
@@ -14,13 +14,16 @@ README			this file
 
 doc/		    Documentation
     architecture.text	Architecture description
-    clock_design.text	Clock Manager design
-    iopin_design.text	IO Pin Registers Design
+    clock_design.text	rgClk - Clock Manager design
+    iic_design.text	rgIic - I2C design
+    iopin_design.text	rgIoPins - IO Pin Registers Design
+    manpage.text	Manpage documentation design
     mem_barrier.text	Memory Barrier notes
     privilege.text	Process Privilege Control
-    pwm_design.text	PWM (Pulse Width Modulator) design
-    spi0_design.text	rgSpi0 Design architecture
-    uspi_design.text	rgUniSpi Design Architecure
+    pwm_design.text	rgPwm - PWM (Pulse Width Modulator) design
+    spi0_design.text	rgSpi0 - SPI0 Master design
+    timer_design.text	rgSysTimer - System Timer design
+    uspi_design.text	rgUniSpi - Universal SPI Master design
     version.text	Version Numbering, Version Log
 
 man/		    Manpage dir tree (unmanaged, not source)
@@ -43,6 +46,8 @@ src/		    Source code
     rgClock.pod
     rgFselPin.cpp	GPIO Pin Function Select class
     rgFselPin.h
+    rgIic.cpp		I2C Master class
+    rgIic.h
     rgIoPin.cpp		GPIO IO Pin control class (enum, deprecated)
     rgIoPin.h
     rgIoPin.pod
@@ -54,6 +59,8 @@ src/		    Source code
     rgRegister.h
     rgSpi0.cpp		SPI0 Master class
     rgSpi0.h
+    rgSysTimer.cpp	System Timer class
+    rgSysTimer.h
     rgUniSpi.cpp	Universal SPI Master class - SPI1, SPI2
     rgUniSpi.h
     rgUniSpi.pod
@@ -85,11 +92,14 @@ Run from the working copy src/ directory:
 The idea is to build/run in the source directory tree, thus avoiding need for
 any package/install process.
 
-The bin/ dirctory aggregates all commands with symlinks (so it does not
+The bin/ directory aggregates all commands with symlinks (so it does not
 contain any sources), making it easy to add to $PATH.
 
-Man pages can be run with:  (#!! need a user friendly access or install)
+Man pages can be viewed with:
     % man -M ../man  <NAME>
+
+    # Access using rgpio symlinks:
+    % rgpio man <SECTION> <NAME>
 
 
 Primary developers:
