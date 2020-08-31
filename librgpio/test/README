@@ -1,7 +1,7 @@
 2017-05-20  William A. Hudson
 
-		rgpio -- Testing
-		----------------
+		librgpio -- Testing
+		-------------------
 
 Self-checking regression tests.
 
@@ -60,6 +60,7 @@ Test suites:  (2017-05-20)
  u   s  t_rgUniSpi/	rgUniSpi	Universal SPI Master class.
  u   s  t_utLib1/	utLib1		Unit Test Library.
 				    Live RPi tests
+ u   s  v_rgIic_a/	rgIic		I2C Master
  u   s  v_rgSpi0_a/	rgSpi0		SPI0 register/field function
  u   s  v_rgSpi0_fifo/	rgSpi0		SPI0 Fifo function in loop back.
  u   s  v_rgSpi0_gpio/	rgSpi0		SPI0 pin function on GPIO
@@ -107,8 +108,9 @@ Live Tests:  v_*/
     They typicaly apply privilege capability with sudo in "make cap".
     They may require special setup to configure gpio Fsel (./test.init).
 
-    Test	    Jumper config
+    Test            Jumper config
     --------------  -------------
+    v_rgIic_a/      none needed
     v_rgSpi0_a/     none needed
     v_rgSpi0_fifo/  Jumper MISO (Gpio[9], pin 21) to MOSI (Gpio[10], pin 19)
     v_rgSpi0_gpio/  optional

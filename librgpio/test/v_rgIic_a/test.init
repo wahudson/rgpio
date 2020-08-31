@@ -1,0 +1,11 @@
+#! /bin/bash
+# 2020-08-30  William A. Hudson
+
+# Initialize Raspberry Pi gpio for test.
+
+echo >&2 "# using Gpio[3:2] == {iic1_SCL, iic1_SDA}"
+echo >&2 "# No jumpers needed."
+
+set -x
+rgpio fsel --mode=Alt0  3 2
+

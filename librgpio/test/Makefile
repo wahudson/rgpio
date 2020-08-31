@@ -23,6 +23,7 @@ test:
 
 # on Rpi only - need sudo, test.init, and hardware jumpers
 Live:
+	cd v_rgIic_a          && make test
 	cd v_rgSpi0_a         && make test
 	cd v_rgSpi0_fifo      && make test
 	cd v_rgSpi0_gpio      && make test
@@ -42,6 +43,7 @@ clean:
 	cd t_rgSysTimer       && make clean
 	cd t_rgUniSpi         && make clean
 #	cd t_utLib1           && make clean
+	cd v_rgIic_a          && make clean
 	cd v_rgSpi0_a         && make clean
 	cd v_rgSpi0_fifo      && make clean
 	cd v_rgSpi0_gpio      && make clean
