@@ -1,0 +1,313 @@
+# 2020-08-30  William A. Hudson
+
+# rgIoPins  GPIO IO Pin control class -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgIoPins  class -- IO Pin Registers
+
+=head1		SYNOPSIS
+
+    #include "rgAddrMap.h"
+    #include "rgIoPins.h"
+
+=head2			Essential Class members
+
+ class rgIoPins {
+  public:
+					// Virtual Registers
+    rgReg_PinLevel	PinLevel_w0;		// Pin input/output
+    rgReg_PinLevel	PinLevel_w1;
+					// Real Registers
+    rgReg_rw		Fsel0;			// Function select groups
+    rgReg_rw		Fsel1;
+    rgReg_rw		Fsel2;
+    rgReg_rw		Fsel3;
+    rgReg_rw		Fsel4;
+    rgReg_rw		Fsel5;
+
+    rgReg_set		PinSet_w0;		// Pin output (SetOnly)
+    rgReg_set		PinSet_w1;
+
+    rgReg_clr		PinClr_w0;		// Pin output (ClearOnly)
+    rgReg_clr		PinClr_w1;
+
+    rgReg_rw		PinRead_w0;		// Pin input (ReadOnly)
+    rgReg_rw		PinRead_w1;
+
+    rgReg_clr		EventStatus_w0;		// (Read/Clear)
+    rgReg_clr		EventStatus_w1;
+
+    rgReg_rw		DetectRise_w0;
+    rgReg_rw		DetectRise_w1;
+
+    rgReg_rw		DetectFall_w0;
+    rgReg_rw		DetectFall_w1;
+
+    rgReg_rw		DetectHigh_w0;
+    rgReg_rw		DetectHigh_w1;
+
+    rgReg_rw		DetectLow_w0;
+    rgReg_rw		DetectLow_w1;
+
+    rgReg_rw		DetectAsyncRise_w0;
+    rgReg_rw		DetectAsyncRise_w1;
+
+    rgReg_rw		DetectAsyncFall_w0;
+    rgReg_rw		DetectAsyncFall_w1;
+
+    rgReg_rw		PullUpDown;
+    rgReg_rw		PullUpDownClk_w0;
+    rgReg_rw		PullUpDownClk_w1;
+ };
+
+=head2			Constructor
+
+ rgIoPins( rgAddrMap  *amx );
+
+ volatile uint32_t*	get_base_addr();
+ uint32_t		get_bcm_address();
+
+=head2		rgReg     base class methods
+
+ volatile uint32_t*	REG.addr()		     { return  Addr; }
+ uint32_t		REG.read()		     { return *Addr; }
+ void			REG.write(  uint32_t vv )    { *Addr = vv; }
+
+=head2		rgReg_set class methods
+
+ void			REG.set(    uint32_t mask )  { *Addr = mask; }
+
+=head2		rgReg_clr class methods
+
+ void			REG.clr(    uint32_t mask )  { *Addr = mask; }
+
+=head2		rgReg_rw, rgReg_PinLevel  class methods
+
+ void			REG.set(    uint32_t mask );
+ void			REG.clr(    uint32_t mask );
+ void			REG.modify( uint32_t mask,  uint32_t value );
+
+The rgReg_* classes all inherit from rgReg class.
+Each register method is shown with a prefix "REG." suggesting how they
+should be called with the register object.
+
+
+=head1		DESCRIPTION
+
+This class provides access to the hardware registers of the IO Pins
+peripheral group.  It provides direct read/write access to each register.
+There is no protection for reserved bits, or for bits that may be used
+by the Raspberry Pi computer hardware or operating system.
+
+Each hardware register is represented by an rgReg_* object that contains only
+the address of the register (no register value). 
+These are public objects intended for direct access to their methods for
+manipulating the value of the hardware register.
+
+All operations are on the full 32-bit hardware register.
+Register *_w0 has IO bits 31..0, while register *_w1 has IO bits 52..32
+(bits 63..53 are reserved).
+
+The set(), clr(), and modify() functions provide a mask to select which bits
+are modified, usually by a read/modify/write sequence, which is not atomic.
+
+Register type (i.e. Set-Only, Read-Only, or Read/Clear) is a property of the
+hardware register, and is not enforced by this class.  This enables the user
+to explore actual hardware behavior (e.g. writing a Read-Only register).
+It also misses an anti-bugging opportunity to alert the user to potentially
+ineffective operations.
+
+See rgFselPin(3) for a detailed interface to the Function Select registers.
+
+=head2			Constructor
+
+=over
+
+=item rgIoPins()
+
+Construct and initialize a new object.  Argument 'amx' is the address map
+object with an open device file or cached memory block.
+
+=item get_base_addr()
+
+Return the object IO memory block virtual address.
+
+=item get_bcm_address();
+
+Return the feature address, the real address shown in BCM doc.
+
+=back
+
+=head2			rgReg     base class methods
+
+All the rgReg_* register classes have these functions by inheritance.
+
+=over
+
+=item addr()
+
+Returns the register address.
+Direct read/write to this address is the fastest (shortest execution time)
+way to transfer data.
+
+=item read()
+
+Return the current value of the hardware register.
+There is no check for write-only special registers.
+
+=item write()
+
+Write the 32-bit value to the specified hardware register.
+There is no check for read-only or special set/clear registers.
+Beware effects on special registers that set-bits or clear-bits.
+Beware changing bits that may be "owned" by another process.
+
+=back
+
+=head2			rgReg_set class methods
+
+These registers are typically Set-Only.  (e.g. PinSet_w0)
+
+=over
+
+=item set()
+
+Set register bits according to mask.
+Mask bits that are 1 are set to 1 by the hardware, 0 has no effect.
+
+=back
+
+=head2			rgReg_clr class methods
+
+These registers are typically Clear-Only or Read/Clear.
+
+=over
+
+=item clr()
+
+Clear register bits according to mask.
+Mask bits that are 1 are cleared by the hardware, 0 has no effect.
+
+=back
+
+=head2			rgReg_rw class methods
+
+These registers are normal Read-Write.
+
+=over
+
+=item set()
+
+Set register bits according to mask.
+Mask bits that are 1 are set to 1 by a read/modify/write sequence.
+
+=item clr()
+
+Clear register bits according to mask.
+Mask bits that are 1 are cleared by a read/modify/write sequence.
+
+=item modify()
+
+Modify register bits that have a 1 mask bit, applying the corresponding
+bits of the value argument by a read/modify/write sequence.
+
+=back
+
+=head2			rgReg_PinLevel  class methods
+
+This is a virtual register (e.g. PinLevel_w0) composed of three special
+function registers (e.g. PinRead_w0, PinSet_w0, PinClr_w0).  It behaves like
+a single read/write register that represents the levels of the IO pins.
+It is recommended for use over the three specialized registers, as it is
+more regular and just as effecient.
+It has 3 register addresses, which is a little less regular.
+
+The addr(), read(), and write() functions operate on PinRead_w0.
+
+The set(), clr(), and modify() functions operate on PinSet_w0 and PinClr_w0.
+
+The virtual behavior would be more complete if the write() function was
+applied to PinSet_w0 and PinClr_w0, but it is not very useful to blast a
+value across all 32-bits, except maybe on the Raspberry Pi Compute Module.
+As it is now, write() has no effect on a read-only register.
+
+=over
+
+=item addr_set()
+
+Returns the Set register address (e.g. PinSet_w0).
+
+=item addr_clr()
+
+Returns the Clear register address (e.g. PinClr_w0).
+
+=back
+
+
+=head1		EXCEPTIONS
+
+ std::logic_error
+ std::range_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+ // Construct an object.
+    rgAddrMap		amx;		// address map object
+    amx.open_dev_mem();			// open device file
+    rgIoPins		gpx  ( &amx );	// construct object gpx
+
+    uint32_t		vv;
+
+ // Read pin levels using address, fastest method.
+    volatile uint32_t*	pread = gpx.PinRead_w0.addr();
+    vv = *pread;
+
+ // Read pin levels.
+    vv = gpx.PinRead_w0.read();		// real register
+    vv = gpx.PinLevel_w0.read();	// virtual register
+
+ // Write pin levels.  bits[7:4] = binary 0101, other bits unchanged
+    gpx.PinSet_w0.set( 0x00000050 );
+    gpx.PinClr_w0.clr( 0x000000a0 );
+
+    gpx.PinLevel_w0.set( 0x00000050 );
+    gpx.PinLevel_w0.clr( 0x000000a0 );
+
+    gpx.PinLevel_w0.modify( 0x000000f0, 0x00000050 );
+
+ // Modify bits[7:0] to 0x86 in a normal read/write register
+    vv = gpx.DetectHigh_w0.modify( 0x00000086, 0x000000ff );
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgIoPins.h
+ src/rgIoPins.cpp
+
+
+=head1		SEE ALSO
+
+ rgIoPins(7)	hardware register description
+ rgAddrMap(3)
+ rgFselPin(3)
+ rgpio-io(1)
+
+ BCM2835 ARM Peripherals (2012)
+    p.89-101  6.  General Purpose I/O (GPIO)
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+
