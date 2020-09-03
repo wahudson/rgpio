@@ -108,8 +108,8 @@ These are public objects intended for direct access to their methods for
 manipulating the value of the hardware register.
 
 All operations are on the full 32-bit hardware register.
-Register *_w0 has IO bits 31..0, while register *_w1 has IO bits 52..32
-(bits 63..53 are reserved).
+Register *_w0 has IO bits 31..0, while register *_w1 has IO bits 53..32
+(the upper bits 63..54 are reserved).
 
 The set(), clr(), and modify() functions provide a mask to select which bits
 are modified, usually by a read/modify/write sequence, which is not atomic.
