@@ -34,8 +34,6 @@ src/		    Source code
 		      rgpio subcommands:
     y_clk.cpp		rgpio clk -- Clock control
     y_clk.h
-    y_clock.cpp		rgpio clock -- Clock control (deprecated)
-    y_clock.h
     y_fsel.cpp		rgpio fsel -- Function Select pins
     y_fsel.h
     y_iic.cpp		rgpio iic -- I2C Master
@@ -57,6 +55,10 @@ src/		    Source code
 	rgpio-clk.pod
 	rgpio-fsel.pod
 	rgpio-io.pod
+
+    Unused/	      Obsolete and other unused code
+	y_clock.cpp	rgpio clock -- Clock control (replaced by y_clk)
+	y_clock.h
 
 perf/		    Source code Performance Test Programs
     Makefile		for building programs (output in ../bin)

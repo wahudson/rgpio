@@ -20,7 +20,6 @@ LIBS       = $(LIBDIR)/librgpio.a
 INCS       = \
 	Error.h \
 	y_clk.h \
-	y_clock.h \
 	y_fsel.h \
 	y_iic.h \
 	y_io.h \
@@ -39,7 +38,6 @@ INCS       = \
 OBJS       = \
 	$(OJ)/Error.o \
 	$(OJ)/y_clk.o \
-	$(OJ)/y_clock.o \
 	$(OJ)/y_fsel.o \
 	$(OJ)/y_iic.o \
 	$(OJ)/y_io.o \
@@ -105,9 +103,6 @@ $(OJ)/rgpio.o:	rgpio.cpp  $(INCS)
 
 $(OJ)/y_clk.o:		y_clk.cpp  y_clk.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_clk.cpp
-
-$(OJ)/y_clock.o:	y_clock.cpp  y_clock.h  $(INCS)
-	g++ $(CXXFLAGS) -o $@  -c y_clock.cpp
 
 $(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_fsel.cpp
