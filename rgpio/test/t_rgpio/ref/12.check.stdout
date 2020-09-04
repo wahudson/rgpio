@@ -4,8 +4,8 @@ usage:  rgpio [main_options..]  feature  [options..]
     io           General Purpose IO pins
     fsel         Pin Function Select
     clk          Clock generator
-    clock        Clock generator
     iic          I2C Master
+    man          man pager
     pwm          PWM Pulse Width Modulator
     spi0         SPI0 Master
     timer        System Timer
