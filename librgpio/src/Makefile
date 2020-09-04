@@ -14,7 +14,6 @@ INCS       = \
 	rgAddrMap.h \
 	rgAltFuncName.h \
 	rgClk.h \
-	rgClock.h \
 	rgFselPin.h \
 	rgIic.h \
 	rgIoPin.h \
@@ -31,7 +30,6 @@ OBJS       = \
 	$(OJ)/rgAddrMap.o \
 	$(OJ)/rgAltFuncName.o \
 	$(OJ)/rgClk.o \
-	$(OJ)/rgClock.o \
 	$(OJ)/rgFselPin.o \
 	$(OJ)/rgIic.o \
 	$(OJ)/rgIoPin.o \
@@ -57,7 +55,6 @@ mkdirs:   $(OJ)  $(LIBDIR)
 man:	$(MAN)/man3 \
 	$(MAN)/man3/rgAddrMap.3 \
 	$(MAN)/man3/rgClk.3 \
-	$(MAN)/man3/rgClock.3 \
 	$(MAN)/man3/rgIoPin.3 \
 	$(MAN)/man3/rgIoPins.3 \
 	$(MAN)/man3/rgUniSpi.3 \
@@ -105,9 +102,6 @@ $(OJ)/rgAltFuncName.o:	rgAltFuncName.cpp  rgAltFuncName.h \
 $(OJ)/rgClk.o:		rgClk.cpp  rgClk.h  rgAddrMap.h  rgRegister.h
 	g++ $(CXXFLAGS) -o $@  -c rgClk.cpp
 
-$(OJ)/rgClock.o:	rgClock.cpp  rgClock.h  rgAddrMap.h
-	g++ $(CXXFLAGS) -o $@  -c rgClock.cpp
-
 $(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPin.h
 	g++ $(CXXFLAGS) -o $@  -c rgFselPin.cpp
 
@@ -143,10 +137,6 @@ $(MAN)/man3/rgAddrMap.3:	rgAddrMap.pod
 $(MAN)/man3/rgClk.3:		rgClk.pod
 	pod2man -s 3 -n rgClk    --center='librgpio Raspberry Pi GPIO' \
 	    rgClk.pod  $@
-
-$(MAN)/man3/rgClock.3:		rgClock.pod
-	pod2man -s 3 -n rgClock    --center='librgpio Raspberry Pi GPIO' \
-	    rgClock.pod  $@
 
 $(MAN)/man3/rgIoPin.3:		rgIoPin.pod
 	pod2man -s 3 -n rgIoPin  --center='librgpio Raspberry Pi GPIO' \

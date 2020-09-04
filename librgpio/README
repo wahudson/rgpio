@@ -32,18 +32,17 @@ man/		    Manpage dir tree (unmanaged, not source)
 
 src/		    Source code
     Makefile		for building the tool
+    Unused/		Obsolete and other unused code
     man7/		hardware man page source
+
     rgAddrMap.cpp	Address Map class
     rgAddrMap.h
     rgAddrMap.pod
     rgAltFuncName.cpp	Alternate Function Names class
     rgAltFuncName.h
-    rgClk.cpp		Clock Manager enumerated class (replace rgClock)
+    rgClk.cpp		Clock Manager enumerated class
     rgClk.h
     rgClk.pod
-    rgClock.cpp		General Purpose Clock class
-    rgClock.h
-    rgClock.pod
     rgFselPin.cpp	GPIO Pin Function Select class
     rgFselPin.h
     rgIic.cpp		I2C Master class
