@@ -47,11 +47,9 @@ src/		    Source code
     rgFselPin.h
     rgIic.cpp		I2C Master class
     rgIic.h
-    rgIoPin.cpp		GPIO IO Pin control class (enum, deprecated)
-    rgIoPin.h
-    rgIoPin.pod
     rgIoPins.cpp	GPIO IO Pin Registers class (object registers)
     rgIoPins.h
+    rgIoPins.pod
     rgPwm.cpp		PWM Pulse Width Modulator class
     rgPwm.h
     rgRegister.cpp	Register base class
