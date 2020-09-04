@@ -93,13 +93,13 @@ $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgAddrMap.cpp
 
 $(OJ)/rgAltFuncName.o:	rgAltFuncName.cpp  rgAltFuncName.h \
-			rgAddrMap.h  rgIoPin.h  rgFselPin.h
+			rgAddrMap.h  rgIoPins.h  rgFselPin.h
 	g++ $(CXXFLAGS) -o $@  -c rgAltFuncName.cpp
 
 $(OJ)/rgClk.o:		rgClk.cpp  rgClk.h  rgAddrMap.h  rgRegister.h
 	g++ $(CXXFLAGS) -o $@  -c rgClk.cpp
 
-$(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPin.h
+$(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPins.h
 	g++ $(CXXFLAGS) -o $@  -c rgFselPin.cpp
 
 $(OJ)/rgIic.o:		rgIic.cpp  rgIic.h  rgAddrMap.h
