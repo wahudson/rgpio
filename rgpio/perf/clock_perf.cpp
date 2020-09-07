@@ -13,7 +13,6 @@ using namespace std;
 
 #include "rgAddrMap.h"
 #include "rgIoPins.h"
-#include "rgClock.h"
 #include "rgClk.h"
 #include "rgUniSpi.h"
 
@@ -229,7 +228,6 @@ main( int	argc,
 	}
 
 	rgIoPins		Gpx  ( &Amx );		// constructor
-	rgClock			Ckx  ( 0, &Amx );	// constructor
 	rgClk			Cky  ( rgClk::cm_Clk0, &Amx );	// constructor
 	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
 	uint32_t		vv;
@@ -237,7 +235,6 @@ main( int	argc,
 	volatile uint32_t*	pinread = Gpx.PinRead_w0.addr();
 	volatile uint32_t*	pinset  = Gpx.PinSet_w0.addr();
 
-//	volatile uint32_t*	ck0ctl     = Ckx.addr_CtlReg();
 	volatile uint32_t*	ck0ctl     = Cky.Cntl.addr();
 	volatile uint32_t*	uspi_Cntl0 = Uspix.Cntl0.addr();
 
@@ -286,9 +283,6 @@ main( int	argc,
 //		memDat[ sample_cnt ] = tpL.tv_nsec - tpold;
 //		tpold = tpL.tv_nsec;
 
-//		Ckx.read_CtlReg();
-//		Ckx.grab_regs();
-//		vv = Ckx.read_Busy();
 //		vv = *ck0ctl;		// 370 ns/sample  -O3: 313 ns/sample
 //		*ck0ctl = 0x00000000;	// 157 ns/sample
 //		Cky.Cntl.grab();	// 420 ns/sample  -O3: 370 ns/sample

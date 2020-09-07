@@ -20,7 +20,6 @@ using namespace std;
 
 #include "rgAddrMap.h"
 #include "rgIoPins.h"
-#include "rgClock.h"
 #include "rgUniSpi.h"
 
 #include "Error.h"
@@ -252,7 +251,6 @@ main( int	argc,
 	}
 
 	rgIoPins		Gpx  ( &Amx );		// constructor
-//	rgClock			Ckx  ( 0, &Amx );	// constructor
 	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
 
 	volatile uint32_t*	pinread = Gpx.PinRead_w0.addr();
