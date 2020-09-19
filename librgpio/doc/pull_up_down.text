@@ -1,0 +1,812 @@
+2020-09-04  William A. Hudson
+
+		rgpio - rgPudPin IO Pin Pull Up/Down Design
+		--------------------------------------------
+
+Raspberry Pi GPIO Tool and Library
+
+See also:  doc/architecture.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://elinux.org/BCM2835_datasheet_errata
+
+See:  p.89-104  6. General Purpose I/O (GPIO)
+      p.100-101  Pull-up/down Registers
+
+----------------------------------------------------------------------------
+## Discussion - Pin Pull Up/Down
+----------------------------------------------------------------------------
+
+    This Feature operates the IO Pin Pull Up/Down programming registers.
+    The actual pull-up or pull-down resistor state is volatile and is
+    set by a special operation sequence of these registers.
+
+    There is an internal resistor on each IO pin that can be programmed to
+    pull up to Vdd, pull down to ground, or neither (not connected).
+
+----------------------------------------------------------------------------
+## Naming - Pin Pull Up/Down
+----------------------------------------------------------------------------
+
+Possible Class Names:
+    rgPud
+ >  rgPudPin	Pin Pull Up/Down class (this file)
+
+    The 'Pin' in rgPudPin relates it to the other pin features.
+
+    Other related classes:
+    rgIoPin	Io Pin Registers class (obsolete)
+    rgIoPins	Io Pin Registers class
+    rgFselPin	Pin Function Select class
+
+Registers:  (as in rgIoPins)
+
+    Register		BCM name	Description
+    --------		--------	------------------
+    PullUpDown		GPPUD		Pull-up/down program mode
+    PullUpDownClk_w0	GPPUDCLK0	Pull-up/down program clock bits
+    PullUpDownClk_w1	GPPUDCLK1
+
+Register fields are named:
+
+     Reg.Field                  Bits     BCM name
+    ----.---------------        -------  --------
+    PullUpDown.UpDown_2		[1:0]    PUD		programming control
+				[32:2]   reserved
+
+	00 = Off - disable programming
+	01 = Enable Pull-Down programming
+	10 = Enable Pull-Up programming
+	11 = Reserved
+
+	I think this is what was meant in the BCM doc.
+	It is a programming control register.
+	Cannot program for no pull-up and no pull-down.
+
+    The PullUpDownClk_w* register fields are accessed by bit number, and
+    thus have no special field naming.
+
+    PullUpDownClk_w0            [31:0]   IO bits 31..0
+    PullUpDownClk_w1            [11:0]   IO bits 53..32
+
+Higher level methods:
+
+    Do the full program sequence for a Mode and Mask of one register.
+    Could be a method of the PullUpDownClk_w0 clock registers.
+
+Register Names:
+
+    Should be the same as in rgIoPins, for less confusion.
+
+    Abbreviations:
+	Pud	Pull Up Down, also used by others
+	Dn	down
+	Prog	program
+	Cntl	control
+
+    Prefix in register name:
+     +	PullUpDown	Spelled out is clear, maybe a little long.
+	PullUpDn	Abbreviated gets busy and less obvious.
+	Pud		Short and nicely quirky.  Too short.
+ >   +	PudProg		Incorporate true function.
+	PullUp		Let Up imply Down
+     +	Pullup		Looks cleaner
+	PullProg
+
+    Register suffix:
+	Cntl		More general, parallels other Features.
+ >   +	Mode		More literal.
+
+ >   +	Clk_w0		seems best
+
+    Possible register names:  (same for _w1)
+
+     +	PullUpDown		current names in rgIoPins (2020-09-05)
+     +	PullUpDownClk_w0
+
+	PullUpDownCntl		seems busy
+	PullUpDownClk_w0
+
+	PullUpDnCntl		too busy
+	PullUpDnClk_w0
+
+	PudProgCntl		general Cntl
+	PudProgClk_w0
+
+ >   +	PudProgMode		is really a mode, is the only field
+ >   +	PudProgClk_w0
+
+	PullUpMode		more proper camel-case
+	PullUpClk_w0
+
+     +	PullupMode
+     +	PullupClk_w0
+
+	PudCntl
+	PudClk_w0
+
+	PudMode
+	PudClk_w0
+
+	PudProg			asymmetric
+	PudProgClk_w0
+
+	PudCntl			asymmetric
+	PudCntlClk_w0
+
+	Name choices evolved as actual function of the registers was learned.
+
+	The original PullUpDown names seem OK.  The asymmetric style looks OK,
+	but not as good for text searching.  Perhaps a little long (16 char).
+
+	The PudProgMode, PudProgClk_w0 pair avoids the original disadvantages.
+	The 'Pud' prefix is not self defining, but is short and quirky (unique).
+	Is it worth renaming?
+
+	Note RPi4 has a completely different method of setting pull up/down.
+	Thus this will get reworked for that.
+
+ >	Decide to use new names.
+
+----------------------------------------------------------------------------
+## Hardware Behavior - Pin Pull Up/Down  2020-09-09
+----------------------------------------------------------------------------
+
+    This description is derived from the BCM Doc, experiments and logical
+    deduction based on some knowledge of VLSI design.  (i.e. might be wrong)
+    The objective is to clarify a model of the hardware for programming
+    purposes.  This is my best understanding.
+
+General description:  (best model)
+
+    There is an internal resistor on each IO pin that can be programmed to
+    pull up to Vdd, pull down to ground, or neither (not connected).
+
+    The pull direction {up, down, none} is volatile, i.e. not remembered
+    after power down.
+
+    Pull resisters do not appear to be active (present) while powered-down.
+    Ohm-meter readings are in the meg-ohm range.
+
+    There is a hardware default pull direction that is applied as Vdd power
+    comes up, and becomes the default programmed direction.
+
+    The Raspberry Pi system code can (and does) change the pull directions
+    as part of the boot process.
+
+    The resistor pull direction state cannot be directly accessed, and
+    cannot be read back.  However it can be deduced thru external measurement.
+
+    The programming interface is thru the three Pud programming registers
+    {PudProgCntl, PudProgClk_w0, PudProgClk_w1}.
+    A special sequence is used to transfer the pull direction specified in
+    PudProgCntl to the IO pins specified by 1-bits in the PudProgClk_w0/1
+    registers.  The Clk registers should be zero when not actively programming
+    Pull direction.
+
+    This applies to RPi3 and earlier (and Compute Module 3).
+    RPi4 has a completely different (and better) interface.
+
+    Analysis supporting these conclusions is in the following sections.
+
+Conjecture:
+
+    The pull resistors are probably actually small MOSFETs, P-channel for
+    pull-up, and N-channel for pull-down.
+
+    The pull direction state is probably held in a CMOS transparent latch.
+
+Programming Sequence:
+
+    This is the best sequence, from putting everything together.
+    (abbreviated register names)
+
+	Clk_w0 = 0;	ensure both banks are disabled
+	Clk_w1 = 0;
+
+	Cntl = desired mode {2, 1, or 0}
+	Wait (not needed?)
+
+	Clk_w0 = mask;  OR  Clk_w1 = mask;  (or both)
+	Wait (not needed?)
+
+	Clk_w0 = 0;	disable clocks
+	Clk_w1 = 0;
+
+	Cntl = 0;	reset to a default mode?
+
+----------------------------------------------------------------------------
+## Operation - Pin Pull Up/Down
+----------------------------------------------------------------------------
+
+    See BCM doc.
+    See rgIoPins(7)
+
+Resistor values:
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md
+
+    Rpu = 50 kohm min, 65 kohm max  pull-up resistor
+    Rpd = 50 kohm min, 65 kohm max  pull-down resistor
+
+    Vil = 0.9 V max,  Vddio= 3.3 V
+    Vih = 1.6 V min,  Vddio= 3.3 V
+
+Purpose:
+
+    A few thoughts on Why there are pull up/down resistors.
+
+    A CMOS digital input that is unconnected generally will float to an
+    intermediate voltage between the high and low threshold voltages, which
+    makes it more susceptible to noise and random toggling.
+
+    To avoid this a high-value resistor from the input to either Ground or
+    Vdd is used to set a default logic voltage level.  For example, a
+    33 kohm (33,000 ohm) resistor to +3.3 V would draw 0.1 mA, which is
+    insignificant for most logic gate drivers.
+
+    Resistors take space on a PC board.  Thus it really helpful if they
+    are integrated onto the SOC (System On a Chip).  Flexibility is provided
+    by making them programmable.
+
+    Generally the resistor pull direction is intended to be set once, and
+    left for the duration of device operation.
+
+Protection:
+
+    There seems to be no protection against accidental change.  No password,
+    as in the rgClk registers.
+
+    Perhaps none is needed because consequence is very minimal.
+
+Programming Sequence in BCM Doc:  (p. 101)
+
+    From BDM Doc p. 101:
+    {
+	The GPIO Pull-up/down Clock Registers control the actuation of internal
+	pull-downs on the respective GPIO pins.  These registers must be used
+	in conjunction with the GPPUD register to effect GPIO Pull-up/down
+	changes.  The following sequence of events is required:
+
+	1. Write to GPPUD to set the required control signal (i.e. Pull-up or
+	    Pull-Down or neither to remove the current Pull-up/down)
+	2. Wait 150 cycles - this provides the required set-up time for the
+	    control signal
+	3. Write to GPPUDCLK0/1 to clock the control signal into the GPIO pads
+	    you wish to modify - NOTE only the pads which receive a clock will
+	    be modified, all others will retain their previous state.
+	4. Wait 150 cycles - this provides the required hold time for the
+	    control signal
+	5. Write to GPPUD to remove the control signal
+	6. Write to GPPUDCLK0/1 to remove the clock
+    }
+
+    There are some things that are unclear:
+
+    Step 5. seems wrong or misleading:
+    There is no GPPUD mode bits value that is identified to "remove the
+    control signal".  A possibility is simply writing the register causes
+    the programming clock to be disabled, but that is not stated.
+
+    It seems unlikely that the program control would be disabled by simply
+    writing the GPPUD register regardless of value.  But maybe so.
+    Possibly that could be safety mechanism to stop programming if the
+    mode value is changed.
+
+    Regardless, it would be safest to write exactly the same mode value
+    in Step 5.
+
+    Step 6. Makes sense as the mechanism to stop the programming, as that
+    register explicitly states that setting 1 will assert the clock signal
+    for that bit.
+
+    "Wait 150 cycles" - of which clock?  Not stated.  Presummably it is
+    the processor core clock (the APB clock often noted elsewhere).
+    This may best be provided by executing a no-operation instruction in
+    a loop.
+
+    Presumably there is no damage if the programming clock is left enabled,
+    but that is not stated.
+    The program doing the programming could sleep by the OS, or be killed
+    and leave it in the programming state.
+
+    PullUpDown.UpDown_2		[1:0]    PUD
+	00 = Off - disable pull-up/down
+	01 = Enable Pull Down control
+	10 = Enable Pull Up control
+	11 = Reserved
+
+    Can the both pull-up and pull-down be disabled, i.e. no resistor connected?
+    Not clear.
+    The GPPUD value of zero is labeled "00 = Off - disable pull-up/down".
+    Does that mean turn off both resistors?
+    OR does it mean disable programming?
+    Step 1 (above) does seem to indicate that the Off state removes the
+    current pull-up or pull-down.
+
+    It seems reasonable that both pull-up and pull-down could be turned off.
+    This would leave the input floating when nothing is connected.
+
+    Some pins in the "Alternative Function Assignment" table on p.102
+    show a Pull level of "-" (Gpio 28, 29, 44, 45), possibly meaning none.
+    Note RPi3 only has Gpio 0..27, but Compute module has Gpio 0..45.
+
+    It seems best to disable all clocks when programming.  Ensure that _w1
+    does not get programmed when operating _w0.
+
+    The "Wait" steps seem un-necessary.  What would take such a long setup
+    and hold time?  If this was programming the charge on a floating gate
+    MOSFET storage node, waiting would make sense.
+    Since these are volatile storage nodes, it is likely to be just a simple
+    CMOS transparent latch, which would have at most one clock cycle setup
+    and hold times in a fast digital IC process such as this.
+    The two instructions to write the Cntl register and the Clk register
+    would intrinsically provide enough setup and hold time.
+
+    A simple experiment to test the transparent latch hypothesis:
+    Turn on some Clk bits to open the transparent latch.  Then toggle the
+    Cntl pull direction between 1 (pull-down) and 2 (pull-up) while observing
+    the input pin with an oscilloscope.  If the input pin voltage follows,
+    then it suggests a transparent latch.
+
+Other references:
+
+    WiringPi:
+	http://wiringpi.com/reference/core-functions/
+	void pullUpDnControl (int pin, int pud) ;
+	Seems to indicate three modes:  Up, Down, and None.
+
+    Equivalent Circuit for Raspberry Pi GPIO pins
+	http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/raspberry-pi/gpio-pin-electrical-specifications
+
+Questions:
+
+    Is it actually non-volatile?
+	Or is it only effective while powered, and a different set applies
+	when powered off?
+	The RPi4 seems to apply only when powered.
+	The system can reset pulls at boot time.
+
+	No, is volatile.  Oscilloscope observation shows the default pull
+	direction is applied during power-up, not the last value programmed
+	before power-down.
+
+    Can both pull-up and pull-down be disabled?
+	Yes.  See experiment on Gpio[15] below.
+
+----------------------------------------------------------------------------
+## Class Design - Pin Pull Up/Down
+----------------------------------------------------------------------------
+
+    Note these design ideas and choices were identified before the actual
+    rgPudPin class was coded, and may not actually be implemented.
+
+Possible class structures:
+
+    Possibly let this be a stand-alone feature, i.e. like rgUniSpi.
+
+ >  A) Stand-alone Feature
+	++ Is like all the other Features.
+	+ Construct using only rgAddrMap object.
+	- Has the same memory page as rgIoPins, may be unexpected.
+	- Duplicates some register addresses.
+	+ Can use new register names.  Rename rgIoPins later.
+
+    B) Sub-feature, HAS an rgIoPins object to access registers.
+	+ Avoids duplication of registers already in rgIoPins.
+	- Constructor uses an rgIoPins object, instead of rgAddrMap object.
+	- The PullUpDown register objects are not derived from rgRegister,
+	    and have no value storage.
+	- Want similar operation to a full Feature.
+	- Indirect operation of thru rgIoPins adds complexity.
+
+    C) Implement within rgIoPins, no separate class.
+	+ All in one place.
+	-- Lose focus, too many different things in that class.
+
+    D) Like (A), but add constructor from rgIoPins.
+	+ Can construct from rgIoPins if rgAddrMap is not available.
+	An additional capability, but not clear how much that helps.
+
+    Want operation to be similar to a full Feature class.  This would
+    have objects for each register with appropriate methods.
+
+    Design the methods needed, then decide what class to house them.
+
+Essential members:
+
+    class rgPudPin_Cntl : public rgRegister {
+	uint32_t	get_UpDown_2();
+	void		put_UpDown_2( uint32_t v );
+    }
+
+    class rgPudPin_Clk : public rgReg_rw {
+	void		program_pullup(   uint32_t mask );
+	void		program_pulldown( uint32_t mask );
+    }
+
+ >  class rgPudPin {			// register methods
+	rgPudPin_Cntl	PudProgCntl;
+	rgPudPin_Clk	PudProgClk_w0;
+	rgPudPin_Clk	PudProgClk_w1;
+
+	rgPudPin( rgAddrMap *amx );		// constructor
+	rgPudPin( rgIoPins  *px );		// constructor
+    }
+
+    class rgPudPin {			// top level methods
+	rgPudPin_Cntl	PudProgCntl;
+	rgReg_rw	PudProgClk_w0;
+	rgReg_rw	PudProgClk_w1;
+
+	rgPudPin( rgAddrMap *amx );		// constructor
+	rgPudPin( rgIoPins  *px );		// constructor
+
+	void		program_pullup_w0( uint32_t mask );
+	void		program_pullup_w1( uint32_t mask );
+
+	void		program_pulldown_w0( uint32_t mask );
+	void		program_pulldown_w1( uint32_t mask );
+    }
+
+Register field access:
+
+    Use the rgRegister mechanisms that have worked well so far.
+
+rgPudPin Constructor:
+
+    Initialize on construction, just like other features.
+
+    Could make constructors from both rgAddrMap and rgIoPins, essentially
+    copying the necessary addresses.
+
+    When constructing from rgAddrMap, the register addresses must be
+    derived.  Could put the register offsets in rgIoPins.h (instead of in
+    the rgIoPins constructor code as is currently done 2020-09-5).
+
+ >  A) Construct from rgAddrMap
+	+ Just like other main features.
+	- Register offsets re-computed.
+	- Include rgIoPins.h to get register offsets.
+
+    B) Construct from rgIoPins
+	+ Clear that it is a related feature.
+	- Might not have other common methods of top level features.
+	- Extra code to create those other common methods.
+
+    Decided on (A), like other Features.
+
+Address constants:
+
+    The FeatureAddr constant, and register addresses are currently only used
+    for initialization in the constructor.
+
+ >  A) Defined names in header file.
+	+ Constants are named.
+	+ Are available for future use.
+	- More indirection.  More names.
+
+    B) Un-named constants in constructor.
+	+ Less indirection.
+	+ Simpler, less code.
+	- Refactor into header file when needed.
+
+    I have been favoring (B) for simplicity and directness, but (A) is
+    probably the better in the long-term.
+    Maybe lean toward (A) since both rgIoPins and rgPudPin have the same
+    registers.
+
+    Using class constants seems better than using #define constants.
+
+    Making a dependency on the higher level rgIoPins.h seems fine.  It may
+    also help see that it is the same set of registers.
+
+Programming Functions:
+
+ >  A) Top-level methods of rgPudPin.
+	Call:  Pud.program_pullup_w0( 0x55 )
+	+ Is a top-level method, shorter call.
+	- Have two sets of functions for _w0 and _w1.
+	- More mapping of names to identify the register.
+	++ Have access to all 3 registers for safe programming.
+
+	This requires parameterizing the program_sequence() function,
+	passing in ( PudProgClk_w0, cntl,  mask ).
+
+    B) Methods of the PudProgClk_w0 registers.
+	Call:  Pud.PudProgClk_w0.program_pullup( 0x55 )
+	+ Each _w0 and _w1 register has the method.  Better code reuse.
+	+ Better object-oriented design.
+	- Need another class for the registers.
+	-- Need access to all 3 registers for safe programming.
+
+	This requires access to PudProgCntl, which can be provided by
+	putting a copy in each PudProgClk_w0 register.  Not too bad, as
+	the control register is pretty light-weight.
+	BUT access to all 3 registers becomes silly.
+
+    Programming is not per Clk register, it is global.
+    If both Clk_w0 and Clk_w1 have bits set, then both will get programmed.
+    A previous process could have left any value in the registers.
+    Must control both Clk registers, and not assume any value.
+    Thus we really need to program from a top level.
+
+Register class for rgIoPins:  (not used)
+
+    Possibly make a rgPud_clk register class that has all 3 registers, and
+    use it to declare the two clk registers in the top-level rgIoPins class.
+
+    Trying to make one class the same for both registers is interesting,
+    but creates an initialization problem:
+	class rgPudPin_Clk {
+	    rgRegister		Mode;
+	    rgRegister		ThisReg;
+	    rgRegister		OtherReg;
+	}
+
+    The more traditional specific register approach looks reasonable:
+	class rgIoPins {
+	    ...
+	    rgPudPin_Clk_w0		PudProgClk_w0;
+	    rgPudPin_Clk_w1		PudProgClk_w1;
+	}
+
+    While it would be great to access the programming function via
+    a register object, it seems more complicated and tricky than it
+    is worth.
+
+----------------------------------------------------------------------------
+## Experiments - Pin Pull Up/Down
+----------------------------------------------------------------------------
+
+RPi3 (my rpiRed), after power-up, all pins open:
+    Only bits 31:0 are Fsel=In
+    Only bits 27:0 are on RPi3 header, and are open.
+
+    % rgpio io -v PinLevel_w1 PinLevel_w0
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x200081ff  PinLevel_w0         0010 0000 0000 0000 1000 0001 1111 1111
+    0x003ef4af  PinLevel_w1         0000 0000 0011 1110 1111 0100 1010 1111
+
+    % rgpio io -v --pud
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x00000002  PullUpDown          0000 0000 0000 0000 0000 0000 0000 0010
+    0x00000000  PullUpDownClk_w0    0000 0000 0000 0000 0000 0000 0000 0000
+    0x00000000  PullUpDownClk_w1    0000 0000 0000 0000 0000 0000 0000 0000
+    IO bit:                           60   56   52   48   44   40   36   32
+
+    Note PullUpDown is not zero, not disabled!
+
+    Note levels do not match BCM Doc.  They should be:
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+                PinLevel_w0         00xx 0000 0000 0000 0000 0001 1111 1111
+                                                        ^
+    IO bit:                           60   56   52   48   44   40   36   32
+                PinLevel_w1         0000 0000 0011 1111 11xx 0000 0001 1100
+                                                      ^       ^   ^ ^^   ^^
+
+    Since register PullUpDown is not at default value, could a system process
+    be diddling with the pullups?
+
+Measure voltage:
+
+    Gpio[15]:  Vi= 3.30 V,  Set to Pull-up.
+	Vi= 2.705 V with Rtd= 220 kohm to ground.
+
+	(Rpu / Rtd) = (Vdd / Vi) - 1
+
+	Rpu = ((Vdd / Vi) - 1) * Rtd
+	    = ((3.3 V / 2.705 V) - 1) * 220 kohm  = 48 kohm
+
+    Gpio[15]:  Vi= 0.000 V,  Set to Pull-down.
+	 Vi= 0.586 V with Rtd= 220 kohm to ground.
+
+    Gpio[15]:  Vi= 0.000 V,  Set to Pull-OFF.
+	 Vi= 0.000 V with Rtd= 220 kohm to ground.
+	 Vi= 3.257 V with Rtd= 220 kohm to Vdd.
+	 Vi= 0.752 V with no resistor.
+	 Is truly floating, noisy.
+
+    ==> Can program for Pull mode to be:  Up, Down, or Off.
+
+Try re-programming to pull-down.
+
+    % rgpio io -v --pud
+
+    % rgpio io -v --clr=0x3 PullUpDown
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x00000000  PullUpDown          0000 0000 0000 0000 0000 0000 0000 0000
+
+    % rgpio io -v PullUpDown
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x00000002  PullUpDown          0000 0000 0000 0000 0000 0000 0000 0010
+
+    Set it to zero, but then later read back as 0x2.  Delayed.
+    What is changing it to 0x2?
+
+Try setting PullUpDown=1
+    % rgpio io -v --mask=3 --value=1  PullUpDown
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x00000001  PullUpDown          0000 0000 0000 0000 0000 0000 0000 0001
+
+    % rgpio io -v PullUpDown
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x00000002  PullUpDown          0000 0000 0000 0000 0000 0000 0000 0010
+
+    Still seems to read-back wrong.
+
+Validate rgpio on another IO register:
+    % rgpio io -v --set=2 DetectRise_w0
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x00000002  DetectRise_w0       0000 0000 0000 0000 0000 0000 0000 0010
+    Message from syslogd@rpiRed at Sep  6 14:36:03 ...
+     kernel:[ 3438.261837] Disabling IRQ #79
+
+Some stupid process is re-programming the pullups:
+    Watch for 1e08 (100,000,000) read cycles.
+    Find no changes on PullUpDownClk_w0=0.
+    Find change:  PullUpDownClk_w1=0x00004000  is Gpio[46]
+	is an Input, identified as "<Internal>" on the BCM2711 (RPi4).
+    Occurs about every 90 ms.
+    This is what is resetting the PullUpDown value.
+
+Check non-volatile:
+
+    Note:  Gpio[14] seemed to read weird values, so is avoided.
+
+    Gpio[15]:  Vi= 0.000 V,  Set to Pull-down.  (default is Down)
+    Gpio[16]:  Vi= 3.30  V,  Set to Pull-up.    (default is Down)
+    These are set opposite of boot values above.
+
+    Power down.  Power up boot.
+
+    Voltmeter observation:
+	During power-up Gpio[16] stayed at 0.0 V.
+	During power-up Gpio[15] quickly went to 3.3 V.
+
+    Re-boot reverted to old pulls.
+    % rgpio io -v PinLevel_w0
+    IO Pin Registers:                 28   24   20   16   12    8    4    0
+    0x200081ff  PinLevel_w0         0010 0000 0000 0000 1000 0001 1111 1111
+
+    ==> Programmed values are not remembered over a power cycle.
+    Seems likely system is resetting pulls, or they are NOT non-volatile.
+
+Power down resistance:  (hand held Fluke 23 Multimeter)
+    Power supply open:
+	Gpio[15]:  12.1 Mohm
+	Gpio[16]:  11.5 Mohm
+	Gpio[24]:  10.7 Mohm
+	Gpio[25]:  11.8 Mohm
+	Gpio[7]:   17.8 Mohm
+	Gpio[2]:     ~250 kohm  variable
+	Gpio[3]:     ~200 kohm  variable
+
+	Seems like no resistance when powered down.
+
+    Vdd (3.3V) connected to Gnd with 100 ohm resistor:  not powered
+	Gpio[15]:  18.6 Mohm
+	Gpio[16]:  18.0 Mohm
+	Gpio[24]:  17.2 Mohm
+	Gpio[25]:  18.5 Mohm
+	Gpio[2]:    1.90 kohm
+	Gpio[3]:    1.90 kohm
+
+	The resistor prevents charging of the Vdd supply capacitors, so
+	readings settle faster.
+
+	Note:  Gpio[2,3] have 1.8 kohm pullup resistors on pc board.
+
+    ==> Resistors are not active when powered down.
+
+Power Up measurements:
+
+    Oscilloscope:  Keysight DSOX1204G, 70 MHz, 2 GSa/s
+
+    Oscilloscope.  10 ms/div, 2 V/div
+	Ch1  Gpio[15]:  Trigger, single rising edge, within 100 ms.  High.
+	Ch2  Gpio[16]:  Stayed low for +-100 ms of trigger.  Low.
+
+    Looking for multiple transitions, e.g. default pull, then a change
+    by system.  This first try is probably not enough to be sure.
+
+    Oscilloscope 100 ms/div, Trigger= Ch1 1.30 V, 2 V/div, 1 us Sample period
+	Normal Acquisition mode.
+	Ch1:  Gpio[2]
+	Ch2:  Gpio[15]
+    Both channels show a 6.0 V spike (single sample) at t=0 (trigger)
+    At t=  0 us:  positive +6.0 V pulse.
+    At t= 35 us:  negative -0.7 V pulse.
+    At t= 83 us:  positive +1.3 V pulse.
+    At t= 331 ms:  Gpio[2] rising edge
+    At t= 500 ms:  end of capture, Gpio[15] is still low.
+    Pulses are single sample, 1 us sample period.
+    Trace is not long enough to see Gpio[15] rising.
+
+    This suggests that Gpio[2] may be rising from hardware default pull-up,
+    while Gpio[15] hardware default is pull-down, then later Gpio[15] is
+    set pull-up by the system.
+
+    The single-sample spikes are a bit extreme, +6.0 V, -0.7 V.  Were not
+    seen on first try.
+
+    Oscilloscope 10 ms/div, Trigger= Ch1 1.30 V, 2 V/div, 1 us Sample period
+	Acquisition= peak detect.
+	Ch1:  Vdd (3.3V, pin 1), Trigger 1.30 V
+	Ch2:  Gpio[7]   (default pull-up)
+	Ch3:  Gpio[15]  (default pull-down, final pull-up)
+	Mostly caught noise spikes, Vdd did not rise in the 100 ms window.
+	At t=    0 us:  trigger on 3.3v pulse
+	At t= 2.38 ms:  big voltage spike Vdd= 6.2 V peak.
+
+    Oscilloscope 1000 ms/div, Trigger= Ch1 1.30 V, 2 V/div, 10 us Sample period
+	Acquisition= peak detect.
+	Channels as above.
+	At t=     0 us:  trigger on Vdd spike, ~7 V peak?
+	At t=  10.3 ms:  big voltage spike Vdd= 5.2 V peak.
+	At t= 328   ms:  Ch1 Vdd rise, ch2 Gpio[7] rise.
+	At t= 928.7 ms:  Ch3 Gpio[15] rise.
+
+	We see Gpio[7] rise with Vdd, consistent with Pull-up.
+
+    ==>	This suggests Gpio[15] is Pull-down at power up (the default mode),
+	then is later set to Pull-up.
+
+ >  Conclusions:
+	1. The Pull resistor mode is volatile, not remembered over a power
+	    cycle.
+	2. The BCM Doc shows default Pull directions that exist during
+	    power-up, and become the default value after reset.
+	3. The system changes some Pull directions at boot time (or could
+	    be boot ROM code).
+	4. When powered down, pull resistance is ~18 Mohm to ground or Vdd.
+	    The Pull resistance is not effective when un-powered.
+	5. All pins and Vdd seem to show large voltage spikes during power up.
+	    This seems to be switching power supply startup, as Vdd is still
+	    zero volts.
+
+    Oscilloscope 2 us/div, Trigger= Ch1 1.30 V, 2 V/div, ? us Sample period
+	Acquisition= peak detect, Segmented into 4 segments.
+	Channels as above.
+	At t=     0 us:  trigger on Vdd spike, -4.5 V spike, 50 MHz ringing.
+	At t=  3.15 us:  Vdd +6.5 V spike, Ch2 +6.0 V spike, 50 MHz ringing.
+	At t=  3.56 us:  Vdd -7.5 V spike, Ch2 -6.2 V spike, 20 MHz ringing.
+	All with DC Vdd= zero volts.
+
+----------------------------------------------------------------------------
+## rgPudPin Object - Pin Pull Up/Down
+----------------------------------------------------------------------------
+
+Object data:
+{
+  private:
+    volatile unsigned	*GpioBase;	// IO base address
+
+    static
+    const uint32_t	FeatureAddr = 0x7e200000;	// BCM doc
+
+  public:				// registers
+    rgReg_rw		PullUpDown;
+    rgReg_rw		PullUpDownClk_w0;
+    rgReg_rw		PullUpDownClk_w1;
+
+  public:
+    enum  rgPud_enum {			// Pull direction identifiers.
+	pd_Off  = 0,
+	pd_Down = 1,
+	pd_Up   = 2
+    };
+}
+
+Methods:
+
+    get_base_addr()		GpioBase address
+    get_bcm_address()
+
+				// Program registers
+    program_pud_w0( dir, mask )
+    program_pud_w1( dir, mask )
+
