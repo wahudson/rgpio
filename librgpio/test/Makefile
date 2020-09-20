@@ -13,6 +13,7 @@ test:
 	cd t_rgIic            && make test
 	cd t_rgIoPins         && make test
 	cd t_rgPwm            && make test
+	cd t_rgPudPin         && make test
 	cd t_rgRegister       && make test
 	cd t_rgSpi0           && make test
 	cd t_rgSysTimer       && make test
@@ -34,6 +35,7 @@ clean:
 	cd t_rgIic            && make clean
 	cd t_rgIoPins         && make clean
 	cd t_rgPwm            && make clean
+	cd t_rgPudPin         && make clean
 	cd t_rgRegister       && make clean
 	cd t_rgSpi0           && make clean
 	cd t_rgSysTimer       && make clean
