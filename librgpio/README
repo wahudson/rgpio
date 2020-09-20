@@ -50,6 +50,8 @@ src/		    Source code
     rgIoPins.cpp	GPIO IO Pin Registers class (object registers)
     rgIoPins.h
     rgIoPins.pod
+    rgPudPin.cpp	IO Pin Pull Up/Down
+    rgPudPin.h
     rgPwm.cpp		PWM Pulse Width Modulator class
     rgPwm.h
     rgRegister.cpp	Register base class
