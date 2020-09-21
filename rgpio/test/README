@@ -50,6 +50,7 @@ Test suites:  (2018-11-09)
  pbl    t_clk/		rgpio-clk	subcommand
  pbl    t_fsel/		rgpio-fsel	subcommand
  pbl    t_io/		rgpio-io	subcommand
+ pbl    t_pud/		rgpio-pud	subcommand
  pbl    t_pwm/		rgpio-pwm	subcommand
  pbl    t_rgpio/	rgpio		rgpio main program.
  u   s  t_yUtil/	yUtil		Utility functions.

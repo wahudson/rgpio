@@ -10,6 +10,7 @@ test:
 	cd t_Error            && make test
 	cd t_clk              && make test
 	cd t_fsel             && make test
+	cd t_pud              && make test
 	cd t_pwm              && make test
 	cd t_io               && make test
 	cd t_rgpio            && make test
@@ -19,6 +20,7 @@ clean:
 	cd t_Error            && make clean
 	cd t_clk              && make clean
 	cd t_fsel             && make clean
+	cd t_pud              && make clean
 	cd t_pwm              && make clean
 	cd t_io               && make clean
 	cd t_rgpio            && make clean

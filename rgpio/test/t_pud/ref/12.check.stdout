@@ -1,0 +1,18 @@
+    IO pin Pull Up/Down
+usage:  rgpio pud [options..]  [N..]
+    N                   program bit number 0..53
+  program pull direction:
+    --up                pull-up
+    --down              pull-down
+    --off               floating, disable both up and down
+  program by IO bit mask:
+    --w0=0xffffffff     word 0, bits [31..0]
+    --w1=0x003fffff     word 1, bits [53..32]
+  modify raw registers:  (V= 32-bit value)
+    --PudProgMode=2     pull direction {2,1,0}
+    --PudProgClk_w0=V   clock mask, word 0
+    --PudProgClk_w1=V   clock mask, word 1
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output, show registers in binary
+  (options with GNU= only)
