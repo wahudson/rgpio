@@ -42,6 +42,8 @@ src/		    Source code
     y_io.h
     y_man.cpp		rgpio man -- manual pager
     y_man.h
+    y_pud.cpp		rgpio pud -- IO Pin Pull Up/Down
+    y_pud.h
     y_pwm.cpp		rgpio pwm -- Pulse Width Modulator
     y_pwm.h
     y_spi0.cpp		rgpio spi0 -- SPI0 Master

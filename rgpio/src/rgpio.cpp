@@ -18,6 +18,7 @@ using namespace std;
 #include "y_iic.h"
 #include "y_io.h"
 #include "y_man.h"
+#include "y_pud.h"
 #include "y_pwm.h"
 #include "y_spi0.h"
 #include "y_timer.h"
@@ -161,6 +162,7 @@ yOptLong::print_usage()
     "    clk          Clock generator\n"
     "    iic          I2C Master\n"
     "    man          man pager\n"
+    "    pud          Pin Pull-Up/Down\n"
     "    pwm          PWM Pulse Width Modulator\n"
     "    spi0         SPI0 Master\n"
     "    timer        System Timer\n"
@@ -255,6 +257,10 @@ main( int	argc,
 	else if ( Opx.feature == "man"     ) {
 	    y_man		fx  ( &Opx, &Amx );	// constructor
 	    retv = fx.doit();
+	}
+	else if ( Opx.feature == "pud"     ) {
+	    y_pud		pux  ( &Opx, &Amx );	// constructor
+	    retv = pux.doit();
 	}
 	else if ( Opx.feature == "pwm"     ) {
 	    y_pwm		pwx  ( &Opx, &Amx );	// constructor
