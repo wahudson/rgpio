@@ -61,6 +61,7 @@ Test suites:  (2017-05-20)
  u   s  t_utLib1/	utLib1		Unit Test Library.
 				    Live RPi tests
  u   s  v_rgIic_a/	rgIic		I2C Master
+ u   s  v_rgPudPin_prog/  rgPudPin	IO Pin Pull Up/Down programming
  u   s  v_rgSpi0_a/	rgSpi0		SPI0 register/field function
  u   s  v_rgSpi0_fifo/	rgSpi0		SPI0 Fifo function in loop back.
  u   s  v_rgSpi0_gpio/	rgSpi0		SPI0 pin function on GPIO
