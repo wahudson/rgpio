@@ -1,0 +1,13 @@
+2020-09-03
+		Unused and Obsolete code
+		------------------------
+
+Files:  (2020-09-03)
+------
+    rgClock.cpp		General Purpose Clock class, replaced by rgClk
+    rgClock.h
+    rgClock.pod
+    rgIoPin.cpp		GPIO IO Pin control class, replaced by rgIoPins
+    rgIoPin.h
+    rgIoPin.pod
+
