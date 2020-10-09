@@ -17,6 +17,8 @@ https://elinux.org/BCM2835_datasheet_errata
 See:  p.89-104  6. General Purpose I/O (GPIO)
       p.100-101  Pull-up/down Registers
 
+https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md
+
 ----------------------------------------------------------------------------
 ## Discussion - Pin Pull Up/Down
 ----------------------------------------------------------------------------
@@ -43,7 +45,7 @@ Possible Class Names:
     rgIoPins	Io Pin Registers class
     rgFselPin	Pin Function Select class
 
-Registers:  (as in rgIoPins)
+Registers:  (as in rgIoPins 2020-09-19)
 
     Register		BCM name	Description
     --------		--------	------------------
@@ -51,32 +53,41 @@ Registers:  (as in rgIoPins)
     PullUpDownClk_w0	GPPUDCLK0	Pull-up/down program clock bits
     PullUpDownClk_w1	GPPUDCLK1
 
+Registers:  (as renamed in rgPudPin)
+
+    Register		BCM name	Description
+    --------		--------	------------------
+    PudProgMode		GPPUD		Pull-up/down program mode
+    PudProgClk_w0	GPPUDCLK0	Pull-up/down program clock bits
+    PudProgClk_w1	GPPUDCLK1
+
+
 Register fields are named:
 
      Reg.Field                  Bits     BCM name
     ----.---------------        -------  --------
-    PullUpDown.UpDown_2		[1:0]    PUD		programming control
+    PudProgMode.UpDown_2	[1:0]    PUD		programming control
 				[32:2]   reserved
 
-	00 = Off - disable programming
+	00 = Off (None) - program for no pull-up and no pull-down
 	01 = Enable Pull-Down programming
 	10 = Enable Pull-Up programming
 	11 = Reserved
 
-	I think this is what was meant in the BCM doc.
-	It is a programming control register.
-	Cannot program for no pull-up and no pull-down.
+	Originally I thought "Off" meant disable programming as implied in
+	the programming sequence, but that would mean you could not have
+	no pull-up and no pull-down.
 
-    The PullUpDownClk_w* register fields are accessed by bit number, and
+    The PudProgClk_w* register fields are accessed by bit number, and
     thus have no special field naming.
 
-    PullUpDownClk_w0            [31:0]   IO bits 31..0
-    PullUpDownClk_w1            [11:0]   IO bits 53..32
+    PudProgClk_w0		[31:0]   IO bits 31..0
+    PudProgClk_w1		[21:0]   IO bits 53..32
 
 Higher level methods:
 
     Do the full program sequence for a Mode and Mask of one register.
-    Could be a method of the PullUpDownClk_w0 clock registers.
+    Could be a method of the PudProgClk_w0 clock registers.
 
 Register Names:
 
@@ -99,7 +110,7 @@ Register Names:
 
     Register suffix:
 	Cntl		More general, parallels other Features.
- >   +	Mode		More literal.
+ >   +	Mode		More literal.  More distinct from Clk.
 
  >   +	Clk_w0		seems best
 
@@ -182,9 +193,9 @@ General description:  (best model)
     cannot be read back.  However it can be deduced thru external measurement.
 
     The programming interface is thru the three Pud programming registers
-    {PudProgCntl, PudProgClk_w0, PudProgClk_w1}.
+    {PudProgMode, PudProgClk_w0, PudProgClk_w1}.
     A special sequence is used to transfer the pull direction specified in
-    PudProgCntl to the IO pins specified by 1-bits in the PudProgClk_w0/1
+    PudProgMode to the IO pins specified by 1-bits in the PudProgClk_w0/1
     registers.  The Clk registers should be zero when not actively programming
     Pull direction.
 
@@ -199,6 +210,9 @@ Conjecture:
     pull-up, and N-channel for pull-down.
 
     The pull direction state is probably held in a CMOS transparent latch.
+    Experiments in test/v_rgPudPin_prog/ show that it cannot be a
+    transparent latch, and instead is an edge-sensitive latch that latches
+    the Mode register value on the rising edge of the Clk register bits.
 
 Programming Sequence:
 
@@ -208,7 +222,7 @@ Programming Sequence:
 	Clk_w0 = 0;	ensure both banks are disabled
 	Clk_w1 = 0;
 
-	Cntl = desired mode {2, 1, or 0}
+	Mode = desired mode {2, 1, or 0}
 	Wait (not needed?)
 
 	Clk_w0 = mask;  OR  Clk_w1 = mask;  (or both)
@@ -217,7 +231,7 @@ Programming Sequence:
 	Clk_w0 = 0;	disable clocks
 	Clk_w1 = 0;
 
-	Cntl = 0;	reset to a default mode?
+	Mode = 0;	reset to a default mode?
 
 ----------------------------------------------------------------------------
 ## Operation - Pin Pull Up/Down
@@ -303,7 +317,7 @@ Programming Sequence in BCM Doc:  (p. 101)
     register explicitly states that setting 1 will assert the clock signal
     for that bit.
 
-    "Wait 150 cycles" - of which clock?  Not stated.  Presummably it is
+    "Wait 150 cycles" - of which clock?  Not stated.  Presumably it is
     the processor core clock (the APB clock often noted elsewhere).
     This may best be provided by executing a no-operation instruction in
     a loop.
@@ -313,7 +327,7 @@ Programming Sequence in BCM Doc:  (p. 101)
     The program doing the programming could sleep by the OS, or be killed
     and leave it in the programming state.
 
-    PullUpDown.UpDown_2		[1:0]    PUD
+    PudProgMode.UpDown_2		[1:0]    PUD
 	00 = Off - disable pull-up/down
 	01 = Enable Pull Down control
 	10 = Enable Pull Up control
@@ -343,12 +357,12 @@ Programming Sequence in BCM Doc:  (p. 101)
     Since these are volatile storage nodes, it is likely to be just a simple
     CMOS transparent latch, which would have at most one clock cycle setup
     and hold times in a fast digital IC process such as this.
-    The two instructions to write the Cntl register and the Clk register
+    The two instructions to write the Mode register and the Clk register
     would intrinsically provide enough setup and hold time.
 
     A simple experiment to test the transparent latch hypothesis:
     Turn on some Clk bits to open the transparent latch.  Then toggle the
-    Cntl pull direction between 1 (pull-down) and 2 (pull-up) while observing
+    Mode pull direction between 1 (pull-down) and 2 (pull-up) while observing
     the input pin with an oscilloscope.  If the input pin voltage follows,
     then it suggests a transparent latch.
 
@@ -398,8 +412,7 @@ Possible class structures:
     B) Sub-feature, HAS an rgIoPins object to access registers.
 	+ Avoids duplication of registers already in rgIoPins.
 	- Constructor uses an rgIoPins object, instead of rgAddrMap object.
-	- The PullUpDown register objects are not derived from rgRegister,
-	    and have no value storage.
+	+ The register objects could derive from rgIoPins registers.
 	- Want similar operation to a full Feature.
 	- Indirect operation of thru rgIoPins adds complexity.
 
@@ -416,9 +429,9 @@ Possible class structures:
 
     Design the methods needed, then decide what class to house them.
 
-Essential members:
+Essential members:  (some alternate ideas)
 
-    class rgPudPin_Cntl : public rgRegister {
+    class rgPudPin_Mode : public rgRegister {
 	uint32_t	get_UpDown_2();
 	void		put_UpDown_2( uint32_t v );
     }
@@ -429,7 +442,7 @@ Essential members:
     }
 
  >  class rgPudPin {			// register methods
-	rgPudPin_Cntl	PudProgCntl;
+	rgPudPin_Mode	PudProgMode;
 	rgPudPin_Clk	PudProgClk_w0;
 	rgPudPin_Clk	PudProgClk_w1;
 
@@ -438,7 +451,7 @@ Essential members:
     }
 
     class rgPudPin {			// top level methods
-	rgPudPin_Cntl	PudProgCntl;
+	rgPudPin_Mode	PudProgMode;
 	rgReg_rw	PudProgClk_w0;
 	rgReg_rw	PudProgClk_w1;
 
@@ -523,7 +536,7 @@ Programming Functions:
 	- Need another class for the registers.
 	-- Need access to all 3 registers for safe programming.
 
-	This requires access to PudProgCntl, which can be provided by
+	This requires access to PudProgMode, which can be provided by
 	putting a copy in each PudProgClk_w0 register.  Not too bad, as
 	the control register is pretty light-weight.
 	BUT access to all 3 registers becomes silly.
@@ -559,8 +572,9 @@ Register class for rgIoPins:  (not used)
     is worth.
 
 ----------------------------------------------------------------------------
-## Experiments - Pin Pull Up/Down
+## Experiments - Pin Pull Up/Down  2020-09-19
 ----------------------------------------------------------------------------
+(Using the old PullUpDown names.)
 
 RPi3 (my rpiRed), after power-up, all pins open:
     Only bits 31:0 are Fsel=In
@@ -789,9 +803,9 @@ Object data:
     const uint32_t	FeatureAddr = 0x7e200000;	// BCM doc
 
   public:				// registers
-    rgReg_rw		PullUpDown;
-    rgReg_rw		PullUpDownClk_w0;
-    rgReg_rw		PullUpDownClk_w1;
+    rgReg_rw		PudProgMode;
+    rgReg_rw		PudProgClk_w0;
+    rgReg_rw		PudProgClk_w1;
 
   public:
     enum  rgPud_enum {			// Pull direction identifiers.
