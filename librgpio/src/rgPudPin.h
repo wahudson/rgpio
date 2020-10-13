@@ -49,7 +49,7 @@ class rgPudPin {
     );
 
   private:
-    uint32_t		program_pud(
+    bool		program_pud(
 			    rgPudPin_Clk	*clkreg,
 			    rgPud_enum		dir,
 			    uint32_t		mask
@@ -57,16 +57,16 @@ class rgPudPin {
 
   public:
 				// programming pull resistors
-    uint32_t		program_pud_bit(
+    bool		program_pud_bit(
 			    rgPud_enum		dir,
 			    uint32_t		num
 			);
 
-    uint32_t		program_pud_w0( rgPud_enum dir, uint32_t mask ) {
+    bool		program_pud_w0( rgPud_enum dir, uint32_t mask ) {
 			    return  program_pud( &PudProgClk_w0, dir, mask );
 			};
 
-    uint32_t		program_pud_w1( rgPud_enum dir, uint32_t mask ) {
+    bool		program_pud_w1( rgPud_enum dir, uint32_t mask ) {
 			    return  program_pud( &PudProgClk_w1, dir, mask );
 			};
 

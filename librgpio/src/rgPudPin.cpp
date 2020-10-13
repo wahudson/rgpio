@@ -31,15 +31,16 @@ using namespace std;
 * call:
 *    rgPudPin	gx  ( &amx );	// constructor with address map
 *    &amx  = pointer to address map object with open device file
+* Note:
+*    FeatureAddr and register offsets could come from rgIoPins class, but
+*    this is more stand-alone.
 */
 rgPudPin::rgPudPin(
     rgAddrMap		*xx
 )
 {
     GpioBase     = xx->get_mem_block( FeatureAddr );
-//#!! use rgIoPins::FeatureAddr
 
-//#!! use include constants
     PudProgMode.init_addr(   GpioBase + (0x94 /4) );
     PudProgClk_w0.init_addr( GpioBase + (0x98 /4) );
     PudProgClk_w1.init_addr( GpioBase + (0x9c /4) );
@@ -54,7 +55,7 @@ rgPudPin::rgPudPin(
 * Note:  Sequence is not atomic.  Return value is a weak attempt to detect
 *    register value interferance by another process.
 * call:
-*    program_pud( &clkreg, mode, mask )
+*    program_pud( &clkreg, dir, mask )
 *        clkreg = {PudProgClk_w0, PudProgClk_w1}
 *        dir  = pull direction enum rgPudPin::{pd_Up, pd_Down, pd_Off}
 *        mask = bit mask selecting which bits to program
@@ -63,7 +64,7 @@ rgPudPin::rgPudPin(
 *    () = status:  0= success,
 *                  1= clash with another process changing register value
 */
-uint32_t
+bool
 rgPudPin::program_pud(
     rgPudPin_Clk	*clkreg,
     rgPud_enum		dir,
@@ -106,14 +107,14 @@ rgPudPin::program_pud(
 /*
 * Program IO bit Pull-up/down resistor.  (public)
 * call:
-*    program_pud_bit( word, num )
+*    program_pud_bit( dir, num )
 *        dir  = pull direction enum rgPudPin::{pd_Up, pd_Down, pd_Off}
 *        num  = bit number to be programmed
 * return:
 *    () = status:  0= success,
 *                  1= clash with another process changing register value
 */
-uint32_t
+bool
 rgPudPin::program_pud_bit(
     rgPud_enum		dir,
     uint32_t		num
