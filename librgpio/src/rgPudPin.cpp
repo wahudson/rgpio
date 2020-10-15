@@ -63,6 +63,8 @@ rgPudPin::rgPudPin(
 * return:
 *    () = status:  0= success,
 *                  1= clash with another process changing register value
+* exception:
+*    Throw range_error if enum is invalid.
 */
 bool
 rgPudPin::program_pud(
@@ -113,6 +115,9 @@ rgPudPin::program_pud(
 * return:
 *    () = status:  0= success,
 *                  1= clash with another process changing register value
+* exception:
+*    Throw range_error if enum is invalid.
+*    Throw range_error if bit number not in {53..0}
 */
 bool
 rgPudPin::program_pud_bit(
