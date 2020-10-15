@@ -1,0 +1,214 @@
+# 2020-11-04  William A. Hudson
+
+# rgPudPin  Hardware Register Description.
+#---------------------------------------------------------------------------
+
+=head1		NAME
+
+rgPudPin  Hardware Description -- IO Pin Pull Up/Down Programming
+
+=head1		SYNOPSIS
+
+Hardware registers for programming the IO pin pull up/down direction.
+
+    rgPudPin
+    Register		BCM name	Description
+    --------		--------	-------------------------------
+
+    PudProgMode		GPPUD		Pull-up/down program mode
+
+    PudProgClk_w0	GPPUDCLK0	Pull-up/down program clock bits
+    PudProgClk_w1	GPPUDCLK1	..
+
+       Register.Field		Bits	BCM
+    -----------.--------	------	-----
+    PudProgMode.UpDown_2	[1:0]	PUD
+
+All registers are 32-bits.
+Unspecified bit fields in each register are typically reserved, and should
+be write as 0, and read as don't care.
+
+=head2			Abbreviations in Register/Field names
+
+ Pud    Pull Up/Down
+ Prog   Program
+ Clk    Clock
+
+
+=head1		DESCRIPTION
+
+These registers allow the programming of the pull up/down resistors on the
+54 general-purpose IO (GPIO) lines.
+The value of field B<UpDown_2> is latched in the IO pins specified by the
+bits in B<PudProgClk_w*> that transition from zero to one.
+(see B<Pull Up/Down Programming> below)
+
+The IO lines are named Gpio[0] .. Gpio[53].  Register bits are associated
+with IO lines as follows:  (same as in rgIoPins)
+
+    Register               IO Line
+    -------------------    -----------
+    PudProgClk_w0[31:0]  = Gpio[31:0]    32-bits
+    PudProgClk_w1[21:0]  = Gpio[53:32]   22-bits
+    PudProgClk_w1[31:22] = reserved      10-bits
+
+Note that only Gpio[27:0] are accessible on the RPi 40 pin header.
+
+=head2			Hardware Model
+
+See BCM Doc p.89 "Figure 6-1 GPIO Block Diagram" for a nice schematic block
+diagram of each IO pin.
+
+There is an internal resistor on each IO pin that can be programmed to
+pull up to Vdd, pull down to Ground, or neither (not connected).
+
+The pull direction {up, down, none} is volatile, i.e. not remembered
+after power down.
+
+Pull resisters do not appear to be active (present) while powered-down.
+Ohm-meter readings are in the meg-ohm range.
+
+There is a hardware default pull direction that is applied as Vdd power
+comes up, and becomes the default programmed direction.
+(see default "Pull" direction in BCM Doc p.102-103 Alternative Function
+Assignments table)
+
+The Raspberry Pi system can (and does) change the pull directions as part of
+the boot process.
+
+The resistor pull direction state cannot be directly accessed, and
+cannot be read back.  However it can be deduced thru external measurement.
+
+Resistor value range is:  50 kohm min, 65 kohm max.
+The pull resistors are probably actually small MOSFETs, P-channel for
+pull-up, and N-channel for pull-down.
+
+This applies to RPi3 and earlier (and Compute Module 3).
+RPi4 has a completely different (and better) interface.
+
+Note Gpio[2,3] have 1.8 kohm pullup resistors on pc board (RPi3 and earlier).
+
+=head2			Pull Up/Down Programming
+
+The programming interface is thru the three Pud programming registers
+{B<PudProgMode>, B<PudProgClk_w0>, B<PudProgClk_w1>}.
+A special sequence is used to transfer the pull direction specified in
+B<PudProgMode> to the IO pins specified by 1-bits in the B<PudProgClk_w0>/B<1>
+registers.  The Clk registers should be zero when not actively programming
+Pull direction.
+
+This is the best sequence, from putting everything together.
+(abbreviated register names)
+
+    Clk_w0 = 0;     ensure both banks are disabled
+    Clk_w1 = 0;
+
+    Mode = desired mode {2, 1, or 0}
+    Wait 150 cycles setup time (not needed?)
+
+    Clk_w0 = mask;  OR  Clk_w1 = mask;  (or both)
+    Wait 150 cycles hold time (not needed?)
+
+    Clk_w0 = 0;     disable clocks
+    Clk_w1 = 0;
+
+This sequence would work correctly whether the storage latches for the
+pull direction nodes are transparent latches or edge triggered latches.
+
+Experiment suggests that the storage nodes behave like edge triggered latches,
+and the Mode value is latched by the rising edge of the Clk register value.
+Toggling the Mode value has no effect regardless of the level of the Clk
+register.  (See librgpio/test/v_rgPudPin_prog/test.cpp)
+
+The Wait periods in the BCM Doc programming sequence (p. 101) are likely
+unnecessary.  The write-time of the programming registers should provide
+more than enough setup/hold time for a fast digital IC process.
+Experiment seems to confirm this.
+Could the Wait be a remnant of a slower process programming a floating gate
+MOSFET in an alternative non-volatile storage?
+
+This programming sequence is not Atomic, so two such asynchronous processes
+may clash, resulting in wrong pull states.
+
+=head2			Purpose of Resistors
+
+A few thoughts on Why there are pull up/down resistors.
+
+A CMOS digital input that is unconnected will generally float to an
+intermediate voltage between the high and low threshold voltages, which
+makes it more susceptible to noise and random toggling.  It may also cause
+the receiver to draw more power supply current.
+
+To avoid this, a high-value resistor from the input to either Ground or
+Vdd is used to set a default logic voltage level.  For example, a
+33 kohm (33,000 ohm) resistor to +3.3 V would draw 0.1 mA, which is
+insignificant for most logic gate drivers.
+
+Resistors take space on a PC board.  Thus it's really helpful if they
+are integrated onto the SOC (System On a Chip).  Flexibility is provided
+by making them programmable.
+
+For example, open-drain outputs with pull-up resistors are used by I2C
+signals SCL and SDA.  The internal pull resistors can work nicely.  Note
+however, their relatively high resistance may limit rise time and thus clock
+rate, depending on signal line capacitance.
+
+Another example is pull-up resistor for a push-button switch to ground.
+
+In some cases, power consumption may be sufficiently critical that it would
+warrant disabling pull resistors on driven inputs.
+
+Generally the resistor pull direction is intended to be set once, and
+left for the duration of device operation.
+
+For most applications it simply does not matter which direction is set.
+Best recommendation is to leave it alone, unless it really matters for your
+application.
+
+
+=head1		REGISTER BIT FIELDS
+
+The numeric suffix on the field name indicates the number of bits in the field.
+
+=head2			PudProgMode Register
+
+Pull-up/down direction program register.
+
+=over
+
+=item B<UpDown_2>           - Up/Down select
+
+Control value to be applied with programming sequence:  (binary)
+
+ 0 (00) = Off (None), no pull-up and no pull-down
+ 1 (01) = Enable Pull-Down only
+ 2 (10) = Enable Pull-Up   only
+ 3 (11) = Reserved
+
+=back
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgPudPin.h
+ src/rgPudPin.cpp
+
+
+=head1		SEE ALSO
+
+ rgPudPin(3)
+ rgpio-pud(1)
+ rgIoPins(7)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.89-104   ch 6. General Purpose I/O (GPIO)
+    p.100-101  Pull-up/down Registers
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+ https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md
+
+=cut
+

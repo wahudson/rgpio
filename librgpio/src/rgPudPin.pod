@@ -1,0 +1,295 @@
+# 2020-10-09  William A. Hudson
+
+# rgPudPin IO Pin Pull Up/Down class -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgPudPin  class -- IO Pin Pull Up/Down
+
+=head1		SYNOPSIS
+
+    #include "rgAddrMap.h"
+    #include "rgPudPin.h"
+
+=head2			Essential Class members
+
+ class rgPudPin {
+  public:			// registers
+    rgPudPin_Mode	PudProgMode;
+    rgPudPin_Clk	PudProgClk_w0;
+    rgPudPin_Clk	PudProgClk_w1;
+
+    enum  rgPud_enum {		// pull direction identifiers
+	pd_Off  = 0,
+	pd_Down = 1,
+	pd_Up   = 2
+    };
+ };
+
+=head2		Constructor
+
+ rgPudPin( rgAddrMap  *amx );
+
+ volatile uint32_t*	get_base_addr();
+ uint32_t		get_bcm_address();
+
+=head2		Common Register methods
+
+ volatile uint32_t*	REG.addr()		    { return  Addr; }
+ uint32_t		REG.read()		    { return *Addr; }
+ void			REG.write(  uint32_t vv )   { *Addr = vv; }
+
+Each register method is shown with a prefix "REG." suggesting how they
+should be called with the register object.
+
+=head2		rgPudPin_Mode Register class methods
+
+ void			REG.grab()		    { RegVal = *Addr; }
+ void			REG.push()		    { *Addr = RegVal; }
+ uint32_t		REG.get()		    { return RegVal; }
+ void			REG.put( uint32_t  vv )	    { RegVal = vv; }
+
+=head2		rgPudPin_Clk Register class methods
+
+ void			REG.set(    uint32_t mask );
+ void			REG.clr(    uint32_t mask );
+
+=head2		Register Field Accessors
+
+ uint32_t		PudProgMode.get_UpDown_2()
+ void			PudProgMode.put_UpDown_2( uint32_t v )
+
+=head2		Programming pull resistors
+
+ bool			program_pud_bit(
+			    rgPud_enum		dir,
+			    uint32_t		num
+			);
+ bool			program_pud_w0( rgPud_enum dir, uint32_t mask );
+ bool			program_pud_w1( rgPud_enum dir, uint32_t mask );
+
+=head2		Enumerator Conversions
+
+ static const char*	pud_enum2cstr( rgPud_enum dir );
+ static rgPud_enum	int2pud_enum( int num );
+
+
+=head1		DESCRIPTION
+
+This class operates the Pull-up/down programming registers for the IO Pins.
+It provides direct read/write access to each register and some higher
+level functions to apply the required programming sequence.
+
+Each hardware register is represented by a register object.
+These are public objects intended for direct access to their methods for
+manipulating the value of the hardware register.
+
+All operations are on the full 32-bit hardware register.
+Register *_w0 has IO bits 31..0, while register *_w1 has IO bits 53..32
+(the upper bits 63..54 are reserved).
+
+See rgPudPin(7) for detailed hardware description.
+
+=head2			Constructor
+
+=over
+
+=item rgPudPin()
+
+Construct and initialize a new object.  Argument 'amx' is the address map
+object with an open device file or cached memory block.
+
+=item get_base_addr()
+
+Return the object IO memory block virtual address.
+
+=item get_bcm_address();
+
+Return the feature address, the real address shown in BCM doc.
+
+=back
+
+=head2			Common Register methods
+
+All three registers have these basic functions.
+
+ REG.addr()   Returns the hardware register virtual address.
+ REG.read()   Reads value from hardware register.
+ REG.write(v) Writes argument value to hardware register.
+
+=head2			rgPudPin_Mode Register class methods
+
+This register class inherits from B<rgRegister> base class, which has register
+value storage for the field accessor functions.
+In addition to the common methods above, it has these methods:
+
+ REG.grab()   Copies hardware register into the object.
+ REG.push()   Copies object to the hardware register.
+ REG.get()    Returns value from the register object.
+ REG.put(v)   Puts argument value into the register object.
+
+=head2			rgPudPin_Clk Register class methods
+
+Inherits from B<rgReg_rw> base class, which has only the register address
+and no value storage.
+In addition to the common methods above, it has these methods:
+
+ REG.set(m)   Set register bits according to mask.
+ REG.clr(m)   Clear register bits according to mask.
+
+Mask bits that are 1 specify bits to be set or cleared.
+[Note there are additional functions, but they are not published as part of
+the interface.]
+
+=head2			Register Field Accessors
+
+These are the bit-twiddling operations to insert and extract field values
+from the register value stored in the object.
+They are named according to the register field being accessed, and the
+numeric suffix is the field width.
+They are methods of the individual register object.
+
+Here, there is only one field:
+
+=over
+
+=item B<PudProgMode.get_UpDown_2>()
+
+Extract and return the field value in the register object.
+
+=item B<PudProgMode.put_UpDown_2>( uint32_t v )
+
+Insert the given value into the object register field.
+Values greater than the field width throw a std::range_error exception.
+
+=back
+
+=head2			Programming pull resistors
+
+These functions set the pull resistors on specified IO pins.
+The internal programming sequence is not atomic.  The return value is a weak
+attempt to detect register value interference by another process and is not
+a guarantee of success.
+
+=over
+
+=item B<program_pud_bit>( dir, num ) - Single IO line pull resistor.
+
+ call:
+    dir  = pull direction enum rgPudPin::{pd_Up, pd_Down, pd_Off}
+    num  = bit number to be programmed {0..53}
+ return:
+    () = status:  0= success;  1= clash detected
+ exception:
+    Throw range_error on bad enum value.
+    Throw range_error if bit number not in {0..53}.
+
+=item B<program_pud_w0>( dir, mask ) - Program Gpio[31:0] pull resistors.
+
+=item B<program_pud_w1>( dir, mask ) - Program Gpio[53:32] pull resistors.
+
+ call:
+    dir  = pull direction enum rgPudPin::{pd_Up, pd_Down, pd_Off}
+    mask = bit mask selecting which bits to program
+ return:
+    () = status:  0= success;  1= clash detected
+ exception:
+    Throw range_error on bad enum value.
+
+Program pull resistors according to a mask in word 0 or word 1.
+IO lines with 1 mask bits are programmed, 0 bits are unchanged.
+Reserved bits have no effect.
+
+=back
+
+=head2			Enumerator Conversions
+
+Some simple conversion utilities that can be called as class methods or as
+object methods.
+
+=over
+
+=item B<pud_enum2cstr>( dir ) - convert rgPud_enum into c-string name
+
+ call:
+    dir  = pull direction enum rgPudPin::{pd_Up, pd_Down, pd_Off}
+ return:
+    () = pointer to c-string "Up", "Down", "Off".
+ exception:
+    Throw range_error on bad enum value.
+    Throw range_error if bit number not in {0..53}.
+
+=item B<int2pud_enum>( num ) - convert integer to rgPud_enum
+
+ call:
+    num  = integer {0,1,2} corresponding to desired enum
+ return:
+    () = rgPudPin::rgPud_enum
+ exception:
+    Throw range_error if number not in {0,1,2}.
+
+=back
+
+
+=head1		EXCEPTIONS
+
+ std::logic_error
+ std::range_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+ // Construct an object.
+    rgAddrMap		amx;		// address map object
+    amx.open_dev_mem();			// open device file
+    rgPudPin		gx  ( &amx );	// construct object gx
+
+ // Program Gpio[17] for pull-up.
+    gx.program_pud_bit( rgPudPin::pd_Up, 17 );
+
+ // Program Gpio[17] and Gpio[7:4] for pull-down.
+    gx.program_pud_w0( rgPudPin::pd_Down, 0x000200f0 );
+
+ // Get the UpDown_2 field value
+    uint32_t		rv;
+    gx.PudProgMode.grab();
+    rv = gx.PudProgMode.get_UpDown_2();
+
+ // Set the UpDown_2 field value to 2
+    gx.PudProgMode.grab();
+    gx.PudProgMode.put_UpDown_2( 2 );
+    gx.PudProgMode.push();
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgPudPin.h
+ src/rgPudPin.cpp
+
+
+=head1		SEE ALSO
+
+ rgPudPin(7)	hardware register description
+ rgAddrMap(3)
+ rgpio-pud(1)
+ rgIoPins(3)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.89-104   ch 6. General Purpose I/O (GPIO)
+    p.100-101  Pull-up/down Registers
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+

@@ -56,10 +56,12 @@ man:	$(MAN)/man3 \
 	$(MAN)/man3/rgAddrMap.3 \
 	$(MAN)/man3/rgClk.3 \
 	$(MAN)/man3/rgIoPins.3 \
+	$(MAN)/man3/rgPudPin.3 \
 	$(MAN)/man3/rgUniSpi.3 \
 	$(MAN)/man7 \
 	$(MAN)/man7/rgClk.7 \
 	$(MAN)/man7/rgIic.7 \
+	$(MAN)/man7/rgPudPin.7 \
 	$(MAN)/man7/rgPwm.7 \
 	$(MAN)/man7/rgSpi0.7 \
 	$(MAN)/man7/rgUniSpi.7
@@ -141,6 +143,10 @@ $(MAN)/man3/rgIoPins.3:		rgIoPins.pod
 	pod2man -s 3 -n rgIoPins  --center='librgpio Raspberry Pi GPIO' \
 	    rgIoPins.pod  $@
 
+$(MAN)/man3/rgPudPin.3:		rgPudPin.pod
+	pod2man -s 3 -n rgPudPin  --center='librgpio Raspberry Pi GPIO' \
+	    rgPudPin.pod  $@
+
 $(MAN)/man3/rgUniSpi.3:		rgUniSpi.pod
 	pod2man -s 3 -n rgUniSpi  --center='librgpio Raspberry Pi GPIO' \
 	    rgUniSpi.pod  $@
@@ -153,6 +159,10 @@ $(MAN)/man7/rgClk.7:		man7/rgClk.pod
 $(MAN)/man7/rgIic.7:		man7/rgIic.pod
 	pod2man -s 7 -n rgIic  --center='librgpio Raspberry Pi GPIO' \
 	    man7/rgIic.pod  $@
+
+$(MAN)/man7/rgPudPin.7:		man7/rgPudPin.pod
+	pod2man -s 7 -n rgPudPin  --center='librgpio Raspberry Pi GPIO' \
+	    man7/rgPudPin.pod  $@
 
 $(MAN)/man7/rgPwm.7:		man7/rgPwm.pod
 	pod2man -s 7 -n rgPwm  --center='librgpio Raspberry Pi GPIO' \
