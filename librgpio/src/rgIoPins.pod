@@ -103,7 +103,7 @@ There is no protection for reserved bits, or for bits that may be used
 by the Raspberry Pi computer hardware or operating system.
 
 Each hardware register is represented by an rgReg_* object that contains only
-the address of the register (no register value). 
+the address of the register (no register value).
 These are public objects intended for direct access to their methods for
 manipulating the value of the hardware register.
 
@@ -120,7 +120,10 @@ to explore actual hardware behavior (e.g. writing a Read-Only register).
 It also misses an anti-bugging opportunity to alert the user to potentially
 ineffective operations.
 
-See rgFselPin(3) for a detailed interface to the Function Select registers.
+See rgFselPin(3) interface to the Function Select registers.
+
+See rgPudPin(3) interface to the Pull Up/Down registers.
+
 
 =head2			Constructor
 
@@ -222,7 +225,7 @@ This is a virtual register (e.g. PinLevel_w0) composed of three special
 function registers (e.g. PinRead_w0, PinSet_w0, PinClr_w0).  It behaves like
 a single read/write register that represents the levels of the IO pins.
 It is recommended for use over the three specialized registers, as it is
-more regular and just as effecient.
+more regular and just as efficient.
 It has 3 register addresses, which is a little less regular.
 
 The addr(), read(), and write() functions operate on PinRead_w0.
@@ -301,6 +304,7 @@ In the librgpio/ source tree:
  rgIoPins(7)	hardware register description
  rgAddrMap(3)
  rgFselPin(3)
+ rgPudPin(3)
  rgpio-io(1)
 
  BCM2835 ARM Peripherals (2012)
