@@ -5,12 +5,13 @@
 //    20-29  Not a Transparent latch
 //    30-39  Is a Rising Edge latch
 //    40-49  Toggle Pull direction
-//    50-59  .
+//    50-59  Gpio[27:0] program_pud_bit(), program_pud_w0()
 //    60-89  .
 //
 // Provide external configuration:
+//    % rgpio fsel --mode=In  27 26 25 24 23 22 21 20 19 18 17 .. 3 2 1 0
 //    % rgpio fsel --mode=In  9
-//      These pins should be unconnected.
+//      All pins should be unconnected.
 //      Observe Gpio[9] on an oscilloscope.
 //
 // All tests have assertions on IO pin level, and all should pass.
@@ -285,6 +286,79 @@ if ( 1 ) {
     // Pin voltage has about 3 us rise/fall times, to ~90% (oscilloscope).
     // No delay is needed to program the pull resistor.
 }
+
+//--------------------------------------------------------------------------
+//## Gpio[27:0] program_pud_bit(), program_pud_w0()
+//--------------------------------------------------------------------------
+
+  CASE( "51a", "pull-up Gpio[12]" );
+    try {
+	Tx.program_pud_bit( rgPudPin::pd_Up, 12 );
+	CHECKX(                   0x00000002, Tx.PudProgMode.read() );
+	CHECKX(                   0x00000000, Tx.PudProgClk_w0.read() );
+	CHECKX(                   0x00000000, Tx.PudProgClk_w1.read() );
+	for ( volatile int i=500;  i>0;  i-- ) {}   // wait
+	CHECKX(                   0x00001000, Px.PinLevel_w0.read() & 0x1000 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "51b", "pull-down Gpio[12]" );
+    try {
+	Tx.program_pud_bit( rgPudPin::pd_Down, 12 );
+	CHECKX(                   0x00000001, Tx.PudProgMode.read() );
+	CHECKX(                   0x00000000, Tx.PudProgClk_w0.read() );
+	CHECKX(                   0x00000000, Tx.PudProgClk_w1.read() );
+	for ( volatile int i=500;  i>0;  i-- ) {}   // wait
+	CHECKX(                   0x00000000, Px.PinLevel_w0.read() & 0x1000 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "52a", "Gpio[27:0] as pull-up" );
+    try {
+	Tx.program_pud_w0( rgPudPin::pd_Up, 0x0fffffff );
+	CHECKX(             0x00000002, Tx.PudProgMode.read() );
+	CHECKX(             0x00000000, Tx.PudProgClk_w0.read() );
+	CHECKX(             0x00000000, Tx.PudProgClk_w1.read() );
+	for ( volatile int i=500;  i>0;  i-- ) {}   // wait
+	CHECKX(             0x0fffffff, Px.PinLevel_w0.read() & 0x0fffffff );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "52b", "Gpio[27:0] as pull-down" );
+    try {
+	Tx.program_pud_w0( rgPudPin::pd_Down, 0x0fffffff );
+	CHECKX(             0x00000001, Tx.PudProgMode.read() );
+	CHECKX(             0x00000000, Tx.PudProgClk_w0.read() );
+	CHECKX(             0x00000000, Tx.PudProgClk_w1.read() );
+	for ( volatile int i=500;  i>0;  i-- ) {}   // wait
+	CHECKX(             0x0000000c, Px.PinLevel_w0.read() & 0x0fffffff );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+    // Note:  Gpio[3:2] have 1.8 kohm pullups
+
+//--------------------------------------
+  CASE( "59", "Restore default Gpio[27:0] pull" );
+    try {
+	Tx.program_pud_w0( rgPudPin::pd_Down, 0x0ffffe00 );
+	Tx.program_pud_w0( rgPudPin::pd_Up,   0x000001ff );
+	CHECKX(             0x00000002, Tx.PudProgMode.read() );
+	CHECKX(             0x00000000, Tx.PudProgClk_w0.read() );
+	CHECKX(             0x00000000, Tx.PudProgClk_w1.read() );
+	for ( volatile int i=500;  i>0;  i-- ) {}   // wait
+	CHECKX(             0x000001ff, Px.PinLevel_w0.read() & 0x0fffffff );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
 
 //--------------------------------------
   CASE( "99", "Done" );
