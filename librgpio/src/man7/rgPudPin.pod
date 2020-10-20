@@ -104,10 +104,10 @@ This is the best sequence, from putting everything together.
     Clk_w1 = 0;
 
     Mode = desired mode {2, 1, or 0}
-    Wait 150 cycles setup time (not needed?)
+	[Wait 150 cycles setup time - not needed]
 
     Clk_w0 = mask;  OR  Clk_w1 = mask;  (or both)
-    Wait 150 cycles hold time (not needed?)
+	[Wait 150 cycles hold time - not needed]
 
     Clk_w0 = 0;     disable clocks
     Clk_w1 = 0;

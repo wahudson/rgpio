@@ -65,6 +65,7 @@ rgPudPin::rgPudPin(
 *                  1= clash with another process changing register value
 * exception:
 *    Throw range_error if enum is invalid.
+# Note:  The Wait steps suggested in the BCM Doc are not necessary.
 */
 bool
 rgPudPin::program_pud(
@@ -90,11 +91,11 @@ rgPudPin::program_pud(
     PudProgMode.put_UpDown_2( mode );		// set mode
     PudProgMode.push();
 
-    for ( volatile int i=150;  i>0;  i-- ) {}	// wait setup
+    // for ( volatile int i=150;  i>0;  i-- ) {}	// wait setup
 
     clkreg->write( mask );			// enable clock pins
 
-    for ( volatile int i=150;  i>0;  i-- ) {}	// wait hold
+    // for ( volatile int i=150;  i>0;  i-- ) {}	// wait hold
 
     // check for process clash, ~80 cycles per read
     PudProgMode.grab();
