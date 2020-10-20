@@ -283,7 +283,7 @@ y_pud::doit()
 	rgPudPin		Gpx  ( AddrMap );	// constructor
 
 	rgPudPin::rgPud_enum	pud_dir;
-	uint32_t		fail;		// program fail status
+	bool			fail;		// program fail status
 
 	const int		BitLimit = 64;
 	uint32_t		bitarg[BitLimit];	// bit numbers
