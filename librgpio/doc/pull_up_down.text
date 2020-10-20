@@ -140,7 +140,7 @@ Register Names:
 	PudCntl
 	PudClk_w0
 
-	PudMode
+	PudMode			in hindsight shorter might be better
 	PudClk_w0
 
 	PudProg			asymmetric
@@ -232,6 +232,8 @@ Programming Sequence:
 	Clk_w1 = 0;
 
 	Mode = 0;	reset to a default mode?
+
+    The Wait is not needed.  See Experiments below.
 
 ----------------------------------------------------------------------------
 ## Operation - Pin Pull Up/Down
@@ -789,6 +791,23 @@ Power Up measurements:
 	At t=  3.15 us:  Vdd +6.5 V spike, Ch2 +6.0 V spike, 50 MHz ringing.
 	At t=  3.56 us:  Vdd -7.5 V spike, Ch2 -6.2 V spike, 20 MHz ringing.
 	All with DC Vdd= zero volts.
+
+Programming Wait time:  (2020-10-18 RPi3)
+
+    Is the Wait time really needed?  In rgPudPin::program_pud():
+	for ( volatile int i=150;  i>0;  i-- ) {}
+
+    Program both pull-up and pull-down, read PinLevel_w0 to confirm the
+    pull level.  Run test with and without the Wait time in program_pud().
+    See:  test/v_rgPudPin_prog/test.cpp
+
+    Experiment confirms that the additional wait time is NOT needed.
+
+    Another experiment in  rgpio/perf/clock_perf.cpp  to measure the
+    execution time of rgPudPin::program_pud() confirms the wait loops
+    were effective.  Measured average time of one function call:
+	2995 ns/sample  with Wait loops.
+	 472 ns/sample  without.
 
 ----------------------------------------------------------------------------
 ## rgPudPin Object - Pin Pull Up/Down
