@@ -13,6 +13,7 @@ using namespace std;
 
 #include "rgAddrMap.h"
 #include "rgIoPins.h"
+#include "rgPudPin.h"
 #include "rgClk.h"
 #include "rgUniSpi.h"
 
@@ -228,6 +229,7 @@ main( int	argc,
 	}
 
 	rgIoPins		Gpx  ( &Amx );		// constructor
+	rgPudPin		Ppx  ( &Amx );		// constructor
 	rgClk			Cky  ( rgClk::cm_Clk0, &Amx );	// constructor
 	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
 	uint32_t		vv;
@@ -289,12 +291,18 @@ main( int	argc,
 //		vv = Cky.Cntl.read();	// 420 ns/sample
 //		Cky.wait_while_busy();	// 365 ns/BusyCount  -O3: 313 ns/
 
-		Cky.Cntl.grab();
-		vv = Cky.Cntl.get_Busy_1();	// -O3: 313 ns/sample
+//		Cky.Cntl.grab();
+//		vv = Cky.Cntl.get_Busy_1();	// -O3: 313 ns/sample
 
 //		*pinset = 0x00000000;
 //		vv = *pinread;
-//		vv = Gpx.PinLevel_w0.read();
+		vv = Gpx.PinLevel_w0.read();		// 80 ns/sample
+//		vv = Gpx.PullUpDown.read();		// 80 ns/sample
+//		vv = Gpx.PullUpDownClk_w0.read();	// 80 ns/sample
+//		Gpx.PullUpDownClk_w0.write( 0 );	// 23 ns/sample
+
+//		Ppx.program_pud_bit( rgPudPin::pd_Up, 8 );  // 472 ns/sample
+					// 2995 ns/sample with Wait
 
 //		vv = *uspi_Cntl0;
 
