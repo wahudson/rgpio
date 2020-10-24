@@ -84,6 +84,10 @@ clobber:
 	rm -f  $(BINDIR)/rgpio
 	rm -f  $(MAN)/man1/*
 
+version  version.rgpio:  $(OBJS)
+	git describe --dirty | perl -pe' s/^/"/;  s/$$/"/ ' > version.rgpio
+	cat version.rgpio
+
 $(BINDIR):
 	mkdir -p  $(BINDIR)
 
@@ -99,7 +103,7 @@ $(BINDIR)/rgpio:	        $(OJ)/rgpio.o  $(OBJS)  $(LIBS)
 #!! or just link librgpio.a since it is needed for dependency anyway
 
 
-$(OJ)/rgpio.o:	rgpio.cpp  $(INCS)
+$(OJ)/rgpio.o:	rgpio.cpp  $(INCS)  version.rgpio
 	g++ $(CXXFLAGS) -o $@  -c rgpio.cpp
 
 

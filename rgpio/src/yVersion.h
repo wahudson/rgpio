@@ -10,7 +10,12 @@
 class yVersion {
 
   public:
-    inline static  const char *	get_Version() { return  "0.16.1-dev"; };
+    inline static  const char *	get_Version() {
+	return
+	    #include "./version.rgpio"
+	;
+	// unique file name to not find librgpio version.inc
+    };
 
 };
 

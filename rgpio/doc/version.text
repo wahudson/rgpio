@@ -9,6 +9,7 @@ See:  librgpio/doc/version.text
 ----------------------------------------------------------------------------
 ## Version Log - rgpio/src/yVersion.h
 ----------------------------------------------------------------------------
+No longer used (2020-10-24)
 
 Version       Date        Description
 ------------  ----------  --------------------------
@@ -22,7 +23,8 @@ Version       Date        Description
 ## Discussion
 ----------------------------------------------------------------------------
 
-    Both librgpio and rgpio will have separate version numbers.
+    Both librgpio and rgpio can have separate version numbers.  They share
+    the same repository, so the 'get describe' version tag may be the same.
 
 Reference:
     Semantic Versioning 2.0.0
@@ -37,5 +39,5 @@ Version:  X.Y.Z-PreRelease
 	-PreRelease    = optional string
 	+BuildMetadata = optional string
 
-    In development, version numbers might not get updated.
+    In development, manual version numbers might not get updated.
 

@@ -202,12 +202,10 @@ main( int	argc,
 	}
 
 	if ( Opx.version ) {
-	    cout << "rgpio version " << yVersion::get_Version() <<
-		"  (librgpio " << rgVersion::get_Version() << ")"
+	    cout << "rgpio version " <<  yVersion::get_Version() <<
+		"  (librgpio "       << rgVersion::get_Version() << ")"
 		<<endl;
 
-//	    cout << "rgpio version    " << yVersion::get_Version() <<endl;
-//	    cout << "librgpio version " << rgVersion::get_Version() <<endl;
 	    return ( Error::has_err() ? 1 : 0 );
 	}
 
