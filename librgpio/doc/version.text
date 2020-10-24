@@ -5,6 +5,21 @@
 
 See also:  rgpio/doc/version.text
 
+Version Release Process:  (2020-10-24)
+    Tag only useful release points.  Other changes are captured by the
+    Makefile version generation process using 'git describe'.
+
+    1. Create version tag in the repository.
+	% git tag -a  vX.Y.Z
+    2. Force generation of "version.inc" file.
+	% cd .../librgpio/src
+	% make version
+    3. Compile library
+	% make compile
+    4. Compile rgpio
+	% cd .../rgpio/src
+	% make compile
+
 ----------------------------------------------------------------------------
 ## Tag Log - whole repository
 ----------------------------------------------------------------------------
@@ -17,6 +32,7 @@ See also:  rgpio/doc/version.text
 ----------------------------------------------------------------------------
 ## Version Log - librgpio/src/rgVersion.h
 ----------------------------------------------------------------------------
+No longer used (2020-10-24)
 
 Version       Date        Description
 ------------  ----------  -------------------------
@@ -52,4 +68,45 @@ Git Tag:  Prefix the version number with a 'v'.
 
     rgVersion class to provide a version number.
     Probably use a static get_version() function.
+
+Releases:
+    Version number is assigned mostly for releases, where it will have a
+    useful meaning.  Essentially checkpoints that could be a release.
+
+    It is too much work to assign version number for each change.  Better
+    to use 'git describe' for that.
+
+Initial method:  (2020-10-19)
+    Use an rgVersion class with a member function:
+
+    class rgVersion {
+      public:
+	inline static const char *  get_Version() { return  "0.17.0-dev"; };
+    };
+
+    The version string is updated manually.
+    This works well to deliver the string, but not so well for updating the
+    version.
+    One problem is catch-22 of updating the version and committing the file.
+
+Using 'git describe':  (2020-10-22)
+    The version string is essentially the latest tag augmented with the
+    number of following commits and the abbreviated git object name.
+	TAG-N-ID   e.g.  v0.11.0-65-g21f2cce
+    This uniquely identifies the commit it was built from.
+    Let the Makefile generate the version string every time it compiles.
+
+    One issue is the tag encompasses the whole repository, which currently
+    includes both librgpio and rgpio.  This is fine for rgpio, since it uses
+    librgpio.  But librgpio would see a new version for changes only in rgpio,
+    which is not exactly what is wanted.
+
+    At this stage of the project, values are:
+    Keep it simple, don't over analyze it.
+    Accept limitations and move on.
+    Try it out.
+
+    Let get_Version() be a function compiled into the library, and not just
+    inline in the header file.  This makes a tighter association, and not
+    rely on only header include files.
 

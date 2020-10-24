@@ -10,10 +10,9 @@
 class rgVersion {
 
   public:
-    inline static const char *	get_Version() { return  "0.17.0-dev"; };
+    static const char *	get_Version();
 
 };
-
 
 #endif
 

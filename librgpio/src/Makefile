@@ -25,7 +25,7 @@ INCS       = \
 	rgUniSpi.h \
 	rgVersion.h
 
-		# objects not including main()
+		# objects not including main(), not rgVersion.o
 OBJS       = \
 	$(OJ)/rgAddrMap.o \
 	$(OJ)/rgAltFuncName.o \
@@ -75,6 +75,10 @@ clobber:
 	rm -f  $(MAN)/man3/*
 	rm -f  $(MAN)/man7/*
 
+version  version.inc:  $(OBJS)
+	git describe --dirty | perl -pe' s/^/"/;  s/$$/"/ ' > version.inc
+	cat version.inc
+
 $(LIBDIR):
 	mkdir -p  $(LIBDIR)
 
@@ -88,9 +92,9 @@ $(MAN)/man7:
 	mkdir -p  $(MAN)/man7
 
 
-$(LIBDIR)/librgpio.a:	$(OBJS)
+$(LIBDIR)/librgpio.a:	$(OBJS)  $(OJ)/rgVersion.o
 	rm -f    $(LIBDIR)/librgpio.a
-	ar -rcs  $(LIBDIR)/librgpio.a  $(OBJS)
+	ar -rcs  $(LIBDIR)/librgpio.a  $(OBJS)  $(OJ)/rgVersion.o
 
 
 $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
@@ -129,6 +133,9 @@ $(OJ)/rgSysTimer.o:	rgSysTimer.cpp  rgSysTimer.h  rgAddrMap.h
 
 $(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgUniSpi.cpp
+
+$(OJ)/rgVersion.o:	rgVersion.cpp  rgVersion.h  version.inc
+	g++ $(CXXFLAGS) -o $@  -c rgVersion.cpp
 
 
 $(MAN)/man3/rgAddrMap.3:	rgAddrMap.pod
