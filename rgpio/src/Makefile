@@ -16,9 +16,16 @@ INCDIR     = ../librgpio/src
 LIBDIR     = ../librgpio/lib
 LIBS       = $(LIBDIR)/librgpio.a
 
-		# all include files for main program dependency
+		# common include dependencies
 INCS       = \
 	Error.h \
+	yOpVal.h \
+	yOption.h \
+	yUtil.h \
+	$(LIBS)
+
+		# include files of sub-commands, rgpio dependencies
+YINCS       = \
 	y_clk.h \
 	y_fsel.h \
 	y_iic.h \
@@ -29,11 +36,8 @@ INCS       = \
 	y_spi0.h \
 	y_timer.h \
 	y_uspi.h \
-	yOpVal.h \
-	yOption.h \
-	yUtil.h \
 	yVersion.h \
-	$(INCDIR)/rgVersion.h
+	version.rgpio
 
 		# objects not including main()
 OBJS       = \
@@ -103,7 +107,7 @@ $(BINDIR)/rgpio:	        $(OJ)/rgpio.o  $(OBJS)  $(LIBS)
 #!! or just link librgpio.a since it is needed for dependency anyway
 
 
-$(OJ)/rgpio.o:	rgpio.cpp  $(INCS)  version.rgpio
+$(OJ)/rgpio.o:	rgpio.cpp  $(INCS)  $(YINCS)
 	g++ $(CXXFLAGS) -o $@  -c rgpio.cpp
 
 
@@ -113,7 +117,7 @@ $(OJ)/y_clk.o:		y_clk.cpp  y_clk.h  $(INCS)
 $(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_fsel.cpp
 
-$(OJ)/y_iic.o:		y_iic.cpp  y_iic.h  $(INCS)  $(INCDIR)/rgIic.h
+$(OJ)/y_iic.o:		y_iic.cpp  y_iic.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_iic.cpp
 
 $(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
