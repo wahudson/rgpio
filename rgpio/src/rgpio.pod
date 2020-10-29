@@ -14,7 +14,13 @@ rgpio -- Raspberry Pi GPIO utility
   feature:
     io           General Purpose IO pins
     fsel         Pin Function Select
-    clock        Clock generator
+    clk          Clock generator
+    iic          I2C Master
+    man          man pager
+    pud          Pin Pull-Up/Down
+    pwm          PWM Pulse Width Modulator
+    spi0         SPI0 Master
+    timer        System Timer
     uspi         Universal SPI Master, Spi1, Spi2
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
@@ -28,7 +34,7 @@ rgpio -- Raspberry Pi GPIO utility
 
 This is a low-level utility program for inspecting and modifying the
 BCM2835 ARM Peripheral registers on the Raspberry Pi.
-It uses the librgpio library and naming conventions.
+It uses the B<librgpio> library and naming conventions.
 It is intended to be very close to the hardware interface and not intended to
 provide a high-level abstraction.
 
@@ -48,15 +54,19 @@ Options after the sub-command are processed by the sub-command.
 
 The librgpio library applies the "capabilities" system to provide access
 to /dev/mem for normal users without using 'sudo' or applying "setuid root"
-to the executable.  See cababilities(7).
+to the executable.  See capabilities(7).
 
 Capabilities 'CAP_DAC_OVERRIDE' and 'CAP_SYS_RAWIO' are necessary to access
 /dev/mem.  These are applied to the "Permitted file capability set" of the
-executable file.  When the file is executed, the process raises those two
+executable file.  When the file is executed, the program raises those two
 capabilities into the process "Effective" set, opens /dev/mem, and then
-drops all capabilites.  In this way the executing process has no special
+drops all capabilities.  In this way the executing process has no special
 capability before or after the code section doing the raise/open/drop
 operation (i.e. outside of the librgpio rgAddrMap::open_dev_file() function).
+
+=head2			Raspberry Pi Versions
+
+Currently is validated only on Raspberry Pi 3.
 
 
 =head1		OPTIONS
@@ -80,19 +90,34 @@ Show the capability raise/lower actions when opening /dev/mem.
 
 =head1		COMMANDS
 
-Each feature has its own man page.
+Each command operates a peripheral feature of the Raspberry Pi SOC (System
+On a Chip) using the register and field naming of the corresponding
+B<librgpio> class.
 
-=over
+	  man(1)     man(3),man(7)
+ Command  Manpage      Class        Description
+ ------- ----------    ---------    -------------------------------
+ clk     rgpio-clk     rgClk        Clock generators
+ fsel    rgpio-fsel    rgFselPin    Pin Function Select
+ iic     rgpio-iic     rgIic        I2C Master
+ io      rgpio-io      rgIoPins     General Purpose IO pins
+ man     rgpio-man     --           manual pager
+ pud     rgpio-pud     rgPudPin     Pin Pull-Up/Down programming
+ pwm     rgpio-pwm     rgPwm        PWM Pulse Width Modulator
+ spi0    rgpio-spi0    rgSpi0       SPI0 Master
+ timer   rgpio-timer   rgSysTimer   System Timer
+ uspi    rgpio-uspi    rgUniSpi     Universal SPI Master SPI1, SPI2
 
-=item B<rgpio-fsel>(1)      - Pin Function Select
+View man pages with the 'B<rgpio man>' command:  e.g.
 
-=item B<rgpio-io>(1)        - General Purpose IO pins
+ % rgpio man rgpio-clk	# command  man(1)
+ % rgpio man   rgClk	# class    man(3)
+ % rgpio man 7 rgClk	# hardware man(7)
 
-=item B<rgpio-clock>(1)     - Clock generator
-
-=item B<rgpio-uspi>(1)      - Universal SPI Master SPI1, SPI2
-
-=back
+There are three man pages associated with each command feature, divided
+into the three manual sections as above.
+Section (1) describes the command, while section (3) describes the B<librgpio>
+class used by that command.  Section (7) describes the hardware operation.
 
 
 =head1		RETURN VALUE
@@ -107,6 +132,9 @@ Each feature has its own man page.
 
  Sub command help.
  % rgpio io --help
+
+ List available man pages.
+ % rgpio man --list
 
  Normal call to a sub-command using /dev/mem (default).
  % rgpio io
@@ -127,7 +155,7 @@ Generally errors like:  "cannot open /dev/mem:  Permission denied"
  View existing capabilities:
  % getcap  ../bin/rgpio
 
- Set necessary capabilities:  (requires root permision)
+ Set necessary capabilities:  (requires root permission)
  % sudo setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  ../bin/rgpio
 
 =head2			Wrong device file for feature.
@@ -136,8 +164,8 @@ Most features (sub-commands) require /dev/mem for correct operation.
 If /dev/gpiomem is used instead, they may silently do nothing, e.g. all
 values appear stuck zero.
 
-Device /dev/gpiomem is really only useable with the GPIO pin features, i.e.
-sub-commands 'fsel' and 'io'.
+Device /dev/gpiomem is really only usable with the GPIO pin features, i.e.
+sub-commands B<fsel>, B<io>, and B<pud>.
 
 
 =head1		ENVIRONMENT
