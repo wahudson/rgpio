@@ -82,9 +82,9 @@ class io_yOptLong : public yOption {
     bool		DetectAsyncRise_w1;
     bool		DetectAsyncFall_w0;
     bool		DetectAsyncFall_w1;
-    bool		PullUpDown;
-    bool		PullUpDownClk_w0;
-    bool		PullUpDownClk_w1;
+    bool		PudProgMode;
+    bool		PudProgClk_w0;
+    bool		PudProgClk_w1;
     bool		Fsel0;
     bool		Fsel1;
     bool		Fsel2;
@@ -160,9 +160,9 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     DetectAsyncRise_w1 = 0;
     DetectAsyncFall_w0 = 0;
     DetectAsyncFall_w1 = 0;
-    PullUpDown         = 0;
-    PullUpDownClk_w0   = 0;
-    PullUpDownClk_w1   = 0;
+    PudProgMode        = 0;
+    PudProgClk_w0      = 0;
+    PudProgClk_w1      = 0;
     Fsel0              = 0;
     Fsel1              = 0;
     Fsel2              = 0;
@@ -302,9 +302,9 @@ io_yOptLong::parse_options()
     }
 
     if ( pud ) {
-	PullUpDown          = 1;
-	PullUpDownClk_w0    = 1;
-	PullUpDownClk_w1    = 1;
+	PudProgMode         = 1;
+	PudProgClk_w0       = 1;
+	PudProgClk_w1       = 1;
     }
 
     if ( fsel ) {
@@ -340,9 +340,9 @@ io_yOptLong::parse_options()
 	else if ( is( "DetectAsyncRise_w1" )) { DetectAsyncRise_w1 = 1; }
 	else if ( is( "DetectAsyncFall_w0" )) { DetectAsyncFall_w0 = 1; }
 	else if ( is( "DetectAsyncFall_w1" )) { DetectAsyncFall_w1 = 1; }
-	else if ( is( "PullUpDown"         )) { PullUpDown         = 1; }
-	else if ( is( "PullUpDownClk_w0"   )) { PullUpDownClk_w0   = 1; }
-	else if ( is( "PullUpDownClk_w1"   )) { PullUpDownClk_w1   = 1; }
+	else if ( is( "PudProgMode"        )) { PudProgMode        = 1; }
+	else if ( is( "PudProgClk_w0"      )) { PudProgClk_w0      = 1; }
+	else if ( is( "PudProgClk_w1"      )) { PudProgClk_w1      = 1; }
 	else if ( is( "Fsel0"              )) { Fsel0              = 1; }
 	else if ( is( "Fsel1"              )) { Fsel1              = 1; }
 	else if ( is( "Fsel2"              )) { Fsel2              = 1; }
@@ -443,7 +443,7 @@ io_yOptLong::print_usage()
     "    --w0                pin Level, Event, Detect word 0 (default)\n"
     "    --w1                pin Level, Event, Detect word 1 (default)\n"
     "    --fsel              Fsel function select registers\n"
-    "    --pud               pin PullUpDown registers\n"
+    "    --pud               pin Pull-Up/Down program registers\n"
     "    --all               all registers above\n"
     "  register group modifiers on --w0 --w1:\n"
     "    --raw               show real instead of virtual PinLevel*\n"
@@ -632,9 +632,9 @@ y_io::doit()
 
     // Pud
 	if ( Opx.pud && (Opx.w0 || Opx.w1) ) { cout <<endl; }
-	APPLY( PullUpDown,         "PullUpDown"         )
-	APPLY( PullUpDownClk_w0,   "PullUpDownClk_w0"   )
-	APPLY( PullUpDownClk_w1,   "PullUpDownClk_w1"   )
+	APPLY( PudProgMode,        "PudProgMode"        )
+	APPLY( PudProgClk_w0,      "PudProgClk_w0"      )
+	APPLY( PudProgClk_w1,      "PudProgClk_w1"      )
 
     // Fsel
 	if ( Opx.fsel && (Opx.w0 || Opx.w1 || Opx.pud) ) { cout <<endl; }

@@ -267,11 +267,11 @@ rgIoPins		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "25", "PullUpDown.addr()" );
+  CASE( "25", "PudProgMode.addr()" );
     try {
-	CHECKX( 0x94, (Tx.PullUpDown.addr()       - Tx.get_base_addr())*4 );
-	CHECKX( 0x98, (Tx.PullUpDownClk_w0.addr() - Tx.get_base_addr())*4 );
-	CHECKX( 0x9c, (Tx.PullUpDownClk_w1.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x94, (Tx.PudProgMode.addr()   - Tx.get_base_addr())*4 );
+	CHECKX( 0x98, (Tx.PudProgClk_w0.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x9c, (Tx.PudProgClk_w1.addr() - Tx.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -316,8 +316,8 @@ rgIoPins		Tx   ( &Bx );		// test object
 	Tx.DetectLow_w0.write(       0xffffffff );
 	Tx.DetectAsyncRise_w0.write( 0xffffffff );
 	Tx.DetectAsyncFall_w0.write( 0xffffffff );
-	Tx.PullUpDown.write(         0xffffffff );
-	Tx.PullUpDownClk_w0.write(   0xffffffff );
+	Tx.PudProgMode.write(        0xffffffff );
+	Tx.PudProgClk_w0.write(      0xffffffff );
 	CHECKX(                      0xffffffff, Tx.Fsel0.read()             );
 	CHECKX(                      0xffffffff, Tx.PinSet_w0.read()         );
 	CHECKX(                      0xffffffff, Tx.PinClr_w0.read()         );
@@ -329,8 +329,8 @@ rgIoPins		Tx   ( &Bx );		// test object
 	CHECKX(                      0xffffffff, Tx.DetectLow_w0.read()      );
 	CHECKX(                      0xffffffff, Tx.DetectAsyncRise_w0.read());
 	CHECKX(                      0xffffffff, Tx.DetectAsyncFall_w0.read());
-	CHECKX(                      0xffffffff, Tx.PullUpDown.read()        );
-	CHECKX(                      0xffffffff, Tx.PullUpDownClk_w0.read()  );
+	CHECKX(                      0xffffffff, Tx.PudProgMode.read()       );
+	CHECKX(                      0xffffffff, Tx.PudProgClk_w0.read()     );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

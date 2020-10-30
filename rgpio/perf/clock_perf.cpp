@@ -297,9 +297,9 @@ main( int	argc,
 //		*pinset = 0x00000000;
 //		vv = *pinread;
 		vv = Gpx.PinLevel_w0.read();		// 80 ns/sample
-//		vv = Gpx.PullUpDown.read();		// 80 ns/sample
-//		vv = Gpx.PullUpDownClk_w0.read();	// 80 ns/sample
-//		Gpx.PullUpDownClk_w0.write( 0 );	// 23 ns/sample
+//		vv = Gpx.PudProgMode.read();		// 80 ns/sample
+//		vv = Gpx.PudProgClk_w0.read();		// 80 ns/sample
+//		Gpx.PudProgClk_w0.write( 0 );		// 23 ns/sample
 
 //		Ppx.program_pud_bit( rgPudPin::pd_Up, 8 );  // 472 ns/sample
 					// 2995 ns/sample with Wait

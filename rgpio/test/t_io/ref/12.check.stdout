@@ -5,7 +5,7 @@ usage:  rgpio io [options..]  [reg..]
     --w0                pin Level, Event, Detect word 0 (default)
     --w1                pin Level, Event, Detect word 1 (default)
     --fsel              Fsel function select registers
-    --pud               pin PullUpDown registers
+    --pud               pin Pull-Up/Down program registers
     --all               all registers above
   register group modifiers on --w0 --w1:
     --raw               show real instead of virtual PinLevel*

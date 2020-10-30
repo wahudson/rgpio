@@ -99,9 +99,9 @@ rgIoPins::rgIoPins(
     DetectAsyncFall_w0.init_addr( GpioBase + (0x88 /4) );
     DetectAsyncFall_w1.init_addr( GpioBase + (0x8c /4) );
 
-      PullUpDown.      init_addr( GpioBase + (0x94 /4) );
-      PullUpDownClk_w0.init_addr( GpioBase + (0x98 /4) );
-      PullUpDownClk_w1.init_addr( GpioBase + (0x9c /4) );
+	   PudProgMode.init_addr( GpioBase + (0x94 /4) );
+	 PudProgClk_w0.init_addr( GpioBase + (0x98 /4) );
+	 PudProgClk_w1.init_addr( GpioBase + (0x9c /4) );
 
     // Virtual Registers
 

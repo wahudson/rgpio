@@ -249,6 +249,12 @@ Possible alternate names considered:
     If a few names must be long, no sense in trying to shorten PullUpDownClk_w0.
     Decide to keep longer names.  (Same conclusion from enum class.)
 
+Renamed PullUpDown registers to match rgPudPin class:  2020-10-29
+	PudProgMode
+	PudProgClk_w0
+	PudProgClk_w1
+    This is more accurate, but I still kind of like the PullUpDown name.
+
 Register Classes:
 
     Register objects contain the register address, but have no register

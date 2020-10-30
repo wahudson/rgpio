@@ -61,6 +61,7 @@ Registers:  (as renamed in rgPudPin)
     PudProgClk_w0	GPPUDCLK0	Pull-up/down program clock bits
     PudProgClk_w1	GPPUDCLK1
 
+    Renamed registers in rgIoPins class to match these (2020-10-29).
 
 Register fields are named:
 

@@ -263,9 +263,9 @@ run_test( "34", "io --pud",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  PullUpDown
-	0x00000000  PullUpDownClk_w0
-	0x00000000  PullUpDownClk_w1
+	0x00000000  PudProgMode
+	0x00000000  PudProgClk_w0
+	0x00000000  PudProgClk_w1
     ),
 );
 
