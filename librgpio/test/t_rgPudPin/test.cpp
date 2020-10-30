@@ -129,7 +129,7 @@ rgPudPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "22", "PullUpDownClk_w0.addr()" );
+  CASE( "22", "PudProgClk_w0.addr()" );
     try {
 	CHECKX( 0x98, (Tx.PudProgClk_w0.addr() - Tx.get_base_addr())*4 );
 	CHECKX( 0x9c, (Tx.PudProgClk_w1.addr() - Tx.get_base_addr())*4 );
