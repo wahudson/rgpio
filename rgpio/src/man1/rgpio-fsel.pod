@@ -18,7 +18,7 @@ rgpio-fsel -- Pin Function Select
   modify:
     --mode=In           set mode {In, Out, Alt0, .. Alt5}
   options:
-    --show_all          show all alternate functions
+    --show              show all alternate functions
     --help              show this usage
     -v, --verbose       verbose output
     --debug             debug output
@@ -95,7 +95,7 @@ potential drive fights.
 
 =over
 
-=item B<--show_all>         - Show all alternate functions.
+=item B<--show>             - Show all alternate functions.
 
 Output a table of all alternate functions {Alt0..Alt5} for the specified
 pins.  No pins are modified.
@@ -126,7 +126,7 @@ Adds a title "Pin Function Select:" to the output.
  % rgpio fsel --mode=Alt5  14 15 16 17
 
  Show all alternate functions for all pins.  No pins are modified.
- % rgpio fsel --show_all --w0 --w1
+ % rgpio fsel --show --w0 --w1
 
  Reset all pins to Input.
  % rgpio fsel --mode=In  --w0 --w1

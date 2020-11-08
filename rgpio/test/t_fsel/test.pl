@@ -4,7 +4,7 @@
 # Testing:  rgpio-fsel  subcommand.
 #    10-19  fsel basic options --help
 #    20-29  --mode
-#    30-39  --show_all
+#    30-39  --show
 #    40-49  .
 #    50-59  .
 
@@ -186,11 +186,11 @@ run_test( "24", "fsel --mode=Baad",
 
 
 #---------------------------------------------------------------------------
-## --show_all
+## --show
 #---------------------------------------------------------------------------
 
-run_test( "30", "fsel --show_all",
-    "rgpio --dev=f  fsel --show_all  4 5",
+run_test( "30", "fsel --show",
+    "rgpio --dev=f  fsel --show  4 5",
     0,
     Stderr => q(),
     Stdout => q(
@@ -201,17 +201,17 @@ Bit  Alt0        Alt1        Alt2        Alt3        Alt4        Alt5
     # trailing space
 );
 
-run_test( "31", "fsel --show_all",
-    "rgpio --dev=f  fsel --show_all --w0 --w1",
+run_test( "31", "fsel --show",
+    "rgpio --dev=f  fsel --show --w0 --w1",
     0,
     Stderr => q(),
 );
 
-run_test( "32", "fsel --show_all",
-    "rgpio --dev=f  fsel --show_all --mode=In  4",
+run_test( "32", "fsel --show",
+    "rgpio --dev=f  fsel --show --mode=In  4",
     1,
     Stderr => q(
-	Error:  --mode not valid with --show_all
+	Error:  --mode not valid with --show
     ),
     Stdout => q(),
 );

@@ -7,7 +7,7 @@ usage:  rgpio fsel [options..]  [N..]
   modify:
     --mode=In           set mode {In, Out, Alt0, .. Alt5}
   options:
-    --show_all          show all alternate functions
+    --show              show all alternate functions
     --help              show this usage
     -v, --verbose       verbose output
     --debug             debug output
