@@ -67,10 +67,10 @@ const char*		rgAltFuncName::AltFunc[][6] = {
   { "u0_RXD",     "sD7",   "--",  "**",       "**",         "u1_RXD"  }, // 15
   { "--",         "sD8",   "--",  "u0_CTS",   "spi1_CE2_n", "u1_CTS"  }, // 16
   { "--",         "sD9",   "--",  "u0_RTS",   "spi1_CE1_n", "u1_RTS"  }, // 17
-  { "pcm_CLK",   "sD10",   "--",  "bscMOSI",  "spi1_CE0_n", "PWM0"    }, // 18
-  { "pcm_FS",    "sD11",   "--",  "bscSCLK",  "spi1_MISO",  "PWM1"    }, // 19
-  { "pcm_DIN",   "sD12",   "--",  "bscMISO",  "spi1_MOSI",  "gp_CLK0" }, // 20
-  { "pcm_DOUT",  "sD13",   "--",  "bscCE_n",  "spi1_SCLK",  "gp_CLK1" }, // 21
+  { "pcm_CLK",   "sD10",   "--",  "bsc_MOSI", "spi1_CE0_n", "PWM0"    }, // 18
+  { "pcm_FS",    "sD11",   "--",  "bsc_SCLK", "spi1_MISO",  "PWM1"    }, // 19
+  { "pcm_DIN",   "sD12",   "--",  "bsc_MISO", "spi1_MOSI",  "gp_CLK0" }, // 20
+  { "pcm_DOUT",  "sD13",   "--",  "bsc_CE_n", "spi1_SCLK",  "gp_CLK1" }, // 21
   { "--",        "sD14",   "--",  "sd1_CLK",  "arm_TRST",   "**"      }, // 22
   { "--",        "sD15",   "--",  "sd1_CMD",  "arm_RTCK",   "**"      }, // 23
   { "--",        "sD16",   "--",  "sd1_DAT0", "arm_TDO",    "**"      }, // 24
