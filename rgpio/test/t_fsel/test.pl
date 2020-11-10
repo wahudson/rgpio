@@ -195,8 +195,8 @@ run_test( "30", "fsel --show",
     Stderr => q(),
     Stdout => q(
 Bit  Alt0        Alt1        Alt2        Alt3        Alt4        Alt5       
-  4  gp_CLK0     sA1         --          **          **          arm_TDI    
-  5  gp_CLK1     sA0         --          **          **          arm_TDO    
+  4  gp_CLK0     sm_A1       dpi_D0      **          **          arm_TDI    
+  5  gp_CLK1     sm_A0       dpi_D1      **          **          arm_TDO    
     ),
     # trailing space
 );
