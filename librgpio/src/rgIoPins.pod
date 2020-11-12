@@ -280,16 +280,16 @@ where error conditions can be detected.
     vv = gpx.PinLevel_w0.read();	// virtual register
 
  // Write pin levels.  bits[7:4] = binary 0101, other bits unchanged
-    gpx.PinSet_w0.set( 0x00000050 );
+    gpx.PinSet_w0.set( 0x00000050 );	// real registers
     gpx.PinClr_w0.clr( 0x000000a0 );
 
-    gpx.PinLevel_w0.set( 0x00000050 );
+    gpx.PinLevel_w0.set( 0x00000050 );	// virtual registers
     gpx.PinLevel_w0.clr( 0x000000a0 );
 
     gpx.PinLevel_w0.modify( 0x000000f0, 0x00000050 );
 
- // Modify bits[7:0] to 0x86 in a normal read/write register
-    vv = gpx.DetectHigh_w0.modify( 0x00000086, 0x000000ff );
+ // Modify bits[15:8] = 0x83 in a normal read/write register
+    vv = gpx.DetectHigh_w0.modify( 0x0000ff00, 0x00008300 );
 
 =head1		FILES
 
