@@ -98,8 +98,8 @@ fsel_yOptLong::parse_options()
     {
 	     if ( is( "--show"       )) { show       = 1; }
 
-	else if ( is( "--w0"         )) { w0         = 1; }
-	else if ( is( "--w1"         )) { w1         = 1; }
+	else if ( is( "-0"           )) { w0         = 1; }
+	else if ( is( "-1"           )) { w1         = 1; }
 
 	else if ( is( "--mode="      )) { mode       = this->val(); }
 
@@ -116,10 +116,11 @@ fsel_yOptLong::parse_options()
     }
 
     if ( !( (get_argc() > 0) || w0 || w1 ) ) {	// no bit specified
-	w0 = 1;
+	w0 = 1;					// set default
 	if ( *mode ) {
-	    Error::msg( "--mode requires bit numbers or --w0 --w1" ) <<endl;
+	    Error::msg( "--mode requires bit numbers or -0 -1" ) <<endl;
 	}
+	//#!! probably disallow modify of full words
     }
 
     if ( *mode ) {
@@ -147,8 +148,8 @@ fsel_yOptLong::print_option_flags()
     // Beware namespace clash with 'hex'.
 
     cout << "--show        = " << show         << endl;
-    cout << "--w0          = " << w0           << endl;
-    cout << "--w1          = " << w1           << endl;
+    cout << "-0            = " << w0           << endl;
+    cout << "-1            = " << w1           << endl;
     cout << "--mode        = " << mode         << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
@@ -173,11 +174,13 @@ fsel_yOptLong::print_usage()
     "    Function Select for GPIO pins\n"
     "usage:  " << ProgName << " fsel [options..]  [N..]\n"
     "    N                   bit number 0..53\n"
-    "  bit number groups:  (accumulate)\n"
-    "    --w0                word 0, bits [31:0] (default)\n"
-    "    --w1                word 1, bits [53:32]\n"
+    "  show bit number groups:  (accumulate)\n"
+    "    -0                  word 0, bits [31:0] (default)\n"
+    "    -1                  word 1, bits [53:32]\n"
     "  modify:\n"
     "    --mode=In           set mode {In, Out, Alt0, .. Alt5}\n"
+//  "    --w0=0xffffffff     word 0 mask, bits [31:0]\n"
+//  "    --w1=0x003fffff     word 1 mask, bits [53:32]\n"
     "  options:\n"
     "    --show              show all alternate functions\n"
     "    --help              show this usage\n"

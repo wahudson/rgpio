@@ -138,7 +138,7 @@ run_test( "20", "fsel --mode=Out no default",
     "rgpio --dev=f  fsel --mode=Out",
     1,
     Stderr => q(
-	Error:  --mode requires bit numbers or --w0 --w1
+	Error:  --mode requires bit numbers or -0 -1
     ),
     Stdout => q(),
 );
@@ -169,7 +169,7 @@ run_test( "22", "fsel --mode=Out  4",
 );
 
 run_test( "23", "fsel reset all pins",
-    "rgpio --dev=f  fsel --mode=In --w0 --w1",
+    "rgpio --dev=f  fsel --mode=In -0 -1",
     0,
     Stderr => q(),
 );
@@ -202,12 +202,12 @@ Bit  Alt0        Alt1        Alt2        Alt3        Alt4        Alt5
 );
 
 run_test( "31", "fsel --show",
-    "rgpio --dev=f  fsel --show --w0 --w1",
+    "rgpio --dev=f  fsel --show -0 -1",
     0,
     Stderr => q(),
 );
 
-run_test( "32", "fsel --show",
+run_test( "32", "fsel --show invalid with --mode",
     "rgpio --dev=f  fsel --show --mode=In  4",
     1,
     Stderr => q(

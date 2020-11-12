@@ -12,9 +12,9 @@ rgpio-fsel -- Pin Function Select
 
  rgpio fsel [options..]  [N..]
     N                   bit number 0..53
-  bit number groups:  (accumulate)
-    --w0                word 0, bits [31:0] (default)
-    --w1                word 1, bits [53:32]
+  show bit number groups:  (accumulate)
+    -0                  word 0, bits [31:0] (default)
+    -1                  word 1, bits [53:32]
   modify:
     --mode=In           set mode {In, Out, Alt0, .. Alt5}
   options:
@@ -68,11 +68,11 @@ and duplicates are NOT removed.
 
 =over
 
-=item B<--w0>               - Pins [31:0].  (default)
+=item B<-0>                 - Pins [31:0].  (default)
 
 Note that only pins [27:0] are accessable on Raspberry Pi-3 40-pin header.
 
-=item B<--w1>               - Pins [53:32].
+=item B<-1>                 - Pins [53:32].
 
 These pins are accessable on the Raspberry Pi compute module.
 
@@ -117,7 +117,7 @@ Adds a title "Pin Function Select:" to the output.
  % rgpio fsel
 
  Show all pins.
- % rgpio fsel --w0 --w1
+ % rgpio fsel -0 -1
 
  Set Gpio pin 12 to Output.
  % rgpio fsel --mode=Out  12
@@ -126,10 +126,10 @@ Adds a title "Pin Function Select:" to the output.
  % rgpio fsel --mode=Alt5  14 15 16 17
 
  Show all alternate functions for all pins.  No pins are modified.
- % rgpio fsel --show --w0 --w1
+ % rgpio fsel --show -0 -1
 
- Reset all pins to Input.
- % rgpio fsel --mode=In  --w0 --w1
+ Reset all word0 pins to Input.
+ % rgpio fsel --mode=In  -0
 
 
 =head1		ENVIRONMENT
