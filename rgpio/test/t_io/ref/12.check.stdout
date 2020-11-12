@@ -2,13 +2,13 @@
 usage:  rgpio io [options..]  [reg..]
     reg                 register name, as shown with --all
   register groups:  (accumulate)
-    --w0                pin Level, Event, Detect word 0 (default)
-    --w1                pin Level, Event, Detect word 1 (default)
+    -0, --w0            pin Level, Event, Detect word 0 (default)
+    -1, --w1            pin Level, Event, Detect word 1
     --fsel              Fsel function select registers
     --pud               pin Pull-Up/Down program registers
     --all               all registers above
   register group modifiers on --w0 --w1:
-    --raw               show real instead of virtual PinLevel*
+    --raw               show real instead of virtual PinLevel_w0
   modify:  (32-bit values)
     --set=0xff..        set mask bits
     --clr=0xff..        clear mask bits

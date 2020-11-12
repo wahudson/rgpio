@@ -13,13 +13,13 @@ rgpio-io -- IO Pin register access
  rgpio io [options..]  [reg..]
     reg                 register name, as shown with --all
   register groups:  (accumulate)
-    --w0                pin Level, Event, Detect word 0 (default)
-    --w1                pin Level, Event, Detect word 1 (default)
+    -0, --w0            pin Level, Event, Detect word 0 (default)
+    -1, --w1            pin Level, Event, Detect word 1
     --fsel              Fsel function select registers
     --pud               pin Pull-Up/Down program registers
     --all               all registers above
   register group modifiers on --w0 --w1:
-    --raw               show real instead of virtual PinLevel*
+    --raw               show real instead of virtual PinLevel_w0
   modify:  (32-bit values)
     --set=0xff..        set mask bits
     --clr=0xff..        clear mask bits
@@ -80,7 +80,7 @@ registers are removed.
 
 =over
 
-=item B<--w0>               - Register set word 0.  (default)
+=item B<-0, --w0>           - Register set word 0.  (default)
 
  PinLevel_w0            (virtual read-write)
  EventStatus_w0         (read-clear)
@@ -94,7 +94,7 @@ registers are removed.
 Bits [31:0] correspond to IO lines [31:0].
 Note that only bits [27:0] are accessible on Raspberry Pi-3 40-pin header.
 
-=item B<--w1>               - Register set word 1.
+=item B<-1, --w1>           - Register set word 1.
 
  PinLevel_w1            (virtual read-write)
  EventStatus_w1         (read-clear)
@@ -221,12 +221,12 @@ additional column showing the same value in binary is added.
  % rgpio io -v
 
  Show real registers instead of virtual PinLevl_w0.
- % rgpio io --raw --w0
+ % rgpio io --raw
 
- Set select bits to 1.
+ Set mask bits to 1.
  % rgpio io --set=0x00000123  DetectLow_w0
 
- Clear select bits to 0.
+ Clear mask bits to 0.
  % rgpio io --clr=0x00000123  DetectLow_w0
 
  Modify a single register to set bits [7:4] to 0x5 (binary 0101).

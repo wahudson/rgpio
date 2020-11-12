@@ -185,6 +185,8 @@ io_yOptLong::parse_options()
     while ( this->next() )
     {
 	     if ( is( "--bin"        )) { bin        = 1; }
+	else if ( is( "-0"           )) { w0         = 1; }
+	else if ( is( "-1"           )) { w1         = 1; }
 	else if ( is( "--w0"         )) { w0         = 1; }
 	else if ( is( "--w1"         )) { w1         = 1; }
 	else if ( is( "--fsel"       )) { fsel       = 1; }
@@ -212,7 +214,6 @@ io_yOptLong::parse_options()
     if ( !( (get_argc() > 0) || w0 || w1 || fsel || pud || all ) ) {
 	// no reg specified
 	w0 = 1;
-	w1 = 1;
     }
 
     if ( all ) {	// show all register groups
@@ -440,13 +441,13 @@ io_yOptLong::print_usage()
 //  "    --hex               word format hexadecimal (default)\n"
 //  " #  --bin               word format binary\n"
     "  register groups:  (accumulate)\n"
-    "    --w0                pin Level, Event, Detect word 0 (default)\n"
-    "    --w1                pin Level, Event, Detect word 1 (default)\n"
+    "    -0, --w0            pin Level, Event, Detect word 0 (default)\n"
+    "    -1, --w1            pin Level, Event, Detect word 1\n"
     "    --fsel              Fsel function select registers\n"
     "    --pud               pin Pull-Up/Down program registers\n"
     "    --all               all registers above\n"
     "  register group modifiers on --w0 --w1:\n"
-    "    --raw               show real instead of virtual PinLevel*\n"
+    "    --raw               show real instead of virtual PinLevel_w0\n"
     "  modify:  (32-bit values)\n"
     "    --set=0xff..        set mask bits\n"
     "    --clr=0xff..        clear mask bits\n"

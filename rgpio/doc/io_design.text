@@ -374,6 +374,17 @@ IO register --io alternative:  (2020-04-17 did this)
 	--debug             debug output
       (options with GNU= only)
 
+Fine tune above:  (2020-11-11 did this)
+
+    Changed default to be only --w0.  It was kind of annoying to get both
+    words as default, when you mostly use --w0.
+
+    Add -0, -1 alias options for --w0, --w1.  This makes it much easier to
+    specify both words, and is similar to other Features.
+
+    The register groups and the --raw to switch out virtual PinLevel_w0 is
+    working great.
+
 ----------------------------------------------------------------------------
 ## Error Handling - register access
 ----------------------------------------------------------------------------

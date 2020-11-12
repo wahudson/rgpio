@@ -55,15 +55,6 @@ run_test( "11", "io no args",
 	0x00000000  DetectLow_w0
 	0x00000000  DetectAsyncRise_w0
 	0x00000000  DetectAsyncFall_w0
-
-	0x00000000  PinLevel_w1
-	0x00000000  EventStatus_w1
-	0x00000000  DetectRise_w1
-	0x00000000  DetectFall_w1
-	0x00000000  DetectHigh_w1
-	0x00000000  DetectLow_w1
-	0x00000000  DetectAsyncRise_w1
-	0x00000000  DetectAsyncFall_w1
     ),
 );
 
@@ -199,7 +190,7 @@ run_test( "25d", "io modify invalid with reg groups",
 ## Outputs
 #---------------------------------------------------------------------------
 
-run_test( "31", "io --raw instead of pseudo registers",
+run_test( "30", "io --raw instead of virtual registers",
     "rgpio --dev=f  io --raw",
     0,
     Stderr => q(),
@@ -214,22 +205,11 @@ run_test( "31", "io --raw instead of pseudo registers",
 	0x00000000  DetectLow_w0
 	0x00000000  DetectAsyncRise_w0
 	0x00000000  DetectAsyncFall_w0
-
-	0x00000000  PinSet_w1
-	0x00000000  PinClr_w1
-	0x00000000  PinRead_w1
-	0x00000000  EventStatus_w1
-	0x00000000  DetectRise_w1
-	0x00000000  DetectFall_w1
-	0x00000000  DetectHigh_w1
-	0x00000000  DetectLow_w1
-	0x00000000  DetectAsyncRise_w1
-	0x00000000  DetectAsyncFall_w1
     ),
 );
 
-run_test( "32", "io --w0",
-    "rgpio --dev=f  io --w0",
+run_test( "31", "io -0 -1 alias",
+    "rgpio --dev=f  io -0 -1",
     0,
     Stderr => q(),
     Stdout => q(
@@ -241,6 +221,31 @@ run_test( "32", "io --w0",
 	0x00000000  DetectLow_w0
 	0x00000000  DetectAsyncRise_w0
 	0x00000000  DetectAsyncFall_w0
+
+	0x00000000  PinLevel_w1
+	0x00000000  EventStatus_w1
+	0x00000000  DetectRise_w1
+	0x00000000  DetectFall_w1
+	0x00000000  DetectHigh_w1
+	0x00000000  DetectLow_w1
+	0x00000000  DetectAsyncRise_w1
+	0x00000000  DetectAsyncFall_w1
+    ),
+);
+
+run_test( "32", "io --w1",
+    "rgpio --dev=f  io --w1",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	0x00000000  PinLevel_w1
+	0x00000000  EventStatus_w1
+	0x00000000  DetectRise_w1
+	0x00000000  DetectFall_w1
+	0x00000000  DetectHigh_w1
+	0x00000000  DetectLow_w1
+	0x00000000  DetectAsyncRise_w1
+	0x00000000  DetectAsyncFall_w1
     ),
 );
 
