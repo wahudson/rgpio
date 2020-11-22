@@ -1,20 +1,154 @@
-2017-05-12
+2020-11-22
 		rgpio -- Raspberry Pi GPIO Tool
 		-------------------------------
 
 This is the "rgpio" tool and "librgpio" library.
 
-Content Experts:
-    William Hudson
-
+The C++ librgpio library gives direct read/write access to the Raspberry Pi
+peripheral IO registers.  The rgpio tool gives that same access on the
+command line.
 
 Files:
 ------
-README		this file
+    README		this file
+    LICENSE		GPLv3 license
 
-librgpio/	rgpio Library development
-rgpio/		rgpio utility tool development
+    librgpio/		C++ Library
+	README		    start here
 
+    rgpio/		rgpio utility command
+	README		    start here
+
+Principle of operation:
+-----------------------
+    Memory-mapped IO.  Map IO pages of /dev/mem into user virtual address
+    space with mmap(2) system call.
+    This gives direct read/write access to the peripheral registers.
+
+Useful Elements:
+----------------
+    'librgpio' C++ library:
+	Close to the hardware, minimal abstraction.
+	Register/Field names chosen to help understanding at the call point.
+	Each peripheral feature is an independent class.
+	Uses capabilities(7) for root permissions.
+
+    'rgpio' command:
+	Command-line access to register/fields of each peripheral feature.
+	Useful as a debug tool.  It can be used along side any other library
+	    or method, since the hardware registers are directly accessed.
+
+    Manpage documentation:
+	The three traditional sections describe the commands (1), the
+	librgpio classes (3), and the Raspberry Pi SOC hardware operation (7).
+	The last can be useful without any of this software.
+
+    Test suites:
+	Self-checking tests to verify correct operation.
+	Are examples of individual function call and results.
+	Simple stand-alone test environment.
+
+    Design documentation:
+	To see intended design direction and choices that were made.
+	To see how I think about software design (ok maybe not so good ;-)
+	Mostly for my own reference.
+
+Status:  2020-11-16
+-------
+    Both the rgpio command and library are in a pretty good condition and
+    are vary usable.
+    Currently only works on RPi3 (Raspberry Pi 3 versions).
+    Peripheral features currently implemented include:  (see rgpio(1) man page)
+    GPIO pins, Clock generators, I2C, PWM, SPI0, Aux SPI, System Timer.
+
+    Future plans include extension for RPi4, and other peripherals.
+
+Building:
+---------
+    Compile library first.
+	cd librgpio/src
+	make
+	make man
+
+    Then compile rgpio.
+	cd rgpio/src
+	make
+	make cap		# applies capabilities, needs root
+	make man
+	../bin/rgpio --help	# see if it works
+
+    Run tests:  see  librgpio/test/README, rgpio/test/README
+
+Installing:
+-----------
+    Intended to run from the project directory.  This allows multiple versions
+    to live side-by-side.  Good for development, where changes are NOT
+    guaranteed to be backward compatible.  e.g.
+
+    /opt/rgpio/
+	rgpio-v0.18/
+	rgpio-v0.20/
+	latest -> rgpio-v0.20
+
+    Access commands and man pages:  see rgpio/README
+	Put rgpio/bin/ in your shell PATH, or put symlinks in your $HOME/bin/
+	directory.
+
+    Access librgpio:
+	Put a symlink in your code directory pointing to the version of
+	librgpio you want.  Follow model in rgpio/src/Makefile
+
+Getting Started Guide:
+----------------------
+    [Probably needs improvement.]
+    For now a good path to start might be:
+
+    Start with the two top level README files.
+    View each src/Makefile to see what you are building.
+    Build librgpio and rgpio as above (or just build the man pages).
+    View man pages from the rgpio/ directory (see rgpio/README).
+    List all man pages from rgpio/ with 'ls -l man/man*/'
+    Explore rgpio command:  rgpio(1),      rgpio --help
+    Explore sub commands:   rgpio-fsel(1), rgpio fsel --help
+    Explore hardware description (7) and class (3) man pages.
+    And of course, look at the source code!
+
+    Note:  rgpio can be built and run on most any Linux platform (is what I
+    do on my Ubuntu laptop).  It uses fake memory when directed by
+    'rgpio --dev=f', or if not on an RPi.  See rgAddrMap(3).
+    [Of course, do NOT give it permission to access /dev/mem just in case.]
+
+License Notice:
+---------------
+    All files in this directory tree are part of 'rgpio'.
+    Copyright 2020 William A. Hudson  - License GPLv3 or later
+
+    rgpio is free software:  you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    rgpio is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with rgpio.  If not, see <https://www.gnu.org/licenses/>.
+
+License:
+--------
+    I choose the GPLv3 license in the hope that it gives you a tiny lever
+    to use against pressures to keep software secret.
+
+Contributing:
+-------------
+    I am NOT accepting pull requests at this time.
+
+    Currently this is a single-person project I am actively using and
+    developing.  My intent is to make it available to others while I do so.
+    If people are interested, it could become a community project.
+    I am happy you found something useful!
 
 Git:
 ----
@@ -26,6 +160,11 @@ Common commit keywords to help classify the type of commit.
     rgpio-xxx:		rgpio sub-command
     Checkpoint:		checkpoint initial work in progress
     Restructure:	re-factoring code
+
+Keywords:  C++ library, Raspberry Pi GPIO, rgpio, librgpio
+
+Original Author:
+    William A. Hudson
 
 Repository History:  (newest first)
 ----------------------------------------------------------------------------
