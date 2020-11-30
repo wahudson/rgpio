@@ -1,0 +1,663 @@
+2020-11-03
+		Raspberry Pi Revisions
+		----------------------
+
+Identify RPi chip revision for peripheral feature behavior.
+
+Raspberry Pi revision codes
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
+
+OTP register and bit definitions
+    One-Time Programmable (OTP) inbuilt memory block
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/otpbits.md
+
+vcgencmd  documentation
+    https://www.raspberrypi.org/documentation/raspbian/applications/vcgencmd.md
+
+----------------------------------------------------------------------------
+## Discussion - RPi Revision
+----------------------------------------------------------------------------
+
+    The Raspberry Pi SOC computers have evolved in a mostly compatible way.
+    This makes it possible that only slight changes in the library are needed
+    in order to cover all RPi revisions.
+
+    Two types of changes occurred:
+
+    a) Base address of peripherals.
+	The peripheral feature remained the same, but the base address changed.
+	0x20000000  RPi1
+	0x3f000000  RPi2,3
+	0xfe000000  RPi4
+
+    b) Feature register configuration.
+	In RPi4, more features were added, and some Gpio pin locations changed.
+	Most features have the same operation.
+	Pull up/down resistor method changed significantly.
+
+    Changes that affect librgpio are pretty much strictly correlated with
+    processor chip.
+
+    PPPP  Processor chip ID
+	0: BCM2835  RPi1, Zero
+	1: BCM2836  RPi2
+	2: BCM2837  RPi3, and later RPi2
+	3: BCM2711  RPi4
+
+    From bcm2835 library:  http://www.airspayce.com/mikem/bcm2835/
+	#define BCM2835_PERI_BASE               0x20000000
+	#define BCM2835_RPI2_PERI_BASE          0x3F000000
+	#define BCM2835_RPI4_PERI_BASE          0xFE000000
+
+Feature register switch mechanism:
+
+ >  A) Processor chip ID
+	+ Chip ID already exists.
+	+ Very strong correlation to register function.
+	- Every literal chip ID becomes too many items.
+	- Some chips have exact same function.
+	+ Easy to apply when new difference is discovered.
+	+ Use the Raspberry Pi Revision Codes.
+	- May have to add new chip ID if difference not represented by rev code.
+
+    B) New abstract name, e.g. RPi3
+	+ People probably recognize RPi3 better than BCM2837.
+	-- New definition must be maintained and evolved.
+	- Not clear what each name really means.
+	- Is CM3 (compute module 3) the same as RPi3?
+
+See also:
+    rgAddrMap::bcm2rpi_addr()
+
+Derivation Methods:  (in other places)
+
+    Raspberry Pi:
+	Base address from  #include <bcm_host.h>  in /opt/vc/include/
+	bcm_host_get_peripheral_address()
+	Seems like a video host library with lots of other stuff.
+	No explanation of how it gets the base address.
+
+	See "Revision" line in
+	% cat /proc/cpuinfo
+	Revision        : a22082
+
+	% cat /sys/firmware/devicetree/base/model
+	Raspberry Pi 3 Model B Rev 1.2
+
+	Get revision code from OTP registers.
+	% vcgencmd otp_dump
+	...
+	30:00a22082
+
+    bcm2835 v1.68:  (library)
+	#define BMC2835_RPI2_DT_FILENAME "/proc/device-tree/soc/ranges"
+	Decodes  BMC2835_RPI2_DT_FILENAME  to find the base address.
+	Uses one big mmap() of all peripheral address space.
+
+    wiringPi:  (library)
+	Hardwire the base addresses.
+	#define GPIO_PERI_BASE_OLD      0x20000000
+	#define GPIO_PERI_BASE_NEW      0x3F000000
+	Use piBoardId() to decode the "Revision" line in "/proc/cpuinfo".
+
+    pigpio:  (library)
+	Read "/proc/cpuinfo" for "Revision" line.
+	Decode processor ID to set base address.
+
+Ideas
+
+    Compile time switch:
+	Makefile could set #define for base address.
+	Makefile could set #define to alter code function.
+	Lowest runtime overhead.
+
+    Run time switch:
+	This would allow the same compiled code to run on multiple revisions
+	of RPi.  Automatically derived would be handy.
+	Manual setting allows users to override as necessary.
+
+    Note user program must also be aware of the RPi revision, since it
+    will be operating the features.
+
+    The Library is intended to be close to the actual hardware, NOT abstract
+    missing or somewhat equivalent features.
+
+    What to do when the Feature is missing?
+    Probably throw an exception.
+    Maybe do nothing, let it ride.
+
+    Library code should take each feature change on a case-by-case basis.
+
+    Maybe provide query functions for features that change, to help user
+    code take appropriate action.
+
+    Have a chip identification function so code can switch on processor chip.
+    Maybe return an enum that identifies the processor.
+    e.g.  soc_BCM2835
+
+    Really the only feature change is to RPi4.  The others all use the same
+    BCM2835 peripheral set.  This should help.
+
+    Do NOT try to future proof the library!  The future cannot be predicted.
+    Better to change the code when the next processor arrives.
+
+    Non-RPi platform - want to be able to compile and test.
+    Need a flag to indicate non-RPi.
+
+    Testing:  Need ability to test all flavors of RPi (that matter).
+    Perhaps a protected method to set the RPi revision.  Let test case
+    derive a class for testing.
+
+    Finding SOC revision:
+    Try to decode the various sources.
+    Want it to be fairly direct, and not depend on too much.
+    Maybe have a method for user to tell library what chip to use.
+
+    Separate base address determination from SOC revision used for
+    functionality switch.  May want to explore possible RPi4 function on
+    an RPi3 board.
+
+    Cache the derived result, to avoid re-derivation overhead.
+
+Exceptions:
+
+    Derivation can be complex, and may fail.
+    Should we throw exceptions in that case?
+    Or maybe fall back to a default?
+
+    I think exceptions should be avoided in this case.  Failure to derive is
+    not really an error, and thus should not be an exception.
+    Reserve exceptions for true errors.
+    The derivation method itself may not be appropriate.
+    We provide lots of ways for the user to provide the correct results, and
+    we should let the user validate any result.  (2020-11-07)
+
+    The idea is to help the user forge ahead, even if auto derivation fails.
+    I know I would be happy to simply hardwire the configuration in that case.
+
+Class Name:
+
+    rgRPiRev	traditional "RPi" abbreviation
+
+ >  rgRpiRev	cleaner camel-case
+
+    rgRpi	too short, its all RPi
+    rgRev	too short, rev of what?
+
+    One thought is to leave the "RPi" string for text documentation, and thus
+    use "Rpi" in these identifier names.
+
+Configuration of class:  (concept ideas)
+
+    Configure base address.      Can be undef.
+    Configure function chip ID.  Can be undef.
+
+    a) Default base address and chip ID set at compile time.
+	#define RG_BASE_ADDRESS  0x3F000000
+	#define RG_CHIP_ID       soc_BCM2837
+	    Use enum name for chip ID.
+
+	#define RG_RPI_REV_CODE	 0x00a22082
+	    We really only need chip ID, but full rev code may be easier to get.
+
+    b) User config at run time.
+	Allow setting explicit value, or undef for auto derivation.
+	rgAddrMap::set_BASE_ADDRESS( 0x3F000000 )
+	rgRpiRev::set_RPi_rev_code(  0x00a22082 )
+	Maybe flags to indicate user provided config vs derived.
+
+	rgRpiRev::set_soc_chip_id(   rgRpiRev::soc_BCM2837 )
+	More direct to set only function chip ID.
+
+    c) Automatic derivation at run time.
+	If not already set (i.e. marked Final).
+	Derive on first use, cache result to avoid repeated derivation.
+	Need flags to indicate undef value, and already derived state.
+
+    d) Base address undef, implies not RPi and fake memory simulation.
+	(i.e. could not derive)
+
+    e) Chip ID undef, implies default RPi3.
+	(i.e. could not derive)
+
+    Provide all these methods, so user has control regardless of his situation.
+    User takes responsibility with user override.
+
+    Want base address and chip ID to be stored separately and independently
+    configured.  It is intentional that they might not agree, to allow
+    exploring register space.  They may also come from separate sources.
+    They are related only when derived from RPi revision code.
+    They have orthogonal uses.
+
+    The base address must be correct, or bad things may happen.
+    The chip ID is likely less critical, as registers are simply missing.
+
+    Base address is really used in rgAddrMap, and should be stored there.
+    Chip ID function should be in new rgRpiRev class.
+    How should these two classes be related?
+
+    These are really class methods, no object needed.
+
+Usage Model:
+    How it looks to user.
+
+    Want to preserve the simple use case of define rgAddrMap object with no
+    arguments.
+
+	// rgRpiRev:: user config goes here
+	...
+	rgAddrMap		Amx;		// construct address map
+	Amx.open_dev_mem();
+	...
+	rgClk			Cx( &Amx );	// construct peripheral feature
+
+User Configuring:
+    Configure the rgRpiRev class with user code, assuming rgRpiRev class
+    has default values, none marked final.
+
+    Set defaults, but let auto derivation change it:  e.g.
+	rgRpiRev::BaseAddr.put( 0xfe000000 );
+	rgRpiRev::SocEnum.put( rgRpiRev::soc_BCM2711 );
+
+    Force to particular config:  (disable auto derivation)
+	rgRpiRev::BaseAddr.put( 0xfe000000 );
+	rgRpiRev::BaseAddr.mark_final();
+
+	rgRpiRev::SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::BaseAddr.mark_final();
+
+    Force revision code, let BaseAddr and SocEnum derive from that.
+	rgRpiRev::RevCode.put( 0x00a22082);
+	rgRpiRev::RevCode.mark_final();
+
+User validate results:
+    At any time, before or after operation that triggers auto derivation.
+
+	value = rgRpiRev::BaseAddr.get();
+	flag  = rgRpiRev::BaseAddr.is_final();
+
+	value = rgRpiRev::SocEnum.get();
+	flag  = rgRpiRev::SocEnum.is_final();
+
+	value = rgRpiRev::RevCode.get();
+	flag  = rgRpiRev::RevCode.is_final();
+
+Usage Accessing:
+    Normal access within librgpio is to call the top-level accessors to get
+    the actual value, which could trigger derivation as necessary.
+
+    addr = rgRpiRev::get_BaseAddr();
+
+    switch ( rgRpiRev::get_soc_enum() ) {
+    case  soc_BCM2835:
+    case  soc_BCM2836:
+	...
+	break;
+    ...
+    case  soc_BCM2711:
+	...
+	break;
+    }
+
+Class/Object methods:
+    Idea is to provide configuration via static class members.  The same
+    methods to derive the configuration could also be useful as object
+    methods.
+
+    The static configuration might never read the RPi revision code, if it
+    was configured as final with no automatic derivation.  Thus it would be
+    good to have an object available for explicitly reading the RPi revision
+    information.  Essentially re-use the same methods for two purposes.
+
+    class rgRpiRevCode {	// for class object
+	rgRpiRev_Soc	SocEnum;	// chip id
+	rgRpiRev_Word	BaseAddr;	// IO base address
+	rgRpiRev_Code	RevCode;	// revision code
+    };
+
+    class rgRpiRev {		// for configuration
+	static rgRpiRevCode	Config;
+    };
+
+    These two classes could be in the same file to help human understanding,
+    as they are closely related, and reduce file clutter.
+
+    It seems plausible that these two classes could be folded into one,
+    where the class would have itself as a static member, but that is not
+    allowed.  It probably results in some kind of circular issue.
+    Actually IS allowed, since it is a static member of itself!
+
+Auto derivation method:
+    Read  /proc/cpuinfo  to get the Revision word, which can be cached
+    as RevCode.  Then derive SocEnum, and then BaseAddr.
+    A valid Revision word is never zero.
+    Possibly use zero as a flag for non-RPi?
+
+    Field accessors can return bit-fields from RevCode.
+
+    Possibly decode binary file /proc/device-tree/soc/ranges to get
+    BaseAddr as was done in the bcm2835 library.
+
+----------------------------------------------------------------------------
+## Class Design - RPi Revision
+----------------------------------------------------------------------------
+
+    There is one 32-bit word that holds the encoded revision information.
+    Idea is to treat it somewhat like a hardware register, even though it
+    is not.
+
+Register Name:
+
+    RpiRev		too similar to the Class name
+    RpiRevision
+    RpiRevCode
+ >  RevCode		descriptive, RPi understood from context
+
+Field Names:  (from Raspberry Pi revision codes)
+    Field               Bits     RPi       Description
+    ----------------    ----     --------  --------------------------
+    OverVoltageDis_1	[31]     N         Overvoltage disallowed
+    OtpWriteDis_1	[30]     O         OTP programming disallowed
+    OtpReadDis_1	[29]     Q         OTP reading disallowed
+    --			[28:26]  uuu       Unused
+    WarrantyVoid_1	[25]     W         Warranty has been voided
+    --			[24]     u         Unused
+    NewStyle_1		[23]     F         new-style revision code
+    MemSize_3		[22:20]  MMM       Memory size, encoded
+    MfgNumber_4		[19:16]  CCCC      Manufacturer
+    ChipNumber_4	[15:12]  PPPP      Processor chip ID number
+    BoardType_8		[11:4]   TTTTTTTT  Type
+    BoardRev_4		[3:0]    RRRR      Revision
+
+Abbreviations appropriate for this context are:
+	Rev   Revision
+	Dis   Disable
+	Otp   One Time Programmable memory
+	Mfg   Manufacturer
+
+Field Naming:
+    Try to avoid single word names.
+    Use the word 'Number', as 'Code' or 'Id' seem over glorified.
+
+    MfgNumber_4		- Manufacturer number
+	MfgNum_4
+	MfgCode_4
+	MfgId_4
+	Manufacturer_4
+
+    ChipNumber_4	- Processor chip ID number
+	ChipCode_4
+	ChipId_4
+	Processor_4
+
+----------------------------------------------------------------------------
+## rgWord  base class
+----------------------------------------------------------------------------
+    Idea is to cache a word value along with a status flag.
+    The value is intended to be externally derived from other sources.
+    The flag tracks whether derivation is final, and should not be repeated.
+    Methods to access both value and flag.
+
+    A derived class provides the lookup and caching mechanisms.
+    OR that could be completely external.
+
+rgWord {
+  private:
+    uint32_t		WordVal;	// 32-bit value
+    bool		Final;
+
+  public:
+    uint32_t		get()              { return  WordVal };
+    void		put( uint32_t v )  { WordVal = v };
+
+    bool		is_final()         { return  Final };
+    bool		mark_final()       { Final = 1 };
+    bool		clear_final()      { Final = 0 };
+}
+
+    This class stores a word value that is derived from other sources,
+    and a flag that indicates if the value is final.
+
+    To hold an rgRpiRev_enum, must change the type.
+    Oh-my!  It wants to be a Template?  Is only changing type of a member.
+    But it may be simpler to duplicate, since it is all in-line.  e.g.
+
+rgRpiRev_Soc {
+    rgRpiRev_enum	WordVal;	// SOC enum value
+    ...
+}
+
+----------------------------------------------------------------------------
+## rgRpiRev_Code  Register Class
+----------------------------------------------------------------------------
+
+rgRpiRev_Code : public rgWord {
+  protected:	// put in rgWord class?
+    uint32_t		get_field();
+    void		put_field();
+
+  public:	// derive value if not final
+    void		grab();
+
+  public:	// field access
+    uint32_t		get_FIELD();
+    void		put_FIELD( V );
+    ...
+
+    uint32_t		get_Processor_4();
+    void		put_Processor_4( V );
+
+    uint32_t		get_BoardType_8();
+    void		put_BoardType_8( V );
+
+    uint32_t		get_BoardRev_4();
+    void		put_BoardRev_4( V );
+}
+
+Possibly derive from rgRegister:  (NOT used)
+    This would reuse the get_FIELD() functions.
+
+    Problem is rgRegister has too much capability that does not apply - i.e.
+    an Addr member and accessors (although could just ignore them).
+
+    Note removing an inherited function breaks the "is-a" relationship,
+    which is not a good idea, and is not allowed by the compiler.  It really
+    suggests re-structuring the chain of inheritance so things build up
+    instead.
+
+----------------------------------------------------------------------------
+## rgRpiRev  Class - RPi Revision
+----------------------------------------------------------------------------
+    This is concept ideas only.  See the actual implementation code files.
+
+rgRpiRev
+{		// All members are static (i.e. class members)
+  public:
+    enum rgRpiRev_enum {  //#!! type name choice?
+	soc_BCM2835 = 0,	// RPi1, Zero
+	soc_BCM2836,		// RPi2
+	soc_BCM2837,		// RPi3, and later RPi2
+	soc_BCM2711		// RPi4
+    };
+
+  public:	// word registers for user configure or query
+    static rgRpiRev_Soc		SocEnum;	// chip id
+    static rgWord		BaseAddr;	// IO base address
+    static rgRpiRev_Code	RevCode;	// revision code
+
+  public:	// primary use with auto derivation
+    get_soc_enum()	return processor chip name enum, if final, otherwise
+			    derive it from RevCode
+
+    get_BaseAddr()	return BaseAddr, if final, otherwise
+			    derive it from SocEnum
+
+    get_rpi_RevCode()	return RevCode, if non-null, otherwise
+			    derive it from /proc/cpuinfo
+}
+
+    This example shows static objects of the word classes.  Similarly could
+    have a single static object that contains the word objects.
+
+    Maybe derivation functions should be in each derived word class?  But then
+    how does it access the other word objects?  It cannot.  Thus derivation
+    must be top level methods.
+
+Essential function ideas:
+-------------------------
+
+// Grab RPi Revision code from external sources if not final.
+//    This one could be in the derived rgWord class, since it does not use
+//    any other word objects.
+uint32_t
+rgRpiRev_Code::grab()	// or rgRpiRev::get_rpi_RevCode()
+{
+    if ( ! is_final() ) {
+	Read /proc/cpuinfo, find "Revision" line and get value.
+	If it was found {
+	    put( value );
+	}
+	else {
+	    leave default value
+	}
+	mark_final();
+	// a null value means undefined.  User must check.
+    }
+    return  get();
+}
+
+// Return RPi GPIO Base Address, and derive it if not set.
+//     uses:  get_soc_enum()
+volatile uint32_t
+rgRpiRev::get_BaseAddr()
+{
+    rgRpiRev_enum		soc;
+    volatile uint32_t		addr;
+
+    if ( ! BaseAddr.is_final() ) {	// Derive it from SocEnum.
+ >>	soc = get_soc_enum();
+
+	switch ( soc ) {
+	case  soc_BCM2835:
+		addr = 0x20000000;
+		break;
+	case  soc_BCM2836:
+	case  soc_BCM2837:
+		addr = 0x3f000000;
+		break;
+	case  soc_BCM2711:
+		addr = 0xfe000000;
+		break;
+	}
+	BaseAddr.put( addr );
+    }
+
+    return  BaseAddr.get();
+}
+
+// Return RPi chip ID (soc enum), and derive it if not set.
+//     uses:  RevCode.grab()
+rgRpiRev_enum
+rgRpiRev::get_soc_enum()
+{
+    rgRpiRev_enum		soc_code;
+
+    if ( ! SocEnum.is_final() ) {
+	// Derive it from revision code.
+
+ >>	RevCode.grab();
+	soc_code = RevCode.get_Processor_4();
+
+	SocEnum.put( (rgRpiRev_enum) soc_code );	// cast to enum
+	SocEnum.mark_final();
+    }
+
+    return  SocEnum.get();
+}
+
+Compile time configuration:
+---------------------------
+Use #define words passed in from the Makefile.
+The #define words should NOT be in the header file, because their intent is
+to configure the library at compile time.  Thus they should be in the .cpp file.
+
+rgRpiRev.h
+    class rgRpiRevCode {	// for class object
+	rgRpiRev_Soc	SocEnum;	// chip id
+	rgRpiRev_Word	BaseAddr;	// IO base address
+	rgRpiRev_Code	RevCode;	// revision code
+    };
+
+    class rgRpiRev {		// for configuration
+	static rgRpiRevCode	Config;
+    };
+
+rgRpiRev.cpp
+    // hardwired defaults
+
+    rgRpiRev::Config = {	// default configuration
+	{ 0, rgRpiRev::soc_BCM2837 },	// SocEnum  for Rpi3
+	{ 0, 0x3f000000 },		// BaseAddr for Rpi3
+	{ 0, 0x00000000 },		// RevCode  undef
+    };
+
+    // or using #define  passed in from the Makefile:
+
+    #ifndef RG_CHIP_ID
+	#define RG_CHIP_ID	soc_BCM2837
+    #endif
+
+    #ifndef RG_BASE_ADDRESS
+	#define RG_BASE_ADDRESS	0x3F000000
+    #endif
+
+    #ifndef RG_RPI_REV_CODE
+	#define RG_RPI_REV_CODE	0x00a22082
+    #endif
+
+    rgRpiRev::Config = {	// default configuration from #define
+	{ 0, rgRpiRev::RG_CHIP_ID },	// SocEnum
+	{ 0, RG_BASE_ADDRESS },		// BaseAddr
+	{ 0, RG_RPI_REV_CODE },		// RevCode
+    };
+
+    Use similar #define macros for the Final flag values.
+
+Initialization could also be at run-time derivation in the get() accessor of
+each word class.
+
+Initialization could also be by copying from a default configuration object.
+
+
+Static Words in rgRpiRev:  (NOT used)
+-------------------------
+    It might look like this:
+
+class rgRpiRev
+{
+    static rgRpiRev_Soc		SocEnum;
+    static rgRpiRev_Word	BaseAddr;
+    static rgRpiRev_Code	RevCode;
+};
+
+rgRpiRev.cpp file:
+    rgRpiRev_Soc	rgRpiRev::SocEnum  = {RG_SOC_ENUM,  RG_SOC_ENUM_FINAL};
+    rgRpiRev_Word	rgRpiRev::BaseAddr = {RG_BASE_ADDR, RG_BASE_ADDR_FINAL};
+    rgRpiRev_Code	rgRpiRev::RevCode  = {RG_REV_CODE,  RG_REV_CODE_FINAL};
+
+I favor making the whole object static instead.
+
+
+Idea for a derived RevCode value:  (NOT used)
+---------------------------------
+    The revision code has complex derivation from /proc/cpuinfo.  Want to
+    identify that source vs simply assigned by the user.
+    A) Maybe another rgRpiRev_Word storage word?
+	The derivation of the main one would be a call to the other one.
+    B) Maybe just add another flag?
+	Derivation could be inside.
+    Maybe is too complex, no real need separate the sources, just let it ride.
+
+ >  Maybe let user construct a new RevCode object, and use it to ensure a
+    derived value is obtained.  This seems simpler and more direct.
+
