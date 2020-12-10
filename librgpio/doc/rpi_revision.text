@@ -175,6 +175,16 @@ Exceptions:
     The idea is to help the user forge ahead, even if auto derivation fails.
     I know I would be happy to simply hardwire the configuration in that case.
 
+    Maybe have a configuration flag to indicate whether an exception should
+    be thrown on error.  That way user can configure behavior according to
+    the application.
+    [Not implemented, decide to only use exceptions.]
+
+    Decide to throw exception on derivation failure, as it is much simpler.
+    Failure to derive is a kind of error, especially when a critical thing
+    like BaseAddr depends on it.  The error flag/message idea was explored on
+    initial implementation, and did not seem worth the effort.  (2020-12-10)
+
 Class Name:
 
     rgRPiRev	traditional "RPi" abbreviation
@@ -338,6 +348,56 @@ Auto derivation method:
     Possibly decode binary file /proc/device-tree/soc/ranges to get
     BaseAddr as was done in the bcm2835 library.
 
+Derivation Hierarchy:
+    The three word values are derived in a natural hierarchy (arrow to source)
+	BaseAddr -> SocEnum -> RevCode
+
+    Need an indication that derivation failed.
+    The BaseAddr and RevCode can be zero to indicated failure.
+    But SocEnum is an enum, with no invalid value (to keep it uniform), so
+    add a separate flag to it.
+
+    Failure to derive:  The object should set both the Final and the Fail flag
+    (or value) before calling the find() method of the object depended upon,
+    so that if an exception is thrown the object will be in a state marked
+    Final and Failed.  This prevents re-derivation of a failed condition.
+
+    Note that an exception can occur only on derivation, where (Final = 0),
+    and not on any subsequent calls to find().  The Failed condition serves
+    as the status for subsequent calls.
+
+Object Relationships:
+    Have the 3 rgWord objects, and methods to derive each.
+
+    A) Flat side-by-side, no cross references.
+	RevCode
+	SocEnum
+	BaseAddr
+	+ Simple relations.
+	- Derivation functions must be at top level.
+	- Derivation does things to the objects, which is not the best
+		object design.
+
+    B) Hierarchy - each has the object it depends on.
+	BaseAddr
+	    SocEnum
+		RevCode
+	+ Simple hierarchy
+	+ Derivation functions can be in each object.
+	- Chain to reach deeper objects:  rgRpiRev::BaseAddr.SocEnum.RevCode
+
+ >  C) Parallel, but each references the object it depends on.
+	RevCode
+	    -> has no dependency
+	SocEnum
+	    -> RevCode
+	BaseAddr
+	    -> SocEnum
+	+ Best of both.
+	+ Parallel access.
+	+ Derivation functions can be in each object.
+	- More complex initialization.
+
 ----------------------------------------------------------------------------
 ## Class Design - RPi Revision
 ----------------------------------------------------------------------------
@@ -390,6 +450,21 @@ Field Naming:
 	ChipId_4
 	Processor_4
 
+SOC Enum type name:
+ >  enum rgRpiRev::Soc_enum {...}	choosen name
+
+    Want the enum embedded in a parent class to help clarify what it belongs
+    to, even though the qualified name is much longer.
+
+    Several of the Feature classes (e.g. rgClk) prefixed the enum type name
+    with the class name (e.g. rgClk_enum), which made sense because it was
+    enumerating the class objects.
+
+    In this case we are enumerating one of several fields in the revision
+    code, and not the main class.  Initial implementation tried the name
+    rgRpiRev_enum, but found it misleading and awkward, especially if other
+    fields become enumerated.
+
 ----------------------------------------------------------------------------
 ## rgWord  base class
 ----------------------------------------------------------------------------
@@ -418,12 +493,12 @@ rgWord {
     This class stores a word value that is derived from other sources,
     and a flag that indicates if the value is final.
 
-    To hold an rgRpiRev_enum, must change the type.
+    To hold an Soc_enum, must change the type.
     Oh-my!  It wants to be a Template?  Is only changing type of a member.
     But it may be simpler to duplicate, since it is all in-line.  e.g.
 
 rgRpiRev_Soc {
-    rgRpiRev_enum	WordVal;	// SOC enum value
+    Soc_enum		WordVal;	// SOC enum value
     ...
 }
 
@@ -473,7 +548,7 @@ Possibly derive from rgRegister:  (NOT used)
 rgRpiRev
 {		// All members are static (i.e. class members)
   public:
-    enum rgRpiRev_enum {  //#!! type name choice?
+    enum Soc_enum {
 	soc_BCM2835 = 0,	// RPi1, Zero
 	soc_BCM2836,		// RPi2
 	soc_BCM2837,		// RPi3, and later RPi2
@@ -531,7 +606,7 @@ rgRpiRev_Code::grab()	// or rgRpiRev::get_rpi_RevCode()
 volatile uint32_t
 rgRpiRev::get_BaseAddr()
 {
-    rgRpiRev_enum		soc;
+    Soc_enum			soc;
     volatile uint32_t		addr;
 
     if ( ! BaseAddr.is_final() ) {	// Derive it from SocEnum.
@@ -557,10 +632,10 @@ rgRpiRev::get_BaseAddr()
 
 // Return RPi chip ID (soc enum), and derive it if not set.
 //     uses:  RevCode.grab()
-rgRpiRev_enum
+Soc_enum
 rgRpiRev::get_soc_enum()
 {
-    rgRpiRev_enum		soc_code;
+    Soc_enum			soc_code;
 
     if ( ! SocEnum.is_final() ) {
 	// Derive it from revision code.
@@ -568,7 +643,7 @@ rgRpiRev::get_soc_enum()
  >>	RevCode.grab();
 	soc_code = RevCode.get_Processor_4();
 
-	SocEnum.put( (rgRpiRev_enum) soc_code );	// cast to enum
+	SocEnum.put( (Soc_enum) soc_code );	// cast to enum
 	SocEnum.mark_final();
     }
 
@@ -622,6 +697,11 @@ rgRpiRev.cpp
     };
 
     Use similar #define macros for the Final flag values.
+
+    Note the brace structure method of initialization does not seem to
+    apply to this static class object, it is not allowed by the compiler.
+    However, the static object is initialized by the constructors, where
+    the same concept of #define can be applied.
 
 Initialization could also be at run-time derivation in the get() accessor of
 each word class.

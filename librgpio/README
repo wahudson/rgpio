@@ -21,6 +21,7 @@ doc/		    Documentation
     mem_barrier.text	Memory Barrier notes
     privilege.text	Process Privilege Control
     pwm_design.text	rgPwm - PWM (Pulse Width Modulator) design
+    rpi_revision.text	rgRpiRev - Raspberry Pi Revision design
     spi0_design.text	rgSpi0 - SPI0 Master design
     timer_design.text	rgSysTimer - System Timer design
     uspi_design.text	rgUniSpi - Universal SPI Master design
@@ -56,6 +57,8 @@ src/		    Source code
     rgPwm.h
     rgRegister.cpp	Register base class
     rgRegister.h
+    rgRpiRev.cpp	Raspberry Pi Revision class
+    rgRpiRev.h
     rgSpi0.cpp		SPI0 Master class
     rgSpi0.h
     rgSysTimer.cpp	System Timer class

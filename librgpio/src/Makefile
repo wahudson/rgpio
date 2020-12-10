@@ -20,6 +20,7 @@ INCS       = \
 	rgPudPin.h \
 	rgPwm.h \
 	rgRegister.h \
+	rgRpiRev.h \
 	rgSpi0.h \
 	rgSysTimer.h \
 	rgUniSpi.h \
@@ -36,6 +37,7 @@ OBJS       = \
 	$(OJ)/rgPudPin.o \
 	$(OJ)/rgPwm.o \
 	$(OJ)/rgRegister.o \
+	$(OJ)/rgRpiRev.o \
 	$(OJ)/rgSpi0.o \
 	$(OJ)/rgSysTimer.o \
 	$(OJ)/rgUniSpi.o
@@ -124,6 +126,9 @@ $(OJ)/rgPwm.o:		rgPwm.cpp  rgPwm.h  rgAddrMap.h  rgRegister.h
 
 $(OJ)/rgRegister.o:	rgRegister.cpp  rgRegister.h
 	g++ $(CXXFLAGS) -o $@  -c rgRegister.cpp
+
+$(OJ)/rgRpiRev.o:	rgRpiRev.cpp  rgRpiRev.h
+	g++ $(CXXFLAGS) -o $@  -c rgRpiRev.cpp
 
 $(OJ)/rgSpi0.o:		rgSpi0.cpp  rgSpi0.h  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgSpi0.cpp
