@@ -395,18 +395,20 @@ Dx.init_addr( &Hreg );
     }
 
 //--------------------------------------
-  CASE( "43a", "put_field() fault" );
+  CASE( "43a", "put_field() value too large" );
     try {
-	Dx.put(   0x00000000 );
-	CHECKX(   0x00000000, Dx.get() );
-	Dx.put_field(  9, 0x00000001, 0x00000002 );
+	Dx.put(   0xabba1111 );
+	CHECKX(   0xabba1111, Dx.get() );
+	Dx.put_field(  9, 0x000000ff, 0x000001c3 );
 	FAIL( "no throw" );
     }
-    catch (...) {
-	CHECKX(   0x00000000, Dx.get() );
+    catch ( std::runtime_error e ) {
+	CHECKX(   0xabba1111, Dx.get() );
+	CHECK( "rgRegister::put_field():  value exceeds 0xff:  0x1c3", e.what() );
     }
-
-//#!!  Add throw message capture
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
 
 //--------------------------------------
   CASE( "99", "Done" );
