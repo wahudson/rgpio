@@ -14,6 +14,9 @@ OTP register and bit definitions
 vcgencmd  documentation
     https://www.raspberrypi.org/documentation/raspbian/applications/vcgencmd.md
 
+Peripheral Addresses
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/peripheral_addresses.md
+
 ----------------------------------------------------------------------------
 ## Discussion - RPi Revision
 ----------------------------------------------------------------------------
@@ -451,7 +454,7 @@ Field Naming:
 	Processor_4
 
 SOC Enum type name:
- >  enum rgRpiRev::Soc_enum {...}	choosen name
+ >  enum rgRpiRev::Soc_enum {...}	chosen name
 
     Want the enum embedded in a parent class to help clarify what it belongs
     to, even though the qualified name is much longer.
@@ -501,6 +504,14 @@ rgRpiRev_Soc {
     Soc_enum		WordVal;	// SOC enum value
     ...
 }
+
+    Possibilities for rgRpiRev_Soc class:
+ >  A) Inherit from rgWord and replace (hide) get() and put().  Note in
+	adding the FailDerive flag also needed to replace mark_final() and
+	clear_final().  Initially did this.
+    B) Make rgWord be a template, would benefit only the get() and put()
+	functions.
+    C) Define without inheritance.  Probably simpler overall.
 
 ----------------------------------------------------------------------------
 ## rgRpiRev_Code  Register Class

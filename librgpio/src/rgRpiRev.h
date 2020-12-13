@@ -102,6 +102,11 @@ class rgRpiRev {
 	Soc_enum	find();		// find/return SocEnum
 
 	bool		is_fail()	{ return FailDerive; }
+
+				// these hide rgWord functions of the same name
+	Soc_enum	get()		{ return  (Soc_enum) WordVal; }
+	void		put( Soc_enum v );
+
 	void		mark_final()	{ Final = 1;  FailDerive = 0; }
 	void		clear_final()	{ Final = 0;  FailDerive = 0; }
     };

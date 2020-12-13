@@ -137,6 +137,38 @@ rgRpiRev::rgRpiRev()
 }
 
 //--------------------------------------------------------------------------
+// rgRpiRev_Soc  class functions.
+//--------------------------------------------------------------------------
+// These override rgWord functions accessing (uint32_t WordVal).
+// Alternative is to make rgWord a template class.
+
+/*
+* Put WordVal
+*    Range check here ensures that WordVal can never be invalid on get().
+*    Clears FailDerive flag.
+* call:
+*    put( soc );
+*    soc = soc enum
+* exceptions:
+*    std::runtime_error
+*/
+void
+rgRpiRev::rgRpiRev_Soc::put(
+    rgRpiRev::Soc_enum	soc
+)
+{
+    if (!( (0 <= soc) && (soc <= soc_MaxEnum) )) {
+	std::ostringstream      css;
+	css << "rgRpiRev::rgRpiRev_Soc::put() enum out of range:  " << soc;
+	throw std::runtime_error ( css.str() );
+    }
+
+    WordVal    = soc;	// promote to uint32_t by assignment
+    FailDerive = 0;
+}
+
+
+//--------------------------------------------------------------------------
 // rgRpiRev_Code - read revision code functions.
 //--------------------------------------------------------------------------
 
@@ -285,11 +317,13 @@ rgRpiRev_Code::find()
 *    Normally return cached enum.
 *    If not final, then derive enum from RevCode.
 *    If derivation failed, then leave enum unchanged and mark final.
-*    User must check is_fail() to determin if result is valid.
+*    User must check is_fail() to determine if result is valid.
 * call:
 *    find();
 * return:
 *    ()  = SOC chip id enum
+* exceptions:
+*    std::runtime_error
 */
 rgRpiRev::Soc_enum
 rgRpiRev::rgRpiRev_Soc::find()
@@ -299,8 +333,7 @@ rgRpiRev::rgRpiRev_Soc::find()
     uint32_t		num;			// chip number
 
     if ( Final ) {
-//	return  WordVal;
-	return  soc;	//#!!
+	return  get();
     }
 
     Final = 1;
@@ -313,18 +346,22 @@ rgRpiRev::rgRpiRev_Soc::find()
 
 	if ( num < rgRpiRev::soc_MaxEnum ) {
 	    soc  = (rgRpiRev::Soc_enum) num;	// cast to enum
-	    WordVal = soc;
+	    put( soc );
 	    FailDerive = 0;	// not failed
 	}
 	else {
 	    std::ostringstream      css;
-	    css << "rgRpiRev_Code::get_ChipNumber_4() out of range:  " << num;
-	    throw std::range_error ( css.str() );
+	    css << "rgRpiRev_Soc::find() ChipNumber has no enum:  " << num;
+	    throw std::runtime_error ( css.str() );
 	}
     }
+    else {
+	std::ostringstream      css;
+	css << "rgRpiRev_Soc::find() RevCode failed";
+	throw std::runtime_error ( css.str() );
+    }
 
-//    return  WordVal;
-    return  soc;	//#!!
+    return  get();
 }
 
 
@@ -337,6 +374,8 @@ rgRpiRev::rgRpiRev_Soc::find()
 *    find();
 * return:
 *    ()  = real base address, null if derivation failed
+* exceptions:
+*    std::runtime_error
 */
 uint32_t
 rgRpiRev::rgRpiRev_Base::find()
@@ -353,7 +392,7 @@ rgRpiRev::rgRpiRev_Base::find()
 	if ( SocEnum_ptr->is_fail() ) {
 	    std::ostringstream      css;
 	    css << "rgRpiRev_Base::find() derive SocEnum failed";
-	    throw std::range_error ( css.str() );
+	    throw std::runtime_error ( css.str() );
 	}
 	else {
 	    switch ( soc ) {
