@@ -328,7 +328,7 @@ rgRpiRev_Code::find()
 rgRpiRev::Soc_enum
 rgRpiRev::rgRpiRev_Soc::find()
 {
-    Soc_enum		soc = soc_BCM2837;	// default RPi3 ??
+    Soc_enum		soc;
     uint32_t		code;			// revision code
     uint32_t		num;			// chip number
 
@@ -344,12 +344,11 @@ rgRpiRev::rgRpiRev_Soc::find()
     if ( code ) {
 	num = RevCode_ptr->get_ChipNumber_4();
 
-	if ( num < rgRpiRev::soc_MaxEnum ) {
-	    soc  = (rgRpiRev::Soc_enum) num;	// cast to enum
-	    put( soc );
-	    FailDerive = 0;	// not failed
+	try {
+	    soc = rgRpiRev::int2soc_enum( num );
+	    put( soc );		// and clear FailDerive
 	}
-	else {
+	catch (...) {
 	    std::ostringstream      css;
 	    css << "rgRpiRev_Soc::find() ChipNumber has no enum:  " << num;
 	    throw std::runtime_error ( css.str() );
