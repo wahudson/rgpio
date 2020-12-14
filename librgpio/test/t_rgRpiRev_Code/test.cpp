@@ -181,7 +181,7 @@ rgRpiRev_Code		Tx;		// test object
 	FAIL( "no throw" );
     }
     catch ( std::runtime_error e ) {
-	CHECK( "read_rev_code() unexpected trailing char:   a22082y", e.what());
+	CHECK( "read_rev_code() bad line:  'Revision  : a22082y'", e.what() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -196,8 +196,8 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.read_rev_code( &iss );
 	FAIL( "no throw" );
     }
-    catch ( std::invalid_argument e ) {
-	CHECK( "stoul", e.what() );	//#!! kind of useless
+    catch ( std::runtime_error e ) {
+	CHECK( "read_rev_code() bad line:  'Revision  : '", e.what() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -212,8 +212,10 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.read_rev_code( &iss );
 	FAIL( "no throw" );
     }
-    catch ( std::out_of_range e ) {
-	CHECK( "stoul", e.what() );	//#!! kind of useless
+    catch ( std::runtime_error e ) {
+	CHECK( "read_rev_code() bad line:  'Revision  : 0xffffffff7654321099'",
+	    e.what()
+	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );

@@ -193,7 +193,7 @@ rgRpiRev_Code::read_rev_code(
 )
 {
     uint32_t		revcode = 0;	// return value if not found
-    std::string		stc;
+    std::string		stln;
     size_t		ii;
 
     while ( ! istm->eof() )
@@ -203,29 +203,34 @@ rgRpiRev_Code::read_rev_code(
 	    continue;		// start of a line
 	}
 
-	std::getline( *istm, stc );		// discarding new-line
+	std::getline( *istm, stln );		// discarding new-line
 
-	if ( 0 != stc.compare( 0, 7, "evision" ) ) { continue; }
-//	cout << stc <<endl;
+	if ( 0 != stln.compare( 0, 7, "evision" ) ) { continue; }
+//	cout << stln <<endl;
 
-	ii = stc.find_first_of( ':' );		// index of colon
+	ii = stln.find_first_of( ':' );		// index of colon
 	if ( ii == string::npos ) { continue; }	// no colon
-//	cout << "find ii= " << ii <<endl;
 	// Not validating white-space before the colon.
 
-	stc.erase( 0, ii+1 );
-//	cout << "+ erased=" << stc << "=" <<endl;
+	string		stnu  (stln, ii+1);	// construct substring
+//	cout << "+ stnu="<< stnu << "=" <<endl;
 
-	revcode = std::stoul( stc, &ii, 16 );	// may throw
-	//#!! try {} catch
-
-	if ( stc[ii] != 0 ) {		// not end of string
+	try {
+	    revcode = std::stoul( stnu, &ii, 16 );	// may throw
+	}
+	catch (...) {
 	    revcode = 0;
+	}
+
+	if ( ii != stnu.length() ) {		// not end of string
+	    revcode = 0;
+	}
+
+	if ( ! revcode ) {
 	    std::ostringstream		css;
-	    css << "read_rev_code() unexpected trailing char:  " << stc;
+	    css << "read_rev_code() bad line:  'R" << stln << "'";
 	    throw std::runtime_error ( css.str() );
 	}
-	//#!! should we care here?
 
 	break;
     }
