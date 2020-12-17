@@ -35,8 +35,7 @@ using namespace std;
 /*
 * Convert address in "BCM2835 ARM Peripherals" datasheet to RPi.
 *    Range check for added safety.
-*    Currently only for RPi3.
-*    Review code when #defines change.
+*    Uses object BaseAddr, expected to be correct for the running RPi.
 */
 uint32_t
 rgAddrMap::bcm2rpi_addr(
@@ -54,7 +53,13 @@ rgAddrMap::bcm2rpi_addr(
 	throw std::range_error ( css.str() );
     }
 
-    return  (bcm_addr - BCM2835_IO_PERI + BCM2708_PERI_BASE);
+    if ( (BaseAddr == 0) && (! FakeMem) ) {	// using a null address
+	std::ostringstream	css;
+	css << "rgAddrMap::BaseAddr is null and not FakeMem";
+	throw std::runtime_error ( css.str() );
+    }
+
+    return  (bcm_addr - BCM2835_IO_PERI + BaseAddr);
 }
 
 
@@ -70,6 +75,7 @@ rgAddrMap::rgAddrMap()
     ModeStr = NULL;
 //  Prot    = PROT_READ | PROT_WRITE;
     Debug   = 0;
+    BaseAddr  = BCM2708_PERI_BASE;
 }
 
 
@@ -90,6 +96,25 @@ rgAddrMap::text_debug()
 	<< "  FakeMem= "  << FakeMem;
 
     return css.str();
+}
+
+
+/*
+* Configure real IO base address.
+*    The value set should correspond to the RPi version being run.
+*    A null value, meaning not on a RPi, will fall-back to fake memory.
+*    Default BaseAddr is defined in the constructor.
+*    Intended to be called only once, before any memory is mapped.
+* call:
+*    config_BaseAddr( 0x20000000 )
+*/
+void
+rgAddrMap::config_BaseAddr( uint32_t  addr )
+{
+    if ( ! addr ) {
+	FakeMem = 1;
+    }
+    BaseAddr = addr;
 }
 
 

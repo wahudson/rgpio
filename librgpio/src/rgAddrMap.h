@@ -26,7 +26,7 @@ class rgAddrMap {
     bool		Debug;		// debug trace on stderr
 
     volatile uint32_t	FakeBlock[4096];
-
+    uint32_t		BaseAddr;	// real IO base address
 
   public:
     rgAddrMap();			// constructor
@@ -37,6 +37,9 @@ class rgAddrMap {
 
     inline void		config_Debug(    bool v ) { Debug = v; };
     void		config_FakeNoPi( bool v );
+
+    void		config_BaseAddr( uint32_t v );
+    uint32_t		config_BaseAddr()		{ return  BaseAddr; }
 
     void		open_dev_file(
 	const char*		file,

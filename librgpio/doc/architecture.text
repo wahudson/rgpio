@@ -735,6 +735,136 @@ Generic Field accessors - Error Check
 
 
 ----------------------------------------------------------------------------
+## Usage Model - rgAddrMap and Feature Object
+----------------------------------------------------------------------------
+    Looking at how the objects are constructed and used.
+
+Current use model:  (2020-12-14)
+    The rgAddrMap object is constructed, configured, and device file opened.
+    Then its address is passed to the Feature object constructor.
+
+	rgAddrMap		Amx;		// Address map
+	Amx.config_FakeNoPi( 1 );
+	Amx.open_dev_mem();
+	rgPwm			Px  ( &Amx );	// Feature constructor
+
+    The rgAddrMap is initialized to defaults on construction, which can
+    then be modified.  The Feature object is initialized on construction.
+    This has worked quite well.
+
+RPi Versions:  (e.g. RPi3, RPi4, etc)
+    The two primary values needed are:
+	BaseAddr  = IO base address, changes with RPi version.  Used mainly
+			by rgAddrMap.
+	SocEnum   = Chip identification - Use to switch on Feature differences.
+			Used by the Feature classes.
+
+    The rgRpiRev class has been designed to provide these values as global data
+    derived from the RPi Revision code in the "/proc/cpuinfo" file.
+    The user can also override the values with data from another source.
+
+    How should these get conveyed?
+
+rgAddrMap BaseAddr configuration:
+
+    A) Let rgAddrMap access global data in  rgRpiRev::Config.BaseAddr
+	The rgAddrMap function calls the find() accessor to get the value.
+	Any user config is applied to rgRpiRev before rgAddrMap construction.
+	    rgRpiRev::Config.BaseAddr.put( 0x20000000 );
+	    rgRpiRev::Config.BaseAddr.mark_final();
+	    rgAddrMap		Amx;		// Address map constructor
+
+	+ Both rgAddrMap and the Feature object are used as before.
+	+ Provides auto derivation by default.
+	- The relationship is not obvious at the user call point - other than
+		it is global data being configured.
+	- rgAddrMap depends on rgRpiRev
+	+ Derivation time is at rgAddrMap construction.
+	+ Parallel use of global data in Feature objects.
+
+ >  B) User explicitly transfers the address (to override default).
+	    base = rgRpiRev::Config.BaseAddr.find();
+	    Amx.config_BaseAddr( base );
+	+ Now it is clear that rgAddrMap is being configured.
+	+ No dependency on rgRpiRev.
+	- Extra step to override default or auto-derive.
+	- Base address is exposed to possible accident.
+	+ Derivation time is at explicit user find() call.
+	+ Simplest to implement.
+	Possibly implement as:
+	    Amx.config_BaseAddr( rgRpiRev::get_BaseAddr() );
+
+    C) Pass rgRpiRev object to rgAddrMap.
+	    rgRpiRev		Rpi;			// Rpi revision
+	    Rpi.Config.BaseAddr.put( 0x20000000 );	// config as needed
+	    ...
+	    rgAddrMap		Amx ( &Rpi );		// Address map
+	+ Very clear relationship.
+	- Somewhat misleading to pass an object to use global data.
+	+ Could use object data instead of global data.
+	- rgAddrMap depends on rgRpiRev
+
+    D) Derive another class from rgAddrMap that has dependency on rgRpiRev.
+	This new rgAddrMapBB could have all the BaseAddr configuration,
+	and its address passed to existing Feature objects.
+	Note the Feature could still take a pointer to the base rgAddrMap.
+	    rgAddrMapBB			Amx;		// new address map
+	    Amx.config_BaseAddr( 0x20000000 );		// config as needed
+	    Amx.config_FakeNoPi( 1 );
+	    Amx.open_dev_mem();
+	    rgPwm			Px( &Amx );	// Feature
+	Possibly pass rgRpiRev to rgAddrMapBB constructor.
+	+ Very clear relationship.
+	+ Base rgAddrMap has no dependency on rgRpiRev.
+	+ User can similarly derive his own class with different derivation.
+	- Another class, and more complexity.
+	- Derivation time after rgAddrMap construction.
+
+    I like (B) as easiest way to get started and has good qualities.
+    Maybe find way to simplify auto-derivation for the user.
+    Maybe evolve rgAddrMap to use global rgRpiRev as in (A).
+
+Feature SocEnum configuration:
+    Note the Soc_enums are defined in rgRpiRev.
+
+ >  A) Let Feature access global data in  rgRpiRev::Config.SocEnum
+	+ Simple access to global data.
+	- Relationship to global data not obvious.
+	+ Must use enum from rgRpiRev anyway.
+	- Creates dependency on rgRpiRev.
+
+    B) Feature constructor take an additional argument.
+	-- Do not want to configure each feature.
+
+    C) Feature object has a configuration function.
+	-- Do not want to configure each feature.
+
+    D) SocEnum passed to Feature via rgAddrMap.
+	+ No extra argument to constructor.
+	- rgAddrMap carries data it does not really use.
+
+    Global data seems to be the best solution.
+
+ >  Think of rgRpiRev as the place where this global data is stored for
+    this library.  It also has methods for deriving the data, but they
+    are not required.
+
+ >  Note user code must also switch on SocEnum, and should probably use the
+    same global data.  e.g.
+
+	switch ( rgRpiRev::get_SocEnum() ) {
+	case  rgRpiRev::soc_BCM2835:
+	    ...
+	case  rgRpiRev::soc_BCM2711:
+	    ...
+	}
+
+Timing of rgRpiRev auto-derivation:
+    Could defer until Feature object is constructed, but may be awkward to
+    catch exceptions there.
+    Generally want at rgAddrMap construction or earlier.
+
+----------------------------------------------------------------------------
 ## Object Structure
 ----------------------------------------------------------------------------
 

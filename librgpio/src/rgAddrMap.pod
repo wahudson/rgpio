@@ -19,6 +19,9 @@ rgAddrMap class -- GPIO Address Map
     void                config_Debug(    bool v );
     void                config_FakeNoPi( bool v );
 
+    void                config_BaseAddr( uint32_t v );
+    uint32_t            config_BaseAddr();
+
 =head2			Device File
 
     void                open_dev_mem();
@@ -79,6 +82,9 @@ open device file function.
 The constructor takes no arguments.  It creates an object with no device
 file open.
 
+The config_*() functions are intended to be called once before the device
+file is opened.
+
 =over
 
 =item config_Debug()
@@ -94,6 +100,18 @@ Configure fall-back action when not on a Raspberry Pi:  1= fake memory with
 a warning, 0= throw error.
 Applies only when a real file is opened, i.e. open_dev_mem(), or
 open_dev_gpiomem().
+
+=item config_BaseAddr()		get/set real IO BaseAddr
+
+Call with no argument to return the current BaseAddr.
+Call with an argument to configure the real IO base address to be used.
+A null address will cause a fake memory block to be used regardless of the
+device file opened.
+Addresses for existing Raspberry Pi versions are:
+
+ 0x20000000  RPi1,
+ 0x3f000000  RPi2,3
+ 0xfe000000  RPi4
 
 =back
 
@@ -187,6 +205,7 @@ This is the full sequence of operations.
  // Configure, if needed.
     amx.config_Debug( 1 );
     amx.config_FakeNoPi( 0 );
+    amx.config_BaseAddr( 0x20000000 );
 
  // Open device file.
     amx.open_dev_mem();
