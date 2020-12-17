@@ -1,6 +1,14 @@
 // 2017-06-01  William A. Hudson
 //
 // Testing:  rgAddrMap  rGPIO Address Map class for Raspberry Pi.
+//    10-17  Constructor, is_fake_mem(), config_BaseAddr()
+//    18-19  bcm2rpi_addr()  address conversion
+//    20-29  open_dev_file()
+//    30-39  open_fake_mem()
+//    40-49  open_dev_gpiomem()
+//    50-59  open_dev_mem()
+//    60-69  get_mem_block() Fake memory
+//    70-79  get_mem_block() Cache
 // Env:  TESTONRPI  set when on an RPi.
 // Run tests as a normal user.
 //--------------------------------------------------------------------------
@@ -17,6 +25,10 @@ using namespace std;
 
 int main()
 {
+
+//--------------------------------------------------------------------------
+//## Constructor, is_fake_mem(), config_BaseAddr()
+//--------------------------------------------------------------------------
 
   CASE( "10", "constructor" );
     try {
@@ -37,6 +49,31 @@ int main()
 	CHECK( 0,
 	    bx.is_fake_mem()
 	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "12a", "config_BaseAddr() default" );
+    try {
+	rgAddrMap		bx;
+	CHECKX( 0x3f000000, bx.config_BaseAddr() );	// default
+	bx.config_BaseAddr( 0xfe000000 );
+	CHECKX( 0xfe000000, bx.config_BaseAddr() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "12b", "config_BaseAddr() null" );
+    try {
+	rgAddrMap		bx;
+	CHECKX( 0x3f000000, bx.config_BaseAddr() );	// default
+	CHECK(  0,          bx.is_fake_mem() );
+	bx.config_BaseAddr( 0x00000000 );
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  1,          bx.is_fake_mem() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -105,6 +142,19 @@ int main()
 	       "    not in 'BCM2835 ARM Peripherals' IO space",
 	    e.what()
 	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "19a", "bcm2rpi_addr()" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x00000000 );
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  1,          bx.is_fake_mem() );
+	CHECKX( 0x00200000, bx.bcm2rpi_addr( 0x7e200000 ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
