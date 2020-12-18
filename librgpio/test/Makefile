@@ -12,9 +12,12 @@ test:
 	cd t_rgFselPin        && make test
 	cd t_rgIic            && make test
 	cd t_rgIoPins         && make test
-	cd t_rgPwm            && make test
 	cd t_rgPudPin         && make test
+	cd t_rgPwm            && make test
 	cd t_rgRegister       && make test
+	cd t_rgRpiRev_Code    && make test
+	cd t_rgRpiRev_Word    && make test
+	cd t_rgRpiRev_a       && make test
 	cd t_rgSpi0           && make test
 	cd t_rgSysTimer       && make test
 	cd t_rgUniSpi         && make test
@@ -35,9 +38,12 @@ clean:
 	cd t_rgFselPin        && make clean
 	cd t_rgIic            && make clean
 	cd t_rgIoPins         && make clean
-	cd t_rgPwm            && make clean
 	cd t_rgPudPin         && make clean
+	cd t_rgPwm            && make clean
 	cd t_rgRegister       && make clean
+	cd t_rgRpiRev_Code    && make clean
+	cd t_rgRpiRev_Word    && make clean
+	cd t_rgRpiRev_a       && make clean
 	cd t_rgSpi0           && make clean
 	cd t_rgSysTimer       && make clean
 	cd t_rgUniSpi         && make clean
