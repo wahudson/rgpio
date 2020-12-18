@@ -295,11 +295,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK( "/dev/null", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
-	Tx.find();
-	FAIL( "no throw" );
-    }
-    catch ( std::runtime_error e ) {
-	CHECK( "Extract Revision failed from file:  /dev/null", e.what() );
+	CHECKX( 0x00000000, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00000000, Tx.get() );
     }
@@ -326,11 +322,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK( "ref/no_rev.in", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
-	Tx.find();
-	FAIL( "no throw" );
-    }
-    catch ( std::runtime_error e ) {
-	CHECK( "Extract Revision failed from file:  ref/no_rev.in", e.what() );
+	CHECKX( 0x00000000, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00000000, Tx.get() );
     }
