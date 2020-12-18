@@ -265,7 +265,7 @@ rgRpiRev		Tx;		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "33", "Config.SocEnum.find() failed" );
+  CASE( "33", "Config.SocEnum.find() with RevCode failure" );
     try {
 	rgRpiRev::Config.RevCode.put( 0x00000000 );	// failed
 	rgRpiRev::Config.RevCode.mark_final();
@@ -274,11 +274,8 @@ rgRpiRev		Tx;		// test object
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Config.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_final() );
-	rgRpiRev::Config.SocEnum.find();
-	FAIL( "no throw" );
-    }
-    catch ( runtime_error& e ) {
-	CHECK( "rgRpiRev_Soc::find() RevCode failed", e.what() );
+	//
+	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Config.SocEnum.find() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Config.SocEnum.get() );
@@ -289,7 +286,7 @@ rgRpiRev		Tx;		// test object
 
   CASE( "34", "Config.SocEnum.find() chip number not enum" );
     try {
-	rgRpiRev::Config.RevCode.put( 0x00a2f082 );	// RPi3
+	rgRpiRev::Config.RevCode.put( 0x00a2f082 );	// RPi3, ChipNumber=15
 	rgRpiRev::Config.RevCode.mark_final();
 	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Config.SocEnum.clear_final();
@@ -453,7 +450,7 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------
-  CASE( "53a", "Setup SocEnum failed" );
+  CASE( "53a", "Setup SocEnum as failed" );
     try {
 	rgRpiRev::Config.RevCode.put( 0x00000000 );	// failed
 	rgRpiRev::Config.RevCode.mark_final();
@@ -462,11 +459,8 @@ rgRpiRev		Tx;		// test object
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Config.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_final() );
-	rgRpiRev::Config.SocEnum.find();
-	FAIL( "no throw" );
-    }
-    catch ( runtime_error& e ) {
-	CHECK( "rgRpiRev_Soc::find() RevCode failed", e.what() );
+	//
+	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Config.SocEnum.find() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Config.SocEnum.get() );
@@ -475,7 +469,7 @@ rgRpiRev		Tx;		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "53b", "Config.BaseAddr.find() failure" );
+  CASE( "53b", "Config.BaseAddr.find() with SocEnum failure" );
     try {
 	rgRpiRev::Config.BaseAddr.put( 0x77777777 );
 	rgRpiRev::Config.BaseAddr.clear_final();
@@ -484,16 +478,13 @@ rgRpiRev		Tx;		// test object
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECKX( 0x77777777,           rgRpiRev::Config.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Config.BaseAddr.is_final() );
-	rgRpiRev::Config.BaseAddr.find();
-	FAIL( "no throw" );
-    }
-    catch ( runtime_error& e ) {
-	CHECK( "rgRpiRev_Base::find() derive SocEnum failed", e.what() );
-	CHECKX( 0x00000000,           rgRpiRev::Config.BaseAddr.get() );
+	//
+	CHECKX( 0x00000000,           rgRpiRev::Config.BaseAddr.find() );
 	CHECK(  1,                    rgRpiRev::Config.BaseAddr.is_final() );
-	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Config.SocEnum.get() );
+	CHECKX( 0x00000000,           rgRpiRev::Config.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Config.SocEnum.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
