@@ -176,6 +176,7 @@ rgRpiRev::rgRpiRev_Soc::put(
 * Read stream for RPi cpuinfo and return Revision Code word.
 *    Match regular expression:  ^Revision.*:\s*[hex]$
 *    where [hex] is a valid hex number string according to stoul().
+*    A zero return value indicates not an RPi.  Errors throw exception.
 * Typical revision line looks like:
 *    Revision        : a22082
 *    Revision\t: a22082
@@ -183,9 +184,9 @@ rgRpiRev::rgRpiRev_Soc::put(
 *    read_rev_code( &istm );
 *    istm  = input file stream
 * return:
-*    ()  = revision code, 0= failure
+*    ()  = revision code, 0= non-RPi, Revision line not found
 * exceptions:
-*    std::runtime_error
+*    std::runtime_error		Errors in Revision line format.
 */
 uint32_t
 rgRpiRev_Code::read_rev_code(
@@ -245,7 +246,7 @@ rgRpiRev_Code::read_rev_code(
 *    read_rev_code();
 *    ifile  = input file name
 * return:
-*    ()  = revision code, 0= failure
+*    ()  = revision code, 0= non-RPi, Revision line not found
 * exceptions:
 *    std::runtime_error
 */
@@ -287,9 +288,9 @@ rgRpiRev_Code::read_rev_code(
 * call:
 *    find();
 * return:
-*    ()  = revision code, null if derivation failed
+*    ()  = revision code, null if non-RPi or derivation error
 * exceptions:
-*    std::runtime_error
+*    std::runtime_error		Error in derivation
 */
 uint32_t
 rgRpiRev_Code::find()
@@ -303,14 +304,7 @@ rgRpiRev_Code::find()
 	code = read_rev_code( InFile );		// may throw exception
 //	cout << "find:  " << code <<endl;
 
-	if ( code ) {
-	    WordVal = code;
-	}
-	else {
-	    std::ostringstream      css;
-	    css << "Extract Revision failed from file:  " << InFile;
-	    throw std::runtime_error ( css.str() );
-	}
+	WordVal = code;
     }
 
     return  WordVal;
@@ -327,8 +321,9 @@ rgRpiRev_Code::find()
 *    find();
 * return:
 *    ()  = SOC chip id enum
+*    FailDerive :  0= all OK, 1= non-RPi or derivation error
 * exceptions:
-*    std::runtime_error
+*    std::runtime_error		Error in derivation
 */
 rgRpiRev::Soc_enum
 rgRpiRev::rgRpiRev_Soc::find()
@@ -359,11 +354,7 @@ rgRpiRev::rgRpiRev_Soc::find()
 	    throw std::runtime_error ( css.str() );
 	}
     }
-    else {
-	std::ostringstream      css;
-	css << "rgRpiRev_Soc::find() RevCode failed";
-	throw std::runtime_error ( css.str() );
-    }
+    // otherwise no change to enum
 
     return  get();
 }
@@ -377,9 +368,9 @@ rgRpiRev::rgRpiRev_Soc::find()
 * call:
 *    find();
 * return:
-*    ()  = real base address, null if derivation failed
+*    ()  = real base address, null if non-RPi or derivation error
 * exceptions:
-*    std::runtime_error
+*    std::runtime_error		Error in derivation
 */
 uint32_t
 rgRpiRev::rgRpiRev_Base::find()
@@ -393,12 +384,7 @@ rgRpiRev::rgRpiRev_Base::find()
 
 	soc   = SocEnum_ptr->find();		// may throw exception
 
-	if ( SocEnum_ptr->is_fail() ) {
-	    std::ostringstream      css;
-	    css << "rgRpiRev_Base::find() derive SocEnum failed";
-	    throw std::runtime_error ( css.str() );
-	}
-	else {
+	if ( ! SocEnum_ptr->is_fail() ) {
 	    switch ( soc ) {
 	    case  soc_BCM2835:
 		    addr = 0x20000000;

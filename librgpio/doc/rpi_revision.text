@@ -188,6 +188,28 @@ Exceptions:
     like BaseAddr depends on it.  The error flag/message idea was explored on
     initial implementation, and did not seem worth the effort.  (2020-12-10)
 
+    Modifed slightly so non-RPi machine is not an error, below.  (2020-12-17)
+
+Result Outcome of Derivation:
+
+    Possible derivation outcomes are:
+
+	a) Good result on an RPi, no errors.
+	    Values are valid.
+
+	b) No result, NOT on an RPi, no errors.
+	    Values should flag not on RPi.
+
+	c) Errors in reading files or unexpected file format.
+	    Throw exceptions.
+
+    Both a) and b) are valid results and should not throw exceptions.
+    Only errors c) should throw exceptions.
+
+    The idea is to allow a user program to fall back on fake memory,
+    allowing the program to run on a non-RPi machine.  This is desired
+    behavior for the 'rgpio' command.
+
 Class Name:
 
     rgRPiRev	traditional "RPi" abbreviation
