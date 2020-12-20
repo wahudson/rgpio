@@ -424,14 +424,66 @@ rgRpiRev_Code		Tx;		// test object
 //--------------------------------------
 // Light-weight bit-field test.
 
+  CASE( "61b", "get_OverVoltageDis_1()" );
+    try {
+	Tx.put(          0xffffffff );
+	CHECKX(          0xffffffff, Tx.get() );
+	CHECK(                    1, Tx.get_OverVoltageDis_1() );
+	Tx.put_OverVoltageDis_1(  0 );
+	CHECKX(          0x7fffffff, Tx.get() );
+	CHECK(                    0, Tx.get_OverVoltageDis_1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "62b", "get_OtpWriteDis_1()" );
+    try {
+	Tx.put(          0xffffffff );
+	CHECKX(          0xffffffff, Tx.get() );
+	CHECK(                    1, Tx.get_OtpWriteDis_1() );
+	Tx.put_OtpWriteDis_1(     0 );
+	CHECKX(          0xbfffffff, Tx.get() );
+	CHECK(                    0, Tx.get_OtpWriteDis_1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "63b", "get_OtpReadDis_1()" );
+    try {
+	Tx.put(          0xffffffff );
+	CHECKX(          0xffffffff, Tx.get() );
+	CHECK(                    1, Tx.get_OtpReadDis_1() );
+	Tx.put_OtpReadDis_1(      0 );
+	CHECKX(          0xdfffffff, Tx.get() );
+	CHECK(                    0, Tx.get_OtpReadDis_1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "64b", "get_WarrantyVoid_1()" );
+    try {
+	Tx.put(          0xffffffff );
+	CHECKX(          0xffffffff, Tx.get() );
+	CHECK(                    1, Tx.get_WarrantyVoid_1() );
+	Tx.put_WarrantyVoid_1(    0 );
+	CHECKX(          0xfdffffff, Tx.get() );
+	CHECK(                    0, Tx.get_WarrantyVoid_1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
   CASE( "71b", "get_NewStyle_1()" );
     try {
 	Tx.put(          0xffffffff );
 	CHECKX(          0xffffffff, Tx.get() );
-	CHECKX(                 0x1, Tx.get_NewStyle_1() );
-	Tx.put_NewStyle_1(      0x0 );
+	CHECK(                    1, Tx.get_NewStyle_1() );
+	Tx.put_NewStyle_1(        0 );
 	CHECKX(          0xff7fffff, Tx.get() );
-	CHECKX(                 0x0, Tx.get_NewStyle_1() );
+	CHECK(                    0, Tx.get_NewStyle_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -441,10 +493,10 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.put(          0xffffffff );
 	CHECKX(          0xffffffff, Tx.get() );
-	CHECKX(                 0x7, Tx.get_MemSize_3() );
-	Tx.put_MemSize_3(       0x0 );
+	CHECK(                    7, Tx.get_MemSize_3() );
+	Tx.put_MemSize_3(         0 );
 	CHECKX(          0xff8fffff, Tx.get() );
-	CHECKX(                 0x0, Tx.get_MemSize_3() );
+	CHECK(                    0, Tx.get_MemSize_3() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -471,6 +523,32 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.put_ChipNumber_4(    0x0 );
 	CHECKX(          0xffff0fff, Tx.get() );
 	CHECKX(          0x00000000, Tx.get_ChipNumber_4() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "75b", "get_BoardType_8()" );
+    try {
+	Tx.put(          0xffffffff );
+	CHECKX(          0xffffffff, Tx.get() );
+	CHECKX(                0xff, Tx.get_BoardType_8() );
+	Tx.put_BoardType_8(    0x00 );
+	CHECKX(          0xfffff00f, Tx.get() );
+	CHECKX(                0x00, Tx.get_BoardType_8() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "76b", "get_BoardRev_4()" );
+    try {
+	Tx.put(          0xffffffff );
+	CHECKX(          0xffffffff, Tx.get() );
+	CHECKX(                 0xf, Tx.get_BoardRev_4() );
+	Tx.put_BoardRev_4(      0x0 );
+	CHECKX(          0xfffffff0, Tx.get() );
+	CHECKX(                 0x0, Tx.get_BoardRev_4() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

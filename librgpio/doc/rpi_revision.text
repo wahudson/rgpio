@@ -456,7 +456,7 @@ Field Names:  (from Raspberry Pi revision codes)
 
 Abbreviations appropriate for this context are:
 	Rev   Revision
-	Dis   Disable
+	Dis   Disallowed
 	Otp   One Time Programmable memory
 	Mfg   Manufacturer
 

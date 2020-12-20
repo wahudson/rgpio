@@ -58,6 +58,18 @@ class rgRpiRev_Code : public rgWord {
 
   public:				// field access
 
+    uint32_t	get_OverVoltageDis_1()    { return  get_field( 31, 0x1    ); }
+    void	put_OverVoltageDis_1( uint32_t v) { put_field( 31, 0x1, v ); }
+
+    uint32_t	get_OtpWriteDis_1()       { return  get_field( 30, 0x1    ); }
+    void	put_OtpWriteDis_1( uint32_t v )   { put_field( 30, 0x1, v ); }
+
+    uint32_t	get_OtpReadDis_1()        { return  get_field( 29, 0x1    ); }
+    void	put_OtpReadDis_1( uint32_t v )    { put_field( 29, 0x1, v ); }
+
+    uint32_t	get_WarrantyVoid_1()      { return  get_field( 25, 0x1    ); }
+    void	put_WarrantyVoid_1( uint32_t v )  { put_field( 25, 0x1, v ); }
+
     uint32_t	get_NewStyle_1()          { return  get_field( 23, 0x1    ); }
     void	put_NewStyle_1( uint32_t v )      { put_field( 23, 0x1, v ); }
 
@@ -69,6 +81,12 @@ class rgRpiRev_Code : public rgWord {
 
     uint32_t	get_ChipNumber_4()        { return  get_field( 12, 0xf    ); }
     void	put_ChipNumber_4( uint32_t v )    { put_field( 12, 0xf, v ); }
+
+    uint32_t	get_BoardType_8()         { return  get_field(  4, 0xff    ); }
+    void	put_BoardType_8( uint32_t v )     { put_field(  4, 0xff, v ); }
+
+    uint32_t	get_BoardRev_4()          { return  get_field(  0, 0xf    ); }
+    void	put_BoardRev_4( uint32_t v )      { put_field(  0, 0xf, v ); }
 
   public:	// mostly internal use
     uint32_t		read_rev_code( const char*	ifile );
