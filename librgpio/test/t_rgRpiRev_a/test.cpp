@@ -565,8 +565,32 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------
+  CASE( "65a", "get_SocEnum() good file" );
+    try {
+	rgRpiRev::Config.SocEnum.clear_final();
+	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::get_SocEnum() );
+	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "65b", "get_SocEnumind() second" );
+    try {
+	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::get_SocEnum() );
+	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
 // Ripple thru all
-  CASE( "64a", "BaseAddr.find() good file" );
+  CASE( "67a", "BaseAddr.find() good file" );
     try {
 	rgRpiRev::Config.RevCode.init_file( "ref/rpi3.in" );
 	rgRpiRev::Config.RevCode.clear_final();
@@ -597,7 +621,7 @@ rgRpiRev		Tx;		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "64b", "find() second" );
+  CASE( "67b", "find() second" );
     try {
 	CHECK(  1,            rgRpiRev::Config.BaseAddr.is_final() );
 	CHECKX( 0x3f000000,   rgRpiRev::Config.BaseAddr.find() );  // action

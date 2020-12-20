@@ -150,9 +150,12 @@ class rgRpiRev {
 
     rgRpiRev();		// constructor
 
+  public:	// preferred user level short-hand accessors
+    static Soc_enum	get_SocEnum()	{ return  Config.SocEnum.find(); }
+
   public:	// enum conversions
-    static const char*		soc_enum2cstr( Soc_enum  soc );
-    static Soc_enum		int2soc_enum(  int       num );
+    static const char*	soc_enum2cstr( Soc_enum  soc );
+    static Soc_enum	int2soc_enum(  int       num );
 };
 
 /*
