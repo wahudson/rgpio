@@ -151,7 +151,8 @@ class rgRpiRev {
     rgRpiRev();		// constructor
 
   public:	// preferred user level short-hand accessors
-    static Soc_enum	get_SocEnum()	{ return  Config.SocEnum.find(); }
+    static Soc_enum	find_SocEnum()	{ return  Config.SocEnum.find();  }
+    static uint32_t	find_BaseAddr()	{ return  Config.BaseAddr.find(); }
 
   public:	// enum conversions
     static const char*	soc_enum2cstr( Soc_enum  soc );
