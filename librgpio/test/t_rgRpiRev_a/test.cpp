@@ -114,6 +114,18 @@ rgRpiRev		Tx;		// test object
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "15", "Nested dereference rgRpiRev::Config" ); // but why would you?
+    try {
+	rgRpiRev*	rp;
+	rp = &rgRpiRev::Config;
+	CHECK(  1, (rp == &rgRpiRev::Config ) );
+	CHECK(  1, (rp == &rgRpiRev::Config.Config ) );
+	CHECK(  1, (rp == &rgRpiRev::Config.Config.Config ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
 //## rgRpiRev_Soc  get(), put()
 //--------------------------------------------------------------------------
