@@ -10,6 +10,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgVersion.h"
 
@@ -213,8 +214,21 @@ main( int	argc,
 
 	if ( Error::has_err() )  return 1;
 
+	if ( Opx.debug ) {
+	    cout.fill('0');
+	    cout <<hex
+		<< "+ rgRpiRev::Config.SocEnum  = soc_" <<
+		    rgRpiRev::soc_enum2cstr( rgRpiRev::find_SocEnum() ) <<endl
+		<< "+ rgRpiRev::Config.BaseAddr = 0x" <<setw(8) <<
+		    rgRpiRev::find_BaseAddr() <<endl
+		;
+	    cout.fill(' ');
+	    cout <<dec;
+	}
+
 	rgAddrMap		Amx;	// constructor
 
+	Amx.config_BaseAddr( rgRpiRev::find_BaseAddr() );
 	Amx.config_FakeNoPi( 1 );	// when not on RPi
 	Amx.config_Debug( Opx.debug );
 
@@ -231,6 +245,14 @@ main( int	argc,
 
 	if ( Amx.is_fake_mem() && (Opx.verbose || Opx.debug) ) {
 	    cout << "Using Fake memory" <<endl;
+	}
+
+	if ( Opx.debug ) {
+	    cout.fill('0');
+	    cout << "+ AddrMap.config_BaseAddr() = 0x" <<hex <<setw(8) <<
+		    Amx.config_BaseAddr() <<endl;
+	    cout.fill(' ');
+	    cout <<dec;
 	}
 
 	// Note:  Device file cannot be closed until each feature has
