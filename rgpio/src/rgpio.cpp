@@ -16,6 +16,7 @@ using namespace std;
 #include "y_clk.h"
 #include "y_fsel.h"
 #include "y_iic.h"
+#include "y_info.h"
 #include "y_io.h"
 #include "y_man.h"
 #include "y_pud.h"
@@ -161,6 +162,7 @@ yOptLong::print_usage()
     "    fsel         Pin Function Select\n"
     "    clk          Clock generator\n"
     "    iic          I2C Master\n"
+    "    info         RPi Revision Information\n"
     "    man          man pager\n"
     "    pud          Pin Pull-Up/Down\n"
     "    pwm          PWM Pulse Width Modulator\n"
@@ -251,6 +253,10 @@ main( int	argc,
 	else if ( Opx.feature == "iic"     ) {
 	    y_iic		icx  ( &Opx, &Amx );	// constructor
 	    retv = icx.doit();
+	}
+	else if ( Opx.feature == "info"     ) {
+	    y_info		inx  ( &Opx, &Amx );	// constructor
+	    retv = inx.doit();
 	}
 	else if ( Opx.feature == "man"     ) {
 	    y_man		fx  ( &Opx, &Amx );	// constructor

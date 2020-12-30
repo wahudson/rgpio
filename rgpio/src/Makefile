@@ -29,6 +29,7 @@ YINCS       = \
 	y_clk.h \
 	y_fsel.h \
 	y_iic.h \
+	y_info.h \
 	y_io.h \
 	y_man.h \
 	y_pud.h \
@@ -45,6 +46,7 @@ OBJS       = \
 	$(OJ)/y_clk.o \
 	$(OJ)/y_fsel.o \
 	$(OJ)/y_iic.o \
+	$(OJ)/y_info.o \
 	$(OJ)/y_io.o \
 	$(OJ)/y_man.o \
 	$(OJ)/y_pud.o \
@@ -119,6 +121,9 @@ $(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
 
 $(OJ)/y_iic.o:		y_iic.cpp  y_iic.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_iic.cpp
+
+$(OJ)/y_info.o:		y_info.cpp  y_info.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_info.cpp
 
 $(OJ)/y_io.o:		y_io.cpp  y_io.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_io.cpp

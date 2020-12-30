@@ -15,6 +15,7 @@ README			this file
 
 doc/		    Documentation
     architecture.text	Architecture description
+    io_design.text	rgpio-io  IO Pins Design
     version.text	Version log
 
 src/		    Source code
@@ -38,6 +39,8 @@ src/		    Source code
     y_fsel.h
     y_iic.cpp		rgpio iic -- I2C Master
     y_iic.h
+    y_info.cpp		rgpio info -- RPi Revision Information
+    y_info.h
     y_io.cpp		rgpio io -- IO pins
     y_io.h
     y_man.cpp		rgpio man -- manual pager
