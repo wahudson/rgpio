@@ -59,6 +59,7 @@ man:	$(MAN)/man3 \
 	$(MAN)/man3/rgClk.3 \
 	$(MAN)/man3/rgIoPins.3 \
 	$(MAN)/man3/rgPudPin.3 \
+	$(MAN)/man3/rgRpiRev.3 \
 	$(MAN)/man3/rgUniSpi.3 \
 	$(MAN)/man7 \
 	$(MAN)/man7/rgClk.7 \
@@ -158,6 +159,10 @@ $(MAN)/man3/rgIoPins.3:		rgIoPins.pod
 $(MAN)/man3/rgPudPin.3:		rgPudPin.pod
 	pod2man -s 3 -n rgPudPin  --center='librgpio Raspberry Pi GPIO' \
 	    rgPudPin.pod  $@
+
+$(MAN)/man3/rgRpiRev.3:		rgRpiRev.pod
+	pod2man -s 3 -n rgRpiRev  --center='librgpio Raspberry Pi GPIO' \
+	    rgRpiRev.pod  $@
 
 $(MAN)/man3/rgUniSpi.3:		rgUniSpi.pod
 	pod2man -s 3 -n rgUniSpi  --center='librgpio Raspberry Pi GPIO' \
