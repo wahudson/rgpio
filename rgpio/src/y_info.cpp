@@ -202,22 +202,30 @@ y_info::doit()
 
 	if ( Error::has_err() )  return 1;
 
+	rgRpiRev		Rvx;	// for local config
+	rgRpiRev*		rpx;	// pointer to global or local
+	uint32_t		code;
+	rgRpiRev::Soc_enum	soc;
+
+	rpx = &rgRpiRev::Config;	// point at global
+
 	if ( *Opx.file ) {
-	    rgRpiRev::Config.RevCode.init_file( Opx.file );
+	    rpx = &Rvx;			// point at local
+	    rpx->RevCode.init_file( Opx.file );
 	}
 
 	if ( Opx.code.Given ) {
-	    rgRpiRev::Config.RevCode.put( Opx.code.Val );
-	    rgRpiRev::Config.RevCode.mark_final();
+	    rpx = &Rvx;			// point at local
+	    rpx->RevCode.put( Opx.code.Val );
+	    rpx->RevCode.mark_final();
 	}
 
-	// reference to static data
-	rgRpiRev_Code&		Rcx = rgRpiRev::Config.RevCode;
+	rgRpiRev_Code&		Rcx = rpx->RevCode;	// reference
 
-	Rcx.find();		// check for error exception
+	code = Rcx.find();		// may throw exception
 
 	try {
-	    rgRpiRev::find_SocEnum();
+	    soc = rpx->SocEnum.find();
 	}
 	catch ( std::exception& e ) {
 	    Error::msg( "SocEnum exception:  " ) << e.what() <<endl;
@@ -226,8 +234,9 @@ y_info::doit()
 	cout << "                    bit:      28   24   20   16   12    8    4    0" << endl;
 
 	cout.fill('0');
-	cout <<hex << "  RevCode   = 0x" <<setw(8) << Rcx.find()
-	    << "    " << cstr_bits32( Rcx.find() ) <<endl;
+	cout <<hex
+	    << "  RevCode   = 0x" <<setw(8) << code << "    " <<
+				    cstr_bits32( code ) <<endl;
 
 	cout.fill(' ');
 	cout <<dec
@@ -245,17 +254,15 @@ y_info::doit()
 
 	cout.fill('0');
 	cout <<hex
-	    << "  SocEnum   = soc_" <<
-		rgRpiRev::soc_enum2cstr( rgRpiRev::find_SocEnum() )<<endl
-	    << "  BaseAddr  = 0x" <<setw(8) <<
-		rgRpiRev::find_BaseAddr() <<endl
+	    << "  SocEnum   = soc_" << rgRpiRev::soc_enum2cstr( soc ) <<endl
+	    << "  BaseAddr  = 0x"   <<setw(8) << rpx->BaseAddr.find() <<endl
 	    ;
 
 	if ( ! Opx.code.Given ) {
 	    cout << "  InFile    = " << Rcx.init_file() << endl;
 	}
 
-	if ( Rcx.find() == 0 ) {
+	if ( code == 0 ) {
 	    cout << "NOT on RPi" <<endl;
 	}
 
@@ -268,6 +275,5 @@ y_info::doit()
     }
 
     return ( Error::has_err() ? 1 : 0 );
-    //#!! return value?
 }
 
