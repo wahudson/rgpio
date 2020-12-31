@@ -1,0 +1,8 @@
+    RPi Revision Information
+usage:  rgpio info [options..]
+  decode:  (default is rgRpiRev::Config)
+    --file=/proc/cpuinfo  read revision code from file
+    --code=0x00000000     decode this revision code
+  options:
+    --help              show this usage
+  (options with GNU= only)
