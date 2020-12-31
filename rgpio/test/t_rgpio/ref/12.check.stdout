@@ -5,6 +5,7 @@ usage:  rgpio [main_options..]  feature  [options..]
     fsel         Pin Function Select
     clk          Clock generator
     iic          I2C Master
+    info         RPi Revision Information
     man          man pager
     pud          Pin Pull-Up/Down
     pwm          PWM Pulse Width Modulator

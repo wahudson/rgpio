@@ -63,7 +63,7 @@ run_test( "11b", "rgpio --verbose",
 );
 
 if ( $ENV{TESTONRPI} ) {
-  run_test( "11c", "rgpio --debug",
+  run_test( "11c", "rgpio --debug  #!! correct only on RPi3",
     "rgpio --debug",
     0,
     Stderr => q(
@@ -71,6 +71,9 @@ if ( $ENV{TESTONRPI} ) {
 	rgAddrMap:  drop  cap:  =
     ),
     Stdout => q(
+	+ rgRpiRev::Config.SocEnum  = soc_BCM2837
+	+ rgRpiRev::Config.BaseAddr = 0x3f000000
+	+ AddrMap.config_BaseAddr() = 0x3f000000
 	Do nothing.  Try 'rgpio --help'
     ),
   );
