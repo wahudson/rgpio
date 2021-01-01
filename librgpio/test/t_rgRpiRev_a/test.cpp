@@ -133,8 +133,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "21a", "Config.SocEnum.get() clear_final" );
     try {
-	rgRpiRev::Config.SocEnum.clear_final();
 	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Config.SocEnum.clear_final();
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Config.SocEnum.get() );
@@ -147,8 +147,8 @@ rgRpiRev		Tx;		// test object
 
   CASE( "21b", "Config.SocEnum.get() mark_final" );
     try {
-	rgRpiRev::Config.SocEnum.mark_final();
 	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Config.SocEnum.mark_final();
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Config.SocEnum.get() );
@@ -195,8 +195,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "22a", "SocEnum.get() clear_final" );
     try {
-	Tx.SocEnum.clear_final();
 	Tx.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	Tx.SocEnum.clear_final();
 	CHECK(  0,                    Tx.SocEnum.is_fail() );
 	CHECK(  0,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2835, Tx.SocEnum.get() );
@@ -209,8 +209,8 @@ rgRpiRev		Tx;		// test object
 
   CASE( "22b", "SocEnum.get() mark_final" );
     try {
-	Tx.SocEnum.mark_final();
 	Tx.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	Tx.SocEnum.mark_final();
 	CHECK(  0,                    Tx.SocEnum.is_fail() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, Tx.SocEnum.get() );
@@ -248,8 +248,8 @@ rgRpiRev		Tx;		// test object
 
   CASE( "31", "SocEnum.find() mark_final" );
     try {
-	Tx.SocEnum.mark_final();
 	Tx.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	Tx.SocEnum.mark_final();
 	CHECK(  0,                    Tx.SocEnum.is_fail() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, Tx.SocEnum.find() );
@@ -325,8 +325,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "41a", "Config.BaseAddr.get() clear_final" );
     try {
-	rgRpiRev::Config.BaseAddr.clear_final();
 	rgRpiRev::Config.BaseAddr.put( 0xcc33ee55 );
+	rgRpiRev::Config.BaseAddr.clear_final();
 	CHECK(  0,                    rgRpiRev::Config.BaseAddr.is_final() );
 	CHECKX( 0xcc33ee55,           rgRpiRev::Config.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Config.BaseAddr.is_final() );
@@ -337,8 +337,8 @@ rgRpiRev		Tx;		// test object
 
   CASE( "41b", "Config.BaseAddr.get() mark_final" );
     try {
-	rgRpiRev::Config.BaseAddr.mark_final();
 	rgRpiRev::Config.BaseAddr.put( 0x22222222 );
+	rgRpiRev::Config.BaseAddr.mark_final();
 	CHECK(  1,                    rgRpiRev::Config.BaseAddr.is_final() );
 	CHECKX( 0x22222222,           rgRpiRev::Config.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Config.BaseAddr.is_final() );
@@ -350,8 +350,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "42a", "Config.BaseAddr.get() clear_final" );
     try {
-	Tx.BaseAddr.clear_final();
 	Tx.BaseAddr.put( 0xcc33ee55 );
+	Tx.BaseAddr.clear_final();
 	CHECK(  0,                    Tx.BaseAddr.is_final() );
 	CHECKX( 0xcc33ee55,           Tx.BaseAddr.get() );
 	CHECK(  0,                    Tx.BaseAddr.is_final() );
@@ -362,8 +362,8 @@ rgRpiRev		Tx;		// test object
 
   CASE( "42b", "Config.BaseAddr.get() mark_final" );
     try {
-	Tx.BaseAddr.mark_final();
 	Tx.BaseAddr.put( 0x22222222 );
+	Tx.BaseAddr.mark_final();
 	CHECK(  1,                    Tx.BaseAddr.is_final() );
 	CHECKX( 0x22222222,           Tx.BaseAddr.get() );
 	CHECK(  1,                    Tx.BaseAddr.is_final() );
@@ -510,8 +510,8 @@ rgRpiRev		Tx;		// test object
   CASE( "61a", "RevCode.find() good file" );
     try {
 	rgRpiRev::Config.RevCode.init_file( "ref/rpi3.in" );
-	rgRpiRev::Config.RevCode.clear_final();
 	rgRpiRev::Config.RevCode.put( 0xffffffff );
+	rgRpiRev::Config.RevCode.clear_final();
 	CHECK( "ref/rpi3.in", rgRpiRev::Config.RevCode.init_file() );
 	CHECK(  0,            rgRpiRev::Config.RevCode.is_final() );
 	CHECKX( 0x00a22082,   rgRpiRev::Config.RevCode.find() );  // action
@@ -533,8 +533,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "62a", "SocEnum.find() good file" );
     try {
-	rgRpiRev::Config.SocEnum.clear_final();
 	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Config.SocEnum.clear_final();
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Config.SocEnum.find() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
@@ -557,8 +557,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "63a", "BaseAddr.find() good file" );
     try {
-	rgRpiRev::Config.BaseAddr.clear_final();
 	rgRpiRev::Config.BaseAddr.put( 0xffffffff );
+	rgRpiRev::Config.BaseAddr.clear_final();
 	CHECK(  0,            rgRpiRev::Config.BaseAddr.is_final() );
 	CHECKX( 0x3f000000,   rgRpiRev::Config.BaseAddr.find() );
 	CHECK(  1,            rgRpiRev::Config.BaseAddr.is_final() );
@@ -579,8 +579,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "65a", "find_SocEnum() good file" );
     try {
-	rgRpiRev::Config.SocEnum.clear_final();
 	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Config.SocEnum.clear_final();
 	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::find_SocEnum() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
@@ -603,8 +603,8 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "66a", "BaseAddr.find() good file" );
     try {
-	rgRpiRev::Config.BaseAddr.clear_final();
 	rgRpiRev::Config.BaseAddr.put( 0xffffffff );
+	rgRpiRev::Config.BaseAddr.clear_final();
 	CHECK(  0,            rgRpiRev::Config.BaseAddr.is_final() );
 	CHECKX( 0x3f000000,   rgRpiRev::find_BaseAddr() );
 	CHECK(  1,            rgRpiRev::Config.BaseAddr.is_final() );
@@ -627,12 +627,12 @@ rgRpiRev		Tx;		// test object
   CASE( "67a", "BaseAddr.find() good file" );
     try {
 	rgRpiRev::Config.RevCode.init_file( "ref/rpi3.in" );
-	rgRpiRev::Config.RevCode.clear_final();
 	rgRpiRev::Config.RevCode.put( 0xffffffff );
-	rgRpiRev::Config.SocEnum.clear_final();
+	rgRpiRev::Config.RevCode.clear_final();
 	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2835 );
-	rgRpiRev::Config.BaseAddr.clear_final();
+	rgRpiRev::Config.SocEnum.clear_final();
 	rgRpiRev::Config.BaseAddr.put( 0x77777777 );
+	rgRpiRev::Config.BaseAddr.clear_final();
 	//
 	CHECKX( 0xffffffff,           rgRpiRev::Config.RevCode.get() );
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Config.SocEnum.get() );

@@ -238,8 +238,8 @@ rgRpiRev_Code		Tx;		// test object
 
   CASE( "40", "read_rev_code() Setup" );	// should have no effect
     try {
-	Tx.clear_final();
 	Tx.put( 0xffffffff );
+	Tx.clear_final();
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
     }
@@ -290,8 +290,8 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "50a", "find() null file" );
     try {
 	Tx.init_file( "/dev/null" );
-	Tx.clear_final();
 	Tx.put( 0xffffffff );
+	Tx.clear_final();
 	CHECK( "/dev/null", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
@@ -317,8 +317,8 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "51a", "find() no revision" );
     try {
 	Tx.init_file( "ref/no_rev.in" );
-	Tx.clear_final();
 	Tx.put( 0xffffffff );
+	Tx.clear_final();
 	CHECK( "ref/no_rev.in", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
@@ -344,8 +344,8 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "52a", "find() good file" );
     try {
 	Tx.init_file( "ref/rpi3.in" );
-	Tx.clear_final();
 	Tx.put( 0xffffffff );
+	Tx.clear_final();
 	CHECK( "ref/rpi3.in", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
@@ -369,8 +369,8 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "53a", "find() file not found" );
     try {
 	Tx.init_file( "not_exist" );
-	Tx.clear_final();
 	Tx.put( 0xffffffff );
+	Tx.clear_final();
 	CHECK( "not_exist", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
