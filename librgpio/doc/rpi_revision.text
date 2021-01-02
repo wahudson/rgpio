@@ -535,6 +535,61 @@ rgRpiRev_Soc {
 	functions.
     C) Define without inheritance.  Probably simpler overall.
 
+Put WordVal and Final:  put() accessor  (2020-12-31)
+
+    Should the basic accessors keep WordVal and Final purely orthogonal,
+    or combine in a natural way?
+    Initial use of put() for configuring the register suggests that setting
+    both WordVal=v, and Final=1 would be more natural.
+
+    A) Pure orthogonal, put() sets only WordVal.
+	+ Is more typical.
+	+ Decoupled is a simpler model.
+	- User must must be more aware about the Final flag.
+	- When intent is to configure a final value, must make two operations
+	    put(v)
+	    mark_final()
+	- When only put(v) is applied, user may be surprised that find()
+	    overrode it.  This may be a hard bug to find.
+
+ >  B) put() sets Final=1 in addition.
+	+ Natural when intent is to configure a final value.
+	+ A put() operation will stick, since it marks it Final.
+	+ Model as a cached word:
+	    find() returns value, and derives it if necessary.
+	    put(v) sets value, and find() will not change it.
+	- More complex definition.
+	+ Slightly better information hiding?
+	+ Extra operation is needed to set a value that find() will override.
+	    This is not typically very useful, and is OK to require
+	    additional work from user.
+	+ Primary user view is simplified to just find() and put(v).
+	    Secondary is_final(), clear_final(), and get() are needed only
+	    for special cases, and mark_final() could be eliminated.
+	- Setting a default SocEnum value to be left unchanged if find()
+	    failed, e.g. not on an RPi, is two operations.
+		put(v)
+		clear_final()
+	+   But this also makes it more obvious that find() will override.
+	- Possible confusion with other definitions of put().
+	- Possibly leads to "belt and suspenders" behavior, where user
+	    applies mark_final() anyway.  [Unless it is removed.]
+	- Ordering of put() and clear_final() matters.
+
+    C) Same as (B), but rename put()
+ >	putf(v)      short and suggests something more than put().
+	put_find(v)  put value that find() will return
+	put_final(v)
+	put_hard(v)
+	put_soft(v)  put value, find() will override
+
+    We want naming and behavior that conveys the correct idea to the reader.
+    The person writing code probably needs to double-check definitions anyway.
+    One writer, many readers.
+    I like (B) best.  It abstracts the high-level cache concept instead of
+    just a raw value and flag.
+    Maybe rename to putf() as a hint of Final.
+
 ----------------------------------------------------------------------------
 ## rgRpiRev_Code  Register Class
 ----------------------------------------------------------------------------

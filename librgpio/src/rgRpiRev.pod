@@ -46,8 +46,8 @@ rgRpiRev class -- Raspberry Pi Revision
 
     uint32_t		find();
 
-    uint32_t		get()			{ return  WordVal; }
-    void		put( uint32_t v )	{ WordVal = v; }
+    uint32_t		get()		    { return  WordVal; }
+    void		put( uint32_t v )   { WordVal = v; Final = 1; }
 
     bool		is_final()		{ return  Final; }
     void		mark_final()		{ Final = 1; }
@@ -178,14 +178,8 @@ automatic derivation:
 They can be individually overridden by:  e.g. for RPi4
 
     RevCode.put( 0x00a03111 );
-    RevCode.mark_final();
-
     SocEnum.put( rgRpiRev::soc_BCM2711 );
-    SocEnum.mark_final();
-
     BaseAddr.put( 0xfe000000 );
-    BaseAddr.mark_final();
-
 
 =head2			Global Data
 
@@ -230,10 +224,12 @@ Note these static functions access the global B<Config>.
 
 All three registers have these basic functions, although the type for the
 B<SocEnum> register is actually B<Soc_enum>.
+The primary cache operations are B<find>() and B<put>(), while the others are
+intended for testing and inspection.
 
 =over
 
-=item REG.B<find>()
+=item REG.B<find>()	- Get/find the cached value.
 
 This is a caching accessor to get/derive the register value.
 Normally it returns cached value, if marked final.
@@ -241,11 +237,14 @@ If not final, then derive its value, and mark final.
 If derivation failed, then set value to zero (leave unchanged in the case of
 B<SocEnum>) and mark final.
 
+=item REG.B<put>( v )	- Configure the cached value.
+
+Put the value into the word cache and mark it final.  Effectively sets the
+value that B<find>() will return without derivation.
+
 =item REG.B<get>()
 
-=item REG.B<put>( v )
-
-These simple accessors read and write the word value.
+This simple accessor returns the word value.
 
 =item REG.B<is_final>()
 
@@ -373,7 +372,6 @@ where error conditions can be detected.
 
  // Configure global
     rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );
-    rgRpiRev::Config.SocEnum.mark_final();
 
  // Find/derive values
     code  = rgRpiRev::Config.RevCode.find();

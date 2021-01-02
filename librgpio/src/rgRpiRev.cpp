@@ -164,6 +164,7 @@ rgRpiRev::rgRpiRev_Soc::put(
     }
 
     WordVal    = soc;	// promote to uint32_t by assignment
+    Final      = 1;
     FailDerive = 0;
 }
 

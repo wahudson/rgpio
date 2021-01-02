@@ -24,7 +24,7 @@ class rgWord {
     rgWord();		// constructor
 
     uint32_t		get()			{ return  WordVal; }
-    void		put( uint32_t v )	{ WordVal = v; }
+    void		put( uint32_t v )	{ WordVal = v;  Final = 1; }
 
     bool		is_final()		{ return  Final; }
     void		mark_final()		{ Final = 1; }
