@@ -55,20 +55,39 @@ rgRpiRev_Code		Tx;		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "12", "put()" );
+//--------------------------------------
+  CASE( "12a", "put() Final=0" );
     try {
-	CHECK(  0,          Tx.is_final() );
+	Tx.put( 0x00000000 );
+	Tx.clear_final();
 	CHECKX( 0x00000000, Tx.get() );
-	Tx.put( 0xf00fc33c );
 	CHECK(  0,          Tx.is_final() );
+	Tx.put( 0xf00fc33c );			// sets Final
+	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0xf00fc33c, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "12b", "put() Final=1" );
+    try {
+	Tx.put( 0x00000000 );
+	Tx.mark_final();
+	CHECKX( 0x00000000, Tx.get() );
+	CHECK(  1,          Tx.is_final() );
+	Tx.put( 0xf00fc33c );			// sets Final
+	CHECK(  1,          Tx.is_final() );
+	CHECKX( 0xf00fc33c, Tx.get() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
   CASE( "13", "mark_final()" );
     try {
+	Tx.clear_final();
 	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xf00fc33c, Tx.get() );
 	Tx.mark_final();
