@@ -281,6 +281,24 @@ if ( getenv( "TESTONRPI" ) ) {
 
 }
 
+//----------------------------------------
+// Test ((BaseAddr == 0) || FakeMem) fallback to FakeMem.
+  CASE( "24", "open_dev_file() BaseAddr = 0, should not throw" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 0 );		// enable throw
+	bx.config_BaseAddr( 0x00000000 );
+	bx.open_dev_file( "/dev/null" );
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  1,          bx.is_fake_mem() );
+    }
+    catch ( runtime_error& e ) {
+	FAIL( "runtime_error exception" );
+	FAIL( e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
 
 //--------------------------------------------------------------------------
 //## open_fake_mem()

@@ -172,7 +172,7 @@ rgAddrMap::open_dev_file(
 	throw std::runtime_error ( "rgAddrMap:  already opened" );
     }
 
-    if ( (file == NULL) || (*file == '\0') ) {
+    if ( (file == NULL) || (*file == '\0') || (BaseAddr == 0) || FakeMem ) {
 	ModeStr = "fake_mem";
 	FakeMem = 1;
 	return;
