@@ -30,6 +30,7 @@ class rgAddrMap {
 
   public:
     rgAddrMap();			// constructor
+    ~rgAddrMap();			// destructor
 
     uint32_t		bcm2rpi_addr( uint32_t  bcm_addr );
 
@@ -72,11 +73,12 @@ class rgAddrMap {
 	return FakeMem;
     };
 
-				// Test and Debug
+				// Test and Debug (private)
     inline int		size_BlkCache() {
 	return  BlkCache.size();
     };
 
+    inline int		get_DevFD()	{ return  Dev_fd; }
 };
 
 

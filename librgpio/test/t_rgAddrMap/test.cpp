@@ -9,6 +9,7 @@
 //    50-59  open_dev_mem()
 //    60-69  get_mem_block() Fake memory
 //    70-79  get_mem_block() Cache
+//    80-89  Destructor - device file descriptor get_DevFD()
 // Env:  TESTONRPI  set when on an RPi.
 // Run tests as a normal user.
 //--------------------------------------------------------------------------
@@ -581,7 +582,48 @@ if ( getenv( "TESTONRPI" ) ) {
 
 }
 
+//--------------------------------------------------------------------------
+//## Destructor - device file descriptor get_DevFD()
+//--------------------------------------------------------------------------
 
+
+if ( getenv( "TESTONRPI" ) ) {
+
+// Device file descriptor should be released on destruction and re-aquired.
+  CASE( "80", "Destructor - device file descriptor" );
+    try {
+	{
+	    rgAddrMap		bx;
+	    bx.open_dev_file( "ref/dummy.mem", 0 );
+	    CHECK( 3, bx.get_DevFD() );
+	}
+	{
+	    rgAddrMap		bx;
+	    bx.open_dev_file( "ref/dummy.mem", 0 );
+	    CHECK( 3, bx.get_DevFD() );
+	}
+	{
+	    rgAddrMap		bx;
+	    bx.open_dev_file( "ref/dummy.mem", 0 );
+	    CHECK( 3, bx.get_DevFD() );
+	}
+	{
+	    rgAddrMap		bx;
+	    bx.open_dev_file( "ref/dummy.mem", 0 );
+	    CHECK( 3, bx.get_DevFD() );
+	}
+    }
+    catch ( runtime_error& e ) {
+	FAIL( "runtime_error exception" );
+	FAIL( e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+}
+
+
+//--------------------------------------
   CASE( "99", "Done" );
 }
 

@@ -80,6 +80,19 @@ rgAddrMap::rgAddrMap()
 
 
 /*
+* Destructor.
+*    File descriptors are a global process resource, and must be released
+*    when the object is destroyed.  They are aquired in open_dev_file().
+*/
+rgAddrMap::~rgAddrMap()
+{
+    if ( Dev_fd >= 0 ) {
+	close( Dev_fd );
+    }
+}
+
+
+/*
 * Get debug text.
 *    No trailing new-line.
 */
@@ -245,6 +258,7 @@ rgAddrMap::open_dev_file(
 /*
 * Close the device file descriptor.
 *    Also checks for error.
+*    Note the object destructor will also close the file descriptor.
 */
 void
 rgAddrMap::close_dev()
