@@ -14,6 +14,7 @@
 
 #include "utLib1.h"		// unit test library
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgIic.h"
 
@@ -27,6 +28,8 @@ int main()
 //--------------------------------------------------------------------------
 //## Shared object
 //--------------------------------------------------------------------------
+
+rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );
 
 rgAddrMap		Bx;
 
@@ -81,7 +84,7 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-	CHECK( "rgIic:  constructor requires IIC number {0,1,2}:  3",
+	CHECK( "rgIic:  constructor invalid IIC number for BCM2837:  3",
 	    e.what()
 	);
     }

@@ -15,6 +15,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgIic.h"
 
@@ -26,32 +27,48 @@ using namespace std;
 *    amx.open_dev_mem();	// select and open device file
 * call:
 *    rgIic	icx  ( N, &amx );	// constructor with address map
-*    N     = IIC number {0,1,2}
+*    N     = IIC number {0,1,2}  for BCM2837 RPi3 and earlier
+*                       {0..7}   for BCM2711 RPi4
 *    &amx  = pointer to address map object with open device file
 */
 rgIic::rgIic(
-    uint32_t		iicnum,	// IIC number {0,1,2}
+    uint32_t		iicnum,	// IIC number {0..7}
     rgAddrMap		*xx
 )
 {
     uint32_t		addr;
 
     switch ( iicnum ) {
-    case  0:
-	addr = 0x7e205000;  break;
-    case  1:
-	addr = 0x7e804000;  break;
-    case  2:
-	addr = 0x7e805000;  break;
+    case  0:  addr = 0x7e205000;  break;
+    case  1:  addr = 0x7e804000;  break;
+    case  2:  addr = 0x7e805000;  break;
+    case  3:  addr = 0x7e205600;  break;
+    case  4:  addr = 0x7e205800;  break;
+    case  5:  addr = 0x7e205a80;  break;
+    case  6:  addr = 0x7e205c00;  break;
+    case  7:  addr = 0x7e205e00;  break;	//#!! guess, not documented
     default:
 	std::ostringstream	css;
-	css << "rgIic:  constructor requires IIC number {0,1,2}:  " << iicnum;
+	css << "rgIic:  constructor requires IIC number {0..7}:  " << iicnum;
+	throw std::range_error ( css.str() );
+    }
+
+    if ( (rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2837) &&
+	(iicnum >= 3)
+    ) {
+	std::ostringstream	css;
+	css << "rgIic:  constructor invalid IIC number for "
+	    << rgRpiRev::soc_enum2cstr( rgRpiRev::find_SocEnum() )
+	    << ":  " << iicnum;
 	throw std::range_error ( css.str() );
     }
 
     IicNum      = iicnum;
     FeatureAddr = addr;
-    GpioBase    = xx->get_mem_block( addr );
+
+    //#!! get_map_address( addr ) ?
+    GpioBase    = xx->get_mem_block( addr & 0xfffff000 ) +
+				   ( addr & 0x00000fff );
 
       Cntl.init_addr( GpioBase +   Cntl_offset );
       Stat.init_addr( GpioBase +   Stat_offset );

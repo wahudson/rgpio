@@ -320,7 +320,35 @@ Error handling:
     Now a gui type tool that persists over many operations and needs to
     recover objects after an error would benifit from per-object tracking.
 
+FeatureAddr BCM Doc address:
+    This is the base address of the peripheral feature as specified in the
+    BCM Doc.  Also called the "legacy master address", e.g. 0x7e000000 range.
+    Here "base" means the address from which register offsets in a feature
+    are defined.
+
+    Note this base can be somewhat arbitrary, since any constant could be
+    added to the set of register offsets.
+
+    In RPi3 and earlier, pretty much each feature base address was 4k page
+    aligned.  With RPi4, instances of Iic, Spi0, and Uart were added within
+    the original pages, with offsets not page aligned.
+
+    Now both FeatureAddr and GpioBase are NOT required to be page aligned,
+    but the rgAddrMap mapping will continue to map only 4k pages. (2021-01-06)
+
+    Ideally each feature instance would have its own base, and all instances
+    would have the same set of register offsets.
+    Exceptions occur for things like the rgUniSpi, where the two features
+    are documented as one base address with different register offsets for
+    each feature.  In such cases it is better to make it match the
+    documentation, for easier inspection, and NOT re-cast the offsets.
+
+    Features with multiple instances will then have a FeatureAddr computed
+    in the constructor, while others may have a static constant.
+
 GpioBase address:
+    This is the FeatureAddr mapped into the process virtual address space.
+
     Each Feature object can contain its own copy of the GpioBase address.
     The address allows the object to access the physical IO registers.
     A single process will generally have only one map of the GPIO address
