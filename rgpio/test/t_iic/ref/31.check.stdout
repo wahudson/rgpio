@@ -1,0 +1,47 @@
+Iic1:
++ Grab regs
++ Write Tx Fifo
+   1.write_Fifo:  0x5555abba
+   1.write_Fifo:  0x77773cc3
++ Read Rx Fifo
+   1.read_Fifo:  0x77773cc3
+   1.read_Fifo:  0x77773cc3
+   1.read_Fifo:  0x77773cc3
++ Grab regs
+   1.Cntl    = 0x00000000
+   1.Stat    = 0x00000000
+   1.DatLen  = 0x00000000
+   1.Addr    = 0x00000000
+   1.ClkDiv  = 0x00000000
+   1.Delay   = 0x00000000
+   1.ClkStr  = 0x00000000
+ Cntl
+   1.IicEnable_1   = 0
+   1.IrqRxHalf_1   = 0
+   1.IrqTxHalf_1   = 0
+   1.IrqDone_1     = 0
+   1.StartTrans_1  = 0
+   1.ClearFifo_2   = 0
+   1.ReadPacket_1  = 0
+ Stat
+   1.ClkTimeout_1  = 0
+   1.AckErr_1      = 0
+   1.RxFull_1      = 0
+   1.TxEmpty_1     = 0
+   1.RxHasData_1   = 0
+   1.TxHasSpace_1  = 0
+   1.RxHalf_1      = 0
+   1.TxHalf_1      = 0
+   1.TransDone_1   = 0
+   1.TransActive_1 = 0
+ DatLen
+   1.DataLen_16    = 0
+ Addr
+   1.SlaveAddr_7   = 0
+ ClkDiv
+   1.ClkDiv_16     = 0
+ Delay
+   1.Fall2Out_16   = 0
+   1.Rise2In_16    = 0
+ ClkStr
+   1.TimeOut_16    = 0

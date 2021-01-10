@@ -49,6 +49,7 @@ Test suites:  (2018-11-09)
  u   s  t_Error/	Error		Error message class.
  pbl    t_clk/		rgpio-clk	subcommand
  pbl    t_fsel/		rgpio-fsel	subcommand
+ pbl    t_iic/		rgpio-iic	subcommand
  pbl    t_info/		rgpio-info	subcommand
  pbl    t_io/		rgpio-io	subcommand
  pbl    t_pud/		rgpio-pud	subcommand

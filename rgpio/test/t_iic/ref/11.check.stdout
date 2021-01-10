@@ -1,0 +1,38 @@
+Iic0:
+   0.Cntl    = 0x00000000
+   0.Stat    = 0x00000000
+   0.DatLen  = 0x00000000
+   0.Addr    = 0x00000000
+   0.ClkDiv  = 0x00000000
+   0.Delay   = 0x00000000
+   0.ClkStr  = 0x00000000
+ Cntl
+   0.IicEnable_1   = 0
+   0.IrqRxHalf_1   = 0
+   0.IrqTxHalf_1   = 0
+   0.IrqDone_1     = 0
+   0.StartTrans_1  = 0
+   0.ClearFifo_2   = 0
+   0.ReadPacket_1  = 0
+ Stat
+   0.ClkTimeout_1  = 0
+   0.AckErr_1      = 0
+   0.RxFull_1      = 0
+   0.TxEmpty_1     = 0
+   0.RxHasData_1   = 0
+   0.TxHasSpace_1  = 0
+   0.RxHalf_1      = 0
+   0.TxHalf_1      = 0
+   0.TransDone_1   = 0
+   0.TransActive_1 = 0
+ DatLen
+   0.DataLen_16    = 0
+ Addr
+   0.SlaveAddr_7   = 0
+ ClkDiv
+   0.ClkDiv_16     = 0
+ Delay
+   0.Fall2Out_16   = 0
+   0.Rise2In_16    = 0
+ ClkStr
+   0.TimeOut_16    = 0

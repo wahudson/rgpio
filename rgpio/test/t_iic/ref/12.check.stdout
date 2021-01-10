@@ -1,0 +1,42 @@
+    I2C Master
+usage:  rgpio iic [options..] [--tx V..]
+    -0 -1 -2            IIC number, default -0
+  modify full register:  (V= 32-bit value)
+    --Cntl=V            Control
+    --Stat=V            Status (read-clear)
+    --DatLen=V          Data Length
+    --Addr=V            Slave Address
+    --ClkDiv=V          Clock Divider
+    --Delay=V           Data Delay
+    --ClkStr=V          Clock Stretch Timeout
+  data transfer:
+    --rx=N              read N entries from 16-entry Fifo
+    --tx                write arg values to Fifo
+  Cntl:
+    --IicEnable_1=0     Enable the interface
+    --IrqRxHalf_1=0     1= interrupt while RxHalf_1=1
+    --IrqTxHalf_1=0     1= interrupt while TxHalf_1=1
+    --IrqDone_1=0       1= interrupt while TransDone_1=1
+    --StartTrans_1=0    1= start new transfer
+    --ClearFifo_2=0     clear FIFO {1,2,3}, redundant bits
+    --ReadPacket_1=0    1= Read transfer, 0= write transfer
+  Stat:  (write 1 to clear)
+    --ClkTimeout_1=0    1= slave clock stretch timeout
+    --AckErr_1=0        1= slave not acknowledged its address
+    --TransDone_1=0     1= transfer complete
+  DatLen:
+    --DataLen_16=N      data transfer length in bytes
+  Addr:
+    --SlaveAddr_7=N     slave address
+  ClkDiv:
+    --ClkDiv_16=N       clock divider
+  Delay:
+    --Fall2Out_16=N     clock to output delay in core clock cycles
+    --Rise2In_16=N      clock to input  delay in core clock cycles
+  ClkStr:
+    --TimeOut_16=N      clock stretch timeout in SCL cycles
+  options:
+    --reset             init reset values before modifications
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
