@@ -339,6 +339,22 @@ the B<RevCode>.
 
 =back
 
+=head2			Override Ordering
+
+The derivation chain makes a difference in find() results depending on whether
+the put() override occurs before or after.  e.g. (assuming no registers
+are final)
+
+Here BaseAddr derives from SocEnum:
+
+    SocEnum.put( rgRpiRev::soc_BCM2711 );
+    addr = BaseAddr.find();		// derive from SocEnum
+
+Here BaseAddr derives from ReVCode:
+
+    addr = BaseAddr.find();		// SocEnum derives from ReVCode
+    SocEnum.put( rgRpiRev::soc_BCM2711 );
+
 
 =head1		EXCEPTIONS
 
