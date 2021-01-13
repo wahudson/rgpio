@@ -3,7 +3,7 @@
 
 # Testing:  rgpio main program.
 #    10-19  rgpio basic options --help
-#    20-29  .
+#    20-29  Override --rpi3 --rpi4
 #    30-39  .
 #    40-49  .
 #    50-59  .
@@ -132,6 +132,44 @@ run_test( "17", "rgpio bad subcommand",
     ),
 );
 
+#---------------------------------------------------------------------------
+# Override --rpi3 --rpi4
+#---------------------------------------------------------------------------
+
+run_test( "20", "conflicting --rpi3 --rpi4",
+    "rgpio --dev=f --debug --rpi3 --rpi4",
+    1,
+    Stderr => q(
+	Error:  require only one:  --rpi3 --rpi4
+    ),
+    Stdout => q(),
+);
+
+run_test( "21", "rgpio --rpi3",
+    "rgpio --dev=f --debug --rpi3",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	+ rgRpiRev::Config.SocEnum  = soc_BCM2837
+	+ rgRpiRev::Config.BaseAddr = 0x00000000
+	Using Fake memory
+	+ AddrMap.config_BaseAddr() = 0x00000000
+	Do nothing.  Try 'rgpio --help'
+    ),
+);
+
+run_test( "22", "rgpio --rpi4",
+    "rgpio --dev=f --debug --rpi4",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	+ rgRpiRev::Config.SocEnum  = soc_BCM2711
+	+ rgRpiRev::Config.BaseAddr = 0x00000000
+	Using Fake memory
+	+ AddrMap.config_BaseAddr() = 0x00000000
+	Do nothing.  Try 'rgpio --help'
+    ),
+);
 
 #---------------------------------------------------------------------------
 # Check that all tests ran.

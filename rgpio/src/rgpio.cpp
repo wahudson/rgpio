@@ -50,6 +50,8 @@ class yOptLong : public yOption {
 
     const char*		dev;
     bool		ro;
+    bool		rpi3;
+    bool		rpi4;
 
     bool		version;
     bool		verbose;
@@ -82,6 +84,8 @@ yOptLong::yOptLong( int argc,  char* argv[] )
 {
     dev         = "m";
     ro          = 0;
+    rpi3        = 0;
+    rpi4        = 0;
 
     version     = 0;
     verbose     = 0;
@@ -102,6 +106,8 @@ yOptLong::parse_options()
     {
 	if      ( is( "--dev="       )) { dev        = this->val(); }
 	else if ( is( "--ro"         )) { ro         = 1; }
+	else if ( is( "--rpi3"       )) { rpi3       = 1; }
+	else if ( is( "--rpi4"       )) { rpi4       = 1; }
 
 	else if ( is( "--version"    )) { version    = 1; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
@@ -123,6 +129,10 @@ yOptLong::parse_options()
     if ( !( ((*dev == 'm') || (*dev == 'g') || (*dev == 'f')) &&
 	    (*(dev+1) == '\0') ) ) {
 	Error::msg( "require --dev=m|g|f" ) <<endl;
+    }
+
+    if ( rpi3 && rpi4 ) {
+	Error::msg( "require only one:  --rpi3 --rpi4" ) <<endl;
     }
 }
 
@@ -174,6 +184,8 @@ yOptLong::print_usage()
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
     "                                          g= /dev/gpiomem, f= fake\n"
 //  "  # --ro                read only\n"
+    "    --rpi3              act like RPi3 or earlier\n"
+    "    --rpi4              act like RPi4 or later\n"
     "    --help              show this usage\n"
 //  "    -v, --verbose       verbose output\n"
     "    --debug             debug output\n"
@@ -213,6 +225,16 @@ main( int	argc,
 	}
 
 	if ( Error::has_err() )  return 1;
+
+	if ( Opx.rpi3 ) {
+	    rgRpiRev::Config.BaseAddr.find();	// config first
+	    rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	}
+
+	if ( Opx.rpi4 ) {
+	    rgRpiRev::Config.BaseAddr.find();	// config first
+	    rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	}
 
 	if ( Opx.debug ) {
 	    cout.fill('0');

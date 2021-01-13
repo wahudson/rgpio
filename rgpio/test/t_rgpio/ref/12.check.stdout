@@ -15,6 +15,8 @@ usage:  rgpio [main_options..]  feature  [options..]
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
+    --rpi3              act like RPi3 or earlier
+    --rpi4              act like RPi4 or later
     --help              show this usage
     --debug             debug output
   (options with GNU= only)

@@ -16,6 +16,7 @@ rgpio -- Raspberry Pi GPIO utility
     fsel         Pin Function Select
     clk          Clock generator
     iic          I2C Master
+    info         RPi Revision Information
     man          man pager
     pud          Pin Pull-Up/Down
     pwm          PWM Pulse Width Modulator
@@ -25,6 +26,8 @@ rgpio -- Raspberry Pi GPIO utility
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
+    --rpi3              act like RPi3 or earlier
+    --rpi4              act like RPi4 or later
     --help              show this usage
     --debug             debug output
   (options with GNU= only)
@@ -33,7 +36,7 @@ rgpio -- Raspberry Pi GPIO utility
 =head1		DESCRIPTION
 
 This is a low-level utility program for inspecting and modifying the
-BCM2835 ARM Peripheral registers on the Raspberry Pi.
+BCM2835 ARM Peripheral registers on the Raspberry Pi (RPi).
 It uses the B<librgpio> library and naming conventions.
 It is intended to be very close to the hardware interface and not intended to
 provide a high-level abstraction.
@@ -66,7 +69,8 @@ operation (i.e. outside of the librgpio rgAddrMap::open_dev_file() function).
 
 =head2			Raspberry Pi Versions
 
-Currently is validated only on Raspberry Pi 3.
+Currently is validated only on RPi3.
+Extensions for RPi4 are in progress.
 
 
 =head1		OPTIONS
@@ -79,9 +83,27 @@ m= /dev/mem (default), g= /dev/gpiomem, f= fake memory.
 This is the device special file used to map blocks of IO memory into the
 process.
 
+=item B<--rpi3>             - Act like RPi3 or earlier.
+
+=item B<--rpi4>             - Act like RPi4 or later.
+
+These options affect the behavior of peripheral features by overriding the
+SocEnum chip identification, which is normally derived from /proc/cpuinfo
+of the operating system.  This allows exploring features of other Raspberry
+Pi versions, especially when using fake memory or not running on an RPi.
+
+They do NOT change the BaseAddr used for memory mapped IO, which is still
+derived from the running RPi.
+
+RPi3 (BCM2837) and earlier all have the same peripheral feature set as the
+original BCM2835 chip.
+Rpi4 (BCM2711) introduced additional instances of IIC, SPI, UART, and changed
+how pin pull up/down was accessed.
+
 =item B<--debug>            - Debug output.
 
 Show the capability raise/lower actions when opening /dev/mem.
+Show the RPi B<SocEnum> and B<BaseAddr> - see rgRpiRev(3).
 
 =item B<--help>             - Show main program help.
 
@@ -100,6 +122,7 @@ B<librgpio> class.
  clk     rgpio-clk     rgClk        Clock generators
  fsel    rgpio-fsel    rgFselPin    Pin Function Select
  iic     rgpio-iic     rgIic        I2C Master
+ info    rgpio-info    rgRpiRev     RPi Revision Information
  io      rgpio-io      rgIoPins     General Purpose IO pins
  man     rgpio-man     --           manual pager
  pud     rgpio-pud     rgPudPin     Pin Pull-Up/Down programming
