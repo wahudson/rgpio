@@ -29,8 +29,6 @@ int main()
 //## Shared object
 //--------------------------------------------------------------------------
 
-rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );
-
 rgAddrMap		Bx;
 
   CASE( "00", "Address map object" );
@@ -42,43 +40,49 @@ rgAddrMap		Bx;
 	FAIL( "unexpected exception" );
     }
 
+
+rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
+rgIic			Tx3  ( 3, &Bx );	// test object, Iic0
+
+rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );	// RPi3
 rgIic			Tx   ( 0, &Bx );	// test object
 rgIic			Tx1  ( 1, &Bx );	// test object, Iic0
-rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
 
 //--------------------------------------------------------------------------
 //## Constructor, get_bcm_address()
 //--------------------------------------------------------------------------
 
-  CASE( "10a", "constructor" );
+  CASE( "10a", "constructor iic0" );
     try {
 	rgIic		tx  ( 0, &Bx );
-	PASS( "constructor" );
+	CHECKX( 0x7e205000, tx.get_bcm_address() );
+	CHECK(  0,          tx.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "10b", "constructor" );
+  CASE( "10b", "constructor iic3" );
     try {
 	rgIic		tx  ( 1, &Bx );
-	PASS( "constructor" );
+	CHECKX( 0x7e804000, tx.get_bcm_address() );
+	CHECK(  1,          tx.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "10c", "constructor" );
+  CASE( "10c", "constructor iic2" );
     try {
 	rgIic		tx  ( 2, &Bx );
-	PASS( "constructor" );
+	CHECKX( 0x7e805000, tx.get_bcm_address() );
+	CHECK(  2,          tx.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "11a", "constructor, bad iic number" );
+  CASE( "10d", "constructor, bad iic number" );
     try {
 	rgIic		tx  ( 3, &Bx );
 	FAIL( "no throw" );
@@ -93,28 +97,97 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
     }
 
 //--------------------------------------
-  CASE( "12a", "get_bcm_address() Feature Address" );
+rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
+
+  CASE( "11a", "RPi4 constructor iic0" );
     try {
-	CHECKX( 0x7e205000, Tx.get_bcm_address() );
-	CHECK(  0,          Tx.get_iic_num() );
+	rgIic		tx  ( 0, &Bx );
+	CHECKX( 0x7e205000, tx.get_bcm_address() );
+	CHECK(  0,          tx.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "12b", "get_bcm_address() Feature Address" );
+  CASE( "11b", "RPi4 constructor iic3" );
     try {
-	CHECKX( 0x7e804000, Tx1.get_bcm_address() );
-	CHECK(  1,          Tx1.get_iic_num() );
+	rgIic		tx  ( 1, &Bx );
+	CHECKX( 0x7e804000, tx.get_bcm_address() );
+	CHECK(  1,          tx.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "12c", "get_bcm_address() Feature Address" );
+  CASE( "11c", "RPi4 constructor iic2" );
     try {
-	CHECKX( 0x7e805000, Tx2.get_bcm_address() );
-	CHECK(  2,          Tx2.get_iic_num() );
+	rgIic		tx  ( 2, &Bx );
+	CHECKX( 0x7e805000, tx.get_bcm_address() );
+	CHECK(  2,          tx.get_iic_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11d", "RPi4 constructor iic3" );
+    try {
+	rgIic		tx  ( 3, &Bx );
+	CHECKX( 0x7e205600, tx.get_bcm_address() );
+	CHECK(  3,          tx.get_iic_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11e", "RPi4 constructor iic4" );
+    try {
+	rgIic		tx  ( 4, &Bx );
+	CHECKX( 0x7e205800, tx.get_bcm_address() );
+	CHECK(  4,          tx.get_iic_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11f", "RPi4 constructor iic5" );
+    try {
+	rgIic		tx  ( 5, &Bx );
+	CHECKX( 0x7e205a80, tx.get_bcm_address() );
+	CHECK(  5,          tx.get_iic_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11g", "RPi4 constructor iic6" );
+    try {
+	rgIic		tx  ( 6, &Bx );
+	CHECKX( 0x7e205c00, tx.get_bcm_address() );
+	CHECK(  6,          tx.get_iic_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11h", "RPi4 constructor iic7" );
+    try {
+	rgIic		tx  ( 7, &Bx );
+	CHECKX( 0x7e205e00, tx.get_bcm_address() );	//#!! guess
+	CHECK(  7,          tx.get_iic_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11i", "RPi4 constructor, bad iic number" );
+    try {
+	rgIic		tx  ( 8, &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgIic:  constructor requires IIC number {0..7}:  8",
+	    e.what()
+	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -172,41 +245,41 @@ rgIic			Tx2  ( 2, &Bx );	// test object, Iic0
     }
 
 //--------------------------------------
-// Address values
+// Address values (sample)
   CASE( "21a", "Cntl.addr()" );
     try {
 	CHECKX( 0x00, (Tx.Cntl.addr() - Tx.get_base_addr())*4 );
 	CHECK(  0,     Tx.get_iic_num() );
-	CHECKX( 0x00, (Tx1.Cntl.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x00, (Tx1.Cntl.addr() - Tx1.get_base_addr())*4 );
 	CHECK(  1,     Tx1.get_iic_num() );
-	CHECKX( 0x00, (Tx2.Cntl.addr() - Tx.get_base_addr())*4 );
-	CHECK(  2,     Tx2.get_iic_num() );
+	CHECKX( 0x00, (Tx3.Cntl.addr() - Tx3.get_base_addr())*4 );
+	CHECK(  3,     Tx3.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "22b", "Stat.addr()" );
+  CASE( "22a", "Stat.addr()" );
     try {
 	CHECKX( 0x04, (Tx.Stat.addr() - Tx.get_base_addr())*4 );
 	CHECK(  0,     Tx.get_iic_num() );
-	CHECKX( 0x04, (Tx1.Stat.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x04, (Tx1.Stat.addr() - Tx1.get_base_addr())*4 );
 	CHECK(  1,     Tx1.get_iic_num() );
-	CHECKX( 0x04, (Tx2.Stat.addr() - Tx.get_base_addr())*4 );
-	CHECK(  2,     Tx2.get_iic_num() );
+	CHECKX( 0x04, (Tx3.Stat.addr() - Tx3.get_base_addr())*4 );
+	CHECK(  3,     Tx3.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "23b", "DatLen.addr()" );
+  CASE( "23a", "DatLen.addr()" );
     try {
 	CHECKX( 0x08, (Tx.DatLen.addr() - Tx.get_base_addr())*4 );
 	CHECK(  0,     Tx.get_iic_num() );
-	CHECKX( 0x08, (Tx1.DatLen.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0x08, (Tx1.DatLen.addr() - Tx1.get_base_addr())*4 );
 	CHECK(  1,     Tx1.get_iic_num() );
-	CHECKX( 0x08, (Tx2.DatLen.addr() - Tx.get_base_addr())*4 );
-	CHECK(  2,     Tx2.get_iic_num() );
+	CHECKX( 0x08, (Tx3.DatLen.addr() - Tx3.get_base_addr())*4 );
+	CHECK(  3,     Tx3.get_iic_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
