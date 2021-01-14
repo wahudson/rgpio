@@ -358,3 +358,42 @@ rgAddrMap::get_mem_block(
     return (volatile uint32_t*)mem_block;
 }
 
+
+/*
+* Get peripheral memory block address - word aligned.
+*    Calls get_mem_block() and returns address within that page.
+*    The given address need be only word aligned.  For use with new RPi4
+*    register groups.
+* Note:  Register pointers (uint32_t*) are byte addresses, word aligned.
+*    This makes correct offset calculations a bit tricky.
+* call:
+*    get_mem_addr( bcm_addr )
+*    bcm_addr = peripheral address as in BCM datasheet, word aligned.
+*		e.g. 0x7e205a80 is iic3 register group
+* return:
+*    ()  = virtual address of 4096 byte IO memory block, word aligned.
+*/
+volatile uint32_t*
+rgAddrMap::get_mem_addr(
+    uint32_t		bcm_addr
+)
+{
+    uint32_t		offset;		// word offset within 4096 byte page
+    volatile uint32_t*	addr;		// return address
+
+    // Check word alignment.
+    if ( (bcm_addr & 0x0003) != 0 ) {
+	std::ostringstream	css;
+	css << "get_mem_addr() address not word aligned:  0x"
+	    <<hex << bcm_addr;
+	throw std::range_error ( css.str() );
+    }
+
+    offset =            ( bcm_addr & 0x00000fff ) >> 2;
+    addr = get_mem_block( bcm_addr & 0xfffff000 );
+
+    addr += offset;	// word pointer calculation
+
+    return  addr;
+}
+

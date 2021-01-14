@@ -38,6 +38,7 @@ rgAddrMap class -- GPIO Address Map
 =head2			Address Mapping
 
     volatile uint32_t*  get_mem_block( uint32_t  bcm_addr );
+    volatile uint32_t*  get_mem_addr(  uint32_t  bcm_addr );
 
     uint32_t            bcm2rpi_addr( uint32_t  bcm_addr );
 
@@ -166,7 +167,7 @@ function is not required.
 
 =item get_mem_block()
 
-Get pointer to a peripheral memory page.
+Get pointer to a peripheral memory page - page aligned.
 Argument 'bcm_addr' is the peripheral address as in the BCM datasheet, page
 aligned.
 
@@ -176,6 +177,12 @@ the mmap(2) system call.
 
 The returned address is page aligned, or word aligned if fake memory is used.
 Page size is 4096 bytes.
+
+=item get_mem_addr()
+
+Get pointer to a peripheral memory page - word aligned.
+Same as B<get_mem_block>() above, but the address is word aligned in both the
+argument and return value.
 
 =item is_fake_mem()
 

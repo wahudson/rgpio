@@ -9,7 +9,8 @@
 //    50-59  open_dev_mem()
 //    60-69  get_mem_block() Fake memory
 //    70-79  get_mem_block() Cache
-//    80-89  Destructor - device file descriptor get_DevFD()
+//    80-89  Word aligned  get_mem_addr()
+//    90-99  Destructor - device file descriptor get_DevFD()
 // Env:  TESTONRPI  set when on an RPi.
 // Run tests as a normal user.
 //--------------------------------------------------------------------------
@@ -583,6 +584,41 @@ if ( getenv( "TESTONRPI" ) ) {
 }
 
 //--------------------------------------------------------------------------
+//## Word aligned  get_mem_addr()
+//--------------------------------------------------------------------------
+
+  CASE( "81", "get_mem_addr() good word offset" );
+    try {
+	rgAddrMap		bx;
+	volatile uint32_t*	v1;
+	volatile uint32_t*	v2;
+	bx.open_fake_mem();
+	v1 = bx.get_mem_addr(  0x7e20044c );
+	v2 = bx.get_mem_block( 0x7e200000 );
+	CHECKX( 0x00000113, (v1 - v2)   );	// word offset
+	CHECKX( 0x0000044c, (v1 - v2)*4 );	// byte offset
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "82", "get_mem_addr() word alignment" );
+    try {
+	rgAddrMap		bx;
+	bx.open_fake_mem();
+	bx.get_mem_addr( 0x7e200002 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "get_mem_addr() address not word aligned:  0x7e200002",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
 //## Destructor - device file descriptor get_DevFD()
 //--------------------------------------------------------------------------
 
@@ -590,7 +626,7 @@ if ( getenv( "TESTONRPI" ) ) {
 if ( getenv( "TESTONRPI" ) ) {
 
 // Device file descriptor should be released on destruction and re-aquired.
-  CASE( "80", "Destructor - device file descriptor" );
+  CASE( "90", "Destructor - device file descriptor" );
     try {
 	{
 	    rgAddrMap		bx;

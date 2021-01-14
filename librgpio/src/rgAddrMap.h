@@ -66,6 +66,7 @@ class rgAddrMap {
 
 
     volatile uint32_t*	get_mem_block( uint32_t  bcm_addr );
+    volatile uint32_t*	get_mem_addr(  uint32_t  bcm_addr );
 
 //    void		drop_capabilities();
 
