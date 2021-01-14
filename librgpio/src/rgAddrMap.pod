@@ -51,7 +51,7 @@ It provides the fundamental access for all the other librgpio classes.
 
 The essential operation is to open /dev/mem (or /dev/gpiomem).
 Then use mmap() system call to map a real address page into this process
-virtual memory.  Finaly, read/write to addresses in that page go directly to
+virtual memory.  Finally, read/write to addresses in that page go directly to
 the peripheral hardware registers.
 
 The object caches each map entry, and will return the same block of memory
@@ -61,7 +61,7 @@ if it has already been mapped.
 
 The "capabilities" system is used to provide access to /dev/mem for normal
 users without using 'sudo' or applying "setuid root" to the executable.
-See cababilities(7).
+See capabilities(7).
 
 Capabilities 'CAP_DAC_OVERRIDE' and 'CAP_SYS_RAWIO' are necessary to open
 /dev/mem for read/write access.  Once the file is open, the capabilities
@@ -107,7 +107,7 @@ Call with no argument to return the current BaseAddr.
 Call with an argument to configure the real IO base address to be used.
 A null address will cause a fake memory block to be used regardless of the
 device file opened.
-Addresses for existing Raspberry Pi versions are:
+Addresses for existing Raspberry Pi (RPi) versions are:
 
  0x20000000  RPi1,
  0x3f000000  RPi2,3
@@ -166,13 +166,16 @@ function is not required.
 
 =item get_mem_block()
 
-Get a peripheral memory block.
-Argument 'bcm_addr' is the peripheral address as in the BCM datasheet, block
+Get pointer to a peripheral memory page.
+Argument 'bcm_addr' is the peripheral address as in the BCM datasheet, page
 aligned.
-This address is translated into Raspberry Pi-3 physical address.
-If the address has already been mapped, that block is returned.
-The address is then mapped into a new page with the mmap(2) system call,
-if the device file is still open.
+
+If the address has already been mapped, that block is returned.  Otherwise,
+if the device file is still open, the address is mapped into a new page with
+the mmap(2) system call.
+
+The returned address is page aligned, or word aligned if fake memory is used.
+Page size is 4096 bytes.
 
 =item is_fake_mem()
 
@@ -181,7 +184,7 @@ Return TRUE if using fake memory.
 =item bcm2rpi_addr()
 
 Convert address in "BCM2835 ARM Peripherals" datasheet to Raspberry Pi real
-address.  Currently only for Raspberry Pi-3.
+address.
 
 =back
 
@@ -239,7 +242,11 @@ rgpio(1),
 capabilities(7),
 setcap(8)
 
- https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (2020-10-16)
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
 

@@ -205,6 +205,22 @@ Pointers and Addresses:
     Note:  C++ printing pointer values with 'cout << ptr' will show the
     value in hex with a leading "0x".  Quite convenient.
 
+Page Size:
+    RPi page size is 4096 bytes.
+
+    Page Size can be viewed with command:
+	% getconf PAGESIZE
+    See also:
+    getconf(1)  sysconf(3)
+    https://en.wikipedia.org/wiki/Page_(computer_memory)
+
+    The registers for a peripheral feature typically fall within a single
+    memory page.  The idea is to map peripheral pages only as needed, and
+    thus minimize use of system page table entries.
+
+    Note that in mapping IO pages, mmap(2) does not actually allocate any
+    memory.  It only creates new virtual address mappings in the system page
+    table.
 
 ----------------------------------------------------------------------------
 ## Naming of code objects.
