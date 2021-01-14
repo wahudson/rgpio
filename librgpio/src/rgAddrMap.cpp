@@ -64,6 +64,17 @@ rgAddrMap::bcm2rpi_addr(
 
 
 /*
+* Fake memory block - Class Data.
+*    Is one page (4096 byte) in size, but need not be page aligned.
+*    Address pointers are byte addresses, word aligned.
+*    Array index is by word (uint32_t), but not used that way.
+*    A static array is guaranteed to start off zero, providing reproducible
+*    results.
+*/
+volatile uint32_t    rgAddrMap::FakeBlock[1024];
+
+
+/*
 * Constructor.
 *    Bare uninitialized object.
 */
@@ -282,6 +293,9 @@ rgAddrMap::close_dev()
 *    get_mem_block( bcm_addr )
 *    bcm_addr = peripheral address as in BCM datasheet, block aligned.
 *		e.g. 0x7e200000 is GPIO pins
+* return:
+*    ()  = virtual address of 4096 byte IO memory block, page aligned.
+*		Fake memory is word aligned.
 */
 volatile uint32_t*
 rgAddrMap::get_mem_block(
@@ -311,7 +325,7 @@ rgAddrMap::get_mem_block(
 
     if ( FakeMem ) {
 	cache_ref = (void*)FakeBlock;
-	return (volatile uint32_t*)FakeBlock;
+	return  FakeBlock;
     }
 
     // Check Device file still open.

@@ -25,7 +25,7 @@ class rgAddrMap {
 //  int			Prot;		// mmap() prot field
     bool		Debug;		// debug trace on stderr
 
-    volatile uint32_t	FakeBlock[4096];
+    static volatile uint32_t	FakeBlock[1024];	// page size 4096 byte
     uint32_t		BaseAddr;	// real IO base address
 
   public:
