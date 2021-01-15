@@ -65,10 +65,7 @@ rgIic::rgIic(
 
     IicNum      = iicnum;
     FeatureAddr = addr;
-
-    //#!! get_map_address( addr ) ?
-    GpioBase    = xx->get_mem_block( addr & 0xfffff000 ) +
-				   ( addr & 0x00000fff );
+    GpioBase    = xx->get_mem_addr( addr );
 
       Cntl.init_addr( GpioBase +   Cntl_offset );
       Stat.init_addr( GpioBase +   Stat_offset );

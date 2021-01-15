@@ -229,6 +229,59 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 	FAIL( "unexpected exception" );
     }
 
+//--------------------------------------
+// Register base byte address offset.
+// Difference in (uint32_t*) pointers is a word offset.
+// (Note fake memory is word aligned, so page masking is not useful.)
+
+  CASE( "15d", "register base iic4" );
+    try {
+	rgIic		tx  ( 3, &Bx );
+	CHECK(  3,          tx.get_iic_num() );
+	CHECKX( 0x7e205600, tx.get_bcm_address() );
+	CHECKX( 0x00000600,
+	    (tx.get_base_addr() - Bx.get_mem_block(0x7e205000))*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "15e", "register base iic4" );
+    try {
+	rgIic		tx  ( 4, &Bx );
+	CHECK(  4,          tx.get_iic_num() );
+	CHECKX( 0x7e205800, tx.get_bcm_address() );
+	CHECKX( 0x00000800,
+	    (tx.get_base_addr() - Bx.get_mem_block(0x7e205000))*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "15f", "register base iic5" );
+    try {
+	rgIic		tx  ( 5, &Bx );
+	CHECK(  5,          tx.get_iic_num() );
+	CHECKX( 0x7e205a80, tx.get_bcm_address() );
+	CHECKX( 0x00000a80,
+	    (tx.get_base_addr() - Bx.get_mem_block(0x7e205000))*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "15g", "register base iic6" );
+    try {
+	rgIic		tx  ( 6, &Bx );
+	CHECK(  6,          tx.get_iic_num() );
+	CHECKX( 0x7e205c00, tx.get_bcm_address() );
+	CHECKX( 0x00000c00,
+	    (tx.get_base_addr() - Bx.get_mem_block(0x7e205000))*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
 //## Address of registers  addr()
 //--------------------------------------------------------------------------
