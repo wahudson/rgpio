@@ -234,7 +234,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 // Difference in (uint32_t*) pointers is a word offset.
 // (Note fake memory is word aligned, so page masking is not useful.)
 
-  CASE( "15d", "register base iic4" );
+  CASE( "15d", "register base iic3" );
     try {
 	rgIic		tx  ( 3, &Bx );
 	CHECK(  3,          tx.get_iic_num() );
