@@ -4,6 +4,8 @@
 //
 // See:  BCM2835 ARM Peripherals (2012)
 //      p.102-103  6.2  Alternative Function Assignments
+// See:  BCM2711 ARM Peripherals (2020-10-16)
+//      p.76-89    5.3  Alternative Function Assignments
 //--------------------------------------------------------------------------
 
 #include <iostream>
@@ -15,6 +17,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgIoPins.h"
 #include "rgFselPin.h"
@@ -112,6 +115,88 @@ const char*		rgAltFuncName::AltFunc[][6] = {
 
 
 /*
+* Delta alternate function name table - RPi4.
+*    A null value indicates name string is the same as for RPi3 above.
+*
+* AltDelta4[altN][bit]
+*    altN  = Alternate function number 0..5 (for Alt0..Alt5).
+*    bit   = bit number 0..53
+* Names:
+*    0     = (NULL) same as AltFunc[][] for RPi3 and earlier
+*    "--"  = reserved
+*    "**"  = do NOT USE, may have unexpected results
+* Notes:
+*    Did they really replace spi2_* pins with spi0_* ?
+*        The footnote says spi2 is not user accessable.  (bummer)
+*    Slave I2C bsc_* moved.
+*    Undocumented functions miia_* and rgmii_*.
+*    Undocumented sdc_* seem to be for an SD Card.
+*    Pulse Width Modulation channel cross-numbering is corrected here, since
+*        a new pwm1_* unit is added.  CH1 = PWM0, CH2 = PWM1
+*/
+const char*		rgAltFuncName::AltDelta4[][6] = {
+ // Alt0       Alt1  Alt2  Alt3         Alt4           Alt5               bit
+
+  { 0,            0,  0,  "spi3_CE0_n", "u2_TXD",      "iic6_SDA"    }, // 0
+  { 0,            0,  0,  "spi3_MISO",  "u2_RXD",      "iic6_SCL"    }, // 1
+  { 0,            0,  0,  "spi3_MOSI",  "u2_CTS",      "iic3_SDA"    }, // 2
+  { 0,            0,  0,  "spi3_SCLK",  "u2_RTS",      "iic3_SCL"    }, // 3
+  { 0,            0,  0,  "spi4_CE0_n", "u3_TXD",      "iic3_SDA"    }, // 4
+  { 0,            0,  0,  "spi4_MISO",  "u3_RXD",      "iic3_SCL"    }, // 5
+  { 0,            0,  0,  "spi4_MOSI",  "u3_CTS",      "iic4_SDA"    }, // 6
+  { 0,            0,  0,  "spi4_SCLK",  "u3_RTS",      "iic4_SCL"    }, // 7
+  { 0,            0,  0,  "bsc_CE_n",   "u4_TXD",      "iic4_SDA"    }, // 8
+  { 0,            0,  0,  "bsc_MISO",   "u4_RXD",      "iic4_SCL"    }, // 9
+  { 0,            0,  0,  "bsc_MOSI",   "u4_CTS",      "iic5_SDA"    }, // 10
+  { 0,            0,  0,  "bsc_SCLK",   "u4_RTS",      "iic5_SCL"    }, // 11
+  { "pwm0_CH1",   0,  0,  "spi5_CE0_n", "u5_TXD",      "iic5_SDA"    }, // 12
+  { "pwm0_CH2",   0,  0,  "spi5_MISO",  "u5_RXD",      "iic5_SCL"    }, // 13
+  { 0,            0,  0,  "spi5_MOSI",  "u5_CTS",      0,            }, // 14
+  { 0,            0,  0,  "spi5_SCLK",  "u5_RTS",      0,            }, // 15
+  { 0,            0,  0,  0,            0,             0,            }, // 16
+  { 0,            0,  0,  0,            0,             0,            }, // 17
+  { 0,            0,  0,  "spi6_CE0_n", 0,             "pwm0_CH1"    }, // 18
+  { 0,            0,  0,  "spi6_MISO",  0,             "pwm0_CH2"    }, // 19
+  { 0,            0,  0,  "spi6_MOSI",  0,             0,            }, // 20
+  { 0,            0,  0,  "spi6_SCLK",  0,             0,            }, // 21
+  { 0,            0,  0,  0,            0,             "iic6_SDA"    }, // 22
+  { 0,            0,  0,  0,            0,             "iic6_SCL"    }, // 23
+  { 0,            0,  0,  0,            0,             "spi3_CE1_n"  }, // 24
+  { 0,            0,  0,  0,            0,             "spi4_CE1_n"  }, // 25
+  { 0,            0,  0,  0,            0,             "spi5_CE1_n"  }, // 26
+  { 0,            0,  0,  0,            0,             "spi6_CE1_n"  }, // 27
+
+  { 0,            0,  0,  0,            "miia_RX_ERR", "rgmii_MDIO"  }, // 28
+  { 0,            0,  0,  0,            "miia_TX_ERR", "rgmii_MDC"   }, // 29
+  { 0,            0,  0,  0,            "miia_CRS",    0,            }, // 30
+  { 0,            0,  0,  0,            "miia_COL",    0,            }, // 31
+  { 0,            0,  0,  0,            "sdc_PRES",    0,            }, // 32
+  { 0,            0,  0,  0,            "sdc_WRPROT",  0,            }, // 33
+  { 0,            0,  0,  0,            "sdc_LED",     "rgmii_IRQ"   }, // 34
+  { 0,            0,  0,  0,            "rgmii_START", "**"          }, // 35
+  { 0,            0,  0,  0,            "rgmii_RX_OK", "miia_RX_ERR" }, // 36
+  { 0,            0,  0,  0,            "rgmii_MDIO",  "miia_TX_ERR" }, // 37
+  { 0,            0,  0,  0,            "rgmii_MDC",   "miia_CRS"    }, // 38
+  { 0,            0,  0,  0,            "rgmii_IRQ",   "miia_COL"    }, // 39
+  { "pwm1_CH1",   0,  0,  0,            "spi0_MISO",   0,            }, // 40
+  { "pwm1_CH2",   0,  0,  0,            "spi0_MOSI",   0,            }, // 41
+  { 0,            0,  0,  0,            "spi0_SCLK",   0,            }, // 42
+  { 0,            0,  0,  0,            "spi0_CE0_n",  0,            }, // 43
+  { 0,            0,  0,  0,            "spi0_CE1_n",  "sdc_VOLT"    }, // 44
+  { "pwm0_CH2",   0,  0,  0,            "spi0_CE2_n",  "sdc_PWR0"    }, // 45
+
+  { 0,            0,  0,  0,            0,             0             }, // 46
+  { 0,            0,  0,  0,            0,             0             }, // 47
+  { 0,            0,  0,  0,            0,             0             }, // 48
+  { 0,            0,  0,  0,            0,             0             }, // 49
+  { 0,            0,  0,  0,            0,             0             }, // 50
+  { 0,            0,  0,  0,            0,             0             }, // 51
+  { 0,            0,  0,  0,            0,             0             }, // 52
+  { 0,            0,  0,  0,            0,             0             }, // 53
+};
+
+
+/*
 * Map rgFsel_enum into altN index number.
 *     altN_enum[index] = altN number 0..5
 *     index            = rgFsel_enum
@@ -166,8 +251,14 @@ rgAltFuncName::str_altfunc_bit(
     else if ( nalt == 7 ) {
 	func = "output";
     }
+    else if ( rgRpiRev::find_SocEnum() >= rgRpiRev::soc_BCM2711 ) {  // RPi4
+	func = AltDelta4[bit][nalt];
+	if ( ! func ) {
+	    func = AltFunc[bit][nalt];
+	}
+    }
     else {
-    	func = AltFunc[bit][nalt];
+	func = AltFunc[bit][nalt];
     }
 
     return  func;

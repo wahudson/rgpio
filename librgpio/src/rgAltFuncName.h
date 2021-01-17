@@ -13,6 +13,7 @@ class rgAltFuncName {
 
   public:
     static const char*		AltFunc[][6];
+    static const char*		AltDelta4[][6];
     static const int		altN_enum[];
 
   public:
