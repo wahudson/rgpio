@@ -104,7 +104,7 @@ $(OJ)/rgAddrMap.o:	rgAddrMap.cpp  rgAddrMap.h
 	g++ $(CXXFLAGS) -o $@  -c rgAddrMap.cpp
 
 $(OJ)/rgAltFuncName.o:	rgAltFuncName.cpp  rgAltFuncName.h \
-			rgAddrMap.h  rgIoPins.h  rgFselPin.h
+			rgAddrMap.h  rgIoPins.h  rgFselPin.h  rgRpiRev.h
 	g++ $(CXXFLAGS) -o $@  -c rgAltFuncName.cpp
 
 $(OJ)/rgClk.o:		rgClk.cpp  rgClk.h  rgAddrMap.h  rgRegister.h
@@ -113,7 +113,7 @@ $(OJ)/rgClk.o:		rgClk.cpp  rgClk.h  rgAddrMap.h  rgRegister.h
 $(OJ)/rgFselPin.o:	rgFselPin.cpp  rgFselPin.h  rgAddrMap.h  rgIoPins.h
 	g++ $(CXXFLAGS) -o $@  -c rgFselPin.cpp
 
-$(OJ)/rgIic.o:		rgIic.cpp  rgIic.h  rgAddrMap.h
+$(OJ)/rgIic.o:		rgIic.cpp  rgIic.h  rgAddrMap.h  rgRegister.h  rgRpiRev.h
 	g++ $(CXXFLAGS) -o $@  -c rgIic.cpp
 
 $(OJ)/rgIoPins.o:	rgIoPins.cpp  rgIoPins.h  rgAddrMap.h
@@ -131,13 +131,13 @@ $(OJ)/rgRegister.o:	rgRegister.cpp  rgRegister.h
 $(OJ)/rgRpiRev.o:	rgRpiRev.cpp  rgRpiRev.h
 	g++ $(CXXFLAGS) -o $@  -c rgRpiRev.cpp
 
-$(OJ)/rgSpi0.o:		rgSpi0.cpp  rgSpi0.h  rgAddrMap.h
+$(OJ)/rgSpi0.o:		rgSpi0.cpp  rgSpi0.h  rgAddrMap.h  rgRegister.h
 	g++ $(CXXFLAGS) -o $@  -c rgSpi0.cpp
 
-$(OJ)/rgSysTimer.o:	rgSysTimer.cpp  rgSysTimer.h  rgAddrMap.h
+$(OJ)/rgSysTimer.o:	rgSysTimer.cpp  rgSysTimer.h  rgAddrMap.h  rgRegister.h
 	g++ $(CXXFLAGS) -o $@  -c rgSysTimer.cpp
 
-$(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h
+$(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h  rgRegister.h
 	g++ $(CXXFLAGS) -o $@  -c rgUniSpi.cpp
 
 $(OJ)/rgVersion.o:	rgVersion.cpp  rgVersion.h  version.inc
