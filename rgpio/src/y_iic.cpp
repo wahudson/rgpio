@@ -17,6 +17,7 @@ using namespace std;
 #include "yOption.h"
 #include "yOpVal.h"
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgIic.h"
 
@@ -40,7 +41,7 @@ class iic_yOptLong : public yOption {
 
   public:	// option values
 
-    bool		iic_ch[3];	// I2C module number requested
+    bool		iic_ch[8];	// I2C module number requested
 
 					// registers
     yOpVal		Cntl;
@@ -102,6 +103,11 @@ iic_yOptLong::iic_yOptLong( yOption  *opx )
     iic_ch[0]   = 0;
     iic_ch[1]   = 0;
     iic_ch[2]   = 0;
+    iic_ch[3]   = 0;
+    iic_ch[4]   = 0;
+    iic_ch[5]   = 0;
+    iic_ch[6]   = 0;
+    iic_ch[7]   = 0;
 
     tx          = 0;
 
@@ -134,6 +140,11 @@ iic_yOptLong::parse_options()
 	else if ( is( "-0"           )) { iic_ch[0]  = 1; }
 	else if ( is( "-1"           )) { iic_ch[1]  = 1; }
 	else if ( is( "-2"           )) { iic_ch[2]  = 1; }
+	else if ( is( "-3"           )) { iic_ch[3]  = 1; }
+	else if ( is( "-4"           )) { iic_ch[4]  = 1; }
+	else if ( is( "-5"           )) { iic_ch[5]  = 1; }
+	else if ( is( "-6"           )) { iic_ch[6]  = 1; }
+	else if ( is( "-7"           )) { iic_ch[7]  = 1; }
 
 	else if ( is( "--IicEnable_1="  )) { IicEnable_1.set(  this->val() ); }
 	else if ( is( "--IrqRxHalf_1="  )) { IrqRxHalf_1.set(  this->val() ); }
@@ -167,8 +178,16 @@ iic_yOptLong::parse_options()
 	}
     }
 
-    if ( !( iic_ch[0] || iic_ch[1] || iic_ch[2] ) ) {	// default
-	iic_ch[0] = 1;
+    if ( !( iic_ch[0] || iic_ch[1] || iic_ch[2] || iic_ch[3] ||
+	    iic_ch[4] || iic_ch[5] || iic_ch[6] || iic_ch[7]  ) ) {
+	iic_ch[0] = 1;		// default
+    }
+
+    if ( (rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2837) &&
+	(iic_ch[3] || iic_ch[4] || iic_ch[5] || iic_ch[6] || iic_ch[7])
+    ) {
+	Error::msg( "require IIC number {-0, -1, -2} for "   )
+		<< rgRpiRev::soc_enum2cstr( rgRpiRev::find_SocEnum() ) <<endl;
     }
 
     check_f1( "IicEnable_1",    IicEnable_1.Val    );
@@ -273,6 +292,7 @@ iic_yOptLong::print_usage()
     "    I2C Master\n"
     "usage:  " << ProgName << " iic [options..] [--tx V..]\n"
     "    -0 -1 -2            IIC number, default -0\n"
+    "    -3 .. -7            IIC number, extended for RPi4\n"
     "  modify full register:  (V= 32-bit value)\n"
     "    --Cntl=V            Control\n"
     "    --Stat=V            Status (read-clear)\n"
@@ -373,8 +393,8 @@ y_iic::doit()
 	if ( Error::has_err() )  return 1;
 
     // IIC channel objects
-	const int		IicMax = 2;
-	rgIic*			Icx[IicMax+1] = {NULL, NULL, NULL};
+	const int		IicMax = 7;
+	rgIic*			Icx[IicMax+1] = {0,0,0,0,0,0,0,0};
 				// pointers to IIC objects, NULL if not used.
 
 	for ( int ii=0;  ii<=IicMax;  ii++ )

@@ -73,17 +73,34 @@ run_test( "14", "extra argument",
     Stdout => q(),
 );
 
-run_test( "15", "bad iic number options",
+#---------------------------------------
+run_test( "15a", "bad iic number options",
     "rgpio --dev=f  iic -3",
     1,
     Stderr => q(
-	Error:  unknown option:  -3
+	Error:  require IIC number {-0, -1, -2} for BCM2835
     ),
     Stdout => q(),
 );
 
-run_test( "16", "good iic numbers",
+run_test( "15b", "bad iic number options",
+    "rgpio --dev=f --rpi4  iic -8",
+    1,
+    Stderr => q(
+	Error:  unknown option:  -8
+    ),
+    Stdout => q(),
+);
+
+#---------------------------------------
+run_test( "16a", "good iic numbers",
     "rgpio --dev=f  iic -v -0 -1 -2",
+    0,
+    Stderr => q(),
+);
+
+run_test( "16b", "good iic numbers",
+    "rgpio --dev=f --rpi4  iic -v -3 -7",
     0,
     Stderr => q(),
 );

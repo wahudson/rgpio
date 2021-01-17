@@ -1,6 +1,7 @@
     I2C Master
 usage:  rgpio iic [options..] [--tx V..]
     -0 -1 -2            IIC number, default -0
+    -3 .. -7            IIC number, extended for RPi4
   modify full register:  (V= 32-bit value)
     --Cntl=V            Control
     --Stat=V            Status (read-clear)
