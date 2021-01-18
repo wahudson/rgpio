@@ -3,12 +3,13 @@
 // Testing:  rgRpiRev - Raspberry Pi Revision
 //    10-19  Constructors, accessors
 //    20-29  rgRpiRev_Soc  get(), put()
-//    30-39  rgRpiRev_Soc  find()
+//    30-39  rgRpiRev_Soc  find(), cstr()
 //    40-49  rgRpiRev_Base  get(), put()
 //    50-59  rgRpiRev_Base  find()
 //    60-68  Global Config find() chain
 //    70-78  Soc_enum - soc_enum2cstr()
 //    80-89  Soc_enum - int2soc_enum()
+//    90-99  Global Config  cstr_SocEnum()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -289,7 +290,7 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------------------------------------------
-//## rgRpiRev_Soc  find()
+//## rgRpiRev_Soc  find(), cstr()
 //--------------------------------------------------------------------------
 
   CASE( "31", "SocEnum.find() Final=1" );
@@ -359,6 +360,46 @@ rgRpiRev		Tx;		// test object
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_fail() );
 	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Config.SocEnum.get() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "37", "Config.SocEnum.cstr() Final=1" );
+    try {
+	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
+	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK( "BCM2837",             rgRpiRev::Config.SocEnum.cstr() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
+	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "38", "SocEnum.cstr() local tx" );
+    try {
+	rgRpiRev	tx;
+	tx.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	CHECK(  0,                    tx.SocEnum.is_fail() );
+	CHECK(  1,                    tx.SocEnum.is_final() );
+	CHECK( "BCM2711",             tx.SocEnum.cstr() );
+	CHECK(  0,                    tx.SocEnum.is_fail() );
+	CHECK(  1,                    tx.SocEnum.is_final() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "39", "SocEnum.cstr() local tx" );
+    try {
+	rgRpiRev	tx;
+	CHECK(  0,                    tx.SocEnum.is_fail() );
+	CHECK(  0,                    tx.SocEnum.is_final() );
+	CHECK( "BCM2835",             tx.SocEnum.cstr() );
+	CHECK(  1,                    tx.SocEnum.is_fail() );
+	CHECK(  1,                    tx.SocEnum.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -854,6 +895,41 @@ rgRpiRev		Tx;		// test object
 	CHECK( "rgRpiRev::int2soc_enum() int out of range:  4",
 	    e.what()
 	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Global Config  cstr_SocEnum()
+//--------------------------------------------------------------------------
+
+  CASE( "90", "cstr_SocEnum()" );
+    try {
+	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
+	CHECK( "BCM2711",             rgRpiRev::cstr_SocEnum() );
+	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "91", "cstr_SocEnum() from RevCode" );
+    try {
+	rgRpiRev::Config.RevCode.put( 0x00a22082 );	// RPi3
+	CHECKX( 0x00a22082,           rgRpiRev::Config.RevCode.get() );
+	CHECK(  1,                    rgRpiRev::Config.RevCode.is_final() );
+	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Config.SocEnum.clear_final();
+	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Config.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
+	CHECK( "BCM2837",             rgRpiRev::cstr_SocEnum() );
+	CHECK(  1,                    rgRpiRev::Config.SocEnum.is_final() );
+	CHECK(  0,                    rgRpiRev::Config.SocEnum.is_fail() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

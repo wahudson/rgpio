@@ -118,6 +118,7 @@ class rgRpiRev {
 	rgRpiRev_Code*	init_ptr()		      { return  RevCode_ptr; }
 
 	Soc_enum	find();		// find/return SocEnum
+	const char*	cstr()		{ return  soc_enum2cstr( find() ); }
 
 	bool		is_fail()	{ return FailDerive; }
 
@@ -153,6 +154,8 @@ class rgRpiRev {
   public:	// preferred user level short-hand accessors
     static Soc_enum	find_SocEnum()	{ return  Config.SocEnum.find();  }
     static uint32_t	find_BaseAddr()	{ return  Config.BaseAddr.find(); }
+
+    static const char*	cstr_SocEnum()	{ return  Config.SocEnum.cstr();  }
 
   public:	// enum conversions
     static const char*	soc_enum2cstr( Soc_enum  soc );

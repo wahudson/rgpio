@@ -37,6 +37,8 @@ rgRpiRev class -- Raspberry Pi Revision
     static Soc_enum	find_SocEnum() { return Config.SocEnum.find(); }
     static uint32_t	find_BaseAddr(){ return Config.BaseAddr.find();}
 
+    static const char*	cstr_SocEnum() { return Config.SocEnum.cstr(); }
+
 				// enum conversions
     static const char*	soc_enum2cstr( Soc_enum  soc );
     static Soc_enum	int2soc_enum(  int       num );
@@ -56,6 +58,8 @@ rgRpiRev class -- Raspberry Pi Revision
 =head2		SocEnum object Functions
 
     bool		is_fail()		{ return FailDerive; }
+
+    const char*		cstr()    { return  soc_enum2cstr( find() ); }
 
 =head2		RevCode object Functions
 
@@ -208,15 +212,17 @@ disturbing the global B<Config>.
 
 =head2			Top Level Caching find() Functions
 
-These inline functions simply call the corresponding register REG.find()
+These inline functions simply call the corresponding register REG.B<find>()
 function (see below).
 Note these static functions access the global B<Config>.
 
 =over
 
-=item B<find_SocEnum>()		- return Config.SocEnum.find()
+=item B<find_SocEnum>()		- return B<Config.SocEnum.find>()
 
-=item B<find_BaseAddr>()	- return Config.BaseAddr.find()
+=item B<find_BaseAddr>()	- return B<Config.BaseAddr.find>()
+
+=item B<cstr_SocEnum>()		- return C-string for B<Config.SocEnum.find>()
 
 =back
 
@@ -266,7 +272,9 @@ was unable to derive a new SocEnum value.
 
 =over
 
-=item B<is_fail>()		- return True if FailDerive is true.
+=item B<is_fail>()      - return True if B<FailDerive> is true.
+
+=item B<cstr>()         - return C-string of B<SocEnum.find>() result.
 
 =back
 
