@@ -190,7 +190,7 @@ run_test( "24", "fsel --mode=Baad",
 #---------------------------------------------------------------------------
 
 run_test( "30", "fsel --show",
-    "rgpio --dev=f  fsel --show  4 5",
+    "rgpio --dev=f --rpi3  fsel --show  4 5",
     0,
     Stderr => q(),
     Stdout => q(
@@ -201,13 +201,19 @@ Bit  Alt0        Alt1        Alt2        Alt3        Alt4        Alt5
     # trailing space
 );
 
-run_test( "31", "fsel --show",
-    "rgpio --dev=f  fsel --show -0 -1",
+run_test( "31", "RPi3 fsel --show",
+    "rgpio --dev=f --rpi3  fsel --show -0 -1",
     0,
     Stderr => q(),
 );
 
-run_test( "32", "fsel --show invalid with --mode",
+run_test( "32", "RPi4 fsel --show",
+    "rgpio --dev=f --rpi4  fsel --show -0 -1",
+    0,
+    Stderr => q(),
+);
+
+run_test( "35", "fsel --show invalid with --mode",
     "rgpio --dev=f  fsel --show --mode=In  4",
     1,
     Stderr => q(
