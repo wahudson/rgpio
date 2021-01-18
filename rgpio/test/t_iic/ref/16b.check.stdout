@@ -1,0 +1,78 @@
+Iic3:
++ Grab regs
+   3.Cntl    = 0x00000000
+   3.Stat    = 0x00000000
+   3.DatLen  = 0x00000000
+   3.Addr    = 0x00000000
+   3.ClkDiv  = 0x00000000
+   3.Delay   = 0x00000000
+   3.ClkStr  = 0x00000000
+ Cntl
+   3.IicEnable_1   = 0
+   3.IrqRxHalf_1   = 0
+   3.IrqTxHalf_1   = 0
+   3.IrqDone_1     = 0
+   3.StartTrans_1  = 0
+   3.ClearFifo_2   = 0
+   3.ReadPacket_1  = 0
+ Stat
+   3.ClkTimeout_1  = 0
+   3.AckErr_1      = 0
+   3.RxFull_1      = 0
+   3.TxEmpty_1     = 0
+   3.RxHasData_1   = 0
+   3.TxHasSpace_1  = 0
+   3.RxHalf_1      = 0
+   3.TxHalf_1      = 0
+   3.TransDone_1   = 0
+   3.TransActive_1 = 0
+ DatLen
+   3.DataLen_16    = 0
+ Addr
+   3.SlaveAddr_7   = 0
+ ClkDiv
+   3.ClkDiv_16     = 0
+ Delay
+   3.Fall2Out_16   = 0
+   3.Rise2In_16    = 0
+ ClkStr
+   3.TimeOut_16    = 0
+Iic7:
++ Grab regs
+   7.Cntl    = 0x00000000
+   7.Stat    = 0x00000000
+   7.DatLen  = 0x00000000
+   7.Addr    = 0x00000000
+   7.ClkDiv  = 0x00000000
+   7.Delay   = 0x00000000
+   7.ClkStr  = 0x00000000
+ Cntl
+   7.IicEnable_1   = 0
+   7.IrqRxHalf_1   = 0
+   7.IrqTxHalf_1   = 0
+   7.IrqDone_1     = 0
+   7.StartTrans_1  = 0
+   7.ClearFifo_2   = 0
+   7.ReadPacket_1  = 0
+ Stat
+   7.ClkTimeout_1  = 0
+   7.AckErr_1      = 0
+   7.RxFull_1      = 0
+   7.TxEmpty_1     = 0
+   7.RxHasData_1   = 0
+   7.TxHasSpace_1  = 0
+   7.RxHalf_1      = 0
+   7.TxHalf_1      = 0
+   7.TransDone_1   = 0
+   7.TransActive_1 = 0
+ DatLen
+   7.DataLen_16    = 0
+ Addr
+   7.SlaveAddr_7   = 0
+ ClkDiv
+   7.ClkDiv_16     = 0
+ Delay
+   7.Fall2Out_16   = 0
+   7.Rise2In_16    = 0
+ ClkStr
+   7.TimeOut_16    = 0
