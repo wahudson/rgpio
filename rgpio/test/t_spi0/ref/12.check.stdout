@@ -1,0 +1,41 @@
+    SPI0 Master control
+usage:  rgpio spi0  [options..] [--tx V..]
+  modify full register:  (V= 32-bit value)
+    --CntlStat=V        Control and Status
+    --ClkDiv=V          Clock Divider
+    --DmaLen=V          DMA Data Length
+    --Lossi=V           LoSSI mode Control
+    --DmaReq=V          DMA DREQ Controls
+  data transfer:
+    --rx=N              read N entries from 16-entry Fifo
+    --tx                write arg values to Fifo
+  modify CntlStat bit fields:
+    --LossiWord_1=0     fifo write 1= 32-bit word, 0= 1-byte
+    --LossiDmaEn_1=0    enable DMA mode in LoSSI mode
+    --CsPolarity_3=0    chip select polarity CS[2:0]
+    --LossiEnable_1=0   1= LoSSI mode, 0= SPI mode
+    --ReadEnable_1=0    bidirectional mode 1= read, 0= write
+    --DmaEndCs_1=0      1= auto deassert chip select, 0= not
+    --IrqRxHalf_1=0     1= interrupt while RxHalf_1=1
+    --IrqTxEmpty_1=0    1= interrupt when TxEmpty_1=1
+    --DmaEnable_1=0     1= enable DMA operation
+    --RunActive_1=0     1= transfer active, 0= CS lines idle
+    --CsPolarity_1=0    chip select polarity, 1= active high
+    --ClearRxTxFifo_2=0 clear FIFO Rx={2,3}, Tx={1,3}, one-shot action
+    --ClockPolarity_1=0 SCLK polarity CPOL, 1= idle high
+    --ClockPhase_1=0    SCLK phase    CPHA, 1= ???
+    --ChipSelectN_2=0   chip select line number {0,1,2}
+  modify other bit fields:
+    --ClockDiv_16=N     SCLK frequency = sys_clock / N
+    --DmaDataLen_16=0   DMA number of bytes to transfer
+    --LossiHoldDly_4=N  output hold delay = (N+1) * sys_clock period
+  modify DmaReq bit fields:
+    --DmaRxPanicLev_8=N DMA read panic when Rx level > N
+    --DmaRxReqLev_8=N   DMA read DREQ  when Rx level > N
+    --DmaTxPanicLev_8=N DMA write panic when Tx level <= N
+    --DmaTxReqLev_8=N   DMA write DREQ  when Tx level <= N
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)

@@ -55,6 +55,7 @@ Test suites:  (2018-11-09)
  pbl    t_pud/		rgpio-pud	subcommand
  pbl    t_pwm/		rgpio-pwm	subcommand
  pbl    t_rgpio/	rgpio		rgpio main program.
+ pbl    t_spi0/		rgpio-spi0	subcommand
  u   s  t_yUtil/	yUtil		Utility functions.
 
 
