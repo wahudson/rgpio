@@ -187,7 +187,7 @@ iic_yOptLong::parse_options()
 	(iic_ch[3] || iic_ch[4] || iic_ch[5] || iic_ch[6] || iic_ch[7])
     ) {
 	Error::msg( "require IIC number {-0, -1, -2} for "   )
-		<< rgRpiRev::soc_enum2cstr( rgRpiRev::find_SocEnum() ) <<endl;
+		<< rgRpiRev::rgRpiRev::cstr_SocEnum() <<endl;
     }
 
     check_f1( "IicEnable_1",    IicEnable_1.Val    );
