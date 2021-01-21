@@ -13,6 +13,7 @@
 
 #include "utLib1.h"		// unit test library
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgSpi0.h"
 
@@ -40,29 +41,126 @@ rgAddrMap		Bx;
 
 rgSpi0			Tx   ( &Bx );		// test object
 
+rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );  // RPi3
 
 //--------------------------------------------------------------------------
-//## Constructor
+//## Constructor, get_bcm_address()
 //--------------------------------------------------------------------------
 
-  CASE( "10", "constructor" );
+  CASE( "10a", "constructor spi0 default" );
     try {
 	rgSpi0		tx  ( &Bx );
-	PASS( "constructor" );
+	CHECKX( 0x7e204000, tx.get_bcm_address() );
+	CHECK(  0,          tx.get_unit_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10b", "constructor spi0" );
+    try {
+	rgSpi0		tx  ( &Bx, 0 );
+	CHECKX( 0x7e204000, tx.get_bcm_address() );
+	CHECK(  0,          tx.get_unit_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10c", "constructor bad spi number" );
+    try {
+	rgSpi0		tx  ( &Bx, 3 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgSpi0:  constructor invalid spi number for BCM2837:  3",
+	    e.what()
+	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
-  CASE( "19", "get_bcm_address() Feature Address" );
+rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
+
+  CASE( "11a", "RPi4 constructor spi0" );
     try {
-	CHECKX( 0x7e204000, Tx.get_bcm_address() );
+	rgSpi0		tx  ( &Bx, 0 );
+	CHECKX( 0x7e204000, tx.get_bcm_address() );
+	CHECK(  0,          tx.get_unit_num() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "11b", "RPi4 constructor NOT spi1" );
+    try {
+	rgSpi0		tx  ( &Bx, 1 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgSpi0:  constructor requires spi number {0,3,4,5,6}:  1",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11c", "RPi4 constructor NOT spi2" );
+    try {
+	rgSpi0		tx  ( &Bx, 2 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgSpi0:  constructor requires spi number {0,3,4,5,6}:  2",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11d", "RPi4 constructor spi3" );
+    try {
+	rgSpi0		tx  ( &Bx, 3 );
+	CHECKX( 0x7e204600, tx.get_bcm_address() );
+	CHECK(  3,          tx.get_unit_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11e", "RPi4 constructor spi4" );
+    try {
+	rgSpi0		tx  ( &Bx, 4 );
+	CHECKX( 0x7e204800, tx.get_bcm_address() );
+	CHECK(  4,          tx.get_unit_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11f", "RPi4 constructor spi5" );
+    try {
+	rgSpi0		tx  ( &Bx, 5 );
+	CHECKX( 0x7e204a00, tx.get_bcm_address() );
+	CHECK(  5,          tx.get_unit_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11g", "RPi4 constructor spi6" );
+    try {
+	rgSpi0		tx  ( &Bx, 6 );
+	CHECKX( 0x7e204c00, tx.get_bcm_address() );
+	CHECK(  6,          tx.get_unit_num() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
 
 //--------------------------------------------------------------------------
 //## Address of registers  addr()
