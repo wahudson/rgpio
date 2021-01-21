@@ -1,11 +1,11 @@
 // 2019-10-21  William A. Hudson
 //
-// Testing:  rgSpi0  SPI0 Master class.
+// Testing:  rgSpi0  SPI0 Master class.  Include RPi4.
 //    10-19  Constructor, get_bcm_address()
 //    20-29  Address of registers  addr()
 //    30-39  Direct register access  read(), write()
 //    50-59  Object State registers  init_put_reset(), grab_regs(), push_regs()
-//    60-98  Object Field Accessors  get_(), put_()  #!! incomplete
+//    60-98  Object Field Accessors  get_(), put_()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -221,6 +221,24 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 	volatile uint32_t*	vp;
 	vp = Tx.DmaReq.addr();
 	CHECKX( 0x00000014, (vp - Tx.get_base_addr())*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+// Sample final register on extended spi numbers.
+
+  CASE( "27", "RPi4 spi*.DmaReq.addr()" );
+    try {
+	rgSpi0		tx3  ( &Bx, 3 );
+	rgSpi0		tx4  ( &Bx, 4 );
+	rgSpi0		tx5  ( &Bx, 5 );
+	rgSpi0		tx6  ( &Bx, 6 );
+	CHECKX( 0x0014, (tx3.DmaReq.addr() - tx3.get_base_addr())*4 );
+	CHECKX( 0x0014, (tx4.DmaReq.addr() - tx4.get_base_addr())*4 );
+	CHECKX( 0x0014, (tx5.DmaReq.addr() - tx5.get_base_addr())*4 );
+	CHECKX( 0x0014, (tx6.DmaReq.addr() - tx6.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -465,65 +483,62 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 //## Object Field Accessors  get_(), put_()
 //--------------------------------------------------------------------------
 
-//#!! Incomplete!
-
 //--------------------------------------
-  CASE( "60", "clear object regs" );	// to avoid any wayward 1s
+  CASE( "60", "condition hardware/object registers" );	// avoid any wayward 0s
     try {
-	Tx.CntlStat.put(   0x00000000 );
-	Tx.Fifo.put(       0x00000000 );
-	Tx.ClkDiv.put(     0x00000000 );
-	Tx.DmaLen.put(     0x00000000 );
-	Tx.Lossi.put(      0x00000000 );
-	Tx.DmaReq.put(     0x00000000 );
-	CHECKX(            0x00000000, Tx.CntlStat.get() );
-	CHECKX(            0x00000000, Tx.Fifo.get()     );
-	CHECKX(            0x00000000, Tx.ClkDiv.get()   );
-	CHECKX(            0x00000000, Tx.DmaLen.get()   );
-	CHECKX(            0x00000000, Tx.Lossi.get()    );
-	CHECKX(            0x00000000, Tx.DmaReq.get()   );
+	Tx.CntlStat.write( 0xffffffff );
+	Tx.Fifo.write(     0xffffffff );
+	Tx.ClkDiv.write(   0xffffffff );
+	Tx.DmaLen.write(   0xffffffff );
+	Tx.Lossi.write(    0xffffffff );
+	Tx.DmaReq.write(   0xffffffff );
+	//
+	Tx.CntlStat.put(   0xffffffff );
+	Tx.Fifo.put(       0xffffffff );
+	Tx.ClkDiv.put(     0xffffffff );
+	Tx.DmaLen.put(     0xffffffff );
+	Tx.Lossi.put(      0xffffffff );
+	Tx.DmaReq.put(     0xffffffff );
+	CHECKX(            0xffffffff, Tx.CntlStat.read() );
+	CHECKX(            0xffffffff, Tx.Fifo.read()     );
+	CHECKX(            0xffffffff, Tx.ClkDiv.read()   );
+	CHECKX(            0xffffffff, Tx.DmaLen.read()   );
+	CHECKX(            0xffffffff, Tx.Lossi.read()    );
+	CHECKX(            0xffffffff, Tx.DmaReq.read()   );
+	//
+	CHECKX(            0xffffffff, Tx.CntlStat.get() );
+	CHECKX(            0xffffffff, Tx.Fifo.get()     );
+	CHECKX(            0xffffffff, Tx.ClkDiv.get()   );
+	CHECKX(            0xffffffff, Tx.DmaLen.get()   );
+	CHECKX(            0xffffffff, Tx.Lossi.get()    );
+	CHECKX(            0xffffffff, Tx.DmaReq.get()   );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-/***
 //--------------------------------------
-  CASE( "99a", "get_Z()" );
-    try {
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	Tx.put_Z(     0x1 );
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	CHECKX(                 0x1, Tx.get_Z() );
-	Tx.put_CntlStat( 0x00000000 );	// restore
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
+// Example heavy-weight bit-field test.
 
-  CASE( "99c", "put_Z() bad value" );
-    try {
-	Tx.put_Z(     0x2 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0x1:  0x2",
-	    e.what()
-	);
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-***/
-
-//--------------------------------------
   CASE( "61a", "CntlStat.get_LossiWord_1()" );
     try {
-	CHECKX(             0x00000000, Tx.CntlStat.get() );
-	Tx.CntlStat.put_LossiWord_1( 1 );
-	CHECKX(             0x02000000, Tx.CntlStat.get() );
-	CHECKX(                      1, Tx.CntlStat.get_LossiWord_1() );
-	Tx.CntlStat.put(    0x00000000 );	// restore
+	Tx.CntlStat.put(     0x00000000 );
+	CHECKX(              0x00000000, Tx.CntlStat.get() );
+	Tx.CntlStat.put_LossiWord_1(  1 );
+	CHECKX(              0x02000000, Tx.CntlStat.get() );
+	CHECKX(                       1, Tx.CntlStat.get_LossiWord_1() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "61b", "CntlStat.get_LossiWord_1()" );
+    try {
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_LossiWord_1(  0 );
+	CHECKX(              0xfdffffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_LossiWord_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -531,308 +546,349 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "61c", "CntlStat.put_LossiWord_1() bad value" );
     try {
-	Tx.CntlStat.put_LossiWord_1( 2 );
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_LossiWord_1(  2 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
 	CHECK( "rgRegister::put_field():  value exceeds 0x1:  0x2",
 	    e.what()
 	);
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
-  CASE( "64a", "CntlStat.get_RxFullStop_1() read only" );
+// Light-weight bit-field test.
+
+  CASE( "62b", "CntlStat.get_LossiDmaEn_1()" );
     try {
-	Tx.CntlStat.put( 0x00100000 );
-	CHECKX(          0x00100000, Tx.CntlStat.get() );
-	CHECKX(                 0x1, Tx.CntlStat.get_RxFullStop_1() );
-	Tx.CntlStat.put( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_LossiDmaEn_1( 0 );
+	CHECKX(              0xfeffffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_LossiDmaEn_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "64b", "CntlStat.get_RxFullStop_1() read only" );
+  CASE( "63b", "CntlStat.get_CsPolarity_3()" );
     try {
-	Tx.CntlStat.put( 0xffefffff );
-	CHECKX(          0xffefffff, Tx.CntlStat.get() );
-	CHECKX(                 0x0, Tx.CntlStat.get_RxFullStop_1() );
-	Tx.CntlStat.put( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_CsPolarity_3( 0 );
+	CHECKX(              0xff1fffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_CsPolarity_3() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "65a", "CntlStat.get_RxHalf_1() read only" );
+  CASE( "64b", "CntlStat.get_RxFullStop_1()" );
     try {
-	Tx.CntlStat.put( 0x00080000 );
-	CHECKX(          0x00080000, Tx.CntlStat.get() );
-	CHECKX(                 0x1, Tx.CntlStat.get_RxHalf_1() );
-	Tx.CntlStat.put( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_RxFullStop_1( 0 );
+	CHECKX(              0xffefffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_RxFullStop_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "65b", "CntlStat.get_RxHalf_1() read only" );
+  CASE( "65b", "CntlStat.get_RxHalf_1()" );
     try {
-	Tx.CntlStat.put( 0xfff7ffff );
-	CHECKX(          0xfff7ffff, Tx.CntlStat.get() );
-	CHECKX(                 0x0, Tx.CntlStat.get_RxHalf_1() );
-	Tx.CntlStat.put( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_RxHalf_1(     0 );
+	CHECKX(              0xfff7ffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_RxHalf_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-/*****************
-
-//--------------------------------------
-  CASE( "75a", "get_RunActive_1()" );
+  CASE( "66b", "CntlStat.get_TxHasSpace_1()" );
     try {
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	Tx.put_RunActive_1(     0x1 );
-	CHECKX(          0x00000080, Tx.get_CntlStat() );
-	CHECKX(                 0x1, Tx.get_RunActive_1() );
-	Tx.put_CntlStat( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_TxHasSpace_1( 0 );
+	CHECKX(              0xfffbffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_TxHasSpace_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "75c", "put_RunActive_1() bad value" );
+  CASE( "67b", "CntlStat.get_RxHasData_1()" );
     try {
-	Tx.put_RunActive_1(     0x2 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0x1:  0x2",
-	    e.what()
-	);
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_RxHasData_1(  0 );
+	CHECKX(              0xfffdffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_RxHasData_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "76a", "get_CsPolarity_1()" );
+  CASE( "68b", "CntlStat.get_TxEmpty_1()" );
     try {
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	Tx.put_CsPolarity_1(    0x1 );
-	CHECKX(          0x00000040, Tx.get_CntlStat() );
-	CHECKX(                 0x1, Tx.get_CsPolarity_1() );
-	Tx.put_CntlStat( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_TxEmpty_1(    0 );
+	CHECKX(              0xfffeffff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_TxEmpty_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "76c", "put_CsPolarity_1() bad value" );
+  CASE( "69b", "CntlStat.get_LossiEnable_1()" );
     try {
-	Tx.put_CsPolarity_1(    0x2 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0x1:  0x2",
-	    e.what()
-	);
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_LossiEnable_1( 0 );
+	CHECKX(              0xffffdfff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_LossiEnable_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "77a", "get_ClearRxTxFifo_2()" );
+  CASE( "70b", "CntlStat.get_ReadEnable_1()" );
     try {
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	Tx.put_ClearRxTxFifo_2( 0x3 );
-	CHECKX(          0x00000030, Tx.get_CntlStat() );
-	CHECKX(                 0x3, Tx.get_ClearRxTxFifo_2() );
-	Tx.put_CntlStat( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_ReadEnable_1( 0 );
+	CHECKX(              0xffffefff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_ReadEnable_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "77c", "put_ClearRxTxFifo_2() bad value" );
+  CASE( "71b", "CntlStat.get_DmaEndCs_1()" );
     try {
-	Tx.put_ClearRxTxFifo_2( 0x4 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0x3:  0x4",
-	    e.what()
-	);
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_DmaEndCs_1(   0 );
+	CHECKX(              0xfffff7ff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_DmaEndCs_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "78a", "get_ClockPolarity_1()" );
+  CASE( "72b", "CntlStat.get_IrqRxHalf_1()" );
     try {
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	Tx.put_ClockPolarity_1( 0x1 );
-	CHECKX(          0x00000008, Tx.get_CntlStat() );
-	CHECKX(                 0x1, Tx.get_ClockPolarity_1() );
-	Tx.put_CntlStat( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_IrqRxHalf_1(  0 );
+	CHECKX(              0xfffffbff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_IrqRxHalf_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "78c", "put_ClockPolarity_1() bad value" );
+  CASE( "73b", "CntlStat.get_IrqTxEmpty_1()" );
     try {
-	Tx.put_ClockPolarity_1( 0x2 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0x1:  0x2",
-	    e.what()
-	);
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_IrqTxEmpty_1( 0 );
+	CHECKX(              0xfffffdff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_IrqTxEmpty_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "79a", "get_ClockPhase_1()" );
+  CASE( "74b", "CntlStat.get_DmaEnable_1()" );
     try {
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	Tx.put_ClockPhase_1(    0x1 );
-	CHECKX(          0x00000004, Tx.get_CntlStat() );
-	CHECKX(                 0x1, Tx.get_ClockPhase_1() );
-	Tx.put_CntlStat( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_DmaEnable_1(  0 );
+	CHECKX(              0xfffffeff, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_DmaEnable_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "79c", "put_ClockPhase_1() bad value" );
+  CASE( "75b", "CntlStat.get_RunActive_1()" );
     try {
-	Tx.put_ClockPhase_1(    0x2 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0x1:  0x2",
-	    e.what()
-	);
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_RunActive_1(  0 );
+	CHECKX(              0xffffff7f, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_RunActive_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "80a", "get_ChipSelectN_2()" );
+  CASE( "76b", "CntlStat.get_CsPolarity_1()" );
     try {
-	CHECKX(          0x00000000, Tx.get_CntlStat() );
-	Tx.put_ChipSelectN_2(   0x3 );
-	CHECKX(          0x00000003, Tx.get_CntlStat() );
-	CHECKX(                 0x3, Tx.get_ChipSelectN_2() );
-	Tx.put_CntlStat( 0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_CsPolarity_1( 0 );
+	CHECKX(              0xffffffbf, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_CsPolarity_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "80c", "put_ChipSelectN_2() bad value" );
+  CASE( "77b", "CntlStat.get_ClearRxTxFifo_2()" );
     try {
-	Tx.put_ChipSelectN_2(   0x4 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0x3:  0x4",
-	    e.what()
-	);
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_ClearRxTxFifo_2( 0 );
+	CHECKX(              0xffffffcf, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_ClearRxTxFifo_2() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-**************/
-
-//--------------------------------------
-  CASE( "82a", "ClkDiv.get_ClockDiv_16()" );
+  CASE( "78b", "CntlStat.get_ClockPolarity_1()" );
     try {
-	CHECKX(                0x00000000, Tx.ClkDiv.get() );
-	Tx.ClkDiv.put_ClockDiv_16( 0xffff );
-	CHECKX(                0x0000ffff, Tx.ClkDiv.get() );
-	CHECKX(                    0xffff, Tx.ClkDiv.get_ClockDiv_16() );
-	Tx.ClkDiv.put(         0x00000000 );	// restore
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_ClockPolarity_1( 0 );
+	CHECKX(              0xfffffff7, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_ClockPolarity_1() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "82c", "ClkDiv.put_ClockDiv_16() bad value" );
+  CASE( "79b", "CntlStat.get_ClockPhase_1()" );
     try {
-	Tx.ClkDiv.put_ClockDiv_16( 0x10000 );
-	FAIL( "no throw" );
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_ClockPhase_1( 0 );
+	CHECKX(              0xfffffffb, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_ClockPhase_1() );
     }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0xffff:  0x10000",
-	    e.what()
-	);
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "80b", "CntlStat.get_ChipSelectN_2()" );
+    try {
+	Tx.CntlStat.put(     0xffffffff );
+	CHECKX(              0xffffffff, Tx.CntlStat.get() );
+	Tx.CntlStat.put_ChipSelectN_2( 0 );
+	CHECKX(              0xfffffffc, Tx.CntlStat.get() );
+	CHECKX(                       0, Tx.CntlStat.get_ChipSelectN_2() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
-  CASE( "92a", "DmaReq.get_DmaRxReqLev_8()" );
+  CASE( "81b", "ClkDiv.get_ClockDiv_16()" );
     try {
-	CHECKX(                0x00000000, Tx.DmaReq.get() );
-	Tx.DmaReq.put_DmaRxReqLev_8( 0xff );
-	CHECKX(                0x00ff0000, Tx.DmaReq.get() );
-	CHECKX(                      0xff, Tx.DmaReq.get_DmaRxReqLev_8() );
-	Tx.DmaReq.put(         0x00000000 );	// restore
+	Tx.ClkDiv.put(       0xffffffff );
+	CHECKX(              0xffffffff, Tx.ClkDiv.get() );
+	Tx.ClkDiv.put_ClockDiv_16( 0x0000 );
+	CHECKX(              0xffff0000, Tx.ClkDiv.get() );
+	CHECKX(                       0, Tx.ClkDiv.get_ClockDiv_16() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
-
-// Is complement needed?
-  CASE( "92b", "DmaReq.get_DmaRxReqLev_8()" );
-    try {
-	Tx.DmaReq.put(         0xffffffff );
-	CHECKX(                0xffffffff, Tx.DmaReq.get() );
-	Tx.DmaReq.put_DmaRxReqLev_8( 0x00 );
-	CHECKX(                0xff00ffff, Tx.DmaReq.get() );
-	CHECKX(                      0x00, Tx.DmaReq.get_DmaRxReqLev_8() );
-	Tx.DmaReq.put(         0x00000000 );	// restore
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "92c", "DmaReq.put_DmaRxReqLev_8() bad value" );
-    try {
-	Tx.DmaReq.put_DmaRxReqLev_8( 0x100 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgRegister::put_field():  value exceeds 0xff:  0x100",
-	    e.what()
-	);
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
 
 //--------------------------------------
-  CASE( "98", "verify object regs all 0" );
+  CASE( "82b", "DmaLen.get_DmaDataLen_16()" );
     try {
-	CHECKX(            0x00000000, Tx.CntlStat.get() );
-	CHECKX(            0x00000000, Tx.Fifo.get()     );
-	CHECKX(            0x00000000, Tx.ClkDiv.get()   );
-	CHECKX(            0x00000000, Tx.DmaLen.get()   );
-	CHECKX(            0x00000000, Tx.Lossi.get()    );
-	CHECKX(            0x00000000, Tx.DmaReq.get()   );
+	Tx.DmaLen.put(       0xffffffff );
+	CHECKX(              0xffffffff, Tx.DmaLen.get() );
+	Tx.DmaLen.put_DmaDataLen_16( 0x0000 );
+	CHECKX(              0xffff0000, Tx.DmaLen.get() );
+	CHECKX(                       0, Tx.DmaLen.get_DmaDataLen_16() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "83b", "Lossi.get_LossiHoldDly_4()" );
+    try {
+	Tx.Lossi.put(        0xffffffff );
+	CHECKX(              0xffffffff, Tx.Lossi.get() );
+	Tx.Lossi.put_LossiHoldDly_4( 0x0 );
+	CHECKX(              0xfffffff0, Tx.Lossi.get() );
+	CHECKX(                       0, Tx.Lossi.get_LossiHoldDly_4() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "84b", "DmaReq.get_DmaRxPanicLev_8()" );
+    try {
+	Tx.DmaReq.put(       0xffffffff );
+	CHECKX(              0xffffffff, Tx.DmaReq.get() );
+	Tx.DmaReq.put_DmaRxPanicLev_8( 0x00 );
+	CHECKX(              0x00ffffff, Tx.DmaReq.get() );
+	CHECKX(                       0, Tx.DmaReq.get_DmaRxPanicLev_8() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "85b", "DmaReq.get_DmaRxReqLev_8()" );
+    try {
+	Tx.DmaReq.put(       0xffffffff );
+	CHECKX(              0xffffffff, Tx.DmaReq.get() );
+	Tx.DmaReq.put_DmaRxReqLev_8(  0x00 );
+	CHECKX(              0xff00ffff, Tx.DmaReq.get() );
+	CHECKX(                       0, Tx.DmaReq.get_DmaRxReqLev_8() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "86b", "DmaReq.get_DmaTxPanicLev_8()" );
+    try {
+	Tx.DmaReq.put(       0xffffffff );
+	CHECKX(              0xffffffff, Tx.DmaReq.get() );
+	Tx.DmaReq.put_DmaTxPanicLev_8( 0x00 );
+	CHECKX(              0xffff00ff, Tx.DmaReq.get() );
+	CHECKX(                       0, Tx.DmaReq.get_DmaTxPanicLev_8() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "87b", "DmaReq.get_DmaTxReqLev_8()" );
+    try {
+	Tx.DmaReq.put(       0xffffffff );
+	CHECKX(              0xffffffff, Tx.DmaReq.get() );
+	Tx.DmaReq.put_DmaTxReqLev_8(  0x00 );
+	CHECKX(              0xffffff00, Tx.DmaReq.get() );
+	CHECKX(                       0, Tx.DmaReq.get_DmaTxReqLev_8() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "98", "verify object put() results" );
+    try {
+	CHECKX(            0xfffffffc, Tx.CntlStat.get() );
+	CHECKX(            0xffffffff, Tx.Fifo.get()     );
+	CHECKX(            0xffff0000, Tx.ClkDiv.get()   );
+	CHECKX(            0xffff0000, Tx.DmaLen.get()   );
+	CHECKX(            0xfffffff0, Tx.Lossi.get()    );
+	CHECKX(            0xffffff00, Tx.DmaReq.get()   );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
