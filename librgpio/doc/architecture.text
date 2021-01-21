@@ -569,6 +569,58 @@ Object Register Initialization:  init_put_reset()
     worthwhile.  Unnecessary functions have a support cost.  Adding functions
     is backward compatible, while removing them is not.
 
+Constructor Arguments:
+
+    All feature objects take an rgAddrMap pointer.
+    Some features have multiple units and take an additional unit identifier,
+    usually a small integer, but sometimes an enum (e.g. rgClk).
+
+    The constructor argument ordering has evolved.
+    Originally, the unit number was first, because that seemed more intrinsic
+    to the identity of the feature object.  e.g.
+	f( N, &Amx )
+
+    With the introduction of RPi4, several features were extended with more
+    units (PWM, SPI0, IIC, UART).
+    Now it makes more sense to put the unit number second, where it can be
+    a default argument.  e.g.
+	rgPwm::rgPwm( rgAddrMap* amx,  uint32_t N = 0 );
+
+    Features PWM and SPI0 had no unit number in RPi3.  Maybe ignore back
+    compatibility and put new unit number first?  Somehow this grates on me.
+
+    Conflicting issues arise:
+	It would be nice to have uniform ordering on all features.
+	Existing features rgClk, rgUniSpi, rgIic order unit number first.
+	How important is backward compatibility?
+	What code debt is acceptable?
+	What effort toward rework vs new features?
+
+    At this time (2021-01-19) the library is new with very little public
+    release.  At version 0.19, we expect incompatible changes.
+    Trivial incompatibility changes caught by the compiler, like argument
+    ordering, are quite acceptable.
+
+    I favor:  (2021-01-19)
+	Adopt new constructor argument ordering for new features.
+	Change rgIic, to better match rgSpi0 and UART.  (maybe)
+	Leave rgClk and rgUniSpi since their unit numbers are special cases.
+	    rgClk has an enum unit number.
+	    rgUniSpi is really two units under the Auxiliary Peripherals.
+
+    In the end, it may not really matter.
+
+Evolution of Library:
+
+    Having never designed a library like this, it is not possible to start
+    with the "perfect" design.  Letting new features be different is a way to
+    try out new and better ideas.  We learn as we go.
+
+    It is better to start with something than to wait for perfection.
+    It is not possible to predict the future.
+    Trying to future-proof creates code-debt, and often is wasted.
+    Focus on good design.
+
 ----------------------------------------------------------------------------
 ## Register Object  rgRegister
 ----------------------------------------------------------------------------

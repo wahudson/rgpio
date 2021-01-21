@@ -118,6 +118,8 @@ class rgSpi0_DmaReq : public rgRegister {
 class rgSpi0 {
   private:
     volatile uint32_t	*GpioBase;	// IO base address
+    uint32_t		SpiNum;		// SPI unit number {0,3,4,5,6}
+    uint32_t		FeatureAddr;	// BCM doc address, in constructor
 
   public:
 				// Register data
@@ -129,7 +131,7 @@ class rgSpi0 {
     rgSpi0_DmaReq	DmaReq;		// DC    DMA DREQ Controls
 
   private:
-    static const uint32_t	FeatureAddr  = 0x7e204000;	// BCM doc value
+    static const uint32_t	FeatureBase  = 0x7e204000;  // BCM doc value
 
 					// Register word offset in Page
     static const uint32_t	CntlStat_offset  = 0x00 /4;
@@ -141,10 +143,12 @@ class rgSpi0 {
 
   public:
     rgSpi0(			// constructor
-	rgAddrMap	*xx
+	rgAddrMap	*xx,
+	uint32_t	spinum = 0
     );
 
     inline volatile uint32_t*	get_base_addr()  { return  GpioBase; }
+    uint32_t			get_unit_num()   { return  SpiNum; }
 
 		// Direct control:  (modify register fields)
 //  void		clear_fifos();	#!! not implemented
@@ -160,7 +164,6 @@ class rgSpi0 {
     void		show_debug( std::ostream&  sout );
 
     inline uint32_t	get_bcm_address() { return FeatureAddr; }
-
 };
 
 #endif

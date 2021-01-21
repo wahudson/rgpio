@@ -15,9 +15,9 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgSpi0.h"
-
 
 /*
 * Constructor.
@@ -25,14 +25,40 @@ using namespace std;
 *    rgAddrMap	amx;		// address map object
 *    amx.open_dev_mem();	// select and open device file
 * call:
-*    rgSpi0	spx  ( &amx );	// constructor with address map
+*    rgSpi0	spx  ( &amx, N );	// constructor with address map
 *    &amx  = pointer to address map object with open device file
+*    N     = spi number {0}          for BCM2837 RPi3 and earlier
+*                       {0,3,4,5,6}  for BCM2711 RPi4
 */
 rgSpi0::rgSpi0(
-    rgAddrMap		*xx
+    rgAddrMap		*xx,
+    uint32_t		spinum
 )
 {
-    GpioBase     = xx->get_mem_block( FeatureAddr );
+    uint32_t		delta;
+
+    if ( ! ((spinum == 0) || ((3 <= spinum) && (spinum <= 6)) ) ) {
+	std::ostringstream      css;
+	css << "rgSpi0:  constructor requires spi number {0,3,4,5,6}:  "
+	    << spinum;
+	throw std::range_error ( css.str() );
+    }
+
+    if ( (rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2837) &&
+	(spinum > 0)
+    ) {
+	std::ostringstream      css;
+	css << "rgSpi0:  constructor invalid spi number for "
+	    << rgRpiRev::cstr_SocEnum()
+	    << ":  " << spinum;
+	throw std::range_error ( css.str() );
+    }
+
+    delta       = spinum * 0x200;
+    FeatureAddr = FeatureBase + delta;		// BCM doc address
+
+    SpiNum      = spinum;
+    GpioBase    = xx->get_mem_addr( FeatureAddr);
 
     CntlStat.init_addr( GpioBase + CntlStat_offset );
 	Fifo.init_addr( GpioBase +     Fifo_offset );
