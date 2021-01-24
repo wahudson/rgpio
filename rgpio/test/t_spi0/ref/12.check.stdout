@@ -1,5 +1,7 @@
     SPI0 Master control
 usage:  rgpio spi0  [options..] [--tx V..]
+    -0                  spi number, default
+    -3 -4 -5 -6         spi number, extended for RPi4
   modify full register:  (V= 32-bit value)
     --CntlStat=V        Control and Status
     --ClkDiv=V          Clock Divider

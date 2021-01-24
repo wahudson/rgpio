@@ -16,11 +16,13 @@ using namespace std;
 #include "yOption.h"
 #include "yOpVal.h"
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgSpi0.h"
 
 #include "y_spi0.h"
 
+const int		SpiMax = 6;	// maximum spi unit number
 
 //--------------------------------------------------------------------------
 // Option Handling
@@ -38,6 +40,8 @@ class spi0_yOptLong : public yOption {
 //    char*		current_option();
 
   public:	// option values
+
+    bool		spi_ch[SpiMax+1] = {0,0,0,0,0,0,0};  // unit requested
 					// registers
     yOpVal		CntlStat;
     yOpVal		Fifo;
@@ -125,6 +129,11 @@ spi0_yOptLong::parse_options()
 
 	else if ( is( "--rx="              )) { rx.set(              val() ); }
 	else if ( is( "--tx"               )) { tx         = 1; }
+	else if ( is( "-0"                 )) { spi_ch[0]  = 1; }
+	else if ( is( "-3"                 )) { spi_ch[3]  = 1; }
+	else if ( is( "-4"                 )) { spi_ch[4]  = 1; }
+	else if ( is( "-5"                 )) { spi_ch[5]  = 1; }
+	else if ( is( "-6"                 )) { spi_ch[6]  = 1; }
 
 	else if ( is( "--LossiWord_1="     )) { LossiWord_1.set(     val() ); }
 	else if ( is( "--LossiDmaEn_1="    )) { LossiDmaEn_1.set(    val() ); }
@@ -162,6 +171,17 @@ spi0_yOptLong::parse_options()
 	else {
 	    Error::msg( "unknown option:  " ) << this->current_option() <<endl;
 	}
+    }
+
+    if ( !( spi_ch[0] || spi_ch[3] || spi_ch[4] || spi_ch[5] || spi_ch[6] ) ) {
+	spi_ch[0] = 1;          // default
+    }
+
+    if ( (rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2837) &&
+	(spi_ch[3] || spi_ch[4] || spi_ch[5] || spi_ch[6])
+    ) {
+	Error::msg( "require spi number {-0} for "   )
+		<< rgRpiRev::cstr_SocEnum() <<endl;
     }
 
     // CntlStat fields
@@ -298,6 +318,11 @@ spi0_yOptLong::print_option_flags()
 
     cout << "--rx          = " << rx.Val       << endl;
     cout << "--tx          = " << tx           << endl;
+    cout << "-0            = " << spi_ch[0]    << endl;
+    cout << "-3            = " << spi_ch[3]    << endl;
+    cout << "-4            = " << spi_ch[4]    << endl;
+    cout << "-5            = " << spi_ch[5]    << endl;
+    cout << "-6            = " << spi_ch[6]    << endl;
 
     cout <<dec;
     cout << "--LossiWord_1     = " << LossiWord_1.Val     << endl;
@@ -347,6 +372,8 @@ spi0_yOptLong::print_usage()
     cout <<
     "    SPI0 Master control\n"
     "usage:  " << ProgName << " spi0  [options..] [--tx V..]\n"
+    "    -0                  spi number, default\n"
+    "    -3 -4 -5 -6         spi number, extended for RPi4\n"
     "  modify full register:  (V= 32-bit value)\n"
     "    --CntlStat=V        Control and Status\n"
     "    --ClkDiv=V          Clock Divider\n"
@@ -445,38 +472,52 @@ y_spi0::doit()
 
 	if ( Error::has_err() )  return 1;
 
-	if ( Opx.verbose ) {
-	    cout << "SPI0 Master:" << endl;
-	}
+    // SPI channel objects
+	rgSpi0*		Spx[SpiMax+1] = {0,0,0,0,0,0,0};
+			// pointers to SPI objects, NULL if not used.
 
-    // SPI object
-
-	rgSpi0		Spx  ( AddrMap );	// constructor
-
-	if ( Opx.debug ) {
-	    // Note cout does not know how to show (volatile uint32_t*).
-
-	    cout << "    " << "Spi0.GpioBase=       "
-		 <<hex << (uint32_t*) Spx.get_base_addr() <<endl;
-
-	    cout << "    " << "Spi0.CntlStat=       "
-		 <<hex << (uint32_t*) Spx.CntlStat.addr() <<endl;
-
-	    cout << "    " << "Spi0.diff_CntlStat=  "
-		 <<hex
-		 << (Spx.CntlStat.addr() - Spx.get_base_addr())*4 <<endl;
-
-	    cout <<dec <<endl;
-	}
-
+	for ( int ii=0;  ii<=SpiMax;  ii++ )
 	{
+	    if ( Opx.spi_ch[ii] ) {
+		Spx[ii] = new  rgSpi0  ( AddrMap, ii );	// constructor
+	    }
+	    // construct all first, in case of exception
+	}
+
+    // Process each device
+
+	for ( int ii=0;  ii<=SpiMax;  ii++ )
+	{
+	    rgSpi0		*spx;
 	    bool		md = 0;		// modify flag
 
-	    Opx.trace_msg( "Grab regs" );
-	    Spx.grab_regs();
+	    spx = Spx[ii];
 
-#define APPLX( X )    if ( Opx.X.Given ) { Spx.X.put( Opx.X.Val );  md = 1; }
-#define APPLY( X, Y ) if ( Opx.X.Given ) { Y( Opx.X.Val );  md = 1; }
+	    if ( spx == NULL ) {
+		continue;
+	    }
+
+	    string	ns = "   " + std::to_string( spx->get_unit_num()) + ".";
+
+	// Heading
+
+	    cout << "Spi" << spx->get_unit_num() << ":" <<endl;
+
+	    if ( Opx.debug ) {
+		cout << "+" << ns << "FeatureAddr   = 0x"
+		     <<hex <<             spx->get_bcm_address() <<endl;
+		cout << "+" << ns << "GpioBase      = "
+		     <<hex << (uint32_t*) spx->get_base_addr()   <<endl;
+		cout << "+" << ns << "CntlStat.addr = "
+		     <<hex << (uint32_t*) spx->CntlStat.addr()   <<endl;
+		cout <<dec;
+	    }
+
+	    Opx.trace_msg( "Grab regs" );
+	    spx->grab_regs();
+
+#define APPLX( X )    if ( Opx.X.Given ) { spx->X.put( Opx.X.Val );  md = 1; }
+#define APPLY( X, Y ) if ( Opx.X.Given ) { spx->Y( Opx.X.Val );      md = 1; }
 
 	// Registers
 
@@ -488,42 +529,44 @@ y_spi0::doit()
 
 	// Fields
 
-	    APPLY( LossiWord_1,     Spx.CntlStat.put_LossiWord_1     )
-	    APPLY( LossiDmaEn_1,    Spx.CntlStat.put_LossiDmaEn_1    )
-	    APPLY( CsPolarity_3,    Spx.CntlStat.put_CsPolarity_3    )
-//	    APPLY( RxFullStop_1,    Spx.CntlStat.put_RxFullStop_1    )
-//	    APPLY( RxHalf_1,        Spx.CntlStat.put_RxHalf_1        )
-//	    APPLY( TxHasSpace_1,    Spx.CntlStat.put_TxHasSpace_1    )
-//	    APPLY( RxHasData_1,     Spx.CntlStat.put_RxHasData_1     )
-//	    APPLY( TxEmpty_1,       Spx.CntlStat.put_TxEmpty_1       )
-	    APPLY( LossiEnable_1,   Spx.CntlStat.put_LossiEnable_1   )
-	    APPLY( ReadEnable_1,    Spx.CntlStat.put_ReadEnable_1    )
-	    APPLY( DmaEndCs_1,      Spx.CntlStat.put_DmaEndCs_1      )
-	    APPLY( IrqRxHalf_1,     Spx.CntlStat.put_IrqRxHalf_1     )
-	    APPLY( IrqTxEmpty_1,    Spx.CntlStat.put_IrqTxEmpty_1    )
-	    APPLY( DmaEnable_1,     Spx.CntlStat.put_DmaEnable_1     )
-	    APPLY( RunActive_1,     Spx.CntlStat.put_RunActive_1     )
-	    APPLY( CsPolarity_1,    Spx.CntlStat.put_CsPolarity_1    )
-	    APPLY( ClearRxTxFifo_2, Spx.CntlStat.put_ClearRxTxFifo_2 )
-	    APPLY( ClockPolarity_1, Spx.CntlStat.put_ClockPolarity_1 )
-	    APPLY( ClockPhase_1,    Spx.CntlStat.put_ClockPhase_1    )
-	    APPLY( ChipSelectN_2,   Spx.CntlStat.put_ChipSelectN_2   )
+	    APPLY( LossiWord_1,     CntlStat.put_LossiWord_1     )
+	    APPLY( LossiDmaEn_1,    CntlStat.put_LossiDmaEn_1    )
+	    APPLY( CsPolarity_3,    CntlStat.put_CsPolarity_3    )
+//	    APPLY( RxFullStop_1,    CntlStat.put_RxFullStop_1    )
+//	    APPLY( RxHalf_1,        CntlStat.put_RxHalf_1        )
+//	    APPLY( TxHasSpace_1,    CntlStat.put_TxHasSpace_1    )
+//	    APPLY( RxHasData_1,     CntlStat.put_RxHasData_1     )
+//	    APPLY( TxEmpty_1,       CntlStat.put_TxEmpty_1       )
+	    APPLY( LossiEnable_1,   CntlStat.put_LossiEnable_1   )
+	    APPLY( ReadEnable_1,    CntlStat.put_ReadEnable_1    )
+	    APPLY( DmaEndCs_1,      CntlStat.put_DmaEndCs_1      )
+	    APPLY( IrqRxHalf_1,     CntlStat.put_IrqRxHalf_1     )
+	    APPLY( IrqTxEmpty_1,    CntlStat.put_IrqTxEmpty_1    )
+	    APPLY( DmaEnable_1,     CntlStat.put_DmaEnable_1     )
+	    APPLY( RunActive_1,     CntlStat.put_RunActive_1     )
+	    APPLY( CsPolarity_1,    CntlStat.put_CsPolarity_1    )
+	    APPLY( ClearRxTxFifo_2, CntlStat.put_ClearRxTxFifo_2 )
+	    APPLY( ClockPolarity_1, CntlStat.put_ClockPolarity_1 )
+	    APPLY( ClockPhase_1,    CntlStat.put_ClockPhase_1    )
+	    APPLY( ChipSelectN_2,   CntlStat.put_ChipSelectN_2   )
 
-	    APPLY( ClockDiv_16,     Spx.ClkDiv.put_ClockDiv_16       )
+	    APPLY( ClockDiv_16,     ClkDiv.put_ClockDiv_16       )
 
-	    APPLY( DmaDataLen_16,   Spx.DmaLen.put_DmaDataLen_16     )
+	    APPLY( DmaDataLen_16,   DmaLen.put_DmaDataLen_16     )
 
-	    APPLY( LossiHoldDly_4,  Spx.Lossi.put_LossiHoldDly_4     )
+	    APPLY( LossiHoldDly_4,  Lossi.put_LossiHoldDly_4     )
 
-	    APPLY( DmaRxPanicLev_8, Spx.DmaReq.put_DmaRxPanicLev_8   )
-	    APPLY( DmaRxReqLev_8,   Spx.DmaReq.put_DmaRxReqLev_8     )
-	    APPLY( DmaTxPanicLev_8, Spx.DmaReq.put_DmaTxPanicLev_8   )
-	    APPLY( DmaTxReqLev_8,   Spx.DmaReq.put_DmaTxReqLev_8     )
+	    APPLY( DmaRxPanicLev_8, DmaReq.put_DmaRxPanicLev_8   )
+	    APPLY( DmaRxReqLev_8,   DmaReq.put_DmaRxReqLev_8     )
+	    APPLY( DmaTxPanicLev_8, DmaReq.put_DmaTxPanicLev_8   )
+	    APPLY( DmaTxReqLev_8,   DmaReq.put_DmaTxReqLev_8     )
 
 	    if ( md ) {			// modified registers
 		Opx.trace_msg( "Modify regs" );
-		Spx.push_regs();
+		spx->push_regs();
 	    }
+
+	// Tx FIFO
 
 	    if ( Opx.tx ) {
 		char*		cp;
@@ -536,68 +579,77 @@ y_spi0::doit()
 		    vv = strtoul( cp, NULL, 0 );
 		    cout.fill('0');
 		    cout << "   write_Fifo:  0x" <<hex <<setw(8) << vv << endl;
-		    Spx.Fifo.write( vv );
+		    spx->Fifo.write( vv );
 		}
 		cout << dec;
 	    }
 
+	// Output
+
 	    if ( md || Opx.tx  ) {		// registers changed
 		Opx.trace_msg( "Grab regs" );
-		Spx.grab_regs();
+		spx->grab_regs();
 	    }
 	    // Add Opx.rx.Val if read_Fifo() is moved before this.
 
+#define OUTH( X, Y )  ns << X <<setw(8) << spx->Y.read() <<endl
+					//#!!    .get() for consistency?
+
 	    cout.fill('0');
 	    cout <<hex
-		<< "   CntlStat  = 0x" <<setw(8) << Spx.CntlStat.read()  <<endl
-		<< "   ClkDiv    = 0x" <<setw(8) << Spx.ClkDiv.read()    <<endl
-		<< "   DmaLen    = 0x" <<setw(8) << Spx.DmaLen.read()    <<endl
-		<< "   Lossi     = 0x" <<setw(8) << Spx.Lossi.read()     <<endl
-		<< "   DmaReq    = 0x" <<setw(8) << Spx.DmaReq.read()    <<endl
+		<< OUTH( "CntlStat = 0x", CntlStat )
+		<< OUTH( "ClkDiv   = 0x", ClkDiv   )
+		<< OUTH( "DmaLen   = 0x", DmaLen   )
+		<< OUTH( "Lossi    = 0x", Lossi    )
+		<< OUTH( "DmaReq   = 0x", DmaReq   )
 		;
+
+#define OUTD( X, Y )  ns << X << spx->Y <<endl
 
 	    cout.fill(' ');
 	    cout <<dec
 		<< " CntlStat" <<endl
-		<< "   LossiWord_1     = " << Spx.CntlStat.get_LossiWord_1()     <<endl
-		<< "   LossiDmaEn_1    = " << Spx.CntlStat.get_LossiDmaEn_1()    <<endl
-		<< "   CsPolarity_3    = " << Spx.CntlStat.get_CsPolarity_3()    <<endl
-		<< "   RxFullStop_1    = " << Spx.CntlStat.get_RxFullStop_1()    <<endl
-		<< "   RxHalf_1        = " << Spx.CntlStat.get_RxHalf_1()        <<endl
-		<< "   TxHasSpace_1    = " << Spx.CntlStat.get_TxHasSpace_1()    <<endl
-		<< "   RxHasData_1     = " << Spx.CntlStat.get_RxHasData_1()     <<endl
-		<< "   TxEmpty_1       = " << Spx.CntlStat.get_TxEmpty_1()       <<endl
-		<< "   LossiEnable_1   = " << Spx.CntlStat.get_LossiEnable_1()   <<endl
-		<< "   ReadEnable_1    = " << Spx.CntlStat.get_ReadEnable_1()    <<endl
-		<< "   DmaEndCs_1      = " << Spx.CntlStat.get_DmaEndCs_1()      <<endl
-		<< "   IrqRxHalf_1     = " << Spx.CntlStat.get_IrqRxHalf_1()     <<endl
-		<< "   IrqTxEmpty_1    = " << Spx.CntlStat.get_IrqTxEmpty_1()    <<endl
-		<< "   DmaEnable_1     = " << Spx.CntlStat.get_DmaEnable_1()     <<endl
-		<< "   RunActive_1     = " << Spx.CntlStat.get_RunActive_1()     <<endl
-		<< "   CsPolarity_1    = " << Spx.CntlStat.get_CsPolarity_1()    <<endl
-		<< "   ClearRxTxFifo_2 = " << Spx.CntlStat.get_ClearRxTxFifo_2() <<endl
-		<< "   ClockPolarity_1 = " << Spx.CntlStat.get_ClockPolarity_1() <<endl
-		<< "   ClockPhase_1    = " << Spx.CntlStat.get_ClockPhase_1()    <<endl
-		<< "   ChipSelectN_2   = " << Spx.CntlStat.get_ChipSelectN_2()   <<endl
+		<< OUTD( "LossiWord_1     = ", CntlStat.get_LossiWord_1()     )
+		<< OUTD( "LossiDmaEn_1    = ", CntlStat.get_LossiDmaEn_1()    )
+		<< OUTD( "CsPolarity_3    = ", CntlStat.get_CsPolarity_3()    )
+		<< OUTD( "RxFullStop_1    = ", CntlStat.get_RxFullStop_1()    )
+		<< OUTD( "RxHalf_1        = ", CntlStat.get_RxHalf_1()        )
+		<< OUTD( "TxHasSpace_1    = ", CntlStat.get_TxHasSpace_1()    )
+		<< OUTD( "RxHasData_1     = ", CntlStat.get_RxHasData_1()     )
+		<< OUTD( "TxEmpty_1       = ", CntlStat.get_TxEmpty_1()       )
+		<< OUTD( "LossiEnable_1   = ", CntlStat.get_LossiEnable_1()   )
+		<< OUTD( "ReadEnable_1    = ", CntlStat.get_ReadEnable_1()    )
+		<< OUTD( "DmaEndCs_1      = ", CntlStat.get_DmaEndCs_1()      )
+		<< OUTD( "IrqRxHalf_1     = ", CntlStat.get_IrqRxHalf_1()     )
+		<< OUTD( "IrqTxEmpty_1    = ", CntlStat.get_IrqTxEmpty_1()    )
+		<< OUTD( "DmaEnable_1     = ", CntlStat.get_DmaEnable_1()     )
+		<< OUTD( "RunActive_1     = ", CntlStat.get_RunActive_1()     )
+		<< OUTD( "CsPolarity_1    = ", CntlStat.get_CsPolarity_1()    )
+		<< OUTD( "ClearRxTxFifo_2 = ", CntlStat.get_ClearRxTxFifo_2() )
+		<< OUTD( "ClockPolarity_1 = ", CntlStat.get_ClockPolarity_1() )
+		<< OUTD( "ClockPhase_1    = ", CntlStat.get_ClockPhase_1()    )
+		<< OUTD( "ChipSelectN_2   = ", CntlStat.get_ChipSelectN_2()   )
 		<< " ClkDiv" <<endl
-		<< "   ClockDiv_16     = " << Spx.ClkDiv.get_ClockDiv_16()     <<endl
+		<< OUTD( "ClockDiv_16     = ", ClkDiv.get_ClockDiv_16()       )
 		<< " DmaLen" <<endl
-		<< "   DmaDataLen_16   = " << Spx.DmaLen.get_DmaDataLen_16()   <<endl
+		<< OUTD( "DmaDataLen_16   = ", DmaLen.get_DmaDataLen_16()     )
 		<< " Lossi"  <<endl
-		<< "   LossiHoldDly_4  = " << Spx.Lossi.get_LossiHoldDly_4()   <<endl
+		<< OUTD( "LossiHoldDly_4  = ", Lossi.get_LossiHoldDly_4()     )
 		<< " DmaReq" <<endl
-		<< "   DmaRxPanicLev_8 = " << Spx.DmaReq.get_DmaRxPanicLev_8() <<endl
-		<< "   DmaRxReqLev_8   = " << Spx.DmaReq.get_DmaRxReqLev_8()   <<endl
-		<< "   DmaTxPanicLev_8 = " << Spx.DmaReq.get_DmaTxPanicLev_8() <<endl
-		<< "   DmaTxReqLev_8   = " << Spx.DmaReq.get_DmaTxReqLev_8()   <<endl
+		<< OUTD( "DmaRxPanicLev_8 = ", DmaReq.get_DmaRxPanicLev_8()   )
+		<< OUTD( "DmaRxReqLev_8   = ", DmaReq.get_DmaRxReqLev_8()     )
+		<< OUTD( "DmaTxPanicLev_8 = ", DmaReq.get_DmaTxPanicLev_8()   )
+		<< OUTD( "DmaTxReqLev_8   = ", DmaReq.get_DmaTxReqLev_8()     )
 		;
+
+	// Rx FIFO
 
 	    if ( Opx.rx.Val ) {
 		Opx.trace_msg( "Read Rx Fifo" );
 		cout.fill('0');
 		cout <<hex;
 		for ( uint32_t jj = 1;  jj <= Opx.rx.Val;  jj++ ) {
-		    cout << "   read_Fifo:  0x" <<setw(8) << Spx.Fifo.read()
+		    cout << "   read_Fifo:  0x" <<setw(8) << spx->Fifo.read()
 			 <<endl;
 		}
 		cout <<dec;

@@ -1,46 +1,46 @@
-SPI0 Master:
+Spi0:
 + Grab regs
 + Write Tx Fifo
    write_Fifo:  0x5555abba
    write_Fifo:  0x77773cc3
 + Grab regs
-   CntlStat  = 0x00000000
-   ClkDiv    = 0x00000000
-   DmaLen    = 0x00000000
-   Lossi     = 0x00000000
-   DmaReq    = 0x00000000
+   0.CntlStat = 0x00000000
+   0.ClkDiv   = 0x00000000
+   0.DmaLen   = 0x00000000
+   0.Lossi    = 0x00000000
+   0.DmaReq   = 0x00000000
  CntlStat
-   LossiWord_1     = 0
-   LossiDmaEn_1    = 0
-   CsPolarity_3    = 0
-   RxFullStop_1    = 0
-   RxHalf_1        = 0
-   TxHasSpace_1    = 0
-   RxHasData_1     = 0
-   TxEmpty_1       = 0
-   LossiEnable_1   = 0
-   ReadEnable_1    = 0
-   DmaEndCs_1      = 0
-   IrqRxHalf_1     = 0
-   IrqTxEmpty_1    = 0
-   DmaEnable_1     = 0
-   RunActive_1     = 0
-   CsPolarity_1    = 0
-   ClearRxTxFifo_2 = 0
-   ClockPolarity_1 = 0
-   ClockPhase_1    = 0
-   ChipSelectN_2   = 0
+   0.LossiWord_1     = 0
+   0.LossiDmaEn_1    = 0
+   0.CsPolarity_3    = 0
+   0.RxFullStop_1    = 0
+   0.RxHalf_1        = 0
+   0.TxHasSpace_1    = 0
+   0.RxHasData_1     = 0
+   0.TxEmpty_1       = 0
+   0.LossiEnable_1   = 0
+   0.ReadEnable_1    = 0
+   0.DmaEndCs_1      = 0
+   0.IrqRxHalf_1     = 0
+   0.IrqTxEmpty_1    = 0
+   0.DmaEnable_1     = 0
+   0.RunActive_1     = 0
+   0.CsPolarity_1    = 0
+   0.ClearRxTxFifo_2 = 0
+   0.ClockPolarity_1 = 0
+   0.ClockPhase_1    = 0
+   0.ChipSelectN_2   = 0
  ClkDiv
-   ClockDiv_16     = 0
+   0.ClockDiv_16     = 0
  DmaLen
-   DmaDataLen_16   = 0
+   0.DmaDataLen_16   = 0
  Lossi
-   LossiHoldDly_4  = 0
+   0.LossiHoldDly_4  = 0
  DmaReq
-   DmaRxPanicLev_8 = 0
-   DmaRxReqLev_8   = 0
-   DmaTxPanicLev_8 = 0
-   DmaTxReqLev_8   = 0
+   0.DmaRxPanicLev_8 = 0
+   0.DmaRxReqLev_8   = 0
+   0.DmaTxPanicLev_8 = 0
+   0.DmaTxReqLev_8   = 0
 + Read Rx Fifo
    read_Fifo:  0x77773cc3
    read_Fifo:  0x77773cc3
