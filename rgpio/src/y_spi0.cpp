@@ -299,6 +299,10 @@ spi0_yOptLong::parse_options()
     if ( (! tx) && (get_argc() > 0) ) {
 	Error::msg( "extra arguments:  " ) << next_arg() << endl;
     }
+
+    if ( (tx) && (get_argc() == 0) ) {
+	Error::msg( "--tx requires arg values" ) << endl;
+    }
 }
 
 
@@ -583,6 +587,7 @@ y_spi0::doit()
 		}
 		cout << dec;
 	    }
+	    //#!! Note --tx works for only one Spi.
 
 	// Output
 
@@ -592,8 +597,7 @@ y_spi0::doit()
 	    }
 	    // Add Opx.rx.Val if read_Fifo() is moved before this.
 
-#define OUTH( X, Y )  ns << X <<setw(8) << spx->Y.read() <<endl
-					//#!!    .get() for consistency?
+#define OUTH( X, Y )  ns << X <<setw(8) << spx->Y.get() <<endl
 
 	    cout.fill('0');
 	    cout <<hex
@@ -666,6 +670,5 @@ y_spi0::doit()
     }
 
     return ( Error::has_err() ? 1 : 0 );
-    //#!! return value?
 }
 

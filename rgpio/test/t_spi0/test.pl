@@ -162,6 +162,15 @@ run_test( "24", "DmaReq modify errors",
 # Tx, Rx
 #---------------------------------------------------------------------------
 
+run_test( "30", "--tx needs arguments",
+    "rgpio --dev=f  spi0 -v --rx=3 --tx",
+    1,
+    Stderr => q(
+	Error:  --tx requires arg values
+    ),
+    Stdout => q(),
+);
+
 run_test( "31", "Tx Rx",
     "rgpio --dev=f  spi0 -v --rx=3 --tx  0x5555abba 0x77773cc3",
     0,
