@@ -1,0 +1,195 @@
+Spi0:
++ Grab regs
+   0.CntlStat = 0x00000000
+   0.ClkDiv   = 0x00000000
+   0.DmaLen   = 0x00000000
+   0.Lossi    = 0x00000000
+   0.DmaReq   = 0x00000000
+ CntlStat
+   0.LossiWord_1     = 0
+   0.LossiDmaEn_1    = 0
+   0.CsPolarity_3    = 0
+   0.RxFullStop_1    = 0
+   0.RxHalf_1        = 0
+   0.TxHasSpace_1    = 0
+   0.RxHasData_1     = 0
+   0.TxEmpty_1       = 0
+   0.LossiEnable_1   = 0
+   0.ReadEnable_1    = 0
+   0.DmaEndCs_1      = 0
+   0.IrqRxHalf_1     = 0
+   0.IrqTxEmpty_1    = 0
+   0.DmaEnable_1     = 0
+   0.RunActive_1     = 0
+   0.CsPolarity_1    = 0
+   0.ClearRxTxFifo_2 = 0
+   0.ClockPolarity_1 = 0
+   0.ClockPhase_1    = 0
+   0.ChipSelectN_2   = 0
+ ClkDiv
+   0.ClockDiv_16     = 0
+ DmaLen
+   0.DmaDataLen_16   = 0
+ Lossi
+   0.LossiHoldDly_4  = 0
+ DmaReq
+   0.DmaRxPanicLev_8 = 0
+   0.DmaRxReqLev_8   = 0
+   0.DmaTxPanicLev_8 = 0
+   0.DmaTxReqLev_8   = 0
+Spi3:
++ Grab regs
+   3.CntlStat = 0x00000000
+   3.ClkDiv   = 0x00000000
+   3.DmaLen   = 0x00000000
+   3.Lossi    = 0x00000000
+   3.DmaReq   = 0x00000000
+ CntlStat
+   3.LossiWord_1     = 0
+   3.LossiDmaEn_1    = 0
+   3.CsPolarity_3    = 0
+   3.RxFullStop_1    = 0
+   3.RxHalf_1        = 0
+   3.TxHasSpace_1    = 0
+   3.RxHasData_1     = 0
+   3.TxEmpty_1       = 0
+   3.LossiEnable_1   = 0
+   3.ReadEnable_1    = 0
+   3.DmaEndCs_1      = 0
+   3.IrqRxHalf_1     = 0
+   3.IrqTxEmpty_1    = 0
+   3.DmaEnable_1     = 0
+   3.RunActive_1     = 0
+   3.CsPolarity_1    = 0
+   3.ClearRxTxFifo_2 = 0
+   3.ClockPolarity_1 = 0
+   3.ClockPhase_1    = 0
+   3.ChipSelectN_2   = 0
+ ClkDiv
+   3.ClockDiv_16     = 0
+ DmaLen
+   3.DmaDataLen_16   = 0
+ Lossi
+   3.LossiHoldDly_4  = 0
+ DmaReq
+   3.DmaRxPanicLev_8 = 0
+   3.DmaRxReqLev_8   = 0
+   3.DmaTxPanicLev_8 = 0
+   3.DmaTxReqLev_8   = 0
+Spi4:
++ Grab regs
+   4.CntlStat = 0x00000000
+   4.ClkDiv   = 0x00000000
+   4.DmaLen   = 0x00000000
+   4.Lossi    = 0x00000000
+   4.DmaReq   = 0x00000000
+ CntlStat
+   4.LossiWord_1     = 0
+   4.LossiDmaEn_1    = 0
+   4.CsPolarity_3    = 0
+   4.RxFullStop_1    = 0
+   4.RxHalf_1        = 0
+   4.TxHasSpace_1    = 0
+   4.RxHasData_1     = 0
+   4.TxEmpty_1       = 0
+   4.LossiEnable_1   = 0
+   4.ReadEnable_1    = 0
+   4.DmaEndCs_1      = 0
+   4.IrqRxHalf_1     = 0
+   4.IrqTxEmpty_1    = 0
+   4.DmaEnable_1     = 0
+   4.RunActive_1     = 0
+   4.CsPolarity_1    = 0
+   4.ClearRxTxFifo_2 = 0
+   4.ClockPolarity_1 = 0
+   4.ClockPhase_1    = 0
+   4.ChipSelectN_2   = 0
+ ClkDiv
+   4.ClockDiv_16     = 0
+ DmaLen
+   4.DmaDataLen_16   = 0
+ Lossi
+   4.LossiHoldDly_4  = 0
+ DmaReq
+   4.DmaRxPanicLev_8 = 0
+   4.DmaRxReqLev_8   = 0
+   4.DmaTxPanicLev_8 = 0
+   4.DmaTxReqLev_8   = 0
+Spi5:
++ Grab regs
+   5.CntlStat = 0x00000000
+   5.ClkDiv   = 0x00000000
+   5.DmaLen   = 0x00000000
+   5.Lossi    = 0x00000000
+   5.DmaReq   = 0x00000000
+ CntlStat
+   5.LossiWord_1     = 0
+   5.LossiDmaEn_1    = 0
+   5.CsPolarity_3    = 0
+   5.RxFullStop_1    = 0
+   5.RxHalf_1        = 0
+   5.TxHasSpace_1    = 0
+   5.RxHasData_1     = 0
+   5.TxEmpty_1       = 0
+   5.LossiEnable_1   = 0
+   5.ReadEnable_1    = 0
+   5.DmaEndCs_1      = 0
+   5.IrqRxHalf_1     = 0
+   5.IrqTxEmpty_1    = 0
+   5.DmaEnable_1     = 0
+   5.RunActive_1     = 0
+   5.CsPolarity_1    = 0
+   5.ClearRxTxFifo_2 = 0
+   5.ClockPolarity_1 = 0
+   5.ClockPhase_1    = 0
+   5.ChipSelectN_2   = 0
+ ClkDiv
+   5.ClockDiv_16     = 0
+ DmaLen
+   5.DmaDataLen_16   = 0
+ Lossi
+   5.LossiHoldDly_4  = 0
+ DmaReq
+   5.DmaRxPanicLev_8 = 0
+   5.DmaRxReqLev_8   = 0
+   5.DmaTxPanicLev_8 = 0
+   5.DmaTxReqLev_8   = 0
+Spi6:
++ Grab regs
+   6.CntlStat = 0x00000000
+   6.ClkDiv   = 0x00000000
+   6.DmaLen   = 0x00000000
+   6.Lossi    = 0x00000000
+   6.DmaReq   = 0x00000000
+ CntlStat
+   6.LossiWord_1     = 0
+   6.LossiDmaEn_1    = 0
+   6.CsPolarity_3    = 0
+   6.RxFullStop_1    = 0
+   6.RxHalf_1        = 0
+   6.TxHasSpace_1    = 0
+   6.RxHasData_1     = 0
+   6.TxEmpty_1       = 0
+   6.LossiEnable_1   = 0
+   6.ReadEnable_1    = 0
+   6.DmaEndCs_1      = 0
+   6.IrqRxHalf_1     = 0
+   6.IrqTxEmpty_1    = 0
+   6.DmaEnable_1     = 0
+   6.RunActive_1     = 0
+   6.CsPolarity_1    = 0
+   6.ClearRxTxFifo_2 = 0
+   6.ClockPolarity_1 = 0
+   6.ClockPhase_1    = 0
+   6.ChipSelectN_2   = 0
+ ClkDiv
+   6.ClockDiv_16     = 0
+ DmaLen
+   6.DmaDataLen_16   = 0
+ Lossi
+   6.LossiHoldDly_4  = 0
+ DmaReq
+   6.DmaRxPanicLev_8 = 0
+   6.DmaRxReqLev_8   = 0
+   6.DmaTxPanicLev_8 = 0
+   6.DmaTxReqLev_8   = 0

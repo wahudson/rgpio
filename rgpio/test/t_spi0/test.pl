@@ -73,6 +73,34 @@ run_test( "14", "extra argument",
     Stdout => q(),
 );
 
+#---------------------------------------
+run_test( "15a", "bad spi0 number options",
+    "rgpio --dev=f  spi0 -1 -2 -7",
+    1,
+    Stderr => q(
+	Error:  unknown option:  -1
+	Error:  unknown option:  -2
+	Error:  unknown option:  -7
+    ),
+    Stdout => q(),
+);
+
+run_test( "15b", "RPi3 bad spi0 number options",
+    "rgpio --dev=f --rpi3  spi0 -3 -4 -5 -6",
+    1,
+    Stderr => q(
+	Error:  require spi number {-0} for BCM2837
+    ),
+    Stdout => q(),
+);
+
+#---------------------------------------
+run_test( "16", "RPi4 all spi0 options",
+    "rgpio --dev=f --rpi4  spi0 -v -0 -3 -4 -5 -6",
+    0,
+    Stderr => q(),
+);
+
 #---------------------------------------------------------------------------
 ## Modify errors
 #---------------------------------------------------------------------------
