@@ -395,6 +395,8 @@ rgRpiRev		Tx;		// test object
   CASE( "39", "SocEnum.cstr() local tx" );
     try {
 	rgRpiRev	tx;
+	tx.RevCode.put( 0x00000000 );	// failed
+	CHECK(  1,                    tx.RevCode.is_final() );
 	CHECK(  0,                    tx.SocEnum.is_fail() );
 	CHECK(  0,                    tx.SocEnum.is_final() );
 	CHECK( "BCM2835",             tx.SocEnum.cstr() );
