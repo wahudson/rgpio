@@ -74,11 +74,11 @@ run_test( "14", "extra argument",
 );
 
 #---------------------------------------
-run_test( "15a", "bad iic number options",
-    "rgpio --dev=f  iic -3",
+run_test( "15a", "RPi3 bad iic number options",
+    "rgpio --dev=f --rpi3  iic -3",
     1,
     Stderr => q(
-	Error:  require IIC number {-0, -1, -2} for BCM2835
+	Error:  require IIC number {-0, -1, -2} for BCM2837
     ),
     Stdout => q(),
 );
