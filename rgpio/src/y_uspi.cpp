@@ -476,7 +476,6 @@ y_uspi::doit()
 	    }
 	}
 
-
     // Process each device
 
 	for ( int ii=1;  ii<=SpiMax;  ii++ )
@@ -496,7 +495,6 @@ y_uspi::doit()
 
 	    cout << "Spi" << spi->get_spi_num() << ":" <<endl;
 
-#define APPLX( X )    if ( Opx.X.Given ) { spi->X.put( Opx.X.Val );  md = 1; }
 #define APPLY( X, Y ) if ( Opx.X.Given ) { Y( Opx.X.Val );  md = 1; }
 
 	// Access Enable - hardware update first
@@ -517,9 +515,9 @@ y_uspi::doit()
 		spi->grab_regs();
 	    }
 
-	    APPLX( Cntl0 )
-	    APPLX( Cntl1 )
-	    APPLX( Stat  )
+	    APPLY( Cntl0,  spi->Cntl0.put   )
+	    APPLY( Cntl1,  spi->Cntl1.put   )
+	    APPLY( Stat,   spi->Stat.put    )
 
 	// Fields
 
@@ -660,6 +658,5 @@ y_uspi::doit()
     }
 
     return ( Error::has_err() ? 1 : 0 );
-    //#!! return value?
 }
 
