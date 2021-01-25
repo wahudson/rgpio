@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 2020-01-06  William A. Hudson
+# 2021-01-06  William A. Hudson
 
 # Testing:  rgpio-iic  subcommand.
 #    10-19  iic basic options --help

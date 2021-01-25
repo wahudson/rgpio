@@ -1,5 +1,5 @@
 #! /usr/bin/perl -w
-# 2020-01-19  William A. Hudson
+# 2021-01-19  William A. Hudson
 
 # Testing:  rgpio-spi0  subcommand.
 #    10-19  spi0 basic options --help
