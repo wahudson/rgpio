@@ -21,6 +21,7 @@ using namespace std;
 
 #include "y_uspi.h"
 
+const int		SpiMax = 2;	// maximum spi unit number
 
 //--------------------------------------------------------------------------
 // Option Handling
@@ -39,7 +40,7 @@ class uspi_yOptLong : public yOption {
 
   public:	// option values
 
-    bool		spi_ch[3];	// SPI module number requested
+    bool		spi_ch[SpiMax+1] = {0,0,0};	// SPI unit requested
 
 					// registers
     yOpVal		AuxEn;
@@ -98,10 +99,6 @@ class uspi_yOptLong : public yOption {
 uspi_yOptLong::uspi_yOptLong( yOption  *opx )
     : yOption( opx )
 {
-    spi_ch[0]   = 0;
-    spi_ch[1]   = 0;
-    spi_ch[2]   = 0;
-
     tx          = 0;
     txh         = 0;
 
@@ -171,6 +168,11 @@ uspi_yOptLong::parse_options()
 
     if ( !( spi_ch[1] || spi_ch[2] ) ) {	// default
 	spi_ch[1] = 1;
+    }
+
+    if (                       SpiEnable_1.Val > 1 ) {
+	Error::msg( "require --SpiEnable_1={0,1}:  " ) <<
+			       SpiEnable_1.Val <<endl;
     }
 
     // Cntl0 bits
@@ -273,6 +275,13 @@ uspi_yOptLong::parse_options()
 	Error::msg( "extra arguments:  " ) << next_arg() << endl;
     }
 
+    if ( tx  && (get_argc() == 0) ) {
+	Error::msg( "--tx requires arg values" ) << endl;
+    }
+
+    if ( txh && (get_argc() == 0) ) {
+	Error::msg( "--txh requires arg values" ) << endl;
+    }
 }
 
 
@@ -426,7 +435,6 @@ y_uspi::doit()
 	if ( Error::has_err() )  return 1;
 
     // SPI channels
-	const int		SpiMax = 2;
 	rgUniSpi*		Spx[SpiMax+1] = {NULL, NULL, NULL};
 				// pointers to Spi objects, NULL if not used.
 
@@ -482,9 +490,11 @@ y_uspi::doit()
 		continue;
 	    }
 
-	    cout << "Spi" << spi->get_spi_num() << ":" <<endl;
-
 	    string		ns = "   " + std::to_string( spi->get_spi_num() );
+
+	// Heading
+
+	    cout << "Spi" << spi->get_spi_num() << ":" <<endl;
 
 #define APPLX( X )    if ( Opx.X.Given ) { spi->X.put( Opx.X.Val );  md = 1; }
 #define APPLY( X, Y ) if ( Opx.X.Given ) { Y( Opx.X.Val );  md = 1; }
@@ -538,6 +548,8 @@ y_uspi::doit()
 		spi->push_regs();
 	    }
 
+	// Tx FIFO
+
 	    if ( Opx.tx ) {
 		char*		cp;
 		uint32_t	vv;
@@ -569,6 +581,8 @@ y_uspi::doit()
 		cout << dec;
 	    }
 	    //#!! Note --txh works for only one Spi.
+
+	// Output
 
 	    if ( md || Opx.tx || Opx.txh ) {	// modify registers
 		Opx.trace_msg( "Grab regs" );
@@ -622,6 +636,8 @@ y_uspi::doit()
 
 	    cout.fill('0');
 	    cout <<hex;
+
+	// Rx FIFO
 
 	    if ( Opx.rx.Val ) Opx.trace_msg( "Read Rx Fifo" );
 	    for ( uint32_t jj = 1;  jj <= Opx.rx.Val;   jj++ ) {
