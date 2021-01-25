@@ -596,46 +596,50 @@ y_uspi::doit()
 	     << ns << ".Peek     = 0x" <<setw(8) << spi->Peek.read()      <<endl
 	     ;
 
+#define OUTD( X, Y )  ns << X << spi->Y <<endl
+
 	    cout.fill(' ');
 	    cout <<dec
-	     << ns << ".SpiEnable_1    = " << spi->read_SpiEnable_1()   <<endl
-	     << ns << ".SpiIrq_1       = " << spi->read_SpiIrq_1()      <<endl
+		<< OUTD( ".SpiEnable_1    = ", read_SpiEnable_1()          )
+		<< OUTD( ".SpiIrq_1       = ", read_SpiIrq_1()             )
 
-	     << " Cntl0" <<endl
-	     << ns << ".Speed_12       = " << spi->Cntl0.get_Speed_12()        <<endl
-	     << ns << ".ChipSelects_3  = " << spi->Cntl0.get_ChipSelects_3()   <<endl
-	     << ns << ".PostInMode_1   = " << spi->Cntl0.get_PostInMode_1()    <<endl
-	     << ns << ".VariableCs_1   = " << spi->Cntl0.get_VariableCs_1()    <<endl
-	     << ns << ".VariableWidth_1= " << spi->Cntl0.get_VariableWidth_1() <<endl
-	     << ns << ".DoutHoldTime_2 = " << spi->Cntl0.get_DoutHoldTime_2()  <<endl
-	     << ns << ".EnableSerial_1 = " << spi->Cntl0.get_EnableSerial_1()  <<endl
-	     << ns << ".InRising_1     = " << spi->Cntl0.get_InRising_1()      <<endl
-	     << ns << ".ClearFifos_1   = " << spi->Cntl0.get_ClearFifos_1()    <<endl
-	     << ns << ".OutRising_1    = " << spi->Cntl0.get_OutRising_1()     <<endl
-	     << ns << ".InvertClk_1    = " << spi->Cntl0.get_InvertClk_1()     <<endl
-	     << ns << ".OutMsbFirst_1  = " << spi->Cntl0.get_OutMsbFirst_1()   <<endl
-	     << ns << ".ShiftLength_6  = " << spi->Cntl0.get_ShiftLength_6()   <<endl
-	     << " Cntl1" <<endl
-	     << ns << ".CsHighTime_3   = " << spi->Cntl1.get_CsHighTime_3()    <<endl
-	     << ns << ".TxEmptyIrq_1   = " << spi->Cntl1.get_TxEmptyIrq_1()    <<endl
-	     << ns << ".DoneIrq_1      = " << spi->Cntl1.get_DoneIrq_1()       <<endl
-	     << ns << ".InMsbFirst_1   = " << spi->Cntl1.get_InMsbFirst_1()    <<endl
-	     << ns << ".KeepInput_1    = " << spi->Cntl1.get_KeepInput_1()     <<endl
-	     << " Status" <<endl
-	     << ns << ".TxLevel_3      = " << spi->Stat.get_TxLevel_3()   <<endl
-	     << ns << ".RxLevel_3      = " << spi->Stat.get_RxLevel_3()   <<endl
-	     << ns << ".TxFull_1       = " << spi->Stat.get_TxFull_1()    <<endl
-	     << ns << ".TxEmpty_1      = " << spi->Stat.get_TxEmpty_1()   <<endl
-	     << ns << ".RxFull_1       = " << spi->Stat.get_RxFull_1()    <<endl
-	     << ns << ".RxEmpty_1      = " << spi->Stat.get_RxEmpty_1()   <<endl
-	     << ns << ".Busy_1         = " << spi->Stat.get_Busy_1()      <<endl
-	     << ns << ".BitCount_6     = " << spi->Stat.get_BitCount_6()  <<endl
-	     ;
+		<< " Cntl0" <<endl
+		<< OUTD( ".Speed_12       = ", Cntl0.get_Speed_12()        )
+		<< OUTD( ".ChipSelects_3  = ", Cntl0.get_ChipSelects_3()   )
+		<< OUTD( ".PostInMode_1   = ", Cntl0.get_PostInMode_1()    )
+		<< OUTD( ".VariableCs_1   = ", Cntl0.get_VariableCs_1()    )
+		<< OUTD( ".VariableWidth_1= ", Cntl0.get_VariableWidth_1() )
+		<< OUTD( ".DoutHoldTime_2 = ", Cntl0.get_DoutHoldTime_2()  )
+		<< OUTD( ".EnableSerial_1 = ", Cntl0.get_EnableSerial_1()  )
+		<< OUTD( ".InRising_1     = ", Cntl0.get_InRising_1()      )
+		<< OUTD( ".ClearFifos_1   = ", Cntl0.get_ClearFifos_1()    )
+		<< OUTD( ".OutRising_1    = ", Cntl0.get_OutRising_1()     )
+		<< OUTD( ".InvertClk_1    = ", Cntl0.get_InvertClk_1()     )
+		<< OUTD( ".OutMsbFirst_1  = ", Cntl0.get_OutMsbFirst_1()   )
+		<< OUTD( ".ShiftLength_6  = ", Cntl0.get_ShiftLength_6()   )
+
+		<< " Cntl1" <<endl
+		<< OUTD( ".CsHighTime_3   = ", Cntl1.get_CsHighTime_3()    )
+		<< OUTD( ".TxEmptyIrq_1   = ", Cntl1.get_TxEmptyIrq_1()    )
+		<< OUTD( ".DoneIrq_1      = ", Cntl1.get_DoneIrq_1()       )
+		<< OUTD( ".InMsbFirst_1   = ", Cntl1.get_InMsbFirst_1()    )
+		<< OUTD( ".KeepInput_1    = ", Cntl1.get_KeepInput_1()     )
+
+		<< " Status" <<endl
+		<< OUTD( ".TxLevel_3      = ", Stat.get_TxLevel_3()        )
+		<< OUTD( ".RxLevel_3      = ", Stat.get_RxLevel_3()        )
+		<< OUTD( ".TxFull_1       = ", Stat.get_TxFull_1()         )
+		<< OUTD( ".TxEmpty_1      = ", Stat.get_TxEmpty_1()        )
+		<< OUTD( ".RxFull_1       = ", Stat.get_RxFull_1()         )
+		<< OUTD( ".RxEmpty_1      = ", Stat.get_RxEmpty_1()        )
+		<< OUTD( ".Busy_1         = ", Stat.get_Busy_1()           )
+		<< OUTD( ".BitCount_6     = ", Stat.get_BitCount_6()       )
+		;
+
+	// Rx FIFO
 
 	    cout.fill('0');
 	    cout <<hex;
-
-	// Rx FIFO
 
 	    if ( Opx.rx.Val ) Opx.trace_msg( "Read Rx Fifo" );
 	    for ( uint32_t jj = 1;  jj <= Opx.rx.Val;   jj++ ) {
