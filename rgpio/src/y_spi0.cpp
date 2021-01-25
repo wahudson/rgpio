@@ -582,20 +582,20 @@ y_spi0::doit()
 		{
 		    vv = strtoul( cp, NULL, 0 );
 		    cout.fill('0');
-		    cout << "   write_Fifo:  0x" <<hex <<setw(8) << vv << endl;
+		    cout << ns << "write_Fifo:  0x" <<hex <<setw(8) << vv << endl;
 		    spx->Fifo.write( vv );
 		}
 		cout << dec;
+		md = 1;
 	    }
 	    //#!! Note --tx works for only one Spi.
 
 	// Output
 
-	    if ( md || Opx.tx  ) {		// registers changed
+	    if ( md ) {		// modified registers
 		Opx.trace_msg( "Grab regs" );
 		spx->grab_regs();
 	    }
-	    // Add Opx.rx.Val if read_Fifo() is moved before this.
 
 #define OUTH( X, Y )  ns << X <<setw(8) << spx->Y.get() <<endl
 
@@ -653,10 +653,11 @@ y_spi0::doit()
 		cout.fill('0');
 		cout <<hex;
 		for ( uint32_t jj = 1;  jj <= Opx.rx.Val;  jj++ ) {
-		    cout << "   read_Fifo:  0x" <<setw(8) << spx->Fifo.read()
-			 <<endl;
+		    cout << ns << "read_Fifo:  0x" <<setw(8)
+			 << spx->Fifo.read() <<endl;
 		}
 		cout <<dec;
+		md = 1;
 	    }
 
 	}

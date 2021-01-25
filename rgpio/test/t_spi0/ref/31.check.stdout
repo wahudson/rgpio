@@ -1,8 +1,8 @@
 Spi0:
 + Grab regs
 + Write Tx Fifo
-   write_Fifo:  0x5555abba
-   write_Fifo:  0x77773cc3
+   0.write_Fifo:  0x5555abba
+   0.write_Fifo:  0x77773cc3
 + Grab regs
    0.CntlStat = 0x00000000
    0.ClkDiv   = 0x00000000
@@ -42,6 +42,6 @@ Spi0:
    0.DmaTxPanicLev_8 = 0
    0.DmaTxReqLev_8   = 0
 + Read Rx Fifo
-   read_Fifo:  0x77773cc3
-   read_Fifo:  0x77773cc3
-   read_Fifo:  0x77773cc3
+   0.read_Fifo:  0x77773cc3
+   0.read_Fifo:  0x77773cc3
+   0.read_Fifo:  0x77773cc3
