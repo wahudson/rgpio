@@ -1,0 +1,46 @@
+Spi1:
++ Grab regs
++ Write Tx Fifo
+   1.write_Fifo:  0x5555abba
+   1.write_Fifo:  0x77773cc3
++ Grab regs
+   1.AuxEn    = 0x00000000
+   1.Cntl0    = 0x00000000
+   1.Cntl1    = 0x00000000
+   1.Stat     = 0x00000000
+   1.Peek     = 0x00000000
+   1.SpiEnable_1    = 0
+   1.SpiIrq_1       = 0
+ Cntl0
+   1.Speed_12       = 0
+   1.ChipSelects_3  = 0
+   1.PostInMode_1   = 0
+   1.VariableCs_1   = 0
+   1.VariableWidth_1= 0
+   1.DoutHoldTime_2 = 0
+   1.EnableSerial_1 = 0
+   1.InRising_1     = 0
+   1.ClearFifos_1   = 0
+   1.OutRising_1    = 0
+   1.InvertClk_1    = 0
+   1.OutMsbFirst_1  = 0
+   1.ShiftLength_6  = 0
+ Cntl1
+   1.CsHighTime_3   = 0
+   1.TxEmptyIrq_1   = 0
+   1.DoneIrq_1      = 0
+   1.InMsbFirst_1   = 0
+   1.KeepInput_1    = 0
+ Status
+   1.TxLevel_3      = 0
+   1.RxLevel_3      = 0
+   1.TxFull_1       = 0
+   1.TxEmpty_1      = 0
+   1.RxFull_1       = 0
+   1.RxEmpty_1      = 0
+   1.Busy_1         = 0
+   1.BitCount_6     = 0
++ Read Rx Fifo
+   1.read_Fifo:  0x77773cc3
+   1.read_Fifo:  0x77773cc3
+   1.read_Fifo:  0x77773cc3

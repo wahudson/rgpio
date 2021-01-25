@@ -1,0 +1,41 @@
+    Universal SPI Master control
+usage:  rgpio uspi  [-1][-2] [options..] [--tx|--txh V..]
+    -1 -2               SPI number, default -1
+  modify full register:
+    --Cntl0=V           Control reg 0
+    --Cntl1=V           Control reg 1
+    --Stat=V            Status reg (RO)
+    --AuxEn=V           Auxiliary Enable reg
+  data transfer:
+    --rx=N              read {1:4} words from Fifo
+    --rxh=N             read {1:4} words from FifoH
+    --tx                write args to Fifo
+    --txh               write args to FifoH
+  modify AuxEn bits:
+    --SpiEnable_1=0     1= Spi access enabled
+  modify Cntl0 bits:
+    --Speed_12=0xfff    clock speed, freq=f0/(2*(speed+1))
+    --ChipSelects_3=0x7 pattern on active CS pins
+    --PostInMode_1=0    1= Post-Input mode, skip first clk
+    --VariableCs_1=0    1= CS pattern   from TX fifo [31:29]
+    --VariableWidth_1=0 1= shift length from TX fifo [28:24]
+    --DoutHoldTime_2=0  extra data out hold encoded {0..3}
+    --EnableSerial_1=0  1= enable shifting
+    --InRising_1=0      1= data In on clk rising, 0= falling
+    --ClearFifos_1=0    1= hold RX and TX fifos in reset
+    --OutRising_1=0     1= data Out on clk rising, 0= falling
+    --InvertClk_1=0     1= idle clk is high, 0= low
+    --OutMsbFirst_1=0   1= data Out start with MSB, 0= LSB
+    --ShiftLength_6=32  number of bits to shift {0..32}
+  modify Cntl1 bits:
+    --CsHighTime_3=0    additional clock cycles with CS high
+    --TxEmptyIrq_1=0    1= interrupt when Tx fifo is empty
+    --DoneIrq_1=0       1= interrupt when Spi is idle
+    --InMsbFirst_1=0    1= data In start with MSB, 0= LSB
+    --KeepInput_1=0     1= concatenate into receiver shift register
+  options:
+    --reset             init reset values before modifications
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)
