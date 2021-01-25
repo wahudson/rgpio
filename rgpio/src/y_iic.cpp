@@ -23,6 +23,7 @@ using namespace std;
 
 #include "y_iic.h"
 
+const int		IicMax = 7;	// maximum iic unit number
 
 //--------------------------------------------------------------------------
 // Option Handling
@@ -41,7 +42,7 @@ class iic_yOptLong : public yOption {
 
   public:	// option values
 
-    bool		iic_ch[8];	// I2C module number requested
+    bool		iic_ch[IicMax+1] = {0,0,0,0,0,0,0,0};  // unit requested
 
 					// registers
     yOpVal		Cntl;
@@ -100,15 +101,6 @@ class iic_yOptLong : public yOption {
 iic_yOptLong::iic_yOptLong( yOption  *opx )
     : yOption( opx )
 {
-    iic_ch[0]   = 0;
-    iic_ch[1]   = 0;
-    iic_ch[2]   = 0;
-    iic_ch[3]   = 0;
-    iic_ch[4]   = 0;
-    iic_ch[5]   = 0;
-    iic_ch[6]   = 0;
-    iic_ch[7]   = 0;
-
     tx          = 0;
 
     reset       = 0;
@@ -187,7 +179,7 @@ iic_yOptLong::parse_options()
 	(iic_ch[3] || iic_ch[4] || iic_ch[5] || iic_ch[6] || iic_ch[7])
     ) {
 	Error::msg( "require IIC number {-0, -1, -2} for "   )
-		<< rgRpiRev::rgRpiRev::cstr_SocEnum() <<endl;
+		<< rgRpiRev::cstr_SocEnum() <<endl;
     }
 
     check_f1( "IicEnable_1",    IicEnable_1.Val    );
@@ -238,6 +230,10 @@ iic_yOptLong::parse_options()
 
     if ( (! tx) && (get_argc() > 0) ) {
 	Error::msg( "extra arguments:  " ) << next_arg() << endl;
+    }
+
+    if ( (tx) && (get_argc() == 0) ) {
+	Error::msg( "--tx requires arg values" ) << endl;
     }
 }
 
@@ -393,7 +389,6 @@ y_iic::doit()
 	if ( Error::has_err() )  return 1;
 
     // IIC channel objects
-	const int		IicMax = 7;
 	rgIic*			Icx[IicMax+1] = {0,0,0,0,0,0,0,0};
 				// pointers to IIC objects, NULL if not used.
 
@@ -402,6 +397,7 @@ y_iic::doit()
 	    if ( Opx.iic_ch[ii] ) {
 		Icx[ii] = new  rgIic  ( ii, AddrMap );	// constructor
 	    }
+	    // construct all first, in case of exception
 	}
 
     // Process each device
@@ -437,9 +433,9 @@ y_iic::doit()
 		icx->Stat.put( 0 );		// Stat is read-clear
 	    }
 
-	// Registers
-
 #define APPLY( X, Y ) if ( Opx.X.Given ) { icx->Y( Opx.X.Val );  md = 1; }
+
+	// Registers
 
 	    APPLY( Cntl,      Cntl.put      )
 	    APPLY( Stat,      Stat.put      )
