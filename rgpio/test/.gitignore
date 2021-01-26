@@ -1,3 +1,4 @@
+bin/rpi_BaseAddr
 obj/
 t_*/test.exe
 t_*/tmp

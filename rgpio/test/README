@@ -5,7 +5,7 @@
 
 Self-checking regression tests.
 
-Files:  (2018-11-09)
+Files:  (2021-01-26)
 ------
 Makefile	run all test suites
 README		this file
@@ -14,17 +14,21 @@ Unused/		Obsolete and other unused code
 .gitignore	Git ignore transient files
 
 bin/		commands for Test
+    rgpio -> ../../bin/rgpio	main command under test
+    rpi_BaseAddr	test helper command (local compile)
 
 lib/		Test library
     TestLib2.pm		Library for testing programs (perl).
 
-opt/		External command installations (none)
+librgpio/ ->	Library (for helper commands)
 
 obj/		compiled .o from src/
+
 src/		test library source code
-    Makefile		compile unit test library
-    utLib1.cpp		library code
-    utLib1.h		user interface, #define
+    Makefile		compile unit test library and Test tools
+    utLib1.cpp		test framework library
+    utLib1.h		    user interface, #define
+    rpi_BaseAddr.cpp	test helper command - output BaseAddr in hex
 
 t_*/		Generic test suite contents
     Makefile		run/compile the test
@@ -40,7 +44,6 @@ Test suites:  (2018-11-09)
 ?       = not committed
   b     = uses bin/
    l    = uses lib/
-    o   = uses opt/  (indirectly thru bin/)
      s  = uses src/
  u      = Unit test (C++)        utLib1.cpp
  m      = Module test (perl)     TestLib1.pm
@@ -75,29 +78,33 @@ Test Setup:
     The individual test  t_*/Makefile  has dependency on the test framework,
     but will not rebuild the test framework.
 
-    Build the test framework in src/ (only needed when it changes):
+    Build the test framework and helper tools:
     % cd  src/
     % make
 
-    Tests do NOT rebuild the object being tested.
+    Note:  rpi_BaseAddr depends on librgpio rgRpiRev.
 
+    Tests do NOT rebuild the object being tested (or the framework).
+    This way the object under test does not change due to testing.
+    #!! Perhaps they should rebuild the framework?
 
 Run Tests:
 ----------
-    # Run all tests from this directory
+    # Run all tests from this directory.  Also build test framework.
     % make test
 
     # Run a specific test
     % cd t_<dir>/
     % make test
 
-Environment variable 'TESTONRPI' switch in some tests.
-    # When running on an RPi
-    % TESTONRPI=1  make test
+    Note:  Some tests depend on the version of RPi being run (e.g. t_rgpio/).
+    Helper commands (e.g. bin/rpi_BaseAddr) provide an RPi version dependent
+    mechanism to alter test behavior.
+    Such tests should use words with prefix "TEST" to help highlight where
+    this occurs (is a pattern to grep for).
 
-    # When on another platform
-    % make test
-
+    Previously (before 2021-01-26) an environment variable 'TESTONRPI' was
+    used to similar effect, but managing environment was problematic.
 
 Strategy:
 ---------

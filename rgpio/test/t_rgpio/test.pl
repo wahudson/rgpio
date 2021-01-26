@@ -30,6 +30,11 @@ use strict;
 
 print( "PATH=$ENV{PATH}\n" );
 
+my $TEST_BaseAddr = qx( ../bin/rpi_BaseAddr );	# string e.g. "0x3f000000"
+chomp( $TEST_BaseAddr );
+print( "TEST_BaseAddr = $TEST_BaseAddr\n" );
+
+my $TEST_isRPi = $TEST_BaseAddr ne "0x00000000";	# TRUE if on RPi
 
 #---------------------------------------------------------------------------
 # Configure working directory.
@@ -62,22 +67,21 @@ run_test( "11b", "rgpio --verbose",
     ),
 );
 
-if ( $ENV{TESTONRPI} ) {
-  run_test( "11c", "rgpio --debug  #!! correct only on RPi3",
+run_test( "11c", "rgpio --debug",
     "rgpio --debug",
     0,
-    Stderr => q(
+    Stderr => ($TEST_isRPi) ? q(
 	rgAddrMap:  raise cap:  = cap_dac_override,cap_sys_rawio+ep
 	rgAddrMap:  drop  cap:  =
-    ),
-    Stdout => q(
-	+ rgRpiRev::Config.SocEnum  = soc_BCM2837
-	+ rgRpiRev::Config.BaseAddr = 0x3f000000
-	+ AddrMap.config_BaseAddr() = 0x3f000000
+    ) : q(),
+    Stdout => qq(
+	+ rgRpiRev::Config.SocEnum  = soc_BCM2835
+	+ rgRpiRev::Config.BaseAddr = $TEST_BaseAddr
+	Using Fake memory
+	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
 	Do nothing.  Try 'rgpio --help'
     ),
-  );
-}
+);
 
 #---------------------------------------
 run_test( "12", "rgpio help",
@@ -149,11 +153,11 @@ run_test( "21", "rgpio --rpi3",
     "rgpio --dev=f --debug --rpi3",
     0,
     Stderr => q(),
-    Stdout => q(
+    Stdout => qq(
 	+ rgRpiRev::Config.SocEnum  = soc_BCM2837
-	+ rgRpiRev::Config.BaseAddr = 0x00000000
+	+ rgRpiRev::Config.BaseAddr = $TEST_BaseAddr
 	Using Fake memory
-	+ AddrMap.config_BaseAddr() = 0x00000000
+	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
 	Do nothing.  Try 'rgpio --help'
     ),
 );
@@ -162,11 +166,11 @@ run_test( "22", "rgpio --rpi4",
     "rgpio --dev=f --debug --rpi4",
     0,
     Stderr => q(),
-    Stdout => q(
+    Stdout => qq(
 	+ rgRpiRev::Config.SocEnum  = soc_BCM2711
-	+ rgRpiRev::Config.BaseAddr = 0x00000000
+	+ rgRpiRev::Config.BaseAddr = $TEST_BaseAddr
 	Using Fake memory
-	+ AddrMap.config_BaseAddr() = 0x00000000
+	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
 	Do nothing.  Try 'rgpio --help'
     ),
 );

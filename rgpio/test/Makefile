@@ -7,6 +7,7 @@ PATH = /usr/bin:/bin
 SHELL = /bin/sh
 
 test:
+	cd src                && make
 	cd t_Error            && make test
 	cd t_clk              && make test
 	cd t_fsel             && make test
