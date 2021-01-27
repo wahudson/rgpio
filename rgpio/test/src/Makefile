@@ -39,11 +39,11 @@ clobber:
 	rm -f  $(OJ)/*  $(CMDS)
 
 
-	    # Unit Test Framework
+# Unit Test Framework
+
 $(OJ)/utLib1.o:	utLib1.cpp  utLib1.h
 	g++ $(CXXFLAGS) -o $@  -c utLib1.cpp
 
-	    # Test Tool helper
 $(BINDIR)/rpi_BaseAddr:	rpi_BaseAddr.cpp  $(LIBS)
 	g++ $(CXXFLAGS) -I $(INCDIR) -o $@ -L $(LIBDIR) rpi_BaseAddr.cpp -lrgpio
 

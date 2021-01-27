@@ -67,20 +67,14 @@ run_test( "11b", "rgpio --verbose",
     ),
 );
 
-run_test( "11c", "rgpio --debug",
-    "rgpio --debug",
+run_test( "11c", "rgpio --debug  see rgAddrMap output only",
+    "( rgpio --debug > /dev/null )",
     0,
     Stderr => ($TEST_isRPi) ? q(
 	rgAddrMap:  raise cap:  = cap_dac_override,cap_sys_rawio+ep
 	rgAddrMap:  drop  cap:  =
     ) : q(),
-    Stdout => qq(
-	+ rgRpiRev::Config.SocEnum  = soc_BCM2835
-	+ rgRpiRev::Config.BaseAddr = $TEST_BaseAddr
-	Using Fake memory
-	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
-	Do nothing.  Try 'rgpio --help'
-    ),
+    Stdout => q(),
 );
 
 #---------------------------------------
