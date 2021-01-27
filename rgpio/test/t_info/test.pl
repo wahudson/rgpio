@@ -30,6 +30,7 @@ use strict;
 
 print( "PATH=$ENV{PATH}\n" );
 
+my $TEST_isRPi = qx( ../bin/rpi_BaseAddr ) ne "0x00000000\n";
 
 #---------------------------------------------------------------------------
 # Configure working directory.
@@ -37,12 +38,11 @@ print( "PATH=$ENV{PATH}\n" );
 
 chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 
-
 #---------------------------------------------------------------------------
 ## info basic options --help
 #---------------------------------------------------------------------------
 
-if ( ! $ENV{TESTONRPI} ) {
+if ( ! $TEST_isRPi ) {
   run_test( "11", "info no args, show global Config",
     "rgpio --dev=f  info",
     0,
