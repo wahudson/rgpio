@@ -9,10 +9,9 @@ rgSpi0  Hardware Description -- SPI0 Master
 
 =head1		SYNOPSIS
 
-Hardware registers of the SPI0 peripheral.
-All are 32-bits, but may have sparsely populated fields.
-All are read-write, except those marked read-only (RO).
+Hardware registers of each SPI0 peripheral:  (spi0, spi3, .. spi6)
 
+    rgSpi0
     Register	BCM name	Description
     --------	--------	------------------
     CntlStat	CS		Control and Status
@@ -58,24 +57,43 @@ All are read-write, except those marked read-only (RO).
     DmaTxPanicLev_8	DmaReq[15:8]     TPANIC
     DmaTxReqLev_8	DmaReq[7:0]      TDREQ
 
-Bit field names incorporate the number of bits in the field, making the
-field size self documenting.
+    (RO) = Read-only, otherwise all are read-write.
 
+Field names incorporate the number of bits in the field, making the field
+size self documenting.
+
+All registers are 32-bits.
 Unspecified bit fields in each register are typically reserved, and should
 be write as 0, and read as don't care.
+
+=head2			Abbreviations in Register/Field names
+
+ Lossi   Low Speed Serial Interface
+ Dma     Direct Memory Access
+ En      Enable
+ Cs      Chip Select
+ Rx      Receive FIFO
+ Tx      Transmit FIFO
+ Fifo    First In First Out (FIFO) memory
+ Irq     Interrupt Request (IRQ)
+ Len     Length
+ Dly     Delay
+ Req     Request
+ Lev     Level
 
 
 =head1		DESCRIPTION
 
-This documentation describes the operation of the SPI0 Master interface.
-The universal SPI1, SPI2 masters are described elsewhere.
-
-The original RPi3 (Raspberry Pi 3) and earlier had only one spi0 Master.
-RPi4 added four more identical units {spi3, spi4, spi5, spi6}.
-All are available on the RPi 40-pin header of GPIO[27:0].
-
 SPI stands for Serial Peripheral Interface bus.
 The SPI0 Master is essentially a shift register controller.
+
+The Raspberry Pi (RPi) has 5 SPI0 Master controllers named as:
+
+ spi0                     in RPi3 (BCM2837) and earlier
+ spi3, spi4, spi5, spi6   added in RPi4 (BCM2711)
+
+The spi1, spi2 Universal SPI Masters are described in rgUniSpi(7) and in the
+BCM doc "Auxiliaries" section.
 
 There are 3 major modes of operation:  (BCM ch 10.6)
 
@@ -93,13 +111,14 @@ There are two ways the data lines can be configured:  (BCM ch 10.4)
 
 GPIO Alternate Function names (hardware signals):  The SPI peripheral can
 be operated regardless of these signals being routed to GPIO pins.
-RPi4 adds 4 additional units similarly named  spi3, spi4, spi5, spi6.
 
     spi0_SCLK	Serial Clock, driven by master
     spi0_MOSI	Master Out Slave In  data
     spi0_MISO	Master In  Slave Out data
     spi0_CE0_n	Chip Enable 0 (driven by master)
     spi0_CE1_n	Chip Enable 1 (driven by master)
+
+    Similarly for  spi3_*, spi4_*, spi5_*, spi6_*  on RPi4.
 
 Generic SPI signals:  We use these names in describing timing.
 
@@ -410,6 +429,8 @@ In the librgpio/ source tree:
 
  rgSpi0(3)
  rgpio-spi0(1)
+ rgUniSpi(7)
+ librgpio(3)
 
  BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
     p.148-159  ch 10. SPI
