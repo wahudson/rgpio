@@ -103,6 +103,10 @@ Man pages can be viewed with:
     # Access using rgpio symlinks:
     % rgpio man <SECTION> <NAME>
 
+Dependencies:
+-------------
+    Require package:  libcap-dev
+    % sudo apt-get install  libcap-dev
 
 Primary developers:
 -------------------

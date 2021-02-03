@@ -165,6 +165,178 @@ Register Names:
  >	Decide to use new names.
 
 ----------------------------------------------------------------------------
+## RPi4 (BCM2711) Changes  (2021-01-28)
+----------------------------------------------------------------------------
+
+    Most of this document was written based on RPi3 and earlier BCM doc
+    (BCM2835).
+    Changes for RPi4 are concentrated here.
+
+    The RPi4 completely replaces the original PudProg* registers with new
+    direct control registers at new addresses.  Thus register address do
+    not overlap.
+
+    The new method has simple read/write registers that hold the 2-bit pull
+    up/down state for each pin.  Much better!
+    They group pins into 4 registers.
+
+    Note RPi4 adds 4 more pins Gpio[57:54].
+
+Register Names:  RPi4 possibilities
+
+    PudCon0	nice and sassy
+    PudCntl0	matches other control names
+    PudSel0	select, like Fsel
+    PudDir0
+    PullUpDown0
+ >  PullSel0
+    PullDir0	more descriptive
+
+    PudProgMode		- existing RPi3
+    PudProgClk_w0	-
+    PudProgClk_w1	-
+
+ >  PullSel0	Gpio[15:0]	16 bits		- new RPi4
+ >  PullSel1	Gpio[31:16]	16 bits
+ >  PullSel2	Gpio[47:32]	16 bits
+ >  PullSel3	Gpio[57:48]	10 bits
+
+    The register names will also be in context of others in rgIoPins.
+    Prefix "Pud" closely ties with the RPi3 "Pud" registers, maybe too close.
+    Prefix "Pull" helps them stand apart from RPi3, and matches the class
+	rgPullPin.
+    The "Sel" (Select) parallels existing "Fsel0" registers, which are very
+	similar type functionality.
+    It seems important that they are NOT related, i.e. completely orthogonal,
+	to the "PudProg" registers of RPi3.
+    Thus "PullSel" seems like the best choice.  (2021-01-29)
+
+Bit fields
+
+    Each Gpio bit is represented by a 2-bit Pull Direction code.
+
+    Pull Direction code is different than RPi3:
+
+	RPi3  RPi4
+	00    00    = Off (None) - no pull-up and no pull-down
+	10    01    = Pull-Up
+	01    10    = Pull-Down
+	11    11    = Reserved
+
+Modify rgPudPin Class?
+
+    Initially wanted to keep the same class for both RPi3 and RPi4.
+    A single class allows the possibility of a generic programming function
+    common to all RPi revisions.
+
+    Both sets of registers exist in the class, and could be accessed on
+    either RPi:
+    Writing a non-existing register does nothing.
+    Reading a non-existing register returns undefined value.
+    Possibly throw exceptions on non-existing read.
+
+    Managing complexity is the thing.
+    There is so little overlap, that making separate classes would be
+    really helpful to contain the complexity.
+    Maybe a top class could provide the one common function?
+
+    Build a new class to explore, then see about combining.
+    This keeps each clean, and the old class functional.
+
+New class names?
+
+    rgPudPin	existing RPi3
+    rgPudPin3
+    rgPudPin4
+ >  rgPullPin
+
+    Maybe rgPullPin can be the top-level class for common function?
+    It could switch on rgRpiRev and construct the appropriate lower
+    level class.
+
+    I like the stand-alone feature class, as oppose to rgFselPin which
+    used rgIoPins instead of rgAddrMap.
+
+Common high-level functions:
+
+    modify_Pull_bit( dir, N )
+    modify_Pull_w0( dir, mask )
+    modify_Pull_w1( dir, mask )
+
+    read_Pull_bit( N )	- only RPi4 returns a valid value.
+	- RPi3 returns pd_Invalid?  OR throw exception?
+
+    Perhaps extend the rgPud_enum to include an pd_Invalid value?
+    Calling modify_*() with that value throws exception.
+    NOT intended that modify with value read be an identity.
+
+    These common functions should not throw exceptions due to RPi version.
+    They try to work on all platforms.
+
+    On RPi3, which cannot read pud state, read behavior could be:
+
+ >	A) read_Pull_bit() return pd_Invalid.
+	+ Works on all RPi.
+	- User must check result.
+	+ Result contains the valid status.  No need for separate tracking.
+	- rgPud_enum  must have an pd_Invalid.
+
+	B) read_Pull_bit() throw exception.
+	+ Very clear it is invalid operation.
+	- User must avoid up front, or handle exception.
+	+ rgPud_enum  can contain only valid values.
+
+ >  rgPud_enum has an pd_Invalid
+	+ Value can track the invalid condition.
+	- Another case to handle.
+	- Values are not just the pure directions.
+	+ The actual pull dir could be the reserved value 3.
+	++ Required for the read function, which could return the reseved 3.
+
+    Thus want one enum value for "not a pull direction".
+	pd_Invalid	suggests an error
+ >	pd_Unknown	literal without judging
+	pd_Reserved
+
+Mapping pull-dir value:
+
+    Really only need to swap two values  1 (binary 01) with 2 (binary 10).
+    Logical bit swapping would do it - but kind of long:
+	((x << 1) & 0x2) || ((x >> 1) & 0x1)
+    Invert bit pattern and fix up binary 00 and 11.
+    Array lookup seems like cleanest, most obvious solution.
+
+Class structure:  (choose this 2020-01-28)
+
+ >  rgPudPin	existing RPi3
+ >  rgPullPin	new RPi4, is super-set calling rgPudPin for prior RPi.
+
+    Two classes keep RPi3 and RPi4 complexity separated.  Clearer doc.
+    Avoid a third class just for the high-level functions.
+    Each class has its own rgPud_enum definition that is different.
+    New rgPullPin maps rgPud_enum when calling rgPudPin functions.
+    If only RPi3 is wanted, then use only rgPudPin.
+    New rgPullPin is the super-set one-stop-shopping.
+
+    Possibly high-level functions are pointers set to the appropriate class
+    when the object is constructed.  Avoid nested call for RPi3.  Probably
+    not worth any extra complexity.
+
+Register array name?
+
+    The 4 PullSel* registers could be declared as an array PullSel[4].
+    The use of an array would be handy in code, but array syntax clashes
+    with the simpler notion of each register being a scalar name.
+    Especially when square brackets are used for bit position notation,
+    e.g. Gpio[6:4].
+
+ >  Thus it seems best to continue with enumerated scalar names, just
+    like Fsel0, Fsel1, .. Fsel5.
+
+    That said, an array of pointers or references to the actual registers
+    could still be used privately under the hood (as in rgFselPin).
+
+----------------------------------------------------------------------------
 ## Hardware Behavior - Pin Pull Up/Down  2020-09-09
 ----------------------------------------------------------------------------
 
