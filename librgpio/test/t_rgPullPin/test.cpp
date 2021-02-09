@@ -194,156 +194,6 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------------------------------------------
-//## Top read_Pull_bit(), modify_Pull_bit()
-//--------------------------------------------------------------------------
-
-  CASE( "60", "condition write(), read()" );
-    try {
-	Tx.PullSel0.write(     0xffffffff );
-	Tx.PullSel1.write(     0xffffffff );
-	Tx.PullSel2.write(     0xffffffff );
-	Tx.PullSel3.write(     0xffffffff );
-	CHECKX(                0xffffffff, Tx.PullSel0.read() );
-	CHECKX(                0xffffffff, Tx.PullSel1.read() );
-	CHECKX(                0xffffffff, Tx.PullSel2.read() );
-	CHECKX(                0xffffffff, Tx.PullSel3.read() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "61", "read_Pull_bit() verify return type" );
-    try {
-	rgPullPin::rgPull_enum		y;
-	y = Tx.read_Pull_bit( 4 );
-	CHECK( rgPullPin::pd_Unknown, y );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "62", "read_Pull_bit() bit > 57" );
-    try {
-	Tx.read_Pull_bit( 58 );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgPullPin::read_Pull_bit():  bit out-of-range:  58",
-	    e.what()
-	);
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "63", "read_Pull_bit()" );
-    try {
-	Tx.PullSel0.write(     0xbff3ff7f );
-	CHECKX(                0xbff3ff7f, Tx.PullSel0.read() );
-	CHECK( rgPullPin::pd_Unknown,      Tx.read_Pull_bit(  0 ) );
-	CHECK( rgPullPin::pd_Up,           Tx.read_Pull_bit(  3 ) );
-	CHECK( rgPullPin::pd_Off,          Tx.read_Pull_bit(  9 ) );
-	CHECK( rgPullPin::pd_Down,         Tx.read_Pull_bit( 15 ) );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "65", "modify_Pull_bit() pd_Unknown error" );
-    try {
-	Tx.modify_Pull_bit( 58, rgPullPin::pd_Unknown );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgPullPin::modify_Pull_bit() invalid direction:  pd_Unknown",
-	    e.what()
-	);
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "66", "modify_Pull_bit() bit > 57" );
-    try {
-	Tx.modify_Pull_bit( 58, rgPullPin::pd_Up );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgPullPin::modify_Pull_bit():  bit out-of-range:  58",
-	    e.what()
-	);
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "67", "modify_Pull_bit()" );
-    try {
-	Tx.PullSel0.write(     0xffffffff );
-	CHECKX(                0xffffffff, Tx.PullSel0.read() );
-	Tx.modify_Pull_bit(             5, rgPullPin::pd_Up );
-	CHECKX(                0xfffff7ff, Tx.PullSel0.read() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "68a", "modify_Pull_w0()" );
-    try {
-	Tx.PullSel0.write(     0xffffffff );
-	Tx.PullSel1.write(     0x0000ffff );
-	CHECKX(                0xffffffff, Tx.PullSel0.read() );
-	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
-	Tx.modify_Pull_w0(     0x330fcc33, rgPullPin::pd_Up );
-	CHECKX(                0x5f5ff5f5, Tx.PullSel0.read() );
-	CHECKX(                0x0505ff55, Tx.PullSel1.read() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------------------------------------------
-//## Top read_Pull_w0(), modify_Pull_w0()
-//--------------------------------------------------------------------------
-
-  CASE( "71", "read_Pull_w0()" );
-    try {
-	Tx.PullSel0.write( 0xffaa5500 );
-	Tx.PullSel1.write( 0xaaff0055 );
-	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
-	CHECKX(            0xaaff0055, Tx.PullSel1.read() );
-	CHECKX(            0x000f00f0, Tx.read_Pull_w0( rgPullPin::pd_Up ));
-	CHECKX(            0xf0000f00, Tx.read_Pull_w0( rgPullPin::pd_Down ));
-	CHECKX(            0x00f0000f, Tx.read_Pull_w0( rgPullPin::pd_Off ));
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "75", "modify_Pull_w0()" );
-    try {
-	Tx.PullSel0.write(     0xffff0000 );
-	Tx.PullSel1.write(     0x0000ffff );
-	CHECKX(                0xffff0000, Tx.PullSel0.read() );
-	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
-	Tx.modify_Pull_w0(     0x330fcc33, rgPullPin::pd_Unknown );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgPullPin::modify_Pull_w0() invalid direction:  pd_Unknown",
-	    e.what()
-	);
-	CHECKX(                0xffff0000, Tx.PullSel0.read() );
-	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------------------------------------------
 //## rgPullPin_reg class - modify_field(), modify_mask()
 //--------------------------------------------------------------------------
 
@@ -546,6 +396,156 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
     catch (...) {
         FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Top read_Pull_bit(), modify_Pull_bit()
+//--------------------------------------------------------------------------
+
+  CASE( "60", "condition write(), read()" );
+    try {
+	Tx.PullSel0.write(     0xffffffff );
+	Tx.PullSel1.write(     0xffffffff );
+	Tx.PullSel2.write(     0xffffffff );
+	Tx.PullSel3.write(     0xffffffff );
+	CHECKX(                0xffffffff, Tx.PullSel0.read() );
+	CHECKX(                0xffffffff, Tx.PullSel1.read() );
+	CHECKX(                0xffffffff, Tx.PullSel2.read() );
+	CHECKX(                0xffffffff, Tx.PullSel3.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "61", "read_Pull_bit() verify return type" );
+    try {
+	rgPullPin::rgPull_enum		y;
+	y = Tx.read_Pull_bit( 4 );
+	CHECK( rgPullPin::pd_Unknown, y );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "62", "read_Pull_bit() bit > 57" );
+    try {
+	Tx.read_Pull_bit( 58 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgPullPin::read_Pull_bit():  bit out-of-range:  58",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "63", "read_Pull_bit()" );
+    try {
+	Tx.PullSel0.write(     0xbff3ff7f );
+	CHECKX(                0xbff3ff7f, Tx.PullSel0.read() );
+	CHECK( rgPullPin::pd_Unknown,      Tx.read_Pull_bit(  0 ) );
+	CHECK( rgPullPin::pd_Up,           Tx.read_Pull_bit(  3 ) );
+	CHECK( rgPullPin::pd_Off,          Tx.read_Pull_bit(  9 ) );
+	CHECK( rgPullPin::pd_Down,         Tx.read_Pull_bit( 15 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "65", "modify_Pull_bit() pd_Unknown error" );
+    try {
+	Tx.modify_Pull_bit( 58, rgPullPin::pd_Unknown );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgPullPin::modify_Pull_bit() invalid direction:  pd_Unknown",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "66", "modify_Pull_bit() bit > 57" );
+    try {
+	Tx.modify_Pull_bit( 58, rgPullPin::pd_Up );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgPullPin::modify_Pull_bit():  bit out-of-range:  58",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "67", "modify_Pull_bit()" );
+    try {
+	Tx.PullSel0.write(     0xffffffff );
+	CHECKX(                0xffffffff, Tx.PullSel0.read() );
+	Tx.modify_Pull_bit(             5, rgPullPin::pd_Up );
+	CHECKX(                0xfffff7ff, Tx.PullSel0.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "68a", "modify_Pull_w0()" );
+    try {
+	Tx.PullSel0.write(     0xffffffff );
+	Tx.PullSel1.write(     0x0000ffff );
+	CHECKX(                0xffffffff, Tx.PullSel0.read() );
+	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
+	Tx.modify_Pull_w0(     0x330fcc33, rgPullPin::pd_Up );
+	CHECKX(                0x5f5ff5f5, Tx.PullSel0.read() );
+	CHECKX(                0x0505ff55, Tx.PullSel1.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## Top read_Pull_w0(), modify_Pull_w0()
+//--------------------------------------------------------------------------
+
+  CASE( "71", "read_Pull_w0()" );
+    try {
+	Tx.PullSel0.write( 0xffaa5500 );
+	Tx.PullSel1.write( 0xaaff0055 );
+	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
+	CHECKX(            0xaaff0055, Tx.PullSel1.read() );
+	CHECKX(            0x000f00f0, Tx.read_Pull_w0( rgPullPin::pd_Up ));
+	CHECKX(            0xf0000f00, Tx.read_Pull_w0( rgPullPin::pd_Down ));
+	CHECKX(            0x00f0000f, Tx.read_Pull_w0( rgPullPin::pd_Off ));
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "75", "modify_Pull_w0()" );
+    try {
+	Tx.PullSel0.write(     0xffff0000 );
+	Tx.PullSel1.write(     0x0000ffff );
+	CHECKX(                0xffff0000, Tx.PullSel0.read() );
+	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
+	Tx.modify_Pull_w0(     0x330fcc33, rgPullPin::pd_Unknown );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgPullPin::modify_Pull_w0() invalid direction:  pd_Unknown",
+	    e.what()
+	);
+	CHECKX(                0xffff0000, Tx.PullSel0.read() );
+	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------------------------------------------
