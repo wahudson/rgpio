@@ -24,28 +24,47 @@ class rgPullPin {
 	pd_Unknown = 3
     };
 
+    class rgPullPin_reg : public rgReg_rw {
+      public:
+	void		modify_field( unsigned field,  rgPull_enum dir );
+	void		modify_mask(  uint32_t mask,   rgPull_enum dir );
+
+	rgPull_enum	read_field(   unsigned field );
+	uint32_t	read_mask( rgPull_enum dir   );
+    };
+
   public:			// array of pointers to registers
     rgReg_rw*		PullSel[4];
 
   public:			// registers
-    rgReg_rw		PullSel0;
-    rgReg_rw		PullSel1;
-    rgReg_rw		PullSel2;
-    rgReg_rw		PullSel3;
+    rgPullPin_reg	PullSel0;
+    rgPullPin_reg	PullSel1;
+    rgPullPin_reg	PullSel2;
+    rgPullPin_reg	PullSel3;
 
   public:
     rgPullPin(			// constructor
 	rgAddrMap	*xx
     );
 
-    rgPull_enum		read_Pull_bit(
+    rgPull_enum		read_Pull_bit2(
 			    int			bit
 			);
 
-    void		modify_Pull_bit(
+    void		modify_Pull_bit2(
 			    int			bit,
 			    rgPull_enum		dir
 			);
+
+    rgPull_enum		read_Pull_bit(   unsigned bit );
+
+    void		modify_Pull_bit( unsigned bit,  rgPull_enum dir );
+
+    uint32_t		read_Pull_w0( rgPull_enum dir );
+    uint32_t		read_Pull_w1( rgPull_enum dir );
+
+    void		modify_Pull_w0( uint32_t mask,  rgPull_enum dir );
+    void		modify_Pull_w1( uint32_t mask,  rgPull_enum dir );
 
     rgReg_rw*		pullreg_bit(
 			    int			bit,

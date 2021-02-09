@@ -291,7 +291,7 @@ Common high-level functions:
 	- Another case to handle.
 	- Values are not just the pure directions.
 	+ The actual pull dir could be the reserved value 3.
-	++ Required for the read function, which could return the reseved 3.
+	++ Required for the read function, which could return the reserved 3.
 
     Thus want one enum value for "not a pull direction".
 	pd_Invalid	suggests an error
@@ -335,6 +335,55 @@ Register array name?
 
     That said, an array of pointers or references to the actual registers
     could still be used privately under the hood (as in rgFselPin).
+
+Refactor rgPullPin class:  (2021-02-03)
+
+    Original version used an array of pointers to registers, with bit number
+    calculation to select the register to read/modify.
+    It paralleled the rgFselPin class, which used the same methods.
+    It had only top-level methods, no register-level methods.
+    Exception message on bit range had the private low-level bit-fiddling
+    name pullreg_bit() - not so nice.
+
+    Refactor with new rgPullPin_reg register class that contains register
+    level read/modify functions:
+
+    read_field( pos ), modify_field( pos, dir )
+    read_mask( mask ), modify_mask( mask, dir )
+	pos  = position of 2-bit field
+	mask = 16-bit mask[15:0] of one bit per field
+	dir  = pull direction enum
+
+	Idea is to parallel existing rgReg_rw methods.
+
+	The one bit per field mask is to begin abstraction of an IO pin
+	word register, with one bit per IO pin.
+
+    Field position - how should it be specified?
+    A)  Actual bit position of field (e.g. 0,2,4,..,30)
+	+ Is like other register field specifications.
+	+ Is like rgRegister get_field(), which is protected., not public.
+	- Seems awkward to use only even numbers for relative IO pins.
+	- pos = (N - RegNo) * 2
+	- User does not really use field position numbers anywhere else.
+
+ >  B)  Logical Field number (e.g. 0,1,2,..,15)
+	+ Is closer to an IO pin bit number, which is what user sees.
+	++ Fits better with read_mask(), with packed mask[15:0] bits.
+	+ Better abstraction toward actual IO pin numbers.
+	- Is not a literal field position.  Confusion?
+	+ pos = (N - RegNo)
+
+    While (A) actual field position makes internal sense, I think (B) logical
+    field numbers is more sensible to the end user.
+
+    Possibly each register could know its own logical bit number range?
+    Not sure that helps much.  Each register would have only a certain
+    slice of pin numbers that are valid for that register.
+
+    Overall probably about the same amount of code, but less repetitive.
+    The new object methods put more functionality closer to the real registers.
+    Still want the high-level bit {0..57} read/modify functions.
 
 ----------------------------------------------------------------------------
 ## Hardware Behavior - Pin Pull Up/Down  2020-09-09
