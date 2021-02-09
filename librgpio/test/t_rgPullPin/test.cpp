@@ -1,13 +1,13 @@
 // 2020-09-05  William A. Hudson
 //
 // Testing:  rgPullPin IO Pin Pull Up/Down for RPi4
-//    10-19  Constructor, get_bcm_address(), rgReg_* constructors
-//    20-29  Address of registers  addr()
-//    30-39  Register read(), write()
-//    40-49  Register set(), clr(), modify()
-//    50-59  .
-//    60-69  Read/Modify bit
-//    70-78  .
+//    10-19  Constructor, get_bcm_address(), rgReg_* constructors, REG.addr()
+//    20-29  Register read(), write()
+//    30-39  Register set(), clr(), modify()
+//    40-49  rgPullPin_reg class - modify_field(), modify_mask()
+//    50-59  rgPullPin_reg class - read_field(), read_mask()
+//    60-69  Top read_Pull_bit(), modify_Pull_bit()
+//    70-78  Top read_Pull_w0(), modify_Pull_w0()
 //    80-88  rgPull_enum - pull_enum2cstr()
 //    90-99  rgPull_enum - int2pull_enum()
 //--------------------------------------------------------------------------
@@ -87,11 +87,10 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------------------------------------------
-//## Address of registers  addr()
-//--------------------------------------------------------------------------
+//--------------------------------------
+// Address of registers  addr()
 
-  CASE( "21", "PullSel*.addr()" );
+  CASE( "18", "PullSel*.addr()" );
     try {
 	CHECKX( 0xe4, (Tx.PullSel0.addr() - Tx.get_base_addr())*4 );
 	CHECKX( 0xe8, (Tx.PullSel1.addr() - Tx.get_base_addr())*4 );
@@ -107,7 +106,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 //--------------------------------------------------------------------------
 // Test write/read to fake memory.
 
-  CASE( "30", "condition write(), read()" );
+  CASE( "20", "condition write(), read()" );
     try {
 	Tx.PullSel0.write(     0xffffffff );
 	Tx.PullSel1.write(     0xffffffff );
@@ -122,7 +121,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "31", "PullSel0.read()" );
+  CASE( "21", "PullSel0.read()" );
     try {
 	Tx.PullSel0.write(     0x11111111 );
 	CHECKX(                0x11111111, Tx.PullSel0.read() );
@@ -131,7 +130,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "32", "PullSel1.read()" );
+  CASE( "22", "PullSel1.read()" );
     try {
 	Tx.PullSel1.write(     0x22222222 );
 	CHECKX(                0x22222222, Tx.PullSel1.read() );
@@ -140,7 +139,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "33", "PullSel2.read()" );
+  CASE( "23", "PullSel2.read()" );
     try {
 	Tx.PullSel2.write(     0x33333333 );
 	CHECKX(                0x33333333, Tx.PullSel2.read() );
@@ -149,7 +148,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "34", "PullSel3.read()" );
+  CASE( "24", "PullSel3.read()" );
     try {
 	Tx.PullSel3.write(     0x44444444 );
 	CHECKX(                0x44444444, Tx.PullSel3.read() );
@@ -162,7 +161,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 //## Register set(), clr(), modify()
 //--------------------------------------------------------------------------
 
-  CASE( "41a", "PullSel0.set()" );
+  CASE( "31a", "PullSel0.set()" );
     try {
 	Tx.PullSel0.write(     0xffff0000 );
 	Tx.PullSel0.set(       0x00330033 );
@@ -173,7 +172,7 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "42a", "PullSel0.clr()" );
+  CASE( "32a", "PullSel0.clr()" );
     try {
 	Tx.PullSel0.write(     0xffff0000 );
 	Tx.PullSel0.clr(       0x00330033 );
@@ -184,7 +183,7 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "43a", "PullSel0.modify()" );
+  CASE( "33a", "PullSel0.modify()" );
     try {
 	Tx.PullSel0.write(     0x00ff00ff );
 	Tx.PullSel0.modify(    0x0000ffff, 0x33333333 );
@@ -195,7 +194,7 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------------------------------------------
-//## Read/Modify bit read_Pull_bit(), modify_Pull_bit()
+//## Top read_Pull_bit(), modify_Pull_bit()
 //--------------------------------------------------------------------------
 
   CASE( "60", "condition write(), read()" );
@@ -245,21 +244,6 @@ rgPullPin		Tx   ( &Bx );		// test object
 	CHECK( rgPullPin::pd_Up,           Tx.read_Pull_bit(  3 ) );
 	CHECK( rgPullPin::pd_Off,          Tx.read_Pull_bit(  9 ) );
 	CHECK( rgPullPin::pd_Down,         Tx.read_Pull_bit( 15 ) );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "64a", "read_Pull_w0()" );
-    try {
-	Tx.PullSel0.write( 0xffaa5500 );
-	Tx.PullSel1.write( 0xaaff0055 );
-	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
-	CHECKX(            0xaaff0055, Tx.PullSel1.read() );
-	CHECKX(            0x000f00f0, Tx.read_Pull_w0( rgPullPin::pd_Up ));
-	CHECKX(            0xf0000f00, Tx.read_Pull_w0( rgPullPin::pd_Down ));
-	CHECKX(            0x00f0000f, Tx.read_Pull_w0( rgPullPin::pd_Off ));
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -320,8 +304,26 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
+//--------------------------------------------------------------------------
+//## Top read_Pull_w0(), modify_Pull_w0()
+//--------------------------------------------------------------------------
+
+  CASE( "71", "read_Pull_w0()" );
+    try {
+	Tx.PullSel0.write( 0xffaa5500 );
+	Tx.PullSel1.write( 0xaaff0055 );
+	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
+	CHECKX(            0xaaff0055, Tx.PullSel1.read() );
+	CHECKX(            0x000f00f0, Tx.read_Pull_w0( rgPullPin::pd_Up ));
+	CHECKX(            0xf0000f00, Tx.read_Pull_w0( rgPullPin::pd_Down ));
+	CHECKX(            0x00f0000f, Tx.read_Pull_w0( rgPullPin::pd_Off ));
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
-  CASE( "69", "modify_Pull_w0()" );
+  CASE( "75", "modify_Pull_w0()" );
     try {
 	Tx.PullSel0.write(     0xffff0000 );
 	Tx.PullSel1.write(     0x0000ffff );
@@ -342,10 +344,10 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------------------------------------------
-//## rgPullPin_reg class - modify_field()
+//## rgPullPin_reg class - modify_field(), modify_mask()
 //--------------------------------------------------------------------------
 
-  CASE( "71", "modify_field()" );
+  CASE( "41", "modify_field()" );
     try {
 	Tx.PullSel0.write(     0xffffffff );
 	CHECKX(                0xffffffff, Tx.PullSel0.read() );
@@ -356,7 +358,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "72", "modify_field() numbers" );
+  CASE( "42", "modify_field() numbers" );
     try {
 	Tx.PullSel0.write(     0xffffffff );
 	CHECKX(                0xffffffff, Tx.PullSel0.read() );
@@ -370,7 +372,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "73", "modify_field() pd_Unknown allowed" );
+  CASE( "43", "modify_field() pd_Unknown allowed" );
     try {
 	Tx.PullSel0.write(     0x00000000 );
 	CHECKX(                0x00000000, Tx.PullSel0.read() );
@@ -381,7 +383,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "75", "modify_field() field out-of-range" );
+  CASE( "45", "modify_field() field out-of-range" );
     try {
 	Tx.PullSel0.write(     0xffffffff );
 	CHECKX(                0xffffffff, Tx.PullSel0.read() );
@@ -399,7 +401,7 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "76a", "modify_mask()" );
+  CASE( "46a", "modify_mask()" );
     try {
 	Tx.PullSel0.write(       0xffffffff );
 	CHECKX(                  0xffffffff, Tx.PullSel0.read() );
@@ -410,7 +412,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "76b", "modify_mask()" );
+  CASE( "46b", "modify_mask()" );
     try {
 	Tx.PullSel0.write(       0xffffffff );
 	CHECKX(                  0xffffffff, Tx.PullSel0.read() );
@@ -421,7 +423,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "76c", "modify_mask()" );
+  CASE( "46c", "modify_mask()" );
     try {
 	Tx.PullSel0.write(       0xffffffff );
 	CHECKX(                  0xffffffff, Tx.PullSel0.read() );
@@ -432,7 +434,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "76d", "modify_mask() pd_Unknown" );
+  CASE( "46d", "modify_mask() pd_Unknown" );
     try {
 	Tx.PullSel0.write(       0x000f0000 );
 	CHECKX(                  0x000f0000, Tx.PullSel0.read() );
@@ -444,7 +446,7 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "77", "modify_mask() no bits" );
+  CASE( "47", "modify_mask() no bits" );
     try {
 	Tx.PullSel0.write(       0xffffffff );
 	CHECKX(                  0xffffffff, Tx.PullSel0.read() );
@@ -456,10 +458,10 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------------------------------------------
-//## rgPullPin_reg class - read_field()
+//## rgPullPin_reg class - read_field(), read_mask()
 //--------------------------------------------------------------------------
 
-  CASE( "80", "read_field() verify return type" );
+  CASE( "50", "read_field() verify return type" );
     try {
 	rgPullPin::rgPull_enum		y;
 	Tx.PullSel0.write(     0xfffffffc );
@@ -471,7 +473,7 @@ rgPullPin		Tx   ( &Bx );		// test object
         FAIL( "unexpected exception" );
     }
 
-  CASE( "81", "read_field()" );
+  CASE( "51", "read_field()" );
     try {
 	Tx.PullSel0.write(     0xfffffff3 );
 	CHECKX(                0xfffffff3, Tx.PullSel0.read() );
@@ -482,7 +484,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "82", "read_field()" );
+  CASE( "52", "read_field()" );
     try {
 	Tx.PullSel0.write(     0x00000100 );
 	CHECKX(                0x00000100, Tx.PullSel0.read() );
@@ -493,7 +495,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "83", "read_field() field out-of-range" );
+  CASE( "53", "read_field() field out-of-range" );
     try {
 	Tx.PullSel0.write(     0xffffffff );
 	CHECKX(                0xffffffff, Tx.PullSel0.read() );
@@ -511,7 +513,7 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "80", "read_mask() verify return type" );
+  CASE( "50", "read_mask() verify return type" );
     try {
 	uint32_t		y;
 	Tx.PullSel0.write(     0x55551111 );
@@ -523,7 +525,7 @@ rgPullPin		Tx   ( &Bx );		// test object
         FAIL( "unexpected exception" );
     }
 
-  CASE( "81", "read_mask()" );
+  CASE( "51", "read_mask()" );
     try {
 	Tx.PullSel0.write( 0xcccc00ff );
 	CHECKX(            0xcccc00ff, Tx.PullSel0.read() );
@@ -533,7 +535,7 @@ rgPullPin		Tx   ( &Bx );		// test object
         FAIL( "unexpected exception" );
     }
 
-  CASE( "82", "read_mask()" );
+  CASE( "52", "read_mask()" );
     try {
 	Tx.PullSel0.write( 0xffaa5500 );
 	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
