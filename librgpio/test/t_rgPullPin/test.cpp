@@ -5,7 +5,7 @@
 //    20-29  Address of registers  addr()
 //    30-39  Register read(), write()
 //    40-49  Register set(), clr(), modify()
-//    50-59  pullreg_bit()  Register field position
+//    50-59  .
 //    60-69  Read/Modify bit
 //    70-78  .
 //    80-88  rgPull_enum - pull_enum2cstr()
@@ -91,34 +91,12 @@ rgPullPin		Tx   ( &Bx );		// test object
 //## Address of registers  addr()
 //--------------------------------------------------------------------------
 
-  CASE( "20", "PullSel[].addr() compare with PullSel0.addr()" );
-    try {
-	CHECK( 1, (Tx.PullSel[0]->addr() == Tx.PullSel0.addr()) );
-	CHECK( 1, (Tx.PullSel[1]->addr() == Tx.PullSel1.addr()) );
-	CHECK( 1, (Tx.PullSel[2]->addr() == Tx.PullSel2.addr()) );
-	CHECK( 1, (Tx.PullSel[3]->addr() == Tx.PullSel3.addr()) );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
   CASE( "21", "PullSel*.addr()" );
     try {
 	CHECKX( 0xe4, (Tx.PullSel0.addr() - Tx.get_base_addr())*4 );
 	CHECKX( 0xe8, (Tx.PullSel1.addr() - Tx.get_base_addr())*4 );
 	CHECKX( 0xec, (Tx.PullSel2.addr() - Tx.get_base_addr())*4 );
 	CHECKX( 0xf0, (Tx.PullSel3.addr() - Tx.get_base_addr())*4 );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "22", "PullSel[].addr()" );
-    try {
-	CHECKX( 0xe4, (Tx.PullSel[0]->addr() - Tx.get_base_addr())*4 );
-	CHECKX( 0xe8, (Tx.PullSel[1]->addr() - Tx.get_base_addr())*4 );
-	CHECKX( 0xec, (Tx.PullSel[2]->addr() - Tx.get_base_addr())*4 );
-	CHECKX( 0xf0, (Tx.PullSel[3]->addr() - Tx.get_base_addr())*4 );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -211,85 +189,6 @@ rgPullPin		Tx   ( &Bx );		// test object
 	Tx.PullSel0.write(     0x00ff00ff );
 	Tx.PullSel0.modify(    0x0000ffff, 0x33333333 );
 	CHECKX(                0x00ff3333, Tx.PullSel0.read() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------------------------------------------
-//## pullreg_bit()  Register field position
-//--------------------------------------------------------------------------
-
-  CASE( "50", "pullreg_bit() one sample" );
-    try {
-	int                     loc;
-	rgReg_rw                *rp;
-	rp = Tx.pullreg_bit( 11, &loc );
-	CHECK(    22, loc );
-	CHECK(     1, &Tx.PullSel0 == rp );
-	CHECKX( 0xe4, (rp->addr() - Tx.get_base_addr())*4 );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "51a", "pullreg_bit() bit < 0" );
-    try {
-	int                     loc;
-	Tx.pullreg_bit( -1, &loc );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgPullPin::pullreg_bit():  out-of-range bit= -1",
-	    e.what()
-	);
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "51b", "pullreg_bit() bit > 57" );
-    try {
-	int                     loc;
-	Tx.pullreg_bit( 58, &loc );
-	FAIL( "no throw" );
-    }
-    catch ( range_error& e ) {
-	CHECK( "rgPullPin::pullreg_bit():  out-of-range bit= 58",
-	    e.what()
-	);
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "52", "pullreg_bit() all bits" );
-    try {
-	int                     loc;
-	rgReg_rw                *rp;
-
-	for ( int k=0;  k<=15;  k++ ) {
-	    rp = Tx.pullreg_bit( k, &loc );
-	    CHECK( (k-0)*2, loc );
-	    CHECK( 1, &Tx.PullSel0 == rp );
-	}
-	for ( int k=16;  k<=31;  k++ ) {
-	    rp = Tx.pullreg_bit( k, &loc );
-	    CHECK( (k-16)*2, loc );
-	    CHECK( 1, &Tx.PullSel1 == rp );
-	}
-	for ( int k=32;  k<=47;  k++ ) {
-	    rp = Tx.pullreg_bit( k, &loc );
-	    CHECK( (k-32)*2, loc );
-	    CHECK( 1, &Tx.PullSel2 == rp );
-	}
-	for ( int k=48;  k<=57;  k++ ) {
-	    rp = Tx.pullreg_bit( k, &loc );
-	    CHECK( (k-48)*2, loc );
-	    CHECK( 1, &Tx.PullSel3 == rp );
-	}
     }
     catch (...) {
 	FAIL( "unexpected exception" );

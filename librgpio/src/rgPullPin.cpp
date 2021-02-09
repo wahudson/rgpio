@@ -43,11 +43,6 @@ rgPullPin::rgPullPin(
     PullSel1.init_addr( GpioBase + (0xe8 /4) );
     PullSel2.init_addr( GpioBase + (0xec /4) );
     PullSel3.init_addr( GpioBase + (0xf0 /4) );
-
-    PullSel[0] = &PullSel0;
-    PullSel[1] = &PullSel1;
-    PullSel[2] = &PullSel2;
-    PullSel[3] = &PullSel3;
 }
 
 //--------------------------------------------------------------------------
@@ -334,119 +329,6 @@ rgPullPin::modify_Pull_w0(
     mv = (mask >> 16) & 0x0000ffff;
     PullSel1.modify_mask( mv, dir );
 }
-
-//--------------------------------------------------------------------------
-// Read/Modify Pull pins
-//--------------------------------------------------------------------------
-
-/*
-* Read Pull Direction of a pin number.
-*    No copy in the object.
-* call:
-*    read_Pull_bit( bit )
-*        bit = IO pin bit number {0..57}
-* return:
-*    ()  = Pull direction enum {pd_Off, pd_Up, pd_Down, pd_Unknown}
-* exceptions:
-*    Throw range_error for bit out-of-range.
-*/
-rgPullPin::rgPull_enum
-rgPullPin::read_Pull_bit2(
-    int			bit
-)
-{
-    rgReg_rw			*rp;	// register pointer
-    int				pos;	// position in rp
-    uint32_t			rv;
-    uint32_t			dir;
-
-    rp = pullreg_bit( bit, &pos );	// get register and field position
-
-    rv = rp->read();
-
-    dir = (rv >> pos) & 0x3;		// 2-bit field
-
-    return  rgPullPin::rgPull_enum( dir );
-	// explicit int to enum conversion, in range of enum
-}
-
-
-/*
-* Modify Pull Direction dir of a pin number.
-*    Does read/modify/write - not atomic.
-*    No copy in the object.
-* call:
-*    modify_Pull_bit( bit, dir )
-*        bit  = IO pin bit number {0..57}
-*        dir  = Pull direction enum {pd_Off, pd_Up, pd_Down}
-* exceptions:
-*    Throw range_error for bit out-of-range.
-*    Throw range_error if (dir == pd_Unknown).
-*/
-void
-rgPullPin::modify_Pull_bit2(
-    int				bit,
-    rgPullPin::rgPull_enum	dir
-)
-{
-    rgReg_rw			*rp;	// register pointer
-    int				pos;	// position in rp
-    uint32_t			mask;
-    uint32_t			value;
-
-    if ( dir == pd_Unknown ) {
-	throw std::range_error ( "rgPullPin::modify_Pull_bit() invalid "
-				    "direction:  pd_Unknown" );
-    }
-
-    rp = pullreg_bit( bit, &pos );	// get register and field position
-
-    mask  = (                0x3) << pos;
-    value = ((uint32_t)dir & 0x3) << pos;
-
-    rp->modify( mask, value );
-}
-
-
-//--------------------------------------------------------------------------
-// Register field position
-//--------------------------------------------------------------------------
-
-/*
-* Get PullSel* register pointer and field position for a bit number.
-*    The field position pos is the LSB of the 2-bit pull direction value.
-* call:
-*    rp = pullreg_bit( bit, &pos )
-*        bit  = pin bit number 0..57
-*        pos  = field position within register, {0,2,4,..,30}
-* return:
-*    ()  = pointer to the PullSel* register for that bit
-* exceptions:
-*    Throw range_error for bit out-of-range.
-*/
-rgReg_rw*
-rgPullPin::pullreg_bit(
-    int			bit,		// pin bit number
-    int			*pos
-)
-{
-    if ( (bit < 0) || (bit > 57) ) {
-	std::ostringstream	css;
-	css << "rgPullPin::pullreg_bit():  out-of-range bit= " << bit;
-	throw std::range_error ( css.str() );
-    }
-
-    int  rnum = (int)bit / (int)16;		// register number 0..3
-
-    int  kk = bit - ( rnum * (int)16 );		// sub-bit in register
-
-    *pos = kk * 2;			// location of 2-bit field
-
-//    cout << "bit=" << bit << "  rnum=" << rnum << "  pos=" << *pos <<endl;
-
-    return  ( PullSel[rnum] );
-}
-
 
 //--------------------------------------------------------------------------
 // rgPull_enum  Conversions
