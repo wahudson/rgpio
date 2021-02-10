@@ -157,6 +157,17 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "29", "check register result" );
+    try {
+	CHECKX(                0x11111111, Tx.PullSel0.read() );
+	CHECKX(                0x22222222, Tx.PullSel1.read() );
+	CHECKX(                0x33333333, Tx.PullSel2.read() );
+	CHECKX(                0x44444444, Tx.PullSel3.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
 //## Register set(), clr(), modify()
 //--------------------------------------------------------------------------
@@ -320,31 +331,55 @@ rgPullPin		Tx   ( &Bx );		// test object
 	CHECK( rgPullPin::pd_Off,    y );
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
-  CASE( "51", "read_field()" );
+//--------------------------------------
+  CASE( "51a", "read_field()" );
     try {
 	Tx.PullSel0.write(     0xfffffff3 );
 	CHECKX(                0xfffffff3, Tx.PullSel0.read() );
-        CHECK(  rgPullPin::pd_Off,         Tx.PullSel0.read_field(  1 ) );
+	CHECK(  rgPullPin::pd_Off,         Tx.PullSel0.read_field(  1 ) );
 	CHECKX(                0xfffffff3, Tx.PullSel0.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "52", "read_field()" );
+  CASE( "51b", "read_field()" );
     try {
 	Tx.PullSel0.write(     0x00000100 );
 	CHECKX(                0x00000100, Tx.PullSel0.read() );
-        CHECK(  rgPullPin::pd_Up,          Tx.PullSel0.read_field(  4 ) );
+	CHECK(  rgPullPin::pd_Up,          Tx.PullSel0.read_field(  4 ) );
 	CHECKX(                0x00000100, Tx.PullSel0.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "51c", "read_field()" );
+    try {
+	Tx.PullSel0.write(     0x00008000 );
+	CHECKX(                0x00008000, Tx.PullSel0.read() );
+	CHECK(  rgPullPin::pd_Down,        Tx.PullSel0.read_field(  7 ) );
+	CHECKX(                0x00008000, Tx.PullSel0.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "51d", "read_field()" );
+    try {
+	Tx.PullSel0.write(     0x30000000 );
+	CHECKX(                0x30000000, Tx.PullSel0.read() );
+	CHECK(  rgPullPin::pd_Unknown,     Tx.PullSel0.read_field( 14 ) );
+	CHECKX(                0x30000000, Tx.PullSel0.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
   CASE( "53", "read_field() field out-of-range" );
     try {
 	Tx.PullSel0.write(     0xffffffff );
@@ -363,7 +398,7 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "50", "read_mask() verify return type" );
+  CASE( "56", "read_mask() verify return type" );
     try {
 	uint32_t		y;
 	Tx.PullSel0.write(     0x55551111 );
@@ -372,20 +407,20 @@ rgPullPin		Tx   ( &Bx );		// test object
 	CHECKX(                0x0000ff55, y );
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
-  CASE( "51", "read_mask()" );
+  CASE( "57", "read_mask()" );
     try {
 	Tx.PullSel0.write( 0xcccc00ff );
 	CHECKX(            0xcccc00ff, Tx.PullSel0.read() );
 	CHECKX(            0x000055f0, Tx.PullSel0.read_mask( rgPullPin::pd_Off ));
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
-  CASE( "52", "read_mask()" );
+  CASE( "58", "read_mask()" );
     try {
 	Tx.PullSel0.write( 0xffaa5500 );
 	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
@@ -395,7 +430,7 @@ rgPullPin		Tx   ( &Bx );		// test object
 	CHECKX(            0x0000f000, Tx.PullSel0.read_mask( rgPullPin::pd_Unknown ));
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------------------------------------------
@@ -454,9 +489,31 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "64", "read_Pull_bit() all bits" );
+    try {
+	Tx.PullSel0.write(     0x0e4390e4 );
+	Tx.PullSel1.write(     0x4390e439 );
+	Tx.PullSel2.write(     0x90e4390e );
+	Tx.PullSel3.write(     0xe4390e43 );
+	for ( int k=0;  k<=54;  ) {
+	    CHECK( rgPullPin::pd_Off,          Tx.read_Pull_bit( k++ ) );
+	    CHECK( rgPullPin::pd_Up,           Tx.read_Pull_bit( k++ ) );
+	    CHECK( rgPullPin::pd_Down,         Tx.read_Pull_bit( k++ ) );
+	    CHECK( rgPullPin::pd_Unknown,      Tx.read_Pull_bit( k++ ) );
+	    CHECK( rgPullPin::pd_Off,          Tx.read_Pull_bit( k++ ) );
+	}
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
   CASE( "65", "modify_Pull_bit() pd_Unknown error" );
     try {
+	Tx.PullSel0.write(     0x00000000 );
+	Tx.PullSel1.write(     0x00000000 );
+	Tx.PullSel2.write(     0x00000000 );
+	Tx.PullSel3.write(     0x00000000 );
 	Tx.modify_Pull_bit( 58, rgPullPin::pd_Unknown );
 	FAIL( "no throw" );
     }
@@ -464,6 +521,10 @@ rgPullPin		Tx   ( &Bx );		// test object
 	CHECK( "rgPullPin::modify_Pull_bit() invalid direction:  pd_Unknown",
 	    e.what()
 	);
+	CHECKX(                0x00000000, Tx.PullSel0.read() );
+	CHECKX(                0x00000000, Tx.PullSel1.read() );
+	CHECKX(                0x00000000, Tx.PullSel2.read() );
+	CHECKX(                0x00000000, Tx.PullSel3.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -478,6 +539,10 @@ rgPullPin		Tx   ( &Bx );		// test object
 	CHECK( "rgPullPin::modify_Pull_bit():  bit out-of-range:  58",
 	    e.what()
 	);
+	CHECKX(                0x00000000, Tx.PullSel0.read() );
+	CHECKX(                0x00000000, Tx.PullSel1.read() );
+	CHECKX(                0x00000000, Tx.PullSel2.read() );
+	CHECKX(                0x00000000, Tx.PullSel3.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -485,8 +550,8 @@ rgPullPin		Tx   ( &Bx );		// test object
 
   CASE( "67", "modify_Pull_bit()" );
     try {
-	Tx.PullSel0.write(     0xffffffff );
-	CHECKX(                0xffffffff, Tx.PullSel0.read() );
+	Tx.PullSel0.write(     0xfffffbff );
+	CHECKX(                0xfffffbff, Tx.PullSel0.read() );
 	Tx.modify_Pull_bit(             5, rgPullPin::pd_Up );
 	CHECKX(                0xfffff7ff, Tx.PullSel0.read() );
     }
@@ -494,16 +559,24 @@ rgPullPin		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-//--------------------------------------
-  CASE( "68a", "modify_Pull_w0()" );
+  CASE( "69", "modify_Pull_bit() all bits" );
     try {
-	Tx.PullSel0.write(     0xffffffff );
-	Tx.PullSel1.write(     0x0000ffff );
-	CHECKX(                0xffffffff, Tx.PullSel0.read() );
-	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
-	Tx.modify_Pull_w0(     0x330fcc33, rgPullPin::pd_Up );
-	CHECKX(                0x5f5ff5f5, Tx.PullSel0.read() );
-	CHECKX(                0x0505ff55, Tx.PullSel1.read() );
+	Tx.PullSel0.write(     0x66666666 );
+	Tx.PullSel1.write(     0x66666666 );
+	Tx.PullSel2.write(     0x66666666 );
+	Tx.PullSel3.write(     0xfff66666 );
+	CHECKX(                0x66666666, Tx.PullSel0.read() );
+	CHECKX(                0x66666666, Tx.PullSel1.read() );
+	CHECKX(                0x66666666, Tx.PullSel2.read() );
+	CHECKX(                0xfff66666, Tx.PullSel3.read() );
+	for ( int k=0;  k<=56;  ) {
+	    Tx.modify_Pull_bit( k++, rgPullPin::pd_Up   );
+	    Tx.modify_Pull_bit( k++, rgPullPin::pd_Down );
+	}
+	CHECKX(                0x99999999, Tx.PullSel0.read() );
+	CHECKX(                0x99999999, Tx.PullSel1.read() );
+	CHECKX(                0x99999999, Tx.PullSel2.read() );
+	CHECKX(                0xfff99999, Tx.PullSel3.read() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -513,22 +586,100 @@ rgPullPin		Tx   ( &Bx );		// test object
 //## Top read_Pull_w0(), modify_Pull_w0()
 //--------------------------------------------------------------------------
 
-  CASE( "71", "read_Pull_w0()" );
+  CASE( "70", "read_Pull_w0() verify return type" );
     try {
+	uint32_t		y;
 	Tx.PullSel0.write( 0xffaa5500 );
 	Tx.PullSel1.write( 0xaaff0055 );
-	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
-	CHECKX(            0xaaff0055, Tx.PullSel1.read() );
-	CHECKX(            0x000f00f0, Tx.read_Pull_w0( rgPullPin::pd_Up ));
-	CHECKX(            0xf0000f00, Tx.read_Pull_w0( rgPullPin::pd_Down ));
-	CHECKX(            0x00f0000f, Tx.read_Pull_w0( rgPullPin::pd_Off ));
+	y = Tx.read_Pull_w0( rgPullPin::pd_Up );
+	CHECKX(            0x000f00f0, y );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
-  CASE( "75", "modify_Pull_w0()" );
+  CASE( "71a", "read_Pull_w0()" );
+    try {
+	Tx.PullSel0.write( 0xffaa5500 );
+	Tx.PullSel1.write( 0xaaff0055 );
+	Tx.PullSel2.write( 0xffffffff );
+	Tx.PullSel3.write( 0xffffffff );
+	CHECKX(            0xffaa5500, Tx.PullSel0.read() );
+	CHECKX(            0xaaff0055, Tx.PullSel1.read() );
+	CHECKX(            0xffffffff, Tx.PullSel2.read() );
+	CHECKX(            0xffffffff, Tx.PullSel3.read() );
+	CHECKX(            0x000f00f0, Tx.read_Pull_w0( rgPullPin::pd_Up   ));
+	CHECKX(            0xf0000f00, Tx.read_Pull_w0( rgPullPin::pd_Down ));
+	CHECKX(            0x00f0000f, Tx.read_Pull_w0( rgPullPin::pd_Off  ));
+	CHECKX(            0x0f00f000, Tx.read_Pull_w0( rgPullPin::pd_Unknown));
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "71b", "read_Pull_w1()" );
+    try {
+	Tx.PullSel0.write( 0xffffffff );
+	Tx.PullSel1.write( 0xffffffff );
+	Tx.PullSel2.write( 0xffaa5500 );
+	Tx.PullSel3.write( 0xaaff0055 );
+	CHECKX(            0xffffffff, Tx.PullSel0.read() );
+	CHECKX(            0xffffffff, Tx.PullSel1.read() );
+	CHECKX(            0xffaa5500, Tx.PullSel2.read() );
+	CHECKX(            0xaaff0055, Tx.PullSel3.read() );
+	CHECKX(            0x000f00f0, Tx.read_Pull_w1( rgPullPin::pd_Up   ));
+	CHECKX(            0xf0000f00, Tx.read_Pull_w1( rgPullPin::pd_Down ));
+	CHECKX(            0x00f0000f, Tx.read_Pull_w1( rgPullPin::pd_Off  ));
+	CHECKX(            0x0f00f000, Tx.read_Pull_w1( rgPullPin::pd_Unknown));
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "75a", "modify_Pull_w0()" );
+    try {
+	Tx.PullSel0.write( 0xffffffff );
+	Tx.PullSel1.write( 0x0000ffff );
+	Tx.PullSel2.write( 0xffffffff );
+	Tx.PullSel3.write( 0xffffffff );
+	CHECKX(            0xffffffff, Tx.PullSel0.read() );
+	CHECKX(            0x0000ffff, Tx.PullSel1.read() );
+	CHECKX(            0xffffffff, Tx.PullSel2.read() );
+	CHECKX(            0xffffffff, Tx.PullSel3.read() );
+	Tx.modify_Pull_w0( 0x330fcc33, rgPullPin::pd_Up );
+	CHECKX(            0x5f5ff5f5, Tx.PullSel0.read() );
+	CHECKX(            0x0505ff55, Tx.PullSel1.read() );
+	CHECKX(            0xffffffff, Tx.PullSel2.read() );
+	CHECKX(            0xffffffff, Tx.PullSel3.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "75b", "modify_Pull_w1()" );
+    try {
+	Tx.PullSel0.write( 0xffffffff );
+	Tx.PullSel1.write( 0xffffffff );
+	Tx.PullSel2.write( 0xffffffff );
+	Tx.PullSel3.write( 0x0000ffff );
+	CHECKX(            0xffffffff, Tx.PullSel0.read() );
+	CHECKX(            0xffffffff, Tx.PullSel1.read() );
+	CHECKX(            0xffffffff, Tx.PullSel2.read() );
+	CHECKX(            0x0000ffff, Tx.PullSel3.read() );
+	Tx.modify_Pull_w1( 0x330fcc33, rgPullPin::pd_Up );
+	CHECKX(            0xffffffff, Tx.PullSel0.read() );
+	CHECKX(            0xffffffff, Tx.PullSel1.read() );
+	CHECKX(            0x5f5ff5f5, Tx.PullSel2.read() );
+	CHECKX(            0x0505ff55, Tx.PullSel3.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "79a", "modify_Pull_w0() disallow pd_Unknown" );
     try {
 	Tx.PullSel0.write(     0xffff0000 );
 	Tx.PullSel1.write(     0x0000ffff );
@@ -539,6 +690,26 @@ rgPullPin		Tx   ( &Bx );		// test object
     }
     catch ( range_error& e ) {
 	CHECK( "rgPullPin::modify_Pull_w0() invalid direction:  pd_Unknown",
+	    e.what()
+	);
+	CHECKX(                0xffff0000, Tx.PullSel0.read() );
+	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "79b", "modify_Pull_w1() disallow pd_Unknown" );
+    try {
+	Tx.PullSel0.write(     0xffff0000 );
+	Tx.PullSel1.write(     0x0000ffff );
+	CHECKX(                0xffff0000, Tx.PullSel0.read() );
+	CHECKX(                0x0000ffff, Tx.PullSel1.read() );
+	Tx.modify_Pull_w1(     0x330fcc33, rgPullPin::pd_Unknown );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgPullPin::modify_Pull_w1() invalid direction:  pd_Unknown",
 	    e.what()
 	);
 	CHECKX(                0xffff0000, Tx.PullSel0.read() );
@@ -615,32 +786,32 @@ rgPullPin		Tx   ( &Bx );		// test object
 
   CASE( "90", "int2pull_enum() verify return type" );
     try {
-        CHECK( "Off", Tx.pull_enum2cstr( Tx.int2pull_enum( 0 ) ) );
+	CHECK( "Off", Tx.pull_enum2cstr( Tx.int2pull_enum( 0 ) ) );
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
   CASE( "91", "int2pull_enum() object call" );
     try {
-        CHECK( rgPullPin::pd_Off,     Tx.int2pull_enum( 0 ) );
-        CHECK( rgPullPin::pd_Up,      Tx.int2pull_enum( 1 ) );
-        CHECK( rgPullPin::pd_Down,    Tx.int2pull_enum( 2 ) );
-        CHECK( rgPullPin::pd_Unknown, Tx.int2pull_enum( 3 ) );
+	CHECK( rgPullPin::pd_Off,     Tx.int2pull_enum( 0 ) );
+	CHECK( rgPullPin::pd_Up,      Tx.int2pull_enum( 1 ) );
+	CHECK( rgPullPin::pd_Down,    Tx.int2pull_enum( 2 ) );
+	CHECK( rgPullPin::pd_Unknown, Tx.int2pull_enum( 3 ) );
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
   CASE( "92", "int2pull_enum() class call" );
     try {
-        CHECK( rgPullPin::pd_Off,     rgPullPin::int2pull_enum( 0 ) );
-        CHECK( rgPullPin::pd_Up,      rgPullPin::int2pull_enum( 1 ) );
-        CHECK( rgPullPin::pd_Down,    rgPullPin::int2pull_enum( 2 ) );
-        CHECK( rgPullPin::pd_Unknown, rgPullPin::int2pull_enum( 3 ) );
+	CHECK( rgPullPin::pd_Off,     rgPullPin::int2pull_enum( 0 ) );
+	CHECK( rgPullPin::pd_Up,      rgPullPin::int2pull_enum( 1 ) );
+	CHECK( rgPullPin::pd_Down,    rgPullPin::int2pull_enum( 2 ) );
+	CHECK( rgPullPin::pd_Unknown, rgPullPin::int2pull_enum( 3 ) );
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
   CASE( "93", "Tx.int2pull_enum() verify return type" );
@@ -656,30 +827,30 @@ rgPullPin		Tx   ( &Bx );		// test object
 //--------------------------------------
   CASE( "94a", "int2pull_enum() bad int" );
     try {
-        Tx.int2pull_enum( -1 );
-        FAIL( "no throw" );
+	Tx.int2pull_enum( -1 );
+	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-        CHECK( "rgPullPin::int2pull_enum() int out of range:  -1",
-            e.what()
-        );
+	CHECK( "rgPullPin::int2pull_enum() int out of range:  -1",
+	    e.what()
+	);
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
   CASE( "94b", "int2pull_enum() bad int" );
     try {
-        Tx.int2pull_enum( 4 );
-        FAIL( "no throw" );
+	Tx.int2pull_enum( 4 );
+	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-        CHECK( "rgPullPin::int2pull_enum() int out of range:  4",
-            e.what()
-        );
+	CHECK( "rgPullPin::int2pull_enum() int out of range:  4",
+	    e.what()
+	);
     }
     catch (...) {
-        FAIL( "unexpected exception" );
+	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
