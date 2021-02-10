@@ -385,6 +385,27 @@ Refactor rgPullPin class:  (2021-02-03)
     The new object methods put more functionality closer to the real registers.
     Still want the high-level bit {0..57} read/modify functions.
 
+Word Operations:  _w0, _w1
+
+    It is possible to make virtual word registers, each containing 2 real
+    registers.  e.g.
+	PullSel_w0	- virtual
+	    PullSel0	- real
+	    PullSel1	- real
+	PullSel_w1
+	    PullSel2
+	    PullSel3
+    This would be a great abstraction object and reduce redundant code of top
+    level read_Pull_w0(), read_Pull_w1(), which would then be in the virtual
+    registers.  Good for RPi4 only use.
+
+    However, if this class is extended to switch on SocEnum and call the
+    corresponding RPi3 top-level program_pud_w0(), program_pud_w1() functions,
+    it does not work so well.  Those functions were at the top level because
+    all three programming registers are operated together.
+
+    Thus it seems better to continue with top-level w0/w1 functions for now.
+
 ----------------------------------------------------------------------------
 ## Hardware Behavior - Pin Pull Up/Down  2020-09-09
 ----------------------------------------------------------------------------

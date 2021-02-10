@@ -299,6 +299,19 @@ rgPullPin::read_Pull_w0(
     return  mask;
 }
 
+uint32_t
+rgPullPin::read_Pull_w1(
+    rgPull_enum			dir
+)
+{
+    uint32_t			mask;
+
+    mask  = PullSel3.read_mask( dir ) << 16;
+    mask |= PullSel2.read_mask( dir );
+
+    return  mask;
+}
+
 
 /*
 * Modify pull direction by mask.
@@ -328,6 +341,26 @@ rgPullPin::modify_Pull_w0(
 
     mv = (mask >> 16) & 0x0000ffff;
     PullSel1.modify_mask( mv, dir );
+}
+
+void
+rgPullPin::modify_Pull_w1(
+    uint32_t			mask,
+    rgPull_enum			dir
+)
+{
+    uint32_t		mv;
+
+    if ( dir == pd_Unknown ) {
+	throw std::range_error ( "rgPullPin::modify_Pull_w1() invalid "
+				    "direction:  pd_Unknown" );
+    }
+
+    mv =         mask & 0x0000ffff;
+    PullSel2.modify_mask( mv, dir );
+
+    mv = (mask >> 16) & 0x0000ffff;
+    PullSel3.modify_mask( mv, dir );
 }
 
 //--------------------------------------------------------------------------
@@ -389,6 +422,6 @@ rgPullPin::int2pull_enum(
 	throw std::range_error ( css.str() );
     }
 
-    return  (rgPull_enum) num;
+    return  rgPull_enum( num );		// explicit enum conversion
 }
 
