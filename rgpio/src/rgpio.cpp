@@ -21,6 +21,7 @@ using namespace std;
 #include "y_io.h"
 #include "y_man.h"
 #include "y_pud.h"
+#include "y_pull.h"
 #include "y_pwm.h"
 #include "y_spi0.h"
 #include "y_timer.h"
@@ -175,7 +176,8 @@ yOptLong::print_usage()
     "    iic          I2C Master\n"
     "    info         RPi Revision Information\n"
     "    man          man pager\n"
-    "    pud          Pin Pull-Up/Down\n"
+    "    pud          Pin Pull-Up/Down - RPi3 and earlier\n"
+    "    pull         Pin Pull-Up/Down - RPi4\n"
     "    pwm          PWM Pulse Width Modulator\n"
     "    spi0         SPI0 Master\n"
     "    timer        System Timer\n"
@@ -308,6 +310,10 @@ main( int	argc,
 	}
 	else if ( Opx.feature == "pud"     ) {
 	    y_pud		pux  ( &Opx, &Amx );	// constructor
+	    retv = pux.doit();
+	}
+	else if ( Opx.feature == "pull"     ) {
+	    y_pull		pux  ( &Opx, &Amx );	// constructor
 	    retv = pux.doit();
 	}
 	else if ( Opx.feature == "pwm"     ) {

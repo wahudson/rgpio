@@ -33,6 +33,7 @@ YINCS       = \
 	y_io.h \
 	y_man.h \
 	y_pud.h \
+	y_pull.h \
 	y_pwm.h \
 	y_spi0.h \
 	y_timer.h \
@@ -50,6 +51,7 @@ OBJS       = \
 	$(OJ)/y_io.o \
 	$(OJ)/y_man.o \
 	$(OJ)/y_pud.o \
+	$(OJ)/y_pull.o \
 	$(OJ)/y_pwm.o \
 	$(OJ)/y_spi0.o \
 	$(OJ)/y_timer.o \
@@ -133,6 +135,9 @@ $(OJ)/y_man.o:		y_man.cpp  y_man.h  $(INCS)
 
 $(OJ)/y_pud.o:		y_pud.cpp  y_pud.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_pud.cpp
+
+$(OJ)/y_pull.o:		y_pull.cpp  y_pull.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_pull.cpp
 
 $(OJ)/y_pwm.o:		y_pwm.cpp  y_pwm.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_pwm.cpp

@@ -18,7 +18,8 @@ rgpio -- Raspberry Pi GPIO utility
     iic          I2C Master
     info         RPi Revision Information
     man          man pager
-    pud          Pin Pull-Up/Down
+    pud          Pin Pull-Up/Down - RPi3 and earlier
+    pull         Pin Pull-Up/Down - RPi4
     pwm          PWM Pulse Width Modulator
     spi0         SPI0 Master
     timer        System Timer
@@ -125,7 +126,8 @@ B<librgpio> class.
  info    rgpio-info    rgRpiRev     RPi Revision Information
  io      rgpio-io      rgIoPins     General Purpose IO pins
  man     rgpio-man     --           manual pager
- pud     rgpio-pud     rgPudPin     Pin Pull-Up/Down programming
+ pud     rgpio-pud     rgPudPin     Pin Pull-Up/Down - RPi3 and earlier
+ pull    rgpio-pull    rgPullPin    Pin Pull-Up/Down - RPi4
  pwm     rgpio-pwm     rgPwm        PWM Pulse Width Modulator
  spi0    rgpio-spi0    rgSpi0       SPI0 Master
  timer   rgpio-timer   rgSysTimer   System Timer
@@ -188,7 +190,7 @@ If /dev/gpiomem is used instead, they may silently do nothing, e.g. all
 values appear stuck zero.
 
 Device /dev/gpiomem is really only usable with the GPIO pin features, i.e.
-sub-commands B<fsel>, B<io>, and B<pud>.
+sub-commands B<fsel>, B<io>, B<pud>, and B<pull>.
 
 
 =head1		ENVIRONMENT
