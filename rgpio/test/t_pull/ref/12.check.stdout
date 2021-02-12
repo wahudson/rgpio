@@ -1,0 +1,19 @@
+    IO pin Pull Up/Down for RPi4
+usage:  rgpio pull [options..]  [N..]
+    N                   modify Gpio bit number 0..57
+  modify pull direction:
+    --up                pull-up
+    --down              pull-down
+    --off               floating, disable both up and down
+  modify by word mask:
+    --w0=0xffffffff     word 0, Gpio[31:0]
+    --w1=0x03ffffff     word 1, Gpio[57:32]
+  raw registers:  (V= 32-bit value)
+    --PullSel0=V        Gpio[15:0]
+    --PullSel1=V        Gpio[31:16]
+    --PullSel2=V        Gpio[47:32]
+    --PullSel3=V        Gpio[57:48]
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
