@@ -46,6 +46,15 @@ run_test( "11", "pull no args",
     "rgpio --dev=f  pull",
     0,
     Stderr => q(),
+    Stdout => q(
+	  Pull Up/Down RPi4               28   24   20   16   12    8    4    0
+	0x00000000  PullSel0            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel1            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel2            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel3            0000 0000 0000 0000 0000 0000 0000 0000
+	            w0_Direction        zzzz zzzz zzzz zzzz zzzz zzzz zzzz zzzz
+	            w1_Direction        .... ..zz zzzz zzzz zzzz zzzz zzzz zzzz
+    ),
 );
 
 run_test( "12", "pull help",
@@ -60,8 +69,7 @@ run_test( "13", "unknown option",
     Stderr => q(
 	Error:  unknown option:  --dev=xx
     ),
-    Stdout => q(
-    ),
+    Stdout => q(),
 );
 
 #---------------------------------------
@@ -190,6 +198,44 @@ run_test( "32", "modify registers",
     "rgpio --dev=f  pull -v --PullSel0=0x55aa00ff --PullSel1=0x5a0f5a0f --PullSel2=0xaaaa5555 --PullSel3=0x5555aaaa",
     0,
     Stderr => q(),
+);
+
+#---------------------------------------------------------------------------
+## Output Control
+#---------------------------------------------------------------------------
+
+run_test( "41", "pull word0",
+    "rgpio --dev=f  pull -0",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	  Pull Up/Down RPi4               28   24   20   16   12    8    4    0
+	0x00000000  PullSel0            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel1            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel2            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel3            0000 0000 0000 0000 0000 0000 0000 0000
+	            w0_Direction        zzzz zzzz zzzz zzzz zzzz zzzz zzzz zzzz
+    ),
+);
+
+run_test( "42", "pull -v word1",
+    "rgpio --dev=f  pull -v -1",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	+ Read registers
+	  Pull Up/Down RPi4               28   24   20   16   12    8    4    0
+	0x00000000  PullSel0            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel1            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel2            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel3            0000 0000 0000 0000 0000 0000 0000 0000
+	            w1_Direction        .... ..zz zzzz zzzz zzzz zzzz zzzz zzzz
+
+	0x00000000  w1_Up               0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  w1_Down             0000 0000 0000 0000 0000 0000 0000 0000
+	0xffffffff  w1_Off              1111 1111 1111 1111 1111 1111 1111 1111
+	0x00000000  w1_Unknown          0000 0000 0000 0000 0000 0000 0000 0000
+    ),
 );
 
 #---------------------------------------------------------------------------

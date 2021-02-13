@@ -43,6 +43,9 @@ class pull_yOptLong : public yOption {
     bool		down = 0;
     bool		off  = 0;
 
+    bool		Word0 = 0;
+    bool		Word1 = 0;
+
     yOpVal		w0;
     yOpVal		w1;
 					// registers
@@ -51,7 +54,7 @@ class pull_yOptLong : public yOption {
     yOpVal		PullSel2;
     yOpVal		PullSel3;
 
-    bool		Bin      = 1;	// binary output
+    bool		BinOut = 1;	// binary output
     bool		verbose;
     bool		debug;
     bool		TESTOP;
@@ -95,6 +98,9 @@ pull_yOptLong::parse_options()
 	else if ( is( "--down"       )) { down       = 1; }
 	else if ( is( "--off"        )) { off        = 1; }
 
+	else if ( is( "-0"           )) { Word0      = 1; }
+	else if ( is( "-1"           )) { Word1      = 1; }
+
 	else if ( is( "--w0="             )) { w0.set(             val() ); }
 	else if ( is( "--w1="             )) { w1.set(             val() ); }
 
@@ -129,6 +135,12 @@ pull_yOptLong::parse_options()
 	    Error::msg( "modify requires bit arguments or:  --w0=V --w1=V\n" );
 	}
     }
+
+    if ( !(Word0 || Word1) ) {		// default
+	Word0 = 1;
+	Word1 = 1;
+    }
+    // Options act to show only the selected word, to provide focus.
 }
 
 
@@ -143,6 +155,8 @@ pull_yOptLong::print_option_flags()
     cout << "--up          = " << up           << endl;
     cout << "--down        = " << down         << endl;
     cout << "--off         = " << off          << endl;
+    cout << "-0            = " << Word0        << endl;
+    cout << "-1            = " << Word1        << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
 
@@ -187,8 +201,9 @@ pull_yOptLong::print_usage()
     "    --PullSel2=V        Gpio[47:32]\n"
     "    --PullSel3=V        Gpio[57:48]\n"
     "  options:\n"
+    "    -0, -1              show word 0, word 1\n"
     "    --help              show this usage\n"
-    "    -v, --verbose       verbose output\n"
+    "    -v, --verbose       verbose output, show all registers\n"
 //  "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -225,7 +240,7 @@ pull_yOptLong::out_reg( const char* name,  uint32_t vv )
     cout << "0x" <<std::hex <<setw(8)  << vv;
 
     cout.fill(' ');
-    if ( this->Bin ) {
+    if ( this->BinOut ) {
 	cout << "  " <<left <<setw(18) << name;
 	cout << "  "                   << cstr_bits32( vv ) <<endl;
     }
@@ -340,11 +355,7 @@ y_pull::doit()
 
 	for ( int ii=0;  ii<bitcnt;  ii++ )
 	{
-	    uint32_t		bit;
-
-	    bit = bitarg[ii];
-
-	    Gpx.modify_Pull_bit( bit, pud_dir );
+	    Gpx.modify_Pull_bit( bitarg[ii], pud_dir );
 	}
 
     // Output
@@ -354,50 +365,59 @@ y_pull::doit()
 
 	cout << "  Pull Up/Down RPi4               28   24   20   16   12    8    4    0" << endl;
 
+	// always show real registers
 	Opx.out_reg( "PullSel0",    Gpx.PullSel0.read()    );
 	Opx.out_reg( "PullSel1",    Gpx.PullSel1.read()    );
 	Opx.out_reg( "PullSel2",    Gpx.PullSel2.read()    );
 	Opx.out_reg( "PullSel3",    Gpx.PullSel3.read()    );
 
-	cout <<endl;
-	cout << "            w0_Direction        ";
-	for ( int i=31;  i>=0;  i-- )
-	{
-	    switch ( Gpx.read_Pull_bit( i ) ) {
-		case rgPullPin::pd_Up      : cout << '1';  break;
-		case rgPullPin::pd_Down    : cout << '0';  break;
-		case rgPullPin::pd_Off     : cout << 'z';  break;
-		case rgPullPin::pd_Unknown : cout << '?';  break;
+	if ( Opx.Word0 ) {
+	    cout << "            w0_Direction        ";
+	    for ( int i=31;  i>=0;  i-- )
+	    {
+		switch ( Gpx.read_Pull_bit( i ) ) {
+		    case rgPullPin::pd_Up      : cout << '1';  break;
+		    case rgPullPin::pd_Down    : cout << '0';  break;
+		    case rgPullPin::pd_Off     : cout << 'z';  break;
+		    case rgPullPin::pd_Unknown : cout << '?';  break;
+		}
+		if ( (i > 0) && !(i & 0x3) ) { cout << ' '; }
 	    }
-	    if ( (i > 0) && !(i & 0x3) ) { cout << ' '; }
+	    cout <<endl;
 	}
-	cout <<endl;
 
-	cout << "            w1_Direction        ";
-	cout << ".... ..";
-	for ( int i=57;  i>=32;  i-- )
-	{
-	    switch ( Gpx.read_Pull_bit( i ) ) {
-		case rgPullPin::pd_Up      : cout << '1';  break;
-		case rgPullPin::pd_Down    : cout << '0';  break;
-		case rgPullPin::pd_Off     : cout << 'z';  break;
-		case rgPullPin::pd_Unknown : cout << '?';  break;
+	if ( Opx.Word1 ) {
+	    cout << "            w1_Direction        ";
+	    cout << ".... ..";
+	    for ( int i=57;  i>=32;  i-- )
+	    {
+		switch ( Gpx.read_Pull_bit( i ) ) {
+		    case rgPullPin::pd_Up      : cout << '1';  break;
+		    case rgPullPin::pd_Down    : cout << '0';  break;
+		    case rgPullPin::pd_Off     : cout << 'z';  break;
+		    case rgPullPin::pd_Unknown : cout << '?';  break;
+		}
+		if ( (i > 32) && !(i & 0x3) ) { cout << ' '; }
 	    }
-	    if ( (i > 32) && !(i & 0x3) ) { cout << ' '; }
+	    cout <<endl;
 	}
-	cout <<endl;
 
-	cout <<endl;
-	Opx.out_reg( "w0_Up",      Gpx.read_Pull_w0( rgPullPin::pd_Up     ));
-	Opx.out_reg( "w0_Down",    Gpx.read_Pull_w0( rgPullPin::pd_Down   ));
-	Opx.out_reg( "w0_Off",     Gpx.read_Pull_w0( rgPullPin::pd_Off    ));
-	Opx.out_reg( "w0_Unknown", Gpx.read_Pull_w0( rgPullPin::pd_Unknown));
+	// reduce clutter of alternate visualization, unless --verbose
+	if ( Opx.verbose && Opx.Word0 ) {
+	  cout <<endl;
+	  Opx.out_reg( "w0_Up",      Gpx.read_Pull_w0( rgPullPin::pd_Up     ));
+	  Opx.out_reg( "w0_Down",    Gpx.read_Pull_w0( rgPullPin::pd_Down   ));
+	  Opx.out_reg( "w0_Off",     Gpx.read_Pull_w0( rgPullPin::pd_Off    ));
+	  Opx.out_reg( "w0_Unknown", Gpx.read_Pull_w0( rgPullPin::pd_Unknown));
+	}
 
-	cout <<endl;
-	Opx.out_reg( "w1_Up",      Gpx.read_Pull_w1( rgPullPin::pd_Up     ));
-	Opx.out_reg( "w1_Down",    Gpx.read_Pull_w1( rgPullPin::pd_Down   ));
-	Opx.out_reg( "w1_Off",     Gpx.read_Pull_w1( rgPullPin::pd_Off    ));
-	Opx.out_reg( "w1_Unknown", Gpx.read_Pull_w1( rgPullPin::pd_Unknown));
+	if ( Opx.verbose && Opx.Word1 ) {
+	  cout <<endl;
+	  Opx.out_reg( "w1_Up",      Gpx.read_Pull_w1( rgPullPin::pd_Up     ));
+	  Opx.out_reg( "w1_Down",    Gpx.read_Pull_w1( rgPullPin::pd_Down   ));
+	  Opx.out_reg( "w1_Off",     Gpx.read_Pull_w1( rgPullPin::pd_Off    ));
+	  Opx.out_reg( "w1_Unknown", Gpx.read_Pull_w1( rgPullPin::pd_Unknown));
+	}
     }
     catch ( std::exception& e ) {
 	Error::msg( "exception caught:  " ) << e.what() <<endl;

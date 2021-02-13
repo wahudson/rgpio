@@ -14,6 +14,7 @@ usage:  rgpio pull [options..]  [N..]
     --PullSel2=V        Gpio[47:32]
     --PullSel3=V        Gpio[57:48]
   options:
+    -0, -1              show word 0, word 1
     --help              show this usage
-    -v, --verbose       verbose output
+    -v, --verbose       verbose output, show all registers
   (options with GNU= only)

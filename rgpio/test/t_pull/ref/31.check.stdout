@@ -5,7 +5,6 @@
 0xaaaaaaaa  PullSel1            1010 1010 1010 1010 1010 1010 1010 1010
 0x00000000  PullSel2            0000 0000 0000 0000 0000 0000 0000 0000
 0xaaaaaaaa  PullSel3            1010 1010 1010 1010 1010 1010 1010 1010
-
             w0_Direction        0000 0000 0000 0000 zzzz zz00 zzzz z000
             w1_Direction        .... ..00 0000 0000 zzzz zzzz zzzz zzzz
 
