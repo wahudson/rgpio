@@ -1,0 +1,217 @@
+# 2020-08-30  William A. Hudson
+
+# rgIoPins  Hardware Register Description.
+#---------------------------------------------------------------------------
+
+=head1		NAME
+
+rgIoPins  Hardware Description -- IO Pin Registers
+
+=head1		SYNOPSIS
+
+    rgIoPins
+    Register            BCM name    Description
+    --------            --------    -------------------------------
+				Function Select Registers
+    Fsel0               GPFSEL0     Gpio[9:0]
+    Fsel1               GPFSEL1     Gpio[19:10]
+    Fsel2               GPFSEL2     Gpio[29:20]
+    Fsel3               GPFSEL3     Gpio[39:30]
+    Fsel4               GPFSEL4     Gpio[49:40]
+    Fsel5               GPFSEL5     Gpio[57:50]
+
+				Pin Level Registers
+    PinSet_w0           GPSET0      Pin output (Set-Only)
+    PinSet_w1           GPSET1
+
+    PinClr_w0           GPCLR0      Pin output (Clear-Only)
+    PinClr_w1           GPCLR1
+
+    PinRead_w0          GPLEV0      Pin input (Read-Only)
+    PinRead_w1          GPLEV1
+
+				Event Detect Registers
+    EventStatus_w0      GPEDS0      Event status (Read/Clear)
+    EventStatus_w1      GPEDS1
+
+    DetectRise_w0       GPREN0      Detect rising edge
+    DetectRise_w1       GPREN1
+
+    DetectFall_w0       GPFEN0      Detect falling edge
+    DetectFall_w1       GPFEN1
+
+    DetectHigh_w0       GPHEN0      Detect high level
+    DetectHigh_w1       GPHEN1
+
+    DetectLow_w0        GPLEN0      Detect low level
+    DetectLow_w1        GPLEN1
+
+    DetectAsyncRise_w0  GPAREN0     Detect asynchronous rising edge
+    DetectAsyncRise_w1  GPAREN1
+
+    DetectAsyncFall_w0  GPAFEN0     Detect asynchronous falling edge
+    DetectAsyncFall_w1  GPAFEN1
+
+				Pull Up/Down Programming - RPi3
+    PudProgMode         GPPUD       program up/down mode
+    PudProgClk_w0       GPPUDCLK0   program clock bits
+    PudProgClk_w1       GPPUDCLK1
+
+				Pull Up/Down Select - RPi4 (BCM2711)
+    PullSel0            GPIO_PUP_PDN_CNTRL_REG0  Gpio[15:0]
+    PullSel1            GPIO_PUP_PDN_CNTRL_REG1  Gpio[31:16]
+    PullSel2            GPIO_PUP_PDN_CNTRL_REG2  Gpio[47:32]
+    PullSel3            GPIO_PUP_PDN_CNTRL_REG3  Gpio[57:48]
+
+    All registers are 32-bits, Read/Write unless noted otherwise.
+
+
+=head1		DESCRIPTION
+
+There are 54 (58 on RPi4) General-Purpose IO (GPIO) pins split into two banks
+that have associated registers named *_w0 and *_w1, i.e. word0 and word1.
+
+The IO pins are named Gpio[0] .. Gpio[57].  Register bits are associated
+with IO pins as follows:
+
+    Register      IO Pin
+    ----------    -----------
+    *_w0[31:0]  = Gpio[31:0]    32-bits
+    *_w1[21:0]  = Gpio[53:32]   22-bits
+    *_w1[25:22] = Gpio[57:54]    4-bits  RPi4, reserved on RPi3
+    *_w1[31:26] = reserved       6-bits
+
+Note that only Gpio[27:0] are accessible on the RPi 40-pin header.
+The RPi Compute Modules may provide access to more Gpio pins.
+
+A nice schematic block diagram of each IO pin is shown in the BCM doc.
+[In the "General Purpose I/O (GPIO)" chapter - ch6 p.89 for BCM2835 doc;  and
+ch5 p.64 for BCM2711 doc.]
+(Note the /3 bus width on the multiplexer inputs should probably be /5, and the
+red "Function Select Regs" line should be a /3 bus.)
+
+Reserved bits should typically be written as 0, and read as don't care.
+
+Note:  Throughout this manual, comments about a register _w0 (word0) similarly
+apply to _w1 (word1).
+
+=head2			RPi4 Changes
+
+RPi4 adds 4 more gpio pins Gpio[57:54].
+There are correspondingly 4 more active bits in each of the word1 *_w1
+registers and 4 more active fields in register B<Fsel5>.
+
+RPi4 adds more Alternate Function units and some Gpio pin assignment changes.
+
+RPi4 replaces the B<PudProg*> registers with B<PullSel*> registers at
+different addresses, and a completely different method of control.
+
+Reading a non-existent register is undefined.  Writing should have no effect,
+other than bus activity, but should probably be avoided.
+
+=head2			Interrupts
+
+The Gpio has 3 (4 on RPi4) dedicated interrupt lines.
+See BCM doc for details.
+
+=head2			Function Select Registers
+
+The Function Select registers control the alternative function that is
+connected to each Gpio pin.
+Each pin has a 3-bit field that identifies the active alternate function
+{Input, Output, Alt0, Alt1, Alt2, Alt3, Alt4, Alt5}.
+
+See rgFselPin(3), rgAltFuncName(3)
+
+=head2			Pin Level Registers
+
+There is an Output Level latch that drives the Gpio pin only when the
+Function Select is set to B<Output>.
+Latch bits are set by writing 1s to the B<PinSet_w0> register,
+and cleared by writing 1s to the B<PinClr_w0> register.
+Writing 0s has no effect.
+Note the latch can be written, and retains its value, regardless of the 
+Function Selects.
+
+The B<PinRead_w0> register (read-only) always contains the actual Gpio pin
+value, regardless of what alternate function is selected.
+This can be useful in reading back values driven by another peripheral.
+
+The rgIoPins(3) class combines these three registers into a single virtual
+register B<PinLevel_w0>.
+
+Why separate output Set and Clear registers?
+
+The writing of the Output Level latch is split into Set and Clear operations
+to make the modification of individual bits atomic.
+
+The Gpio pins are typically shared by multiple processes, with each
+process "owning" a different subset of pins.
+Doing a read/modify/write sequence, which is not atomic, leads to
+synchronization problems because each process is writing all the bits.
+Now writing 1-bits to the Set or Clear register modifies only those bits and
+is atomic, since it is a single instruction, and cannot clash with another
+process modifying different bits.
+
+This technique is typically applied only to certain registers that
+may be frequently modified, e.g. pin level, and B<EventStatus_w0>.
+Bits in other registers must be updated by read/modify/write and thus may
+have synchronization problems, mitigated by being configuration registers
+that typically are only infrequently written.
+
+The user is responsible to solve such problems.  Hence it is best to avoid
+frequently modifying plain read/write registers with shared bits.
+
+=head2			Event Detect Registers
+
+(See BCM doc)
+
+=head2			Pull Up/Down Programming Registers - RPi3
+
+These registers exist only on RPi3 (BCM2837) and earlier.
+
+RPi3 uses a special programming sequence to write the actual pull up/down
+hardware latches on each pin.  The latches cannot be read back.
+
+See rgPudPin(7)
+
+=head2			Pull Up/Down Select Registers - RPi4 (BCM2711)
+
+These registers exist only on RPi4 (BCM2711).
+
+RPi4 uses pull select registers (PullSel*), similarly to the function
+select registers (Fsel*), to directly read/write the pull up/down
+direction of each gpio pin.  Much better!
+
+See rgPullPin(7)
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgIoPins.h
+ src/rgIoPins.cpp
+
+
+=head1		SEE ALSO
+
+ rgPudPin(7)
+ rgPullPin(7)
+ rgIoPins(3)
+ rgFselPin(3)
+ rgAltFuncName(3)
+ rgpio-io(1)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.89-101  ch 6.  General Purpose I/O (GPIO)
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (2020-10-16)
+    p.64-80  ch 5.  General Purpose I/O (GPIO)
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+
