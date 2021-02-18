@@ -278,7 +278,19 @@ rgIoPins		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "26a", "PinLevel_w0.addr()" );
+  CASE( "26", "PullSel0.addr()" );
+    try {
+	CHECKX( 0xe4, (Tx.PullSel0.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0xe8, (Tx.PullSel1.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0xec, (Tx.PullSel2.addr() - Tx.get_base_addr())*4 );
+	CHECKX( 0xf0, (Tx.PullSel3.addr() - Tx.get_base_addr())*4 );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "27a", "PinLevel_w0.addr()" );
     try {
 	CHECKX( 0x34, (Tx.PinLevel_w0.addr()     - Tx.get_base_addr())*4 );
 	CHECKX( 0x1c, (Tx.PinLevel_w0.addr_set() - Tx.get_base_addr())*4 );
@@ -288,7 +300,7 @@ rgIoPins		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "26b", "PinLevel_w1.addr()" );
+  CASE( "27b", "PinLevel_w1.addr()" );
     try {
 	CHECKX( 0x38, (Tx.PinLevel_w1.addr()     - Tx.get_base_addr())*4 );
 	CHECKX( 0x20, (Tx.PinLevel_w1.addr_set() - Tx.get_base_addr())*4 );
@@ -302,6 +314,7 @@ rgIoPins		Tx   ( &Bx );		// test object
 //## Indirect rgReg::read(), write()
 //--------------------------------------------------------------------------
 // Test write/read to fake memory.
+// Gray-box testing, only one example register in each class.
 
   CASE( "30", "condition write(), read()" );
     try {
@@ -318,6 +331,7 @@ rgIoPins		Tx   ( &Bx );		// test object
 	Tx.DetectAsyncFall_w0.write( 0xffffffff );
 	Tx.PudProgMode.write(        0xffffffff );
 	Tx.PudProgClk_w0.write(      0xffffffff );
+	Tx.PullSel0.write(           0xffffffff );
 	CHECKX(                      0xffffffff, Tx.Fsel0.read()             );
 	CHECKX(                      0xffffffff, Tx.PinSet_w0.read()         );
 	CHECKX(                      0xffffffff, Tx.PinClr_w0.read()         );
@@ -331,12 +345,13 @@ rgIoPins		Tx   ( &Bx );		// test object
 	CHECKX(                      0xffffffff, Tx.DetectAsyncFall_w0.read());
 	CHECKX(                      0xffffffff, Tx.PudProgMode.read()       );
 	CHECKX(                      0xffffffff, Tx.PudProgClk_w0.read()     );
+	CHECKX(                      0xffffffff, Tx.PullSel0.read()          );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "31", "Fsel0.read()" );
+  CASE( "31", "rgReg_rw  Fsel0.read()" );
     try {
 	Tx.Fsel0.write(              0x11111111 );
 	CHECKX(                      0x11111111, Tx.Fsel0.read()             );

@@ -10,34 +10,35 @@ rgIoPins  class -- IO Pin Registers
 
 =head1		SYNOPSIS
 
-    #include "rgAddrMap.h"
-    #include "rgIoPins.h"
+ #include "rgAddrMap.h"
+ #include "rgIoPins.h"
 
 =head2			Essential Class members
 
  class rgIoPins {
   public:
 					// Virtual Registers
-    rgReg_PinLevel	PinLevel_w0;		// Pin input/output
+    rgReg_PinLevel	PinLevel_w0;	    // Pin input/output
     rgReg_PinLevel	PinLevel_w1;
-					// Real Registers
-    rgReg_rw		Fsel0;			// Function select groups
-    rgReg_rw		Fsel1;
-    rgReg_rw		Fsel2;
-    rgReg_rw		Fsel3;
-    rgReg_rw		Fsel4;
-    rgReg_rw		Fsel5;
+					// Function Select Registers
+    rgReg_rw		Fsel0;		    // Gpio[9:0]
+    rgReg_rw		Fsel1;		    // Gpio[19:10]
+    rgReg_rw		Fsel2;		    // Gpio[29:20]
+    rgReg_rw		Fsel3;		    // Gpio[39:30]
+    rgReg_rw		Fsel4;		    // Gpio[49:40]
+    rgReg_rw		Fsel5;		    // Gpio[53:50]
 
-    rgReg_set		PinSet_w0;		// Pin output (SetOnly)
+					// Pin Level Registers
+    rgReg_set		PinSet_w0;	    // Pin output (Set-Only)
     rgReg_set		PinSet_w1;
 
-    rgReg_clr		PinClr_w0;		// Pin output (ClearOnly)
+    rgReg_clr		PinClr_w0;	    // Pin output (Clear-Only)
     rgReg_clr		PinClr_w1;
 
-    rgReg_rw		PinRead_w0;		// Pin input (ReadOnly)
+    rgReg_rw		PinRead_w0;	    // Pin input (Read-Only)
     rgReg_rw		PinRead_w1;
-
-    rgReg_clr		EventStatus_w0;		// (Read/Clear)
+					// Event Detect Registers
+    rgReg_clr		EventStatus_w0;	    // (Read/Clear)
     rgReg_clr		EventStatus_w1;
 
     rgReg_rw		DetectRise_w0;
@@ -57,10 +58,15 @@ rgIoPins  class -- IO Pin Registers
 
     rgReg_rw		DetectAsyncFall_w0;
     rgReg_rw		DetectAsyncFall_w1;
-
+					// Pull Up/Down - RPi3 only
     rgReg_rw		PudProgMode;
     rgReg_rw		PudProgClk_w0;
     rgReg_rw		PudProgClk_w1;
+					// Pull Up/Down - RPi4 only
+    rgReg_rw		PullSel0;	    // Gpio[15:0]
+    rgReg_rw		PullSel1;	    // Gpio[31:16]
+    rgReg_rw		PullSel2;	    // Gpio[47:32]
+    rgReg_rw		PullSel3;	    // Gpio[57:48]
  };
 
 =head2			Constructor
@@ -107,9 +113,14 @@ the address of the register (no register value).
 These are public objects intended for direct access to their methods for
 manipulating the value of the hardware register.
 
-All operations are on the full 32-bit hardware register.
-Register *_w0 has IO bits 31..0, while register *_w1 has IO bits 53..32
-(the upper bits 63..54 are reserved).
+All operations are on the full 32-bit hardware register.  Register bits are
+associated with IO pins as follows:  (other bits are reserved)
+
+    Register      IO Pin
+    ----------    -----------
+    *_w0[31:0]  = Gpio[31:0]    32-bits
+    *_w1[21:0]  = Gpio[53:32]   22-bits  RPi3 and earlier
+    *_w1[25:0]  = Gpio[57:32]   26-bits  RPi4
 
 The set(), clr(), and modify() functions provide a mask to select which bits
 are modified, usually by a read/modify/write sequence, which is not atomic.
@@ -120,10 +131,15 @@ to explore actual hardware behavior (e.g. writing a Read-Only register).
 It also misses an anti-bugging opportunity to alert the user to potentially
 ineffective operations.
 
-See rgFselPin(3) interface to the Function Select registers.
+Cross operation of the Pull Up/Down register objects on the wrong RPi platform
+is allowed.  They have different addresses, and accessing a non-existent
+register is undefined.
 
-See rgPudPin(3) interface to the Pull Up/Down registers.
+See rgFselPin(3) interface to Function Select registers.
 
+See rgPudPin(3)  interface to Pull Up/Down registers - RPi3 and earlier.
+
+See rgPullPin(3) interface to Pull Up/Down registers - RPi4 (BCM2711).
 
 =head2			Constructor
 
@@ -305,11 +321,16 @@ In the librgpio/ source tree:
  rgAddrMap(3)
  rgFselPin(3)
  rgPudPin(3)
+ rgPullPin(3)
  rgpio-io(1)
 
- BCM2835 ARM Peripherals (2012)
-    p.89-101  6.  General Purpose I/O (GPIO)
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.89-101  ch 6. General Purpose I/O (GPIO)
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (2020-10-16)
+    p.64-80  ch 5. General Purpose I/O (GPIO)
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
 

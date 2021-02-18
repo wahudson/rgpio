@@ -128,9 +128,15 @@ class rgIoPins {
     rgReg_rw		DetectAsyncFall_w0;
     rgReg_rw		DetectAsyncFall_w1;
 
+					// pull up/down programming - RPi3
     rgReg_rw		PudProgMode;
     rgReg_rw		PudProgClk_w0;
     rgReg_rw		PudProgClk_w1;
+					// pull up/down select - RPi4
+    rgReg_rw		PullSel0;
+    rgReg_rw		PullSel1;
+    rgReg_rw		PullSel2;
+    rgReg_rw		PullSel3;
 
   private:
     static const uint32_t	FeatureAddr  = 0x7e200000;	// BCM doc

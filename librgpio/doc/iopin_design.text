@@ -42,6 +42,10 @@ Possible Class Names:
     I like the name without the plural 's', but renaming things is awkward
     and confusing.  Oh well.
 
+    The plural class name rgIoPins sets it apart from the other related
+    classes (rgFselPin, rgPudPin, rgPullPin) and helps identify it as
+    the super-set.  The plural name seems fine.  (2020-02-17)
+
 Comparison of implementations:
 
     Note the capabilities (read, write, set, clear) are NOT uniform over all
@@ -339,6 +343,69 @@ Files:  rgIoPins.h
     Decide to put the base classes rgReg* in the same file as the feature
     class to minimize files.  Should other uses arise, they can be pulled
     out into their own file.
+
+----------------------------------------------------------------------------
+## RPi4 (BCM2711) Changes  (2021-02-17)
+----------------------------------------------------------------------------
+
+RPi4 Changes include:
+    A) RPi4 adds 4 more gpio pins Gpio[57:54].
+    B) Pull Up/Down resistor control is totally different.
+    C) More Alternate Function units and gpio assignment changes.
+
+Added 4 more IO pins Gpio[57:54]
+    There are correspondingly 4 more active bits in each of the word1 *_w1
+    registers.
+
+    This has virtually no effect on the rgIoPins class, as all registers
+    are treated as 32-bits anyway.  There is no attempt to restrict or
+    check for operation on reserved bits.
+
+    The Fsel* function select registers are unchanged, except Fsel5 has
+    4 more gpio pins.  This affects the rgFselPin class.
+
+    The PudProg* registers and PullSel* registers are specific to each
+    RPi version and so are not affected.
+
+Pull Up/Down resistor control:
+
+    RPi4 replaces the PudProg* registers with PullSel* registers at different
+    addresses, and a completely different method of control.
+    See  doc/pull_up_down.text  for their design and naming.
+
+    RPi3 uses a special programming sequence to write the actual pull up/down
+    hardware latches on each pin.  The latches cannot be read back.
+
+    RPi4 uses pull select registers (PullSel*), similarly to the function
+    select registers (Fsel*), to directly read/write the pull up/down
+    direction of each gpio pin.  Much better!
+
+    Separate classes provide detail operation for each:
+	rgPudPin   RPi3 (BCM2837) and earlier
+	rgPullPin  RPi4 (BCM2711)
+
+    It seems best to keep the details in separate classes.
+    Creating a single high-level function to set pull direction on either RPi
+    version could be helpful.
+
+    For the rgIoPins class, it seems best to simply have both sets of
+    registers with no special effort to switch on RPi version.  Only
+    word access is provided (rgReg_rw class), and detail operation is
+    provided by the two special classes.
+
+    Reading a non-existant register is undefined.
+    Writing should have no effect.
+
+Alternate Function changes:
+
+    The rgIoPins and rgFselPin classes provide access, but do not deal with
+    what the alternate functions are.  Not affected.
+
+    The rgAltFuncName class names the alternate functions and associates them
+    with a gpio pin.  Big changes here.  Many of the alternate functions
+    are the same, so the initial implementation uses a base array of names
+    and a delta array containing only names that changed.  Seems to work
+    pretty good.
 
 ----------------------------------------------------------------------------
 ## rgIoPins Object - IO Pin Registers

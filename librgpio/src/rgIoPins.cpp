@@ -103,6 +103,11 @@ rgIoPins::rgIoPins(
 	 PudProgClk_w0.init_addr( GpioBase + (0x98 /4) );
 	 PudProgClk_w1.init_addr( GpioBase + (0x9c /4) );
 
+	      PullSel0.init_addr( GpioBase + (0xe4 /4) );
+	      PullSel1.init_addr( GpioBase + (0xe8 /4) );
+	      PullSel2.init_addr( GpioBase + (0xec /4) );
+	      PullSel3.init_addr( GpioBase + (0xf0 /4) );
+
     // Virtual Registers
 
     PinLevel_w0.init_addr(     PinRead_w0.addr() );
