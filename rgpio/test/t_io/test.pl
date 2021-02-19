@@ -263,8 +263,9 @@ run_test( "33", "io --fsel",
     ),
 );
 
-run_test( "34", "io --pud",
-    "rgpio --dev=f  io --pud",
+#---------------------------------------
+run_test( "34a", "io --pud",
+    "rgpio --dev=f --rpi3  io --pud",
     0,
     Stderr => q(),
     Stdout => q(
@@ -274,8 +275,21 @@ run_test( "34", "io --pud",
     ),
 );
 
+run_test( "34b", "io --pud",
+    "rgpio --dev=f --rpi4  io --pud",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	0x00000000  PullSel0
+	0x00000000  PullSel1
+	0x00000000  PullSel2
+	0x00000000  PullSel3
+    ),
+);
+
+#---------------------------------------
 run_test( "35", "io --all -v  binary output",
-    "rgpio --dev=f  io --all -v",
+    "rgpio --dev=f --rpi3  io --all -v",
     0,
     Stderr => q(),
 );

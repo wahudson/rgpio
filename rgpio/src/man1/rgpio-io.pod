@@ -111,27 +111,46 @@ These lines are accessible on the Raspberry Pi compute module.
 
 =item B<--fsel>             - Fsel function select registers.
 
- Fsel0
- Fsel1
- Fsel2
- Fsel3
- Fsel4
- Fsel5
+ Fsel0		Gpio[9:0]
+ Fsel1		Gpio[19:10]
+ Fsel2		Gpio[29:20]
+ Fsel3		Gpio[39:30]
+ Fsel4		Gpio[49:40]
+ Fsel5		Gpio[57:50]
 
 These are the raw function select registers, which are not very convenient
 to use.  Use rgpio-fsel(1) as a better interface to these registers.
 
-=item B<--pud>              - Pin Pull-Up/Down program registers.
+=item B<--pud>              - Pin Pull-Up/Down registers.
+
+These control the weak hardware pull-up/down resistors on each IO pin.
+The Pull state is NOT remembered thru power-down, i.e. is volatile.
+
+RPi3 (BCM2837) and earlier - see B<rgPudPin>(7), B<rgpio-pud>(1):
 
  PudProgMode
  PudProgClk_w0
  PudProgClk_w1
 
-These control programming of the weak hardware pull-up/down on each IO pin
-through a special sequence (see rgPudPin(7)).
-The programmed pull-up/down is NOT remembered thru power-down (is volatile)
-and cannot be read back.
-Use rgpio-pud(1) as a better interface to these registers.
+RPi4 (BCM2711) - see B<rgPullPin>(7), B<rgpio-pud>(1):
+
+ PullSel0	Gpio[15:0]
+ PullSel1	Gpio[31:16]
+ PullSel2	Gpio[47:32]
+ PullSel3	Gpio[57:48]
+
+The RPi3 registers program the hardware latch for each pin through a special
+sequence.  The Pull state cannot be read back.
+
+The RPi4 registers hold the actual Pull state for each pin, and can be read
+back.
+
+Note the Pull field values are different for RPi3 and RPi4.
+
+The register set displayed depends on the RPi version being run, as
+determined by B<rgRpiRev::find_SocEnum>().
+Options --rpi3, --rpi4 on B<rgpio> can override the automatic deduction to act
+like either version.
 
 =item B<--all>              - All registers above.
 
@@ -234,6 +253,9 @@ additional column showing the same value in binary is added.
  IO Pin Registers:             28   24   20   16   12    8    4    0
  0x00000050  DetectHigh_w0   0000 0000 0000 0000 0000 0000 0101 0000
 
+ Show Pull Up/Down registers for each RPi version.
+ % rgpio --rpi3  io --pud
+ % rgpio --rpi4  io --pud
 
 =head1		ENVIRONMENT
 
@@ -252,14 +274,20 @@ In the source directory tree:
 B<rgpio>(1)
 B<rgpio-fsel>(1)
 B<rgpio-pud>(1)
+B<rgpio-pull>(1)
 B<rgIoPins>(3)
 B<rgIoPins>(7)
 B<rgPudPin>(7)
+B<rgPullPin>(7)
 B<librgpio>(3)
 
  BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
-    p.89-101  ch 6.  General Purpose I/O (GPIO)
+    p.89-101  ch 6. General Purpose I/O (GPIO)
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (2020-10-16)
+    p.64-80  ch 5. General Purpose I/O (GPIO)
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
 
 =cut
 

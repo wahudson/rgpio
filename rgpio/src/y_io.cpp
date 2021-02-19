@@ -14,6 +14,7 @@ using namespace std;
 #include "Error.h"
 #include "yOption.h"
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgIoPins.h"	// object registers
 
@@ -85,6 +86,10 @@ class io_yOptLong : public yOption {
     bool		PudProgMode;
     bool		PudProgClk_w0;
     bool		PudProgClk_w1;
+    bool		PullSel0;
+    bool		PullSel1;
+    bool		PullSel2;
+    bool		PullSel3;
     bool		Fsel0;
     bool		Fsel1;
     bool		Fsel2;
@@ -163,6 +168,10 @@ io_yOptLong::io_yOptLong( yOption  *opx )
     PudProgMode        = 0;
     PudProgClk_w0      = 0;
     PudProgClk_w1      = 0;
+    PullSel0           = 0;
+    PullSel1           = 0;
+    PullSel2           = 0;
+    PullSel3           = 0;
     Fsel0              = 0;
     Fsel1              = 0;
     Fsel2              = 0;
@@ -306,6 +315,10 @@ io_yOptLong::parse_options()
 	PudProgMode         = 1;
 	PudProgClk_w0       = 1;
 	PudProgClk_w1       = 1;
+	PullSel0            = 1;
+	PullSel1            = 1;
+	PullSel2            = 1;
+	PullSel3            = 1;
     }
 
     if ( fsel ) {
@@ -344,6 +357,10 @@ io_yOptLong::parse_options()
 	else if ( is( "PudProgMode"        )) { PudProgMode        = 1; }
 	else if ( is( "PudProgClk_w0"      )) { PudProgClk_w0      = 1; }
 	else if ( is( "PudProgClk_w1"      )) { PudProgClk_w1      = 1; }
+	else if ( is( "PullSel0"           )) { PullSel0           = 1; }
+	else if ( is( "PullSel1"           )) { PullSel1           = 1; }
+	else if ( is( "PullSel2"           )) { PullSel2           = 1; }
+	else if ( is( "PullSel3"           )) { PullSel3           = 1; }
 	else if ( is( "Fsel0"              )) { Fsel0              = 1; }
 	else if ( is( "Fsel1"              )) { Fsel1              = 1; }
 	else if ( is( "Fsel2"              )) { Fsel2              = 1; }
@@ -633,9 +650,18 @@ y_io::doit()
 
     // Pud
 	if ( Opx.pud && (Opx.w0 || Opx.w1) ) { cout <<endl; }
-	APPLY( PudProgMode,        "PudProgMode"        )
-	APPLY( PudProgClk_w0,      "PudProgClk_w0"      )
-	APPLY( PudProgClk_w1,      "PudProgClk_w1"      )
+
+	if ( rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2837 ) {
+	    APPLY( PudProgMode,        "PudProgMode"        )
+	    APPLY( PudProgClk_w0,      "PudProgClk_w0"      )
+	    APPLY( PudProgClk_w1,      "PudProgClk_w1"      )
+	}
+	else {
+	    APPLY( PullSel0,           "PullSel0"           )
+	    APPLY( PullSel1,           "PullSel1"           )
+	    APPLY( PullSel2,           "PullSel2"           )
+	    APPLY( PullSel3,           "PullSel3"           )
+	}
 
     // Fsel
 	if ( Opx.fsel && (Opx.w0 || Opx.w1 || Opx.pud) ) { cout <<endl; }
