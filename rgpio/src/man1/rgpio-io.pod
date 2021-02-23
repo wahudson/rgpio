@@ -26,8 +26,9 @@ rgpio-io -- IO Pin register access
     --mask=0xff..       mask to select bits of --value
     --value=0x00..      bit values selected by --mask
   options:
+    --hex               turn-off binary output
     --help              show this usage
-    -v, --verbose       verbose output, show registers in binary
+    -v, --verbose       verbose output, show modify values
     --debug             debug output
   (options with GNU= only)
 
@@ -68,7 +69,7 @@ Therefor a synchronization problem exists, and is typically solved by
 externally synchronizing the processes.
 
 Note:  The IO line output register is updated by writing 1-bits to PinSet_w0
-or PinClr_w0.  This bit-slice update IS atomic.
+or PinClr_w0.  This bit-slice update IS atomic w.r.t. other bit slices.
 
 =head1		OPTIONS
 
@@ -76,7 +77,7 @@ or PinClr_w0.  This bit-slice update IS atomic.
 
 These options are an alias for a list of registers.  Multiple register
 groups can be specified or combined with individual registers.  Duplicate
-registers are removed.
+registers are removed.  The output order is fixed.
 
 =over
 
@@ -219,10 +220,14 @@ PinSet_w0, PinClr_w0 registers.
 
 =over
 
-=item B<-v, --verbose>      - Verbose output, show registers in binary.
+=item B<--hex>              - Turn-off binary output.
 
-Normally register values are shown in hexadecimal.  With --verbose an
-additional column showing the same value in binary is added.
+Normally both hex and binary values are shown.
+
+=item B<-v, --verbose>      - Verbose output, show modify values.
+
+Additional output lines show the modification option values, e.g.
+--set=, --clr=, --mask=, --value=.
 
 =back
 
@@ -236,11 +241,11 @@ additional column showing the same value in binary is added.
  Show all registers.
  % rgpio io --all
 
- Show registers in binary with --verbose.
- % rgpio io -v
-
  Show real registers instead of virtual PinLevl_w0.
  % rgpio io --raw
+
+ Show only named registers.
+ % rgpio io  PinLevel_w0  EventStatus_w0
 
  Set mask bits to 1.
  % rgpio io --set=0x00000123  DetectLow_w0

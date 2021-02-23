@@ -19,7 +19,7 @@ BCM2835 ARM Peripherals
 ## Discussion
 ----------------------------------------------------------------------------
 
-The tool provides a seperate sub-command for each Feature (BCM2845 peripheral).
+The tool provides a separate sub-command for each Feature (BCM2845 peripheral).
 
 The tool is NOT intended to hide the hardware or to provide a "future proof"
 interface that will allow the hardware to evolve underneath.
@@ -44,6 +44,87 @@ Crude direct access to the full control register in hex might be a good
 way to "do anything", and provide validated options for the common things.
 This is much like the library itself.
 
+----------------------------------------------------------------------------
+## Common Command Behavior  (2021-02-12)
+----------------------------------------------------------------------------
+
+There are a lot of sub-commands, so it is useful if they have similar
+behavior for common things.  Common behaviors are discussed here.
+
+Default behavior:
+    When run with no options the command should make no changes to register
+    state.  Options should be required to modify state.
+    Arguments on command line (e.g. gpio pin numbers) should not enable
+    change without an option.
+
+    Idea is to not be an open pit-fall to accidentally change things.
+    This IS a power tool, and gives user ability to change any register.
+
+    It should show current register values (i.e. read-only).
+    It should NOT read FIFO registers, as that modifies state.
+
+Option Syntax:
+    Decided on GNU style options.  Idea is to be as clear and explicit as
+    possible.
+
+    Single letter options have single hyphen '-', no bundling.
+    e.g.  -v -0 -1
+
+    Long options require double hyphen '--', no automatic alias shortening.
+    e.g.  --verbose
+
+    Long options with a value require the equal '=' sign, with no space.
+    e.g.  --w0=0xffffffff
+
+    Some long options may have an explicit short option alias.
+    e.g.  -v, --verbose
+
+All commands have these options:
+
+--help		show usage synopsis
+
+--man		show manpage	#!! to be implemented
+
+-v, --verbose	verbose output
+    Can be most anything, but should be helpful information.
+    Can be trace messages on actions being taken.
+    Can be additional register visualization.
+
+    Trace messages are typically prefixed by '+', modeled after the shell
+    "set -x" trace mode.  This helps identify the trace from normal output.
+
+    Early on I tried using -v to also show registers values in binary, which
+    gave it something to do.  More use suggested that binary output is
+    quite helpful, and it was annoying to have to add -v.  Now favor
+    binary output as default.
+
+    Command rgpio-pull can display the registers in a couple of alternate
+    visualizations, e.g. {01z?} character per bit, or register mask per
+    {Up, Down, Off, Unknown} direction.  This caused user overload of
+    information when dumped for both words at once.  A nice solution is to
+    show the denser character per bit by default, and let --verbose add
+    the mask per direction.
+
+--debug		debug output
+    This can be anything, on stdout or stderr.  It may change as tool evolves.
+    Some commands do nothing different.
+    Intended for human aid only.
+
+Similar options among commands:
+    Idea is to use the same options in a similar fashion across commands.
+
+-0 -1 ..	Unit number:
+    Single-digit numbers to specify which unit to operate on.
+    Generally can specify in any order, but output will always be in
+    numerical order.
+
+    Can be the word number for IO pin related features.
+
+--w0=0xffffffff     word0 mask
+--w1=0xffffffff     word1 mask
+    Specify a mask or value to apply to word0 or word1.
+    Example use in commands:  io, fsel, pud, pull
+    Move away from using --w0 as a simple flag, to avoid confusion.
 
 ----------------------------------------------------------------------------
 ## rgpio Command
@@ -175,7 +256,7 @@ IO pins
 
 
     Pullup is not part of normal output, since it cannot be read.
-    Pullup might be a seperate feature.
+    Pullup might be a separate feature.
 
     Splitting out sub-features might help clarify operation of tool.
     Nice to see all registers together in a read-only status.
@@ -192,7 +273,7 @@ IO pins
     Column format --col implies all _w0 or _w1 registers.  Not much value
     in customizing which registers to show, and it makes variable columns.
 
- >  Possibly Fsel bit setting could be made a seperate sub-command, which
+ >  Possibly Fsel bit setting could be made a separate sub-command, which
     would avoid awkwardness of an --fsel option in the 'io' sub-command.
     The Fsel registers would still be available as plain 32-bit registers
     in the 'io' command.  Maybe 'io' read of Fsel would still decode the

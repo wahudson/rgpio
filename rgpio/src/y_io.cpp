@@ -54,6 +54,7 @@ class io_yOptLong : public yOption {
     const char*		mask;
     const char*		value;
 
+    bool		BinOut     = 1;
     bool		verbose;
     bool		debug;
     bool		TESTOP;
@@ -208,6 +209,7 @@ io_yOptLong::parse_options()
 	else if ( is( "--mask="      )) { mask       = this->val(); }
 	else if ( is( "--value="     )) { value      = this->val(); }
 
+	else if ( is( "--hex"        )) { BinOut     = 0; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
 	else if ( is( "--debug"      )) { debug      = 1; }
@@ -269,7 +271,10 @@ io_yOptLong::parse_options()
     modify = ( *clr || *set || *mask || *value );
 
     if ( modify ) {
-	if ( w0 || w1 || fsel || pud || all ) {
+	if ( get_argc() == 0 ) {
+	    Error::msg( "modification requires register argument\n" );
+	}
+	else if ( w0 || w1 || fsel || pud || all ) {
 	    Error::msg( "modification invalid with --w0 --w1 --fsel --pud --all\n" );
 	}
 	// To avoid accidental broad changes.
@@ -454,9 +459,6 @@ io_yOptLong::print_usage()
     "    IO pin operations\n"
     "usage:  " << ProgName << " io [options..]  [reg..]\n"
     "    reg                 register name, as shown with --all\n"
-//  "  output format:  (one of)\n"
-//  "    --hex               word format hexadecimal (default)\n"
-//  " #  --bin               word format binary\n"
     "  register groups:  (accumulate)\n"
     "    -0, --w0            pin Level, Event, Detect word 0 (default)\n"
     "    -1, --w1            pin Level, Event, Detect word 1\n"
@@ -470,10 +472,10 @@ io_yOptLong::print_usage()
     "    --clr=0xff..        clear mask bits\n"
     "    --mask=0xff..       mask to select bits of --value\n"
     "    --value=0x00..      bit values selected by --mask\n"
-//  " #  --reset             reset registers to power-up value\n"
     "  options:\n"
+    "    --hex               turn-off binary output\n"
     "    --help              show this usage\n"
-    "    -v, --verbose       verbose output, show registers in binary\n"
+    "    -v, --verbose       verbose output, show modify values\n"
     "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -512,7 +514,7 @@ io_yOptLong::out_reg( const char* name,  uint32_t vv )
     cout << "0x" <<std::hex <<setw(8)  << vv;
 
     cout.fill(' ');
-    if ( this->verbose ) {
+    if ( this->BinOut ) {
 	cout << "  " <<left <<setw(18) << name;
 	cout << "  "                   << cstr_bits32( vv ) <<endl;
     }
@@ -569,6 +571,13 @@ y_io::doit()
 	}
 
 	if ( Opx.verbose ) {
+	    if ( *(Opx.set)   ) { Opx.out_reg( "  --set=",   Opx.mask_n  ); }
+	    if ( *(Opx.clr)   ) { Opx.out_reg( "  --clr=",   Opx.mask_n  ); }
+	    if ( *(Opx.mask)  ) { Opx.out_reg( "  --mask=",  Opx.mask_n  ); }
+	    if ( *(Opx.value) ) { Opx.out_reg( "  --value=", Opx.value_n ); }
+	}
+
+	if ( Opx.BinOut ) {
 	    cout << "IO Pin Registers:                 28   24   20   16   12    8    4    0" << endl;
 	}
 
@@ -681,6 +690,5 @@ y_io::doit()
     }
 
     return ( Error::has_err() ? 1 : 0 );
-    //#!! return value?
 }
 

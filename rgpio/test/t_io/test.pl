@@ -47,14 +47,15 @@ run_test( "11", "io no args",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  PinLevel_w0
-	0x00000000  EventStatus_w0
-	0x00000000  DetectRise_w0
-	0x00000000  DetectFall_w0
-	0x00000000  DetectHigh_w0
-	0x00000000  DetectLow_w0
-	0x00000000  DetectAsyncRise_w0
-	0x00000000  DetectAsyncFall_w0
+	IO Pin Registers:                 28   24   20   16   12    8    4    0
+	0x00000000  PinLevel_w0         0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  EventStatus_w0      0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  DetectRise_w0       0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  DetectFall_w0       0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  DetectHigh_w0       0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  DetectLow_w0        0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  DetectAsyncRise_w0  0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  DetectAsyncFall_w0  0000 0000 0000 0000 0000 0000 0000 0000
     ),
 );
 
@@ -79,17 +80,19 @@ run_test( "13", "bad option",
 ## Modify
 #---------------------------------------------------------------------------
 
-run_test( "20", "io --set",
-    "rgpio --dev=f  io --set=0xfff  DetectLow_w0",
+run_test( "20a", "io --set",
+    "rgpio --dev=f  io -v --set=0xfff  DetectLow_w0",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000fff  DetectLow_w0
+	0x00000fff    --set=            0000 0000 0000 0000 0000 1111 1111 1111
+	IO Pin Registers:                 28   24   20   16   12    8    4    0
+	0x00000fff  DetectLow_w0        0000 0000 0000 0000 0000 1111 1111 1111
     ),
 );
 
 run_test( "20b", "io --clr",
-    "rgpio --dev=f  io --clr=0x033  DetectLow_w0",
+    "rgpio --dev=f  io --hex --clr=0x033  DetectLow_w0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -97,6 +100,17 @@ run_test( "20b", "io --clr",
     ),
 );
 
+run_test( "20c", "io --mask",
+    "rgpio --dev=f  io --mask=0x0000ffff --value=0xffff3cc3  DetectLow_w0",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	IO Pin Registers:                 28   24   20   16   12    8    4    0
+	0x00003cc3  DetectLow_w0        0000 0000 0000 0000 0011 1100 1100 0011
+    ),
+);
+
+#---------------------------------------
 run_test( "21", "io --set",
     "rgpio --dev=f  io --set=0xf --clr=0x3  DetectLow_w0",
     1,
@@ -146,7 +160,7 @@ run_test( "24b", "io --value",
 
 #---------------------------------------
 run_test( "25a", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --clr=0x33 --all",
+    "rgpio --dev=f  io --clr=0x33 --all  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
@@ -155,7 +169,7 @@ run_test( "25a", "io modify invalid with reg groups",
 );
 
 run_test( "25b", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --clr=0x33 --all --raw",
+    "rgpio --dev=f  io --clr=0x33 --all --raw  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
@@ -168,7 +182,7 @@ run_test( "25b", "io modify invalid with reg groups",
 );
 
 run_test( "25c", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --set=0x33 --w0",
+    "rgpio --dev=f  io --set=0x33 --w0  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
@@ -178,10 +192,30 @@ run_test( "25c", "io modify invalid with reg groups",
 );
 
 run_test( "25d", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --clr=0x33 --pud",
+    "rgpio --dev=f  io --clr=0x33 --pud  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
+    ),
+    Stdout => q(),
+);
+
+#---------------------------------------
+run_test( "26", "io --set requires register",	#!! error on default registers
+    "rgpio --dev=f  io --set=0x33",
+    1,
+    Stderr => q(
+	Error:  modification requires register argument
+	Error:  clear only:  EventStatus_w0
+    ),
+    Stdout => q(),
+);
+
+run_test( "27", "io unknown register",
+    "rgpio --dev=f  io --set=0x33  DetectLow_w0 FooFoo_w0",
+    1,
+    Stderr => q(
+	Error:  unknown register:  FooFoo_w0
     ),
     Stdout => q(),
 );
@@ -191,7 +225,7 @@ run_test( "25d", "io modify invalid with reg groups",
 #---------------------------------------------------------------------------
 
 run_test( "30", "io --raw instead of virtual registers",
-    "rgpio --dev=f  io --raw",
+    "rgpio --dev=f  io --raw --hex",
     0,
     Stderr => q(),
     Stdout => q(
@@ -209,7 +243,7 @@ run_test( "30", "io --raw instead of virtual registers",
 );
 
 run_test( "31", "io -0 -1 alias",
-    "rgpio --dev=f  io -0 -1",
+    "rgpio --dev=f  io -0 -1 --hex",
     0,
     Stderr => q(),
     Stdout => q(
@@ -234,7 +268,7 @@ run_test( "31", "io -0 -1 alias",
 );
 
 run_test( "32", "io --w1",
-    "rgpio --dev=f  io --w1",
+    "rgpio --dev=f  io --w1 --hex",
     0,
     Stderr => q(),
     Stdout => q(
@@ -254,12 +288,13 @@ run_test( "33", "io --fsel",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  Fsel0
-	0x00000000  Fsel1
-	0x00000000  Fsel2
-	0x00000000  Fsel3
-	0x00000000  Fsel4
-	0x00000000  Fsel5
+	IO Pin Registers:                 28   24   20   16   12    8    4    0
+	0x00000000  Fsel0               0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  Fsel1               0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  Fsel2               0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  Fsel3               0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  Fsel4               0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  Fsel5               0000 0000 0000 0000 0000 0000 0000 0000
     ),
 );
 
@@ -269,9 +304,10 @@ run_test( "34a", "io --pud",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  PudProgMode
-	0x00000000  PudProgClk_w0
-	0x00000000  PudProgClk_w1
+	IO Pin Registers:                 28   24   20   16   12    8    4    0
+	0x00000000  PudProgMode         0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PudProgClk_w0       0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PudProgClk_w1       0000 0000 0000 0000 0000 0000 0000 0000
     ),
 );
 
@@ -280,16 +316,17 @@ run_test( "34b", "io --pud",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  PullSel0
-	0x00000000  PullSel1
-	0x00000000  PullSel2
-	0x00000000  PullSel3
+	IO Pin Registers:                 28   24   20   16   12    8    4    0
+	0x00000000  PullSel0            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel1            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel2            0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PullSel3            0000 0000 0000 0000 0000 0000 0000 0000
     ),
 );
 
 #---------------------------------------
-run_test( "35", "io --all -v  binary output",
-    "rgpio --dev=f --rpi3  io --all -v",
+run_test( "35", "io --all binary output",
+    "rgpio --dev=f --rpi3  io --all",
     0,
     Stderr => q(),
 );
@@ -299,8 +336,9 @@ run_test( "36", "io  register args",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  PinLevel_w0
-	0x00000000  DetectHigh_w1
+	IO Pin Registers:                 28   24   20   16   12    8    4    0
+	0x00000000  PinLevel_w0         0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  DetectHigh_w1       0000 0000 0000 0000 0000 0000 0000 0000
     ),
 );
 
@@ -309,6 +347,7 @@ run_test( "37", "io  register args",
     0,
     Stderr => q(),
     Stdout => q(
+	0x00ff5533    --set=            0000 0000 1111 1111 0101 0101 0011 0011
 	IO Pin Registers:                 28   24   20   16   12    8    4    0
 	0x00000000  PinLevel_w0         0000 0000 0000 0000 0000 0000 0000 0000
 	0x00ff5533  DetectHigh_w1       0000 0000 1111 1111 0101 0101 0011 0011
