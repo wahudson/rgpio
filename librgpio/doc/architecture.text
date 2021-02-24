@@ -63,6 +63,46 @@ Pin/Bit
     not provide that kind of pin mapping because different hardware may
     have different pin numbers.
 
+----------------------------------------------------------------------------
+## RPi4 Changes  (2020-02-24)
+----------------------------------------------------------------------------
+    See also:  doc/*_design.text, man pages
+
+Summary of changes include:
+
+    Gpio pins:  Added 4 more pins Gpio[57:54].
+	rgIoPins
+
+    Alternate Functions:  Revised to reflect new units and names.
+	rgAltFuncName
+
+    PWM:  Added unit pwm1, replacing pwm0 on Gpio[41:40].
+	FIFO depth was 8 words, RPi4 is 64 words of 32-bits.
+	rgPwm
+
+    I2C:  Added 5 more units
+	iic0, iic1, iic2               in RPi3 (BCM2837) and earlier
+	iic3, iic4, iic5, iic6, iic7   added in RPi4 (BCM2711)
+	Fix clock-stretching bug present in RPi3 and earlier.
+	rgIic
+
+    SPI0:  Added 4 more units
+	spi0                     in RPi3 (BCM2837) and earlier
+	spi3, spi4, spi5, spi6   added in RPi4 (BCM2711)
+	rgSpi0
+
+    Pull Up/Down:
+	rgPudPin    RPi3 (BCM2837) and earlier
+	rgPullPin   RPi4 (BCM2711)
+
+	RPi4 completely replaces the original PudProg* registers with new
+	direct control PullSel* registers at new addresses.
+	Pull state can be read back.
+	Pull direction {Up, Down, Off} field encoding is different.
+
+    UART:  Added 4 more units
+
+    BSC Slave:  Moved from Gpio[18:21] to Gpio[8:11]
 
 ----------------------------------------------------------------------------
 ## Error Handling

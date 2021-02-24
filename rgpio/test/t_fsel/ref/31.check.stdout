@@ -11,14 +11,14 @@ Bit  Alt0        Alt1        Alt2        Alt3        Alt4        Alt5
   9  spi0_MISO   sm_D1       dpi_D5      **          **          **         
  10  spi0_MOSI   sm_D2       dpi_D6      **          **          **         
  11  spi0_SCLK   sm_D3       dpi_D7      **          **          **         
- 12  PWM0        sm_D4       dpi_D8      **          **          arm_TMS    
- 13  PWM1        sm_D5       dpi_D9      **          **          arm_TCK    
+ 12  pwm0_CH1    sm_D4       dpi_D8      **          **          arm_TMS    
+ 13  pwm0_CH2    sm_D5       dpi_D9      **          **          arm_TCK    
  14  u0_TXD      sm_D6       dpi_D10     **          **          u1_TXD     
  15  u0_RXD      sm_D7       dpi_D11     **          **          u1_RXD     
  16  --          sm_D8       dpi_D12     u0_CTS      spi1_CE2_n  u1_CTS     
  17  --          sm_D9       dpi_D13     u0_RTS      spi1_CE1_n  u1_RTS     
- 18  pcm_CLK     sm_D10      dpi_D14     bsc_MOSI    spi1_CE0_n  PWM0       
- 19  pcm_FS      sm_D11      dpi_D15     bsc_SCLK    spi1_MISO   PWM1       
+ 18  pcm_CLK     sm_D10      dpi_D14     bsc_MOSI    spi1_CE0_n  pwm0_CH1   
+ 19  pcm_FS      sm_D11      dpi_D15     bsc_SCLK    spi1_MISO   pwm0_CH2   
  20  pcm_DIN     sm_D12      dpi_D16     bsc_MISO    spi1_MOSI   gp_CLK0    
  21  pcm_DOUT    sm_D13      dpi_D17     bsc_CE_n    spi1_SCLK   gp_CLK1    
  22  sd0_CLK     sm_D14      dpi_D18     sd1_CLK     arm_TRST    **         
@@ -39,12 +39,12 @@ Bit  Alt0        Alt1        Alt2        Alt3        Alt4        Alt5
  37  spi0_MISO   sm_D1       u0_RXD      sd1_DAT1    **          **         
  38  spi0_MOSI   sm_D2       u0_RTS      sd1_DAT2    **          **         
  39  spi0_SCLK   sm_D3       u0_CTS      sd1_DAT3    **          **         
- 40  PWM0        sm_D4       **          sd1_DAT4    spi2_MISO   u1_TXD     
- 41  PWM1        sm_D5       --          sd1_DAT5    spi2_MOSI   u1_RXD     
+ 40  pwm0_CH1    sm_D4       **          sd1_DAT4    spi2_MISO   u1_TXD     
+ 41  pwm0_CH2    sm_D5       --          sd1_DAT5    spi2_MOSI   u1_RXD     
  42  gp_CLK1     sm_D6       --          sd1_DAT6    spi2_SCLK   u1_RTS     
  43  gp_CLK2     sm_D7       --          sd1_DAT7    spi2_CE0_n  u1_CTS     
  44  gp_CLK1     iic0_SDA    iic1_SDA    --          spi2_CE1_n  **         
- 45  PWM1        iic0_SCL    iic1_SCL    --          spi2_CE2_n  **         
+ 45  pwm0_CH2    iic0_SCL    iic1_SCL    --          spi2_CE2_n  **         
  46  --          **          **          **          **          **         
  47  --          **          **          **          **          **         
  48  --          **          **          **          **          **         

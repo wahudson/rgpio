@@ -9,9 +9,7 @@ rgPwm  Hardware Description -- PWM Pulse Width Modulator
 
 =head1		SYNOPSIS
 
-Hardware registers of the PWM peripheral on Raspberry Pi3.
-All are 32-bits, but may have sparsely populated fields.
-All are read-write, except those marked read-only (RO) or write-only (WO).
+Hardware registers of each PWM peripheral:  (pwm0, pwm1)
 
     rgPwm
     Register          BCM name	Description
@@ -68,9 +66,10 @@ field names.
 
     (WO) = Write-only, (RO) = Read-only, otherwise all are Read-write.
 
-Bit field names incorporate the number of bits in the field, making the
+Field names incorporate the number of bits in the field, making the
 field size self documenting.
 
+All registers are 32-bits.
 Unspecified bit fields in each register are typically reserved, and should
 be write as 0, and read as don't care.
 
@@ -88,12 +87,14 @@ Treat as reserved.
 
 =head1		DESCRIPTION
 
-This documentation describes the operation of the PWM Pulse Width Modulator
-on Raspberry Pi.
+The Raspberry Pi (RPi) has 2 PWM peripherals named:
+
+ pwm0         in RPi3 (BCM2837) and earlier
+ pwm0, pwm1   in RPi4 (BCM2711)
 
 Two output channels, Ch1 and Ch2, are almost fully independent.  They share
-an 8-entry by 32-bit FIFO.  When one channel does not use the FIFO, they are
-fully independent.
+an 8-entry (64-entry on RPi4) by 32-bit FIFO.  When one channel does not use
+the FIFO, they are fully independent.
 
 The clock source comes from the PWM Clock Manager, which is nearly identical
 to the General Purpose clocks.
@@ -183,7 +184,8 @@ corresponding (B<Ch2_UseFifo_1> = 1).
 
 =head2			FIFO Buffer
 
-There is one 8-entry by 32-bit First In First Out (FIFO) buffer that can be
+There is one 8-entry (64-entry on RPi4) by 32-bit First In First Out (FIFO)
+buffer that can be
 used in place of the data registers (B<Ch1Data>, B<Ch2Data>).
 It is intended for the Serializer Mode, but could be used in the other
 modes as well (??).
@@ -200,18 +202,25 @@ This tight coupling means the two channels should operate in lock-step.  If
 the cycle Range is not the same, then the shorter channel will wait, issuing
 (e.g. B<Ch2_IdleBit_1>) values.
 
-See BDM doc p.146 "FIF1 Register".
+See BCM doc p.146 "FIF1 Register".
 
 =head2			Hardware Signals
 
 GPIO Alternate Function signal names:  Note the PWM peripheral can be
 operated regardless of these signals being routed to GPIO pins.
-(The inconsistent naming is unfortunate.)
 
-    Sig Name	Function
-    --------	----------
-    PWM0	Ch1 output
-    PWM1	Ch2 output
+    rgAltFuncName
+    Signal          BCM name    Description
+    --------        --------    -----------
+    pwm0_CH1        PWM0        Ch1 output	RPi3 and earlier
+    pwm0_CH2        PWM1        Ch2 output
+
+    pwm1_CH1        PWM1_0      Ch1 output	RPi4 addition
+    pwm1_CH2        PWM1_1      Ch2 output
+
+The CH1/CH2 naming is adopted here, and is consistent with the PWM Peripheral
+description.  (The inconsistent channel numbering in the BCM doc is
+unfortunate.)
 
 
 =head1		REGISTER BIT FIELDS
@@ -382,8 +391,12 @@ In the librgpio/ source tree:
  rgpio-pwm(1)
 
  BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
- Chapter 9 "Pulse Width Modulator" (p.138-147).
- https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+    p.138-147  Ch 9. Pulse Width Modulator
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (2020-10-16)
+    p.125-130  Ch 9. Pulse Width Modulator
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
 

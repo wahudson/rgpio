@@ -67,14 +67,14 @@ const char*		rgAltFuncName::AltFunc[][6] = {
  { "spi0_MISO",  "sm_D1",   "dpi_D5",    "**",    "**",      "**"       },// 9
  { "spi0_MOSI",  "sm_D2",   "dpi_D6",    "**",    "**",      "**"       },// 10
  { "spi0_SCLK",  "sm_D3",   "dpi_D7",    "**",    "**",      "**"       },// 11
- { "PWM0",       "sm_D4",   "dpi_D8",    "**",    "**",      "arm_TMS"  },// 12
- { "PWM1",       "sm_D5",   "dpi_D9",    "**",    "**",      "arm_TCK"  },// 13
+ { "pwm0_CH1",   "sm_D4",   "dpi_D8",    "**",    "**",      "arm_TMS"  },// 12
+ { "pwm0_CH2",   "sm_D5",   "dpi_D9",    "**",    "**",      "arm_TCK"  },// 13
  { "u0_TXD",     "sm_D6",  "dpi_D10",    "**",    "**",         "u1_TXD"  },//14
  { "u0_RXD",     "sm_D7",  "dpi_D11",    "**",    "**",         "u1_RXD"  },//15
  { "--",         "sm_D8",  "dpi_D12", "u0_CTS",   "spi1_CE2_n", "u1_CTS"  },//16
  { "--",         "sm_D9",  "dpi_D13", "u0_RTS",   "spi1_CE1_n", "u1_RTS"  },//17
- { "pcm_CLK",    "sm_D10", "dpi_D14", "bsc_MOSI", "spi1_CE0_n", "PWM0"    },//18
- { "pcm_FS",     "sm_D11", "dpi_D15", "bsc_SCLK", "spi1_MISO",  "PWM1"    },//19
+ { "pcm_CLK",    "sm_D10", "dpi_D14", "bsc_MOSI", "spi1_CE0_n", "pwm0_CH1"},//18
+ { "pcm_FS",     "sm_D11", "dpi_D15", "bsc_SCLK", "spi1_MISO",  "pwm0_CH2"},//19
  { "pcm_DIN",    "sm_D12", "dpi_D16", "bsc_MISO", "spi1_MOSI",  "gp_CLK0" },//20
  { "pcm_DOUT",   "sm_D13", "dpi_D17", "bsc_CE_n", "spi1_SCLK",  "gp_CLK1" },//21
  { "sd0_CLK",    "sm_D14", "dpi_D18", "sd1_CLK",  "arm_TRST",   "**"    },// 22
@@ -96,12 +96,12 @@ const char*		rgAltFuncName::AltFunc[][6] = {
  { "spi0_MISO",  "sm_D1",  "u0_RXD", "sd1_DAT1",   "**",       "**"     },// 37
  { "spi0_MOSI",  "sm_D2",  "u0_RTS", "sd1_DAT2",   "**",       "**"     },// 38
  { "spi0_SCLK",  "sm_D3",  "u0_CTS", "sd1_DAT3",   "**",       "**"     },// 39
- { "PWM0",       "sm_D4",  "**",     "sd1_DAT4", "spi2_MISO",  "u1_TXD" },// 40
- { "PWM1",       "sm_D5",  "--",     "sd1_DAT5", "spi2_MOSI",  "u1_RXD" },// 41
+ { "pwm0_CH1",   "sm_D4",  "**",     "sd1_DAT4", "spi2_MISO",  "u1_TXD" },// 40
+ { "pwm0_CH2",   "sm_D5",  "--",     "sd1_DAT5", "spi2_MOSI",  "u1_RXD" },// 41
  { "gp_CLK1",    "sm_D6",  "--",     "sd1_DAT6", "spi2_SCLK",  "u1_RTS" },// 42
  { "gp_CLK2",    "sm_D7",  "--",     "sd1_DAT7", "spi2_CE0_n", "u1_CTS" },// 43
  { "gp_CLK1",  "iic0_SDA", "iic1_SDA",  "--",    "spi2_CE1_n", "**"     },// 44
- { "PWM1",     "iic0_SCL", "iic1_SCL",  "--",    "spi2_CE2_n", "**"     },// 45
+ { "pwm0_CH2", "iic0_SCL", "iic1_SCL",  "--",    "spi2_CE2_n", "**"     },// 45
 
  { "--",         "**",     "**",        "**",      "**",       "**"     },// 46
  { "--",         "**",     "**",        "**",      "**",       "**"     },// 47
@@ -149,14 +149,14 @@ const char*		rgAltFuncName::AltDelta4[][6] = {
   { 0,            0,  0,  "bsc_MISO",   "u4_RXD",      "iic4_SCL"    }, // 9
   { 0,            0,  0,  "bsc_MOSI",   "u4_CTS",      "iic5_SDA"    }, // 10
   { 0,            0,  0,  "bsc_SCLK",   "u4_RTS",      "iic5_SCL"    }, // 11
-  { "pwm0_CH1",   0,  0,  "spi5_CE0_n", "u5_TXD",      "iic5_SDA"    }, // 12
-  { "pwm0_CH2",   0,  0,  "spi5_MISO",  "u5_RXD",      "iic5_SCL"    }, // 13
+  { 0,            0,  0,  "spi5_CE0_n", "u5_TXD",      "iic5_SDA"    }, // 12
+  { 0,            0,  0,  "spi5_MISO",  "u5_RXD",      "iic5_SCL"    }, // 13
   { 0,            0,  0,  "spi5_MOSI",  "u5_CTS",      0,            }, // 14
   { 0,            0,  0,  "spi5_SCLK",  "u5_RTS",      0,            }, // 15
   { 0,            0,  0,  0,            0,             0,            }, // 16
   { 0,            0,  0,  0,            0,             0,            }, // 17
-  { 0,            0,  0,  "spi6_CE0_n", 0,             "pwm0_CH1"    }, // 18
-  { 0,            0,  0,  "spi6_MISO",  0,             "pwm0_CH2"    }, // 19
+  { 0,            0,  0,  "spi6_CE0_n", 0,             0,            }, // 18
+  { 0,            0,  0,  "spi6_MISO",  0,             0,            }, // 19
   { 0,            0,  0,  "spi6_MOSI",  0,             0,            }, // 20
   { 0,            0,  0,  "spi6_SCLK",  0,             0,            }, // 21
   { 0,            0,  0,  0,            0,             "iic6_SDA"    }, // 22
@@ -183,7 +183,7 @@ const char*		rgAltFuncName::AltDelta4[][6] = {
   { 0,            0,  0,  0,            "spi0_SCLK",   0,            }, // 42
   { 0,            0,  0,  0,            "spi0_CE0_n",  0,            }, // 43
   { 0,            0,  0,  0,            "spi0_CE1_n",  "sdc_VOLT"    }, // 44
-  { "pwm0_CH2",   0,  0,  0,            "spi0_CE2_n",  "sdc_PWR0"    }, // 45
+  { 0,            0,  0,  0,            "spi0_CE2_n",  "sdc_PWR0"    }, // 45
 
   { 0,            0,  0,  0,            0,             0             }, // 46
   { 0,            0,  0,  0,            0,             0             }, // 47
