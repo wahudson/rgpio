@@ -47,6 +47,7 @@ class pud_yOptLong : public yOption {
     yOpVal		w0;
     yOpVal		w1;
 
+    bool		BinOut     = 1;	// binary output
     bool		verbose;
     bool		debug;
     bool		TESTOP;
@@ -126,10 +127,6 @@ pud_yOptLong::parse_options()
 	Error::msg( "require only one of:  --up --down --off\n" );
     }
 
-//    if ( w0.Given && w1.Given ) {
-//	Error::msg( "require only one of:  --w0 --w1\n" );
-//    }
-
     if ( get_argc() || w0.Given || w1.Given ) {
 	IsProgram = 1;
 	if ( ! (up || down || off) ) {
@@ -198,7 +195,7 @@ pud_yOptLong::print_usage()
     "    --PudProgClk_w1=V   clock mask, word 1\n"
     "  options:\n"
     "    --help              show this usage\n"
-    "    -v, --verbose       verbose output, show registers in binary\n"
+    "    -v, --verbose       verbose output\n"
 //  "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;
@@ -235,7 +232,7 @@ pud_yOptLong::out_reg( const char* name,  uint32_t vv )
     cout << "0x" <<std::hex <<setw(8)  << vv;
 
     cout.fill(' ');
-    if ( this->verbose ) {
+    if ( this->BinOut ) {
 	cout << "  " <<left <<setw(18) << name;
 	cout << "  "                   << cstr_bits32( vv ) <<endl;
     }
@@ -352,12 +349,17 @@ y_pud::doit()
 
 	    cout.fill(' ');
 	    cout <<dec;
-	    cout << "   "  <<setw(2) <<right << bit
-		 << "  " <<left  << ((fail) ? "fail" : "OK")
+	    cout << "   " <<setw(2) << bit
+		 << "  "  << ((fail) ? "fail" : "OK")
 		 <<endl;
 	}
 
     // Pud Registers
+	if ( Opx.PudProgMode.Given   ||
+	     Opx.PudProgClk_w0.Given ||
+	     Opx.PudProgClk_w1.Given ) {
+	    Opx.trace_msg( "Apply register values" );
+	}
 
 #define APPLX( X ) if ( Opx.X.Given ) { Gpx.X.write( Opx.X.Val ); }
 
@@ -366,7 +368,9 @@ y_pud::doit()
 	APPLX( PudProgClk_w1  )
 
 	if ( ! Opx.IsProgram ) {
-	    if ( Opx.verbose ) {
+	    Opx.trace_msg( "Read registers" );
+
+	    if ( Opx.BinOut ) {
 		cout << "Pud Pin Registers:                28   24   20   16   12    8    4    0" << endl;
 	    }
 

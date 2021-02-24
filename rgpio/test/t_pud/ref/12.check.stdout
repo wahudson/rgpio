@@ -14,5 +14,5 @@ usage:  rgpio pud [options..]  [N..]
     --PudProgClk_w1=V   clock mask, word 1
   options:
     --help              show this usage
-    -v, --verbose       verbose output, show registers in binary
+    -v, --verbose       verbose output
   (options with GNU= only)

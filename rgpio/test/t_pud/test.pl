@@ -47,9 +47,10 @@ run_test( "11", "pud no args",
     0,
     Stderr => q(),
     Stdout => q(
-	0x00000000  PudProgMode
-	0x00000000  PudProgClk_w0
-	0x00000000  PudProgClk_w1
+	Pud Pin Registers:                28   24   20   16   12    8    4    0
+	0x00000000  PudProgMode         0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PudProgClk_w0       0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  PudProgClk_w1       0000 0000 0000 0000 0000 0000 0000 0000
     ),
 );
 
@@ -188,6 +189,18 @@ run_test( "22", "error too many bits",
     Stdout => q(),
 );
 
+run_test( "23", "bad bit numbers",		#!! strtol() not detected
+    "rgpio --dev=f  pud --up  7 a12 2two",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	 program bits:  Up
+	    7  OK
+	    0  OK
+	    2  OK
+    ),
+);
+
 #---------------------------------------------------------------------------
 ## Mask Programming --w0=  --w1=
 #---------------------------------------------------------------------------
@@ -222,6 +235,7 @@ run_test( "40", "view registers",
     0,
     Stderr => q(),
     Stdout => q(
+	+ Read registers
 	Pud Pin Registers:                28   24   20   16   12    8    4    0
 	0x00000000  PudProgMode         0000 0000 0000 0000 0000 0000 0000 0000
 	0x00000000  PudProgClk_w0       0000 0000 0000 0000 0000 0000 0000 0000
@@ -234,6 +248,8 @@ run_test( "41", "modify registers",
     0,
     Stderr => q(),
     Stdout => q(
+	+ Apply register values
+	+ Read registers
 	Pud Pin Registers:                28   24   20   16   12    8    4    0
 	0xffffffff  PudProgMode         1111 1111 1111 1111 1111 1111 1111 1111
 	0xfeedabba  PudProgClk_w0       1111 1110 1110 1101 1010 1011 1011 1010
