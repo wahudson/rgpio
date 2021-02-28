@@ -189,7 +189,7 @@ yOptLong::print_usage()
     "    --rpi3              act like RPi3 or earlier\n"
     "    --rpi4              act like RPi4 or later\n"
     "    --help              show this usage\n"
-//  "    -v, --verbose       verbose output\n"
+    "    -v, --verbose       verbose output, show if fake memory\n"
     "    --debug             debug output\n"
     "  (options with GNU= only)\n"
     ;

@@ -30,6 +30,7 @@ rgpio -- Raspberry Pi GPIO utility
     --rpi3              act like RPi3 or earlier
     --rpi4              act like RPi4 or later
     --help              show this usage
+    -v, --verbose       verbose output, show if fake memory
     --debug             debug output
   (options with GNU= only)
 
@@ -70,8 +71,18 @@ operation (i.e. outside of the librgpio rgAddrMap::open_dev_file() function).
 
 =head2			Raspberry Pi Versions
 
-Currently is validated only on RPi3.
-Extensions for RPi4 are in progress.
+This tool was developed on RPi3, and later extended for RPi4.
+
+It deduces the RPi version by decoding the "Revision" line in the
+/proc/cpuinfo file.  See rgRpiRev(3).
+It does not block execution on any platform, but does fall back to
+fake memory when not on an RPi.
+
+RPi3 (BCM2837) and earlier all have the same peripheral feature set as the
+original BCM2835 chip.
+
+Rpi4 (BCM2711) introduced additional instances of IIC, SPI, UART, and changed
+how pin pull up/down was accessed.
 
 
 =head1		OPTIONS
@@ -96,17 +107,16 @@ Pi versions, especially when using fake memory or not running on an RPi.
 They do NOT change the BaseAddr used for memory mapped IO, which is still
 derived from the running RPi.
 
-RPi3 (BCM2837) and earlier all have the same peripheral feature set as the
-original BCM2835 chip.
-Rpi4 (BCM2711) introduced additional instances of IIC, SPI, UART, and changed
-how pin pull up/down was accessed.
-
 =item B<--debug>            - Debug output.
 
 Show the capability raise/lower actions when opening /dev/mem.
 Show the RPi B<SocEnum> and B<BaseAddr> - see rgRpiRev(3).
 
 =item B<--help>             - Show main program help.
+
+=item B<-v, --verbose>      - Verbose output.
+
+Show fall-back to fake memory.
 
 =back
 
@@ -164,11 +174,11 @@ class used by that command.  Section (7) describes the hardware operation.
  Normal call to a sub-command using /dev/mem (default).
  % rgpio io
 
- Use /dev/gpiomem
- % rgpio --dev=g  io
+ Use fake memory, to explore tool without touching hardware.
+ % rgpio --dev=f -v  io
 
  Only open the device file, no sub-command.
- % rgpio --dev=m --debug
+ % rgpio --dev=g --debug
 
 
 =head1		TROUBLESHOOTING
@@ -210,6 +220,7 @@ none
 =head1		SEE ALSO
 
 B<librgpio>(3)
+B<rgRpiRev>(3)
 B<capabilities>(7)
 B<setcap>(8)
 

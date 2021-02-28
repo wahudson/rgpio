@@ -7,7 +7,8 @@ usage:  rgpio [main_options..]  feature  [options..]
     iic          I2C Master
     info         RPi Revision Information
     man          man pager
-    pud          Pin Pull-Up/Down
+    pud          Pin Pull-Up/Down - RPi3 and earlier
+    pull         Pin Pull-Up/Down - RPi4
     pwm          PWM Pulse Width Modulator
     spi0         SPI0 Master
     timer        System Timer
@@ -18,5 +19,6 @@ usage:  rgpio [main_options..]  feature  [options..]
     --rpi3              act like RPi3 or earlier
     --rpi4              act like RPi4 or later
     --help              show this usage
+    -v, --verbose       verbose output, show if fake memory
     --debug             debug output
   (options with GNU= only)
