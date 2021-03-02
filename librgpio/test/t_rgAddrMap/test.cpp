@@ -19,6 +19,7 @@
 #include <stdexcept>	// std::stdexcept
 
 #include "utLib1.h"		// unit test library
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 
 using namespace std;
@@ -27,6 +28,9 @@ using namespace std;
 
 int main()
 {
+
+// Config as not on RPi
+    rgRpiRev::Config.BaseAddr.put( 0x00000000 );
 
 //--------------------------------------------------------------------------
 //## Constructor, is_fake_mem(), config_BaseAddr()
@@ -57,12 +61,14 @@ int main()
     }
 
 //--------------------------------------
-  CASE( "12a", "config_BaseAddr() default" );
+  CASE( "12a", "config_BaseAddr() non-zero" );
     try {
 	rgAddrMap		bx;
-	CHECKX( 0x3f000000, bx.config_BaseAddr() );	// default
+	CHECKX( 0x00000000, bx.config_BaseAddr() );	// default
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.config_BaseAddr( 0xfe000000 );
 	CHECKX( 0xfe000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -71,7 +77,7 @@ int main()
   CASE( "12b", "config_BaseAddr() null" );
     try {
 	rgAddrMap		bx;
-	CHECKX( 0x3f000000, bx.config_BaseAddr() );	// default
+	CHECKX( 0x00000000, bx.config_BaseAddr() );	// default
 	CHECK(  0,          bx.is_fake_mem() );
 	bx.config_BaseAddr( 0x00000000 );
 	CHECKX( 0x00000000, bx.config_BaseAddr() );
@@ -88,8 +94,9 @@ int main()
   CASE( "18a", "bcm2rpi_addr()" );
     try {
 	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x3f000000 );
 	uint32_t		radd = bx.bcm2rpi_addr( 0x7e200000 );
-	CHECK( 0x3f200000, radd );
+	CHECKX( 0x3f200000, radd );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -98,8 +105,9 @@ int main()
   CASE( "18b", "bcm2rpi_addr()" );
     try {
 	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x3f000000 );
 	uint32_t		radd = bx.bcm2rpi_addr( 0x7e000000 );
-	CHECK( 0x3f000000, radd );
+	CHECKX( 0x3f000000, radd );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -108,8 +116,9 @@ int main()
   CASE( "18c", "bcm2rpi_addr()" );
     try {
 	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x3f000000 );
 	uint32_t		radd = bx.bcm2rpi_addr( 0x7effffff );
-	CHECK( 0x3fffffff, radd );
+	CHECKX( 0x3fffffff, radd );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -118,8 +127,8 @@ int main()
   CASE( "18d", "bcm2rpi_addr()" );
     try {
 	rgAddrMap		bx;
-	uint32_t		radd = bx.bcm2rpi_addr( 0x7f000000 );
-	CHECK( 0x3f000000, radd );
+	bx.config_BaseAddr( 0x3f000000 );
+	bx.bcm2rpi_addr(    0x7f000000 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
@@ -135,8 +144,8 @@ int main()
   CASE( "18e", "bcm2rpi_addr()" );
     try {
 	rgAddrMap		bx;
-	uint32_t		radd = bx.bcm2rpi_addr( 0x7dffffff );
-	CHECK( 0x3f000000, radd );
+	bx.config_BaseAddr( 0x3f000000 );
+	bx.bcm2rpi_addr(    0x7dffffff );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
@@ -157,6 +166,21 @@ int main()
 	CHECKX( 0x00000000, bx.config_BaseAddr() );
 	CHECK(  1,          bx.is_fake_mem() );
 	CHECKX( 0x00200000, bx.bcm2rpi_addr( 0x7e200000 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "19b", "bcm2rpi_addr() as not on RPi" );
+    try {
+	rgAddrMap		bx;
+	CHECKX( 0x00200000, bx.bcm2rpi_addr( 0x7e200000 ) );
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap::BaseAddr is null and not FakeMem",
+	    e.what()
+	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -284,12 +308,13 @@ if ( getenv( "TESTONRPI" ) ) {
 }
 
 //----------------------------------------
-// Test ((BaseAddr == 0) || FakeMem) fallback to FakeMem.
-  CASE( "24", "open_dev_file() BaseAddr = 0, should not throw" );
+// Test fallback to FakeMem, NOT on RPi.
+  CASE( "24a", "open_dev_file() FakeMem=1, should not throw" );
     try {
 	rgAddrMap		bx;
 	bx.config_FakeNoPi( 0 );		// enable throw
 	bx.config_BaseAddr( 0x00000000 );
+	CHECK(  1,          bx.is_fake_mem() );
 	bx.open_dev_file( "/dev/null" );
 	CHECKX( 0x00000000, bx.config_BaseAddr() );
 	CHECK(  1,          bx.is_fake_mem() );
@@ -297,6 +322,23 @@ if ( getenv( "TESTONRPI" ) ) {
     catch ( runtime_error& e ) {
 	FAIL( "runtime_error exception" );
 	FAIL( e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24b", "open_dev_file() FakeMem=1 should throw" );
+    try {
+	rgAddrMap		bx;
+	bx.config_FakeNoPi( 0 );		// enable throw
+	CHECK(  0,          bx.is_fake_mem() );
+	bx.open_dev_file( "/dev/null" );
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap:  not on a RaspberryPi",
+	    e.what()
+	);
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -325,8 +367,6 @@ if ( getenv( "TESTONRPI" ) ) {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
 	bx.open_fake_mem();
-	std::string		ss;
-	ss = bx.text_debug();
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
@@ -342,9 +382,7 @@ if ( getenv( "TESTONRPI" ) ) {
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
-	CHECK( 1,
-	    bx.is_fake_mem()
-	);
+	CHECK(  1,          bx.is_fake_mem() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -433,14 +471,30 @@ if ( getenv( "TESTONRPI" ) ) {
 //## get_mem_block() Fake memory
 //--------------------------------------------------------------------------
 
-  CASE( "60", "get_mem_block() no device open" );
+  CASE( "60a", "get_mem_block() no device open" );
     try {
 	rgAddrMap		bx;
-	bx.get_mem_block( 0x7e200000 );
+	bx.config_BaseAddr( 0x3f000000 );
+	bx.get_mem_block(   0x7e200000 );
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
 	CHECK( "get_mem_block() device not open",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "60b", "get_mem_block() no device open, BaseAddr=0" );
+    try {
+	rgAddrMap		bx;
+	bx.get_mem_block(   0x7e200000 );
+	FAIL( "no throw" );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap::BaseAddr is null and not FakeMem",
 	    e.what()
 	);
     }

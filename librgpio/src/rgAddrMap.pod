@@ -15,6 +15,7 @@ rgAddrMap class -- GPIO Address Map
 =head2			Constructor and Configuration
 
     rgAddrMap();	// constructor
+    ~rgAddrMap();	// destructor
 
     void                config_Debug(    bool v );
     void                config_FakeNoPi( bool v );
@@ -48,15 +49,27 @@ rgAddrMap class -- GPIO Address Map
 =head1		DESCRIPTION
 
 This class provides memory blocks that map to GPIO hardware peripherals.
-It provides the fundamental access for all the other librgpio classes.
+It provides the fundamental access for all the other librgpio peripheral
+classes.
 
 The essential operation is to open /dev/mem (or /dev/gpiomem).
-Then use mmap() system call to map a real address page into this process
+Then use mmap(2) system call to map a real address page into this process
 virtual memory.  Finally, read/write to addresses in that page go directly to
 the peripheral hardware registers.
 
 The object caches each map entry, and will return the same block of memory
 if it has already been mapped.
+
+=head2			IO Base Address Derivation
+
+Global data B<rgRpiRev::find_BaseAddr>() is used to derive the
+IO base address corresponding to BCM doc address 0x7e000000 on the
+running RPi platform.
+It is called by the constructor to initialize the default B<BaseAddr>.
+
+If override is needed, it should be applied to the global data object
+B<rgRpiRev::Config> before B<rgAddrMap> is constructed.
+See rgRpiRev(3).
 
 =head2			Privilege Capabilities
 
@@ -71,7 +84,7 @@ from the "Permitted" set into the "Effective" set just before opening, and
 drops them afterward.
 
 These capabilities get into the process "Permitted" set by being applied
-to the file "Permitted" set on the executable file.  E.g. by command:
+to the file "Permitted" set on the executable file, e.g. by command:
 
     sudo setcap 'CAP_DAC_OVERRIDE,CAP_SYS_RAWIO=p'  file
 
@@ -81,24 +94,31 @@ open device file function.
 =head2			Constructor and Configuration
 
 The constructor takes no arguments.  It creates an object with no device
-file open.
+file open and attributes initialized to:
+
+    Debug    = 0,  off
+    FakeNoPi = 1,  fall-back to fake memory
+    BaseAddr = value for the running RPi, i.e.
+	 0x20000000  RPi0,1
+	 0x3f000000  RPi2,3
+	 0xfe000000  RPi4
 
 The config_*() functions are intended to be called once before the device
-file is opened.
+file is opened:
 
 =over
 
 =item config_Debug()
 
-Set debug mode, 1= on, 0= off.
+Set debug mode, 1= on, 0= off (default).
 When Debug is TRUE, debug output on stderr is enabled.  Currently this
 is comments on the "capabilities" raise/lower in the process of opening
 the device file.
 
 =item config_FakeNoPi()
 
-Configure fall-back action when not on a Raspberry Pi:  1= fake memory with
-a warning, 0= throw error.
+Configure fall-back action when not on a Raspberry Pi:  1= fake memory
+(default), 0= throw error.
 Applies only when a real file is opened, i.e. open_dev_mem(), or
 open_dev_gpiomem().
 
@@ -108,11 +128,6 @@ Call with no argument to return the current BaseAddr.
 Call with an argument to configure the real IO base address to be used.
 A null address will cause a fake memory block to be used regardless of the
 device file opened.
-Addresses for existing Raspberry Pi (RPi) versions are:
-
- 0x20000000  RPi1,
- 0x3f000000  RPi2,3
- 0xfe000000  RPi4
 
 =back
 
@@ -211,8 +226,15 @@ where error conditions can be detected.
 
 This is the full sequence of operations.
 
+ // Configure rgRpiRev only if overrides are needed.
+    rgRpiRev::Config.BaseAddr.put( 0x3f000000 );
+
  // Construct object.
-    rgAddrMap          amx;		// address map object
+    rgAddrMap		amx;		// address map object
+
+ // Inspect derived condition
+    uint32_t		addr = amx.config_BaseAddr();
+    bool		fake = amx.is_fake_mem();
 
  // Configure, if needed.
     amx.config_Debug( 1 );
@@ -245,9 +267,7 @@ In the librgpio/ source tree:
 
 =head1		SEE ALSO
 
-rgpio(1),
-capabilities(7),
-setcap(8)
+ rgpio(1), rgRpiRev(3), librgpio(3), capabilities(7), setcap(8)
 
  BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf

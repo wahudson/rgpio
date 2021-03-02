@@ -22,6 +22,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 
 
@@ -29,7 +30,6 @@ using namespace std;
 
 		// IO address space conversion:
 #define BCM2835_IO_PERI		0x7e000000	// BCM2835 ARM Peripherals
-#define BCM2708_PERI_BASE	0x3f000000	// Rpi3, (0x20000000 Rpi1)
 
 
 /*
@@ -86,7 +86,7 @@ rgAddrMap::rgAddrMap()
     ModeStr = NULL;
 //  Prot    = PROT_READ | PROT_WRITE;
     Debug   = 0;
-    BaseAddr  = BCM2708_PERI_BASE;
+    BaseAddr = rgRpiRev::find_BaseAddr();
 }
 
 
@@ -196,14 +196,17 @@ rgAddrMap::open_dev_file(
 	throw std::runtime_error ( "rgAddrMap:  already opened" );
     }
 
-    if ( (file == NULL) || (*file == '\0') || (BaseAddr == 0) || FakeMem ) {
+    // explicit fake memory
+    if ( (file == NULL) || (*file == '\0') || FakeMem ) {
 	ModeStr = "fake_mem";
 	FakeMem = 1;
 	return;
     }
 
     // Check if on RPi, make safe on other machines.
-    if ( stat( "/dev/gpiomem", &statbuf ) != 0 ) {	// not exist
+    if ( (BaseAddr == 0) ||
+	 (stat( "/dev/gpiomem", &statbuf ) != 0)	// not exist
+    ) {
 	if ( FakeNoPi ) {
 	    this->open_dev_file( NULL );
 	    return;

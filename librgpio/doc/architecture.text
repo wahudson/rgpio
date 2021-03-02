@@ -903,7 +903,7 @@ RPi Versions:  (e.g. RPi3, RPi4, etc)
 
 rgAddrMap BaseAddr configuration:
 
-    A) Let rgAddrMap access global data in  rgRpiRev::Config.BaseAddr
+ >  A) Let rgAddrMap access global data in  rgRpiRev::Config.BaseAddr
 	The rgAddrMap function calls the find() accessor to get the value.
 	Any user config is applied to rgRpiRev before rgAddrMap construction.
 	    rgRpiRev::Config.BaseAddr.put( 0x20000000 );
@@ -917,8 +917,9 @@ rgAddrMap BaseAddr configuration:
 	- rgAddrMap depends on rgRpiRev
 	+ Derivation time is at rgAddrMap construction.
 	+ Parallel use of global data in Feature objects.
+	+ Does not rely on user for configuration.
 
- >  B) User explicitly transfers the address (to override default).
+    B) User explicitly transfers the address (to override default).
 	    base = rgRpiRev::Config.BaseAddr.find();
 	    Amx.config_BaseAddr( base );
 	+ Now it is clear that rgAddrMap is being configured.
@@ -927,6 +928,7 @@ rgAddrMap BaseAddr configuration:
 	- Base address is exposed to possible accident.
 	+ Derivation time is at explicit user find() call.
 	+ Simplest to implement.
+	-- Rely on user to configure auto-derive.
 	Possibly implement as:
 	    Amx.config_BaseAddr( rgRpiRev::get_BaseAddr() );
 
@@ -959,6 +961,31 @@ rgAddrMap BaseAddr configuration:
     I like (B) as easiest way to get started and has good qualities.
     Maybe find way to simplify auto-derivation for the user.
     Maybe evolve rgAddrMap to use global rgRpiRev as in (A).
+
+  (2021-02-27)  Switch to method (A).
+    After full implementation of rgRpiRev and rgAddrMap::config_BaseAddr(),
+    we have some experience with (B).
+    The main problem is user having to configure rgAddrMap.  A constant default
+    BaseAddr is a serious problem on other RPi versions.
+
+    BaseAddr is critical, and should not rely on user help.
+
+    "Resource acquisition is initialization" [Bjarne Stroustrup].
+    The constructor should ensure the object is initialized, and failing
+    that should restore system to previous state.
+    Constructors can throw exceptions (Feature objects do).
+
+    My initial concern was depending on rgRpiRev could be fragile, but that
+    seems unfounded now, and there are many possible user interventions if
+    the deduction turned out wrong.
+    The rgAddrMap constructor could catch exceptions from rgRpiRev.
+
+    It seems best to let rgAddrMap depend on rgRpiRev and initialize
+    BaseAddr for the RPi version being run (A).
+    Both classes have user override methods, and results can be inspected.
+
+    Perhaps a Debug attribute could show derivation steps on a user provided
+    stream.  Help user debug when things go really wrong.
 
 Feature SocEnum configuration:
     Note the Soc_enums are defined in rgRpiRev.
