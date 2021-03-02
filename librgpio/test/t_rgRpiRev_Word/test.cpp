@@ -326,7 +326,7 @@ tcWord			Dx;		// derived object
 	Dx.put_field(  9, 0x000000ff, 0x000001c3 );
 	FAIL( "no throw" );
     }
-    catch ( std::runtime_error e ) {
+    catch ( std::runtime_error& e ) {
 	CHECKX( 0xabba1111, Dx.get() );
 	CHECK( "rgWord::put_field():  value exceeds 0xff:  0x1c3", e.what() );
     }

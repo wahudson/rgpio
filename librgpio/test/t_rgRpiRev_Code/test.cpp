@@ -199,7 +199,7 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.read_rev_code( &iss );
 	FAIL( "no throw" );
     }
-    catch ( std::runtime_error e ) {
+    catch ( std::runtime_error& e ) {
 	CHECK( "read_rev_code() bad line:  'Revision  : a22082y'", e.what() );
     }
     catch (...) {
@@ -215,7 +215,7 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.read_rev_code( &iss );
 	FAIL( "no throw" );
     }
-    catch ( std::runtime_error e ) {
+    catch ( std::runtime_error& e ) {
 	CHECK( "read_rev_code() bad line:  'Revision  : '", e.what() );
     }
     catch (...) {
@@ -231,7 +231,7 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.read_rev_code( &iss );
 	FAIL( "no throw" );
     }
-    catch ( std::runtime_error e ) {
+    catch ( std::runtime_error& e ) {
 	CHECK( "read_rev_code() bad line:  'Revision  : 0xffffffff7654321099'",
 	    e.what()
 	);
@@ -271,7 +271,7 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.read_rev_code( "not_exist" );
 	FAIL( "no throw" );
     }
-    catch ( std::runtime_error e ) {
+    catch ( std::runtime_error& e ) {
 	CHECK( "read_rev_code() cannot open file:  not_exist", e.what() );
     }
     catch (...) {
@@ -284,7 +284,7 @@ rgRpiRev_Code		Tx;		// test object
 	rc = Tx.read_rev_code( "/dev/null" );
 	CHECKX( 0x00000000, rc );
     }
-    catch ( std::runtime_error e ) {
+    catch ( std::runtime_error& e ) {
 	FAIL( "unexpected runtime_error" );
     }
     catch (...) {
@@ -396,7 +396,7 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.find();
 	FAIL( "no throw" );
     }
-    catch ( std::runtime_error e ) {
+    catch ( std::runtime_error& e ) {
 	CHECK( "read_rev_code() cannot open file:  not_exist", e.what() );
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00000000, Tx.get() );
@@ -432,7 +432,7 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.put_ChipNumber_4(   0x10 );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( std::range_error& e ) {
 	CHECK( "rgWord::put_field():  value exceeds 0xf:  0x10", e.what() );
 	CHECKX(          0xffffffff, Tx.get() );
     }
