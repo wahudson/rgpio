@@ -228,6 +228,12 @@ main( int	argc,
 
 	if ( Error::has_err() )  return 1;
 
+	// Put rgAddrMap first to help validate default BaseAddr.
+	rgAddrMap		Amx;	// constructor
+
+	Amx.config_FakeNoPi( 1 );	// when not on RPi
+	Amx.config_Debug( Opx.debug );
+
 	if ( Opx.rpi3 ) {
 	    rgRpiRev::Config.BaseAddr.find();	// config first
 	    rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );
@@ -249,12 +255,6 @@ main( int	argc,
 	    cout.fill(' ');
 	    cout <<dec;
 	}
-
-	rgAddrMap		Amx;	// constructor
-
-	Amx.config_BaseAddr( rgRpiRev::find_BaseAddr() );
-	Amx.config_FakeNoPi( 1 );	// when not on RPi
-	Amx.config_Debug( Opx.debug );
 
 	//#!! --ro
 	if (      *Opx.dev == 'g' ) {
