@@ -1,0 +1,31 @@
+2021-03-03  William A. Hudson
+
+		Examples Using librgpio
+		-----------------------
+
+Each directory is an independent stand-alone example.
+
+Files:
+------
+README		this file
+librgpio ->	symlink to librgpio source directory
+
+	    Examples:
+ex_iopin1/	Example IO Pin - rgIoPins toggling Gpio[8]
+
+----------------------------------------------------------------------------
+## How to use:  (suggestion)
+----------------------------------------------------------------------------
+    Inspect files to see what it does/needs.
+
+    Compile in-place to run as-is.
+
+    Copy directory to your own place to explore modifications.  e.g.
+	% rsync -av  ex_iopin1/  ~/work/ex_iopin1/
+
+    Create symlink 'librgpio' in parent directory just like this one, but
+    make it point to where your compiled librgpio is.  e.g.
+	% ln -s  /opt/rgpio/rgpio-v0.20  librgpio
+
+    Run the copied example to be sure framework works, then make modifications.
+

@@ -13,6 +13,8 @@ Files:
     README		this file
     LICENSE		GPLv3 license
 
+    example/		Examples using librgpio
+
     librgpio/		C++ Library
 	README		    start here
 
@@ -53,15 +55,19 @@ Useful Elements:
 	To see how I think about software design (ok maybe not so good ;-)
 	Mostly for my own reference.
 
-Status:  2020-11-16
+Status:  2021-03-03
 -------
     Both the rgpio command and library are in a pretty good condition and
     are vary usable.
-    Currently only works on RPi3 (Raspberry Pi 3 versions).
-    Peripheral features currently implemented include:  (see rgpio(1) man page)
-    GPIO pins, Clock generators, I2C, PWM, SPI0, Aux SPI, System Timer.
+    Supports both Rpi4 (BCM2711), and RPi3 (BCM2837) and earlier versions
+    including RPi Zero and Compute Modules.
 
-    Future plans include extension for RPi4, and other peripherals.
+    Peripheral features currently implemented include:  (see rgpio(1) man page)
+    GPIO pins, Clock generators, I2C, PWM, SPI0, Aux SPI, System Timer, and
+    Pull Up/Down resistors.
+
+    Future plans include addition of other peripherals and various
+    enhancements.
 
 Building:
 ---------
