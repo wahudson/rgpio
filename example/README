@@ -8,6 +8,7 @@ Each directory is an independent stand-alone example.
 Files:
 ------
 README		this file
+.gitignore	ignore */*.exe
 librgpio ->	symlink to librgpio source directory
 
 	    Examples:

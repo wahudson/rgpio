@@ -24,10 +24,41 @@ Version Release Process:  (2020-10-24)
 ## Tag Log - whole repository
 ----------------------------------------------------------------------------
 
-    Tag		Message
-    -------	-------
-    v0.11.0	End use of rgIoPin enum implementation.
-    v0.10.0	End of rgSpi0 with register functions.
+Tag      Date        Message
+-------  ----------  -------
+
+v0.20.0  2021-03-08  Multi-RPi version support.  Extended RPi4 units.
+    rgAddrMap:  BaseAddr default to the running RPi, was hardwired RPi3.
+    rgpio-pull:  New Pin Pull-Up/Down command for RPi4.
+    rgPullPin:  New IO Pin Pull Up/Down class for RPi4.
+    rgpio-spi0:  Extend SPI unit numbers for RPi4.
+    rgSpi0:  Extend SPI unit numbers for RPi4.
+    rgAltFuncName:  Extend str_altfunc_bit() for RPi4.
+    rgpio-iic:  Extend IIC units {-3 .. -7} for RPi4.
+    rgpio:  New options --rpi3 --rpi4 override behavior for test/debug.
+    rgIic:  Extend IIC numbers to {0..7} for RPi4.
+    rgAddrMap:  New destructor to release file descriptor (bug).
+    rgpio-info:  New sub-command for RPi Revision Information.
+    rgAddrMap:  Add BaseAddr attribute.
+    rgRpiRev:  New RPi Revision class, providing BaseAddr and SocEnum.
+
+v0.19.0  2020-11-29  First release.
+    LICENSE and README prepare for release.
+    rgpio-io:  Add -0, -1 alias options for --w0, --w1.
+    rgpio-fsel:  Change word select options to -0, -1.
+    rgAltFuncName:  Complete Alt function names for RPi3.
+    rgpio-fsel:  Shorten option --show_all to --show.
+    rgIoPins:  Rename registers PullUpDown to PudProg.
+
+v0.18.0  2020-10-24  New rgPudPin, rgpio-man, and version system.
+    New version system using 'git describe'.
+    New rgPudPin, rgpio-pud  pull up/down programming.
+    Remove obsolete rgClock, rgIoPin
+    New rgpio-man command to show manpages.
+
+v0.11.0	 2020-04-22  End use of rgIoPin enum implementation.
+
+v0.10.0	 2020-03-19  End of rgSpi0 with register functions.
 
 ----------------------------------------------------------------------------
 ## Version Log - librgpio/src/rgVersion.h

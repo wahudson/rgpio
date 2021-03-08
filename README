@@ -71,6 +71,9 @@ Status:  2021-03-03
 
 Building:
 ---------
+    Required package:  libcap-dev
+	sudo apt-get install  libcap-dev
+
     Compile library first.
 	cd librgpio/src
 	make
@@ -149,12 +152,18 @@ License:
 
 Contributing:
 -------------
-    I am NOT accepting pull requests at this time.
-
     Currently this is a single-person project I am actively using and
     developing.  My intent is to make it available to others while I do so.
     If people are interested, it could become a community project.
-    I am happy you found something useful!
+    I am happy if you found something useful!
+
+    It is at the stage where user feedback would be helpful.  Does it seem
+    useful enough to warrant advertising to a wider audience?
+    It is at version v0.20, and some interfaces should probably change.
+
+    Please use the GitHub Discussion page.  Please make entries and frame
+    questions and thoughts with a view to helping others that come after you.
+    Help each other.
 
 Git:
 ----
