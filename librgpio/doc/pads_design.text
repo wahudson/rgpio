@@ -1,0 +1,221 @@
+2021-03-06  William A. Hudson
+
+		GPIO Pads Control - Design
+		--------------------------
+
+References:
+-----------
+GPIO pads control,  Gert van Loo 2-August-2012.
+    http://www.scribd.com/doc/101830961
+    https://matt.ucc.asn.au/mirror/electron/GPIO-Pads-Control2.pdf
+
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/gpio_pads_control.md
+
+It does not appear in the BCM2835 ARM Peripherals doc.
+
+----------------------------------------------------------------------------
+## Discussion - Pads Control
+----------------------------------------------------------------------------
+
+    This controls the IO pads drive strength, input slew rate and hysteresis.
+    The IO pads are split into 3 banks:
+
+    Register
+    address      GPIO pins
+    ----------   -----------
+    0x7e10002c   Gpio[27:0]	28 bits
+    0x7e100030   Gpio[45:28]	18 bits
+    0x7e100034   Gpio[53:46]	 8 bits
+
+    Each register controls all pins in its bank.
+    RPi4 added pins Gpio[57:54], but are not documented in Pads Control.
+
+Possible Class Names:
+ >  rgPads
+    rgPadStrenth
+    rgPadControl
+    rgPadCon
+
+Structure:
+    Each register has exactly the same fields/functions.
+
+    Possibly each register could be separate units of the Feature class.
+    This is interesting, but may be pushing the unit number concept a
+    little too far.  It would loose opportunity to combine operations.
+    Also loose naming by pin number group, which seems pretty important.
+
+Operation with rgpio:
+    Maybe options indicate field value to set, and argument list is the
+    register to operate on.  e.g.
+	% rgpio pads --SlewMax=1 --HystEn=1 --Drive=7  PadsA_27s0
+
+----------------------------------------------------------------------------
+## Class Design - Pads Control
+----------------------------------------------------------------------------
+
+Possible Register name prefix:
+    Bank
+ >  Pads
+    Cntl
+    PadCon
+    PadCntl
+    Con
+
+Possible Register Names:
+
+    Bank0
+    Bank1
+    Bank2
+
+    Pads0		name by lowest pin number in bank
+    Pads28
+    Pads46
+
+    Pads27_0		pin numbers confuse with field width
+    Pads45_28
+    Pads53_46
+
+    Pads_27_0
+    Pads_45_28
+    Pads_53_46
+
+    PadsA_27_0
+    PadsB_45_28
+    PadsC_63_46
+
+    Pads_27_0_A
+    Pads_45_28_B
+    Pads_63_46_C
+
+    Pads27_0A
+    Pads45_28B
+    Pads63_46C
+
+    Pads27a0
+    Pads45b28
+    Pads63c46
+
+    Pads27s0
+    Pads45s28
+    Pads63s46
+
+    Pad27s0
+    Pad45s28
+    Pad63s46
+
+    Pads0_27s0
+    Pads1_45s28
+    Pads2_53s46
+
+    PadsA_27to0
+    PadsA_27a0
+    PadsA_27t0
+    PadsA_27y0
+
+ >  PadsA_27s0		Choose this
+ >  PadsB_45s28
+ >  PadsC_53s46
+	Use a bank name with a pin number range suffix to make it clear what
+	pins are controlled.  Save the human reader from having to look it up.
+
+	The prefix "Pads" suggests multiple pads are controlled.  The word
+	"Bank" is literal, but not clear as to bank of what.
+
+	A,B,C names the bank.  Could use numbers 0,1,2 but numbers are a little
+	overused and thus somewhat unclear, although they would parallel unit
+	numbers elsewhere.
+
+	The underscore helps highlite the bank name and separate the pin
+	number range.
+
+	The pin numbers decrease left to right, paralleling the pin number
+	association in IO pin registers.
+
+	The 's' pin range separator avoids too many underscores, and avoids
+	looking like the number of bits in a field.
+	It could be most any letter, but 's' is compact and suggests plural.
+
+	The third bank is pin numbered 53:46, which is what RPi3 and earlier
+	chips had.  The RPi4 added pins Gpio[57:54] appear to be undocumented.
+	Decided to name according to the known past and avoid guessing the
+	future.
+
+	You have to lookup the name, but once written down it helps a person
+	guess the actual Gpio pin range.
+
+Field Names:
+
+    Reg.Field		Bits     BCM      possible alternatives
+    ---.----------	-------  -------  ---------------------
+    REG.Passwd_8	[31:24]  PASSWRD  Password_8
+    REG.SlewMax_1	[4]      SLEW     Slew_1  SlewRate_1  SlewUn_1
+    REG.HystEn_1	[3]      HYST     Hyst_1  Hysteresis_1
+    REG.DriveStr_3	[2:0]    DRIVE    DriveStrength_3  Drive_3  DriveStren_3
+
+    Abbreviations appropriate for this context are:
+	Passwd	Password, i.e. Linux /etc/passwd
+	Hyst	Hysteresis
+	En	Enable
+	Str	Strength
+
+Field Naming:
+
+    Choose names that are somewhat descriptive and meaningful at the call
+    point in user code.
+    Try to limit name length to 15 characters or less, including the "_1"
+    field width numeral.
+
+    Single-bit fields should name the thing that the '1' level does.
+    Note a name like SlewRate_1 does not help to know that 1 means not slew
+    rate limited.  In the end you still have to look up the meaning.
+
+    SlewMax_1 -
+	1= maximum slew rate.
+	0= slew rate limited
+	SlewLimitDis_1 - even more literal
+
+    HystEn_1 -
+	1= hysteresis enabled
+	0= not
+
+Function Names:  (same as rgRegister)
+
+    All register and field accessor functions are methods of each register
+    object.
+
+    The full register operations are inherited from rgRegister class.
+    These are:
+
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
+
+    Another name for "grab" is "pull", but I like the quirkyness of "grab".
+
+    Field accessor functions are defined in each register derived class.
+    These are named like:  (same as rgUniSpi)
+
+	get_FIELD_N()	get object FIELD value of width N
+	put_FIELD_N(V)	set object FIELD value of width N
+
+----------------------------------------------------------------------------
+## rgPads Object - Pads Control
+----------------------------------------------------------------------------
+
+Object data:
+{
+    volatile unsigned	*GpioBase;	// IO base address
+    uint32_t		FeatureAddr = 0x7e100000;	// BCM doc value
+
+    rgPads_Cntl		PadsA_27s0;	// Gpio[27:0],  28 bits
+    rgPads_Cntl		PadsB_45s28;	// Gpio[45:28], 18 bits
+    rgPads_Cntl		PadsC_53s46;	// Gpio[53:46],  8 bits + remainder
+}
+

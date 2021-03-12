@@ -52,6 +52,7 @@ Test suites:  (2017-05-20)
  u   s  t_rgFselPin/	rgFselPin	Pin Function Select class.
  u   s  t_rgIic/	rgIic		I2C Master class.
  u   s  t_rgIoPins/	rgIoPins	GPIO IO Pin control class.
+ u   s  t_rgPads/	rgPads		Pads Control class.
  u   s  t_rgPudPin/	rgPudPin	IO Pin Pull Up/Down class RPi3 earlier.
  u   s  t_rgPullPin/	rgPullPin	IO Pin Pull Up/Down class for RPi4.
  u   s  t_rgPwm/	rgPwm		PWM Pulse Width Modulator class.

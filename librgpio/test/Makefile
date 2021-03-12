@@ -12,6 +12,7 @@ test:
 	cd t_rgFselPin        && make test
 	cd t_rgIic            && make test
 	cd t_rgIoPins         && make test
+	cd t_rgPads           && make test
 	cd t_rgPudPin         && make test
 	cd t_rgPullPin        && make test
 	cd t_rgPwm            && make test
@@ -39,6 +40,7 @@ clean:
 	cd t_rgFselPin        && make clean
 	cd t_rgIic            && make clean
 	cd t_rgIoPins         && make clean
+	cd t_rgPads           && make clean
 	cd t_rgPudPin         && make clean
 	cd t_rgPullPin        && make clean
 	cd t_rgPwm            && make clean
