@@ -7,6 +7,7 @@ usage:  rgpio [main_options..]  feature  [options..]
     iic          I2C Master
     info         RPi Revision Information
     man          man pager
+    pads         Pads Control
     pud          Pin Pull-Up/Down - RPi3 and earlier
     pull         Pin Pull-Up/Down - RPi4
     pwm          PWM Pulse Width Modulator

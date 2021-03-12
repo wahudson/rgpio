@@ -1,0 +1,25 @@
+Pads Control register:            28   24   20   16   12    8    4    0
++ Grab register
++ Modify register
++ Grab register
+0x5a000003  PadsA_27s0          0101 1010 0000 0000 0000 0000 0000 0011
+   Passwd_8    = 0x5a
+   SlewMax_1   = 0
+   HystEn_1    = 0
+   DriveStr_3  = 3
++ Grab register
++ Modify register
++ Grab register
+0x5a000003  PadsB_45s28         0101 1010 0000 0000 0000 0000 0000 0011
+   Passwd_8    = 0x5a
+   SlewMax_1   = 0
+   HystEn_1    = 0
+   DriveStr_3  = 3
++ Grab register
++ Modify register
++ Grab register
+0x5a000003  PadsC_53s46         0101 1010 0000 0000 0000 0000 0000 0011
+   Passwd_8    = 0x5a
+   SlewMax_1   = 0
+   HystEn_1    = 0
+   DriveStr_3  = 3

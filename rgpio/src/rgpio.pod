@@ -18,6 +18,7 @@ rgpio -- Raspberry Pi GPIO utility
     iic          I2C Master
     info         RPi Revision Information
     man          man pager
+    pads         Pads Control
     pud          Pin Pull-Up/Down - RPi3 and earlier
     pull         Pin Pull-Up/Down - RPi4
     pwm          PWM Pulse Width Modulator
@@ -136,6 +137,7 @@ B<librgpio> class.
  info    rgpio-info    rgRpiRev     RPi Revision Information
  io      rgpio-io      rgIoPins     General Purpose IO pins
  man     rgpio-man     --           manual pager
+ pads    rgpio-pads    rgPads       Pads Control
  pud     rgpio-pud     rgPudPin     Pin Pull-Up/Down - RPi3 and earlier
  pull    rgpio-pull    rgPullPin    Pin Pull-Up/Down - RPi4
  pwm     rgpio-pwm     rgPwm        PWM Pulse Width Modulator

@@ -1,0 +1,14 @@
+    Pads Control
+usage:  rgpio pads [options..]  [REG..]
+    REG = { PadsA_27s0, PadsB_45s28, PadsC_53s46 }
+  modify register:
+    --value=V           set register value
+  modify fields:  (of REG..)
+    --Passwd_8=0x5a     password (default)
+    --SlewMax_1=0       1= max slew rate, 0= limited
+    --HystEn_1=0        1= hysteresis enabled, 0= not
+    --DriveStr_3=0      drive strength (0..7) = (2 mA .. 16 mA)
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)

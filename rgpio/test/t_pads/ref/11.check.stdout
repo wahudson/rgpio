@@ -1,0 +1,16 @@
+Pads Control register:            28   24   20   16   12    8    4    0
+0x00000000  PadsA_27s0          0000 0000 0000 0000 0000 0000 0000 0000
+   Passwd_8    = 0x00
+   SlewMax_1   = 0
+   HystEn_1    = 0
+   DriveStr_3  = 0
+0x00000000  PadsB_45s28         0000 0000 0000 0000 0000 0000 0000 0000
+   Passwd_8    = 0x00
+   SlewMax_1   = 0
+   HystEn_1    = 0
+   DriveStr_3  = 0
+0x00000000  PadsC_53s46         0000 0000 0000 0000 0000 0000 0000 0000
+   Passwd_8    = 0x00
+   SlewMax_1   = 0
+   HystEn_1    = 0
+   DriveStr_3  = 0
