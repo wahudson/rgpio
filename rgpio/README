@@ -45,6 +45,8 @@ src/		    Source code
     y_io.h
     y_man.cpp		rgpio man -- manual pager
     y_man.h
+    y_pads.cpp		rgpio pads -- Pads Control
+    y_pads.h
     y_pud.cpp		rgpio pud -- IO Pin Pull Up/Down
     y_pud.h
     y_pwm.cpp		rgpio pwm -- Pulse Width Modulator
@@ -60,6 +62,7 @@ src/		    Source code
 	rgpio-clk.pod
 	rgpio-fsel.pod
 	rgpio-io.pod
+	rgpio-pads.pod
 
     Unused/	      Obsolete and other unused code
 	y_clock.cpp	rgpio clock -- Clock control (replaced by y_clk)

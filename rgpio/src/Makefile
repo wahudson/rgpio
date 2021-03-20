@@ -84,7 +84,8 @@ man:	$(MAN)/man1 \
 	$(MAN)/man1/rgpio.1 \
 	$(MAN)/man1/rgpio-clk.1 \
 	$(MAN)/man1/rgpio-fsel.1 \
-	$(MAN)/man1/rgpio-io.1
+	$(MAN)/man1/rgpio-io.1 \
+	$(MAN)/man1/rgpio-pads.1
 
 clean:
 	rm -f  $(OJ)/*
@@ -184,4 +185,8 @@ $(MAN)/man1/rgpio-fsel.1:	man1/rgpio-fsel.pod
 $(MAN)/man1/rgpio-io.1:		man1/rgpio-io.pod
 	pod2man -s 1 -n rgpio-io --center='Raspberry Pi GPIO' \
 		   man1/rgpio-io.pod  $@
+
+$(MAN)/man1/rgpio-pads.1:	man1/rgpio-pads.pod
+	pod2man -s 1 -n rgpio-pads --center='Raspberry Pi GPIO' \
+		   man1/rgpio-pads.pod  $@
 
