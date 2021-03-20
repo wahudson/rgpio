@@ -1,0 +1,190 @@
+# 2021-03-12  William A. Hudson
+
+# rgPads  Hardware Register Description.
+#---------------------------------------------------------------------------
+
+=head1		NAME
+
+rgPads  Hardware Description -- Pads Control
+
+=head1		SYNOPSIS
+
+These registers control the IO pads drive strength, input slew rate and
+hysteresis.
+
+    rgPads
+    Register       GPIO pins
+    ----------     -----------
+    PadsA_27s0     Gpio[27:0]     28 bits
+    PadsB_45s28    Gpio[45:28]    18 bits
+    PadsC_53s46    Gpio[53:46]     8 bits
+
+Each register has the same control fields.
+
+    Reg.Field           Bits     BCM
+    ---.----------      -------  -------
+    REG.Passwd_8        [31:24]  PASSWRD  (Write-Only)
+    REG.SlewMax_1       [4]      SLEW
+    REG.HystEn_1        [3]      HYST
+    REG.DriveStr_3      [2:0]    DRIVE
+
+The numeric suffix is the field width.
+
+All registers are 32-bits, read-write.
+Unspecified bit fields in each register are typically reserved, and should
+be write as 0, and read as don't care.
+
+=head2			Abbreviations in Register/Field names
+
+ Passwd  Password, i.e. Linux /etc/passwd
+ Hyst    Hysteresis
+ En      Enable
+ Str     Strength
+
+
+=head1		DESCRIPTION
+
+Each register controls all pins in its bank.
+
+RPi4 added pins Gpio[57:54], but their control bank is not documented.
+
+Note only Gpio[27:0] are accessible on the Raspberry Pi 40-pin header, and
+all are configured the same by register B<PadsA_27s0>.
+
+Digital IO pins are designed for just that - digital signaling.
+These pad controls allow tuning some of the driver/receiver parameters.
+Each parameter has benefits and associated disadvantages.
+Choose what is best for your particular context.
+
+The following notes provide a model for RPi behavior, and some things to
+consider.
+
+=head2			Input Hysteresis
+
+Hysteresis is the difference between the input high and low voltage thresholds:
+
+ Vih = input high level voltage threshold
+ Vil = input low  level voltage threshold
+ (Vih - Vil) = input voltage hysteresis
+
+Hysteresis helps reject ringing on a fast edge, and noise on a slow input edge.
+Generally this is good, but it also increases the receiver delay in response
+to the edge.
+
+Generally recommend leaving B<HystEn_1>=1, enabled, the power-on default.
+
+=head2			Output Slew Rate
+
+Slew rate refers to how fast the output voltage transitions between logic
+levels.  Measured in Volts per second (V/s).
+
+A fast edge (high slew rate) allows toggling at higher frequencies, but can
+cause increased ringing.
+
+One way the RPi driver circuit could limit slew rate is to turn-on the output
+MOSFETs sequentially instead of all at once.  Thus it may interact with
+the B<DriveStr_3> control.
+
+=head2			Output Drive Strength
+
+The output driver can be configured for the number of parallel MOSFETs
+pulling the output up to Vddio when driving 1, and down to Gnd when driving 0.
+That is essentially all that the B<DriveStr_3> parameter does.
+The actual output voltage, and current, will depend on the load.
+
+The B<DriveStr_3> parameter values are identified in terms of the
+nominal maximum current that will still meet the output drive voltage
+specification for Voh and Vol.
+
+A higher drive strength can charge the capacitance of the output line faster,
+producing a faster edge rate and potentially more ringing.
+
+Beware of simultaneous switching outputs charging output line capacitance.
+That aggregate current spike can cause a voltage transient on the 3V3 supply
+when pulling up, or ground bounce when pulling down, perturbing the logic
+voltage level seen in other parts of the system.
+
+The 3V3 power supply on the RPi boards, i.e. RPi3 and earlier, was designed
+for a maximum current of ~3 mA per GPIO pin.  Times 28 pins on the 40-pin
+header is ~84 mA.  This is the maximum aggregate current we should expect
+to be able to draw.
+
+See the references for "GPIO pads control" [1].
+
+Some things to remember:  The Gpio lines are intended for digital signaling at
+3.3 V logic levels.  A 5 V signal can damage the RPi.
+Driving a few low current LEDs is fine, but use buffers when driving many
+high current LEDs.
+Do NOT drive inductive loads - use appropriate interface circuits.
+
+=head2			Register Names
+
+The idea is to let the register name identify both the bank and the Gpio pins,
+e.g. B<PadsA_27s0>:  The prefix "Pads"{A,B,C} names the register bank.
+The suffix identifies the pin number range [27:0] that it controls.
+
+
+=head1		REGISTER BIT FIELDS
+
+Each register has the same control fields.
+The power-on state is indicated by "(reset)".
+Note the operating system may change the configuration at boot time.
+
+=over
+
+=item B<Passwd_8>           - Password.  (Write-Only)
+
+Writing the register has no effect unless B<Passwd_8>= 0x5a.
+Reading always returns 0.
+This is a mechanism to provide some protection against accidental modification.
+
+=item B<SlewMax_1>          - Driver Slew rate.
+
+ 1= maximum slew rate (reset)
+ 0= slew rate limited
+
+=item B<HystEn_1>           - Receiver Hysteresis enable.
+
+ 1= hysteresis enabled (reset)
+ 0= not
+
+=item B<DriveStr_3>         - Drive strength.
+
+Effectively configures the number of parallel MOSFETs in the pad driver.
+For each setting, the nominal maximum current that will still meet the output
+drive voltage specification is given in the table.
+
+ 0=  2 mA
+ 1=  4 mA
+ 2=  6 mA
+ 3=  8 mA  (reset)
+ 4= 10 mA
+ 5= 12 mA
+ 6= 14 mA
+ 7= 16 mA
+
+=back
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgPads.h
+ src/rgPads.cpp
+
+
+=head1		SEE ALSO
+
+ rgPads(3)
+ rgpio-pads(1)
+
+ [1] GPIO pads control,  Gert van Loo 2-August-2012.
+    http://www.scribd.com/doc/101830961
+
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/gpio_pads_control.md
+
+ [2] GPIO Voltage specifications
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/README.md
+
+=cut
+

@@ -1,0 +1,181 @@
+# 2021-03-13  William A. Hudson
+
+# rgpio-pads -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio-pads -- Pads Control
+
+=head1		SYNOPSIS
+
+ rgpio pads [options..]  [REG..]
+    REG = { PadsA_27s0, PadsB_45s28, PadsC_53s46 }
+  modify register:
+    --value=V           set register value
+  modify fields:  (of REG..)
+    --Passwd_8=0x5a     password (default)
+    --SlewMax_1=0       1= max slew rate, 0= limited
+    --HystEn_1=0        1= hysteresis enabled, 0= not
+    --DriveStr_3=0      drive strength (0..7) = (2 mA .. 16 mA)
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
+
+
+=head1		DESCRIPTION
+
+This command accesses the Pads Control registers that control receiver
+hysteresis, driver slew rate, and driver strength.
+
+Register and field names are the same as in the "rgPads" class
+(see file rgPads.h) and are listed in the register group options below.
+The names are a little long, but aid in the use of the librgpio library.
+
+See B<rgPads>(7) for hardware behavior.
+
+
+=head1		OPTIONS
+
+=head2			Register Names
+
+The Gpio pins are grouped into 3 banks, with one register per bank.
+All pins in a bank have the same configuration.
+
+=over
+
+=item B<PadsA_27s0>    Gpio[27:0]     28 bits
+
+=item B<PadsB_45s28>   Gpio[45:28]    18 bits
+
+=item B<PadsC_53s46>   Gpio[53:46]     8 bits
+
+=back
+
+=head2			Modify Options
+
+These options modify the specified field for each register named in the
+argument list.
+Any unspecified fields remain unchanged.
+If no modification options are specified, the hardware register values are
+simply read and displayed.
+
+If modification is requested, the process for each register is:
+
+    1) Read current hardware register value.
+    2) Replace with whole register option --value, if specified.
+    3) Modify bits according to field options.
+    4) Write modified value back to hardware register.
+    5) Read hardware register and display resulting value.
+
+The default password (B<Passwd_8>= 0x5a) is applied unless option B<--value>
+is given.
+
+=over
+
+=item B<--value=>0x5a000000 - Set whole register value.
+
+No default password is applied.
+
+=item B<--Passwd_8=>0x5a    - password (default)
+
+The default value is applied only if other field options are specified, i.e.
+no need to explicitly specify the default password.
+
+=item B<--SlewMax_1=>1      - 1= max slew rate, 0= limited
+
+A high slew rate allows toggling at higher frequencies, but can cause
+increased ringing.
+
+=item B<--HystEn_1=>1       - 1= hysteresis enabled, 0= not
+
+Hysteresis helps reject ringing on a fast edge, and noise on a slow input edge.
+
+=item B<--DriveStr_3=>3     - drive strength (0..7) = (2 mA .. 16 mA)
+
+Effectively configures the number of parallel MOSFETs in the pad driver.
+For each setting, the nominal maximum current that will still meet the output
+drive voltage specification is given in the table.
+
+ 0=  2 mA
+ 1=  4 mA
+ 2=  6 mA
+ 3=  8 mA  (power-on reset)
+ 4= 10 mA
+ 5= 12 mA
+ 6= 14 mA
+ 7= 16 mA
+
+=back
+
+=head2			Options
+
+=over
+
+=item B<-v, --verbose>      - Verbose output.
+
+Shows actions taken as the command executes.
+
+=back
+
+=head1		OUTPUT
+
+Output values are always the final register values re-read after all
+modifications.
+Example output (on stdout) for one register looks like:
+
+ Pads Control register:            28   24   20   16   12    8    4    0
+ 0x0000001b  PadsA_27s0          0000 0000 0000 0000 0000 0000 0001 1011
+    Passwd_8    = 0x00
+    SlewMax_1   = 1
+    HystEn_1    = 1
+    DriveStr_3  = 3
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ View all configuration registers.
+ % rgpio pads
+
+ View one register.
+ % rgpio pads  PadsA_27s0
+
+ Modify fields.
+ % rgpio pads -v  --DriveStr_3=4  PadsA_27s0
+
+ Explore explicit password.
+ % rgpio pads  --Passwd_8=0x99 --DriveStr_3=7  PadsA_27s0
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the source directory tree:
+
+ librgpio/src/rgPads.h
+
+
+=head1		SEE ALSO
+
+B<rgpio>(1),
+B<rgPads>(7),
+B<rgPads>(3),
+B<librgpio>(3)
+
+ GPIO pads control,  Gert van Loo 2-August-2012.
+    http://www.scribd.com/doc/101830961
+
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/gpio/gpio_pads_control.md
+
+=cut
+
