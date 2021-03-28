@@ -130,8 +130,8 @@ essentially by disabling the active pull-up FET (Field Effect Transistor).
 Be aware the internal GPIO pin pull up/down resistors can be configured to
 pull up, pull down, or be turned off.
 
-Note that RPi-3 and earlier boards have 1.8 kohm pullup resistors on the
-iic1 pins Gpio[2] and Gpio[3].  RPi-4 does not.  See RPi schematics.
+Note that RPi4 and earlier boards have 1.8 kohm pullup resistors on the
+iic1 pins Gpio[2] and Gpio[3].  See RPi schematics.
 
 =head2			Signal Timing
 
@@ -145,7 +145,93 @@ Normal data changes are allowed only when SCL is low.
                ^                                   ^
           | Start|         Data Transfer         |Stop | Idle
 
-See I2C documentation elsewhere for protocol operation.
+Typically SDA is sampled on the rising edge of SCL, and changed on the
+falling edge of SCL.  The B<Delay> register can be used to adjust timing of
+the RPi master.
+
+=head2			I2C Operation
+
+A transaction consists of Start condition followed by an address packet,
+zero or more data packets, and a Stop condition.
+
+A packet consists of 8 data bits signaled by the sender, MSB first, followed
+by an acknowledge (ACK) bit signaled by the receiver.
+
+An address packet has data that consists of the 7-bit device address, MSB
+first, followed by the B<ReadPacket_1> read/write bit.
+
+ Address transaction, no data.
+   S | A6 A5 A4 A3 A2 A1 A0 Rw Ks | P
+
+ Write transaction.
+   S | A6 A5 A4 A3 A2 A1 A0 0  Ks | D7 D6 D5 D4 D3 D2 D1 D0 Ks |... P
+
+ Read transaction.
+   S | A6 A5 A4 A3 A2 A1 A0 1  Ks | d7 d6 d5 d4 d3 d2 d1 d0 Km |... P
+
+ Start|    address packet         |        data packet        |... Stop
+
+    S      = Start condition, by master
+    P      = Stop  condition, by master
+    A6..A0 = device address, always sent by master
+    Rw     = Read/write bit, by master
+    Ks     = Acknowledge, by slave
+    Km     = Acknowledge, by master
+    D7..D0 = data byte, by master
+    d7..d0 = data byte, by slave
+
+Acknowledge bit:  0= ACK acknowledge (actively driven low), 1= NACK
+not acknowledge (passively pulled high).
+ACK is driven by the receiver of the packet to indicate OK to continue.
+
+See I2C documentation below for diagrams and more details.
+
+=head2			RPi Master Operation
+
+This short summary of highlights for the RPi I2C Master is derived from
+documentation and experiment.
+
+The RPi master is intended to control a single transaction in one direction
+at a time.  It has no controls to create a repeated start.
+It has no mechanism to queue up multiple transactions, although data for
+successive transactions can be placed in the FIFO.
+
+A transaction is started by setting B<StartTrans_1>=1.  Note that status
+B<TransActive_1> is not immediately set, and becomes 1 some time later.
+The address packet is sent immediately, even if there is no data in the FIFO.
+
+A write transaction with no data, i.e. B<DataLen_16>=0, will send just the
+address.  This can be used to probe for devices on the bus, looking for
+addresses that do not result in an acknowledge error B<AckErr_1>=1.
+
+If a write transaction runs out of data in the FIFO, the master will wait
+indefinitely, holding SCL high.  [Is there a timeout?]
+The receiving slave will have acknowledged the previous packet, and is forced
+to continue holding SDA low, since SDA changes are not allowed when SCL is
+high.
+Note some slaves may have a timeout to avoid locking up the bus, and will
+raise SDA anyway (signaling Stop).  The RPi master sees this, and responds
+by sending Stop.
+
+If the FIFO becomes full on a read transaction, the master will wait
+indefinitely, holding SCL high.  When the processor removes an entry, the
+master will receive another packet.
+
+It is not necessary to clear B<TransDone_1> to start another transaction,
+but it is necessary in order to change B<DataLen_16>.
+
+The B<IicEnable_1> control can be used to suspend an active transaction, and
+later resume it.
+
+The B<ClearFifo_2> control can be used to abort an active transaction.
+
+A read transaction with no data, B<DataLen_16>=0, can hang the bus if the
+slave was expecting to send more data and the first read data bit is 0.
+What happens:  The master issues one more SCL cycle, low then high, in order
+to send a Stop condition.  However the slave is holding SDA low for the
+first read data bit, preventing the master from signaling Stop by raising SDA.
+Now SCL is left high by the master, and the slave is stuck holding SDA low
+since changes are not allowed while SCL is high.
 
 =head2			Hardware FIFO
 
