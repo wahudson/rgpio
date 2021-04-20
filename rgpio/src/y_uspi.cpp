@@ -439,11 +439,11 @@ y_uspi::doit()
 				// pointers to Spi objects, NULL if not used.
 
 	if ( Opx.spi_ch[1] ) {
-	    Spx[1] = new  rgUniSpi  ( 1, AddrMap );	// constructor
+	    Spx[1] = new  rgUniSpi  ( AddrMap, 1 );	// constructor
 	}
 
 	if ( Opx.spi_ch[2] ) {
-	    Spx[2] = new  rgUniSpi  ( 2, AddrMap );	// constructor
+	    Spx[2] = new  rgUniSpi  ( AddrMap, 2 );	// constructor
 	}
 
 	if ( Opx.debug ) {

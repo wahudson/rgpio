@@ -25,13 +25,13 @@ using namespace std;
 *    rgAddrMap	amx;		// address map object
 *    amx.open_dev_mem();	// select and open device file
 * call:
-*    rgUniSpi	spx  ( N, &amx );	// constructor with address map
-*    N     = SPI number {1,2}
+*    rgUniSpi	spx  ( &amx, N );	// constructor with address map
 *    &amx  = pointer to address map object with open device file
+*    N     = SPI number {1,2}
 */
 rgUniSpi::rgUniSpi(
-    uint32_t		spinum,	// SPI number {1,2}
-    rgAddrMap		*xx
+    rgAddrMap		*xx,
+    uint32_t		spinum	// SPI number {1,2}
 )
 {
     uint32_t		delta;

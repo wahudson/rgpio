@@ -246,7 +246,7 @@ main( int	argc,
 	    cout << "Using Fake memory" <<endl;
 	}
 
-	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
+	rgUniSpi		Uspix  ( &Amx, 1 );	// constructor
 
 	// Main Loop
 

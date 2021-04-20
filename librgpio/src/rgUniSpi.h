@@ -177,8 +177,8 @@ class rgUniSpi {
 
   public:
     rgUniSpi(			// constructor
-	uint32_t	spinum,		// SPI number {1,2}
-	rgAddrMap	*xx
+	rgAddrMap	*xx,
+	uint32_t	spinum		// SPI number {1,2}
     );
 
     inline volatile uint32_t*	get_base_addr()  { return  GpioBase; }

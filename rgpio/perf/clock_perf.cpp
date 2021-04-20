@@ -231,7 +231,7 @@ main( int	argc,
 	rgIoPins		Gpx  ( &Amx );		// constructor
 	rgPudPin		Ppx  ( &Amx );		// constructor
 	rgClk			Cky  ( &Amx, rgClk::cm_Clk0 );	// constructor
-	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
+	rgUniSpi		Uspix  ( &Amx, 1 );	// constructor
 	uint32_t		vv;
 
 	volatile uint32_t*	pinread = Gpx.PinRead_w0.addr();

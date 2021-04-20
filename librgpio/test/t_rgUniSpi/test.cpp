@@ -39,9 +39,9 @@ rgAddrMap		Bx;
 	FAIL( "unexpected exception" );
     }
 
-rgUniSpi		Tx   ( 1, &Bx );	// test object
-rgUniSpi		Tx1  ( 1, &Bx );	// test object, Spi1
-rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
+rgUniSpi		Tx   ( &Bx, 1 );	// test object
+rgUniSpi		Tx1  ( &Bx, 1 );	// test object, Spi1
+rgUniSpi		Tx2  ( &Bx, 2 );	// test object, Spi2
 
 
 //--------------------------------------------------------------------------
@@ -50,7 +50,7 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
   CASE( "10a", "constructor" );
     try {
-	rgUniSpi	tx  ( 1, &Bx );
+	rgUniSpi	tx  ( &Bx, 1 );
 	PASS( "constructor" );
     }
     catch (...) {
@@ -59,7 +59,7 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
   CASE( "10b", "constructor" );
     try {
-	rgUniSpi	tx  ( 2, &Bx );
+	rgUniSpi	tx  ( &Bx, 2 );
 	PASS( "constructor" );
     }
     catch (...) {
@@ -69,7 +69,7 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 //--------------------------------------
   CASE( "11a", "constructor, bad spi number" );
     try {
-	rgUniSpi	tx  ( 0, &Bx );
+	rgUniSpi	tx  ( &Bx, 0 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
@@ -83,7 +83,7 @@ rgUniSpi		Tx2  ( 2, &Bx );	// test object, Spi2
 
   CASE( "11b", "constructor, bad spi number" );
     try {
-	rgUniSpi	tx  ( 3, &Bx );
+	rgUniSpi	tx  ( &Bx, 3 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {

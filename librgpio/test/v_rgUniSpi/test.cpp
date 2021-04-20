@@ -44,7 +44,7 @@ rgAddrMap		Bx;
 	FAIL( "unexpected exception" );
     }
 
-rgUniSpi		Tx   ( 1, &Bx );	// test object
+rgUniSpi		Tx   ( &Bx, 1 );	// test object
 
 
 //--------------------------------------------------------------------------
@@ -53,7 +53,7 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "10a", "constructor" );
     try {
-	rgUniSpi	tx  ( 1, &Bx );
+	rgUniSpi	tx  ( &Bx, 1 );
 	PASS( "constructor" );
     }
     catch (...) {
@@ -62,7 +62,7 @@ rgUniSpi		Tx   ( 1, &Bx );	// test object
 
   CASE( "10b", "constructor" );
     try {
-	rgUniSpi	tx  ( 2, &Bx );
+	rgUniSpi	tx  ( &Bx, 2 );
 	PASS( "constructor" );
     }
     catch (...) {

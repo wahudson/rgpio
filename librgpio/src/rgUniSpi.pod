@@ -35,8 +35,8 @@ rgUniSpi class -- Universal SPI Master
 =head2		Constructor
 
  rgUniSpi(
-    uint32_t		spinum,		// SPI number {1,2}
-    rgAddrMap		*amx		// object with open device file
+    rgAddrMap		*amx,		// object with open device file
+    uint32_t		spinum		// SPI number {1,2}
  );
 
  uint32_t		get_spi_num()
@@ -288,7 +288,7 @@ This example configures SPI1 for basic operation.
  // Construct an object for SPI1.
     rgAddrMap          amx;                    // address map object
     amx.open_dev_mem();                        // open device file
-    rgUniSpi           spx  ( 1, &amx );       // construct object spx
+    rgUniSpi           spx  ( &amx, 1 );       // construct object spx
 
  // Enable access to the Universal SPI Master.
     spx.write_SpiEnable_1( 1 );

@@ -650,6 +650,10 @@ Constructor Arguments:
 
     In the end, it may not really matter.
 
+    Decided to change them all, since it was bugging me.  Much better now
+    than later, since the library is not yet widely used and people really
+    hate change.  (2021-04-20)
+
 Evolution of Library:
 
     Having never designed a library like this, it is not possible to start
