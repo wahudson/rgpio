@@ -329,24 +329,24 @@ y_clk::doit()
 	rgClk*		Cpx[ClkMax+1] = {NULL, NULL, NULL, NULL, NULL};
 			// pointers to Clock objects, NULL if not used.
 
-	if (                          Opx.cm_Clk0    ) {
-	    Cpx[0] = new  rgClk  ( rgClk::cm_Clk0, AddrMap );	// constructor
+	if (                                   Opx.cm_Clk0    ) {
+	    Cpx[0] = new  rgClk  ( AddrMap, rgClk::cm_Clk0 );	// constructor
 	}
 
-	if (                          Opx.cm_Clk1    ) {
-	    Cpx[1] = new  rgClk  ( rgClk::cm_Clk1, AddrMap );	// constructor
+	if (                                   Opx.cm_Clk1    ) {
+	    Cpx[1] = new  rgClk  ( AddrMap, rgClk::cm_Clk1 );	// constructor
 	}
 
-	if (                          Opx.cm_Clk2    ) {
-	    Cpx[2] = new  rgClk  ( rgClk::cm_Clk2, AddrMap );	// constructor
+	if (                                   Opx.cm_Clk2    ) {
+	    Cpx[2] = new  rgClk  ( AddrMap, rgClk::cm_Clk2 );	// constructor
 	}
 
-	if (                          Opx.cm_ClkPcm  ) {
-	    Cpx[3] = new  rgClk  ( rgClk::cm_ClkPcm, AddrMap );	// constructor
+	if (                                   Opx.cm_ClkPcm  ) {
+	    Cpx[3] = new  rgClk  ( AddrMap, rgClk::cm_ClkPcm );	// constructor
 	}
 
-	if (                          Opx.cm_ClkPwm  ) {
-	    Cpx[4] = new  rgClk  ( rgClk::cm_ClkPwm, AddrMap );	// constructor
+	if (                                   Opx.cm_ClkPwm  ) {
+	    Cpx[4] = new  rgClk  ( AddrMap, rgClk::cm_ClkPwm );	// constructor
 	}
 
 	// Note:  The rgAddrMap cache will provide the same map for each

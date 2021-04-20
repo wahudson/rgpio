@@ -142,8 +142,8 @@ class rgClk : public rgClkMan {
 
   public:
     rgClk(			// constructor
-	rgClk_enum	clknum,		// clock identifier
-	rgAddrMap	*xx
+	rgAddrMap	*xx,
+	rgClk_enum	clknum		// clock identifier
     );
 
     inline rgClk_enum	get_clk_enum()	  { return  ClkEnum; }

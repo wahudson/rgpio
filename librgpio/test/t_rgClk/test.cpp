@@ -42,8 +42,8 @@ rgAddrMap		Bx;
 	FAIL( "unexpected exception" );
     }
 
-rgClk			Tx   ( rgClk::cm_Clk0, &Bx );	// test object
-rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
+rgClk			Tx   ( &Bx, rgClk::cm_Clk0 );	// test object
+rgClk			Tx2  ( &Bx, rgClk::cm_Clk2 );	// test object, Clk2
 
 
 //--------------------------------------------------------------------------
@@ -52,7 +52,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "10", "constructor Clk0" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk0 );
 	CHECK(  0,      tx.get_clk_enum() );
     }
     catch (...) {
@@ -61,7 +61,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "11", "constructor Clk1" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk1, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk1 );
 	CHECK(  1,      tx.get_clk_enum() );
     }
     catch (...) {
@@ -70,7 +70,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "12", "constructor Clk2" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk2, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk2 );
 	CHECK(  2,      tx.get_clk_enum() );
     }
     catch (...) {
@@ -79,7 +79,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "13", "constructor ClkPcm" );
     try {
-	rgClk		tx  ( rgClk::cm_ClkPcm, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_ClkPcm );
 	CHECK(  3,      tx.get_clk_enum() );
     }
     catch (...) {
@@ -88,7 +88,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "14", "constructor ClkPwm" );
     try {
-	rgClk		tx  ( rgClk::cm_ClkPwm, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_ClkPwm );
 	CHECK(  4,      tx.get_clk_enum() );
     }
     catch (...) {
@@ -131,7 +131,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "20", "Clk0 addr()" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk0 );
 	CHECKX( 0x70,     (tx.Cntl.addr() - tx.get_base_addr())*4 );
 	CHECKX( 0x74,     (tx.Divr.addr() - tx.get_base_addr())*4 );
 	CHECK(  0,         tx.get_clk_enum() );
@@ -142,7 +142,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "21", "Clk1 addr()" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk1, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk1 );
 	CHECKX( 0x78,     (tx.Cntl.addr() - tx.get_base_addr())*4 );
 	CHECKX( 0x7c,     (tx.Divr.addr() - tx.get_base_addr())*4 );
 	CHECK(  1,         tx.get_clk_enum() );
@@ -153,7 +153,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "22", "Clk2 addr()" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk2, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk2 );
 	CHECKX( 0x80,     (tx.Cntl.addr() - tx.get_base_addr())*4 );
 	CHECKX( 0x84,     (tx.Divr.addr() - tx.get_base_addr())*4 );
 	CHECK(  2,         tx.get_clk_enum() );
@@ -164,7 +164,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "23", "ClkPcm addr()" );
     try {
-	rgClk		tx  ( rgClk::cm_ClkPcm, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_ClkPcm );
 	CHECKX( 0x98,     (tx.Cntl.addr() - tx.get_base_addr())*4 );
 	CHECKX( 0x9c,     (tx.Divr.addr() - tx.get_base_addr())*4 );
 	CHECK(  rgClk::cm_ClkPcm, tx.get_clk_enum() );
@@ -175,7 +175,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "24", "ClkPwm addr()" );
     try {
-	rgClk		tx  ( rgClk::cm_ClkPwm, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_ClkPwm );
 	CHECKX( 0xa0,     (tx.Cntl.addr() - tx.get_base_addr())*4 );
 	CHECKX( 0xa4,     (tx.Divr.addr() - tx.get_base_addr())*4 );
 	CHECK(  rgClk::cm_ClkPwm, tx.get_clk_enum() );
@@ -395,7 +395,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "50a", "default wait_time_ns()" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk0 );
 	CHECK(       0, tx.wait_time_ns() );
     }
     catch (...) {
@@ -404,7 +404,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "50b", "default wait_count_n()" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk0 );
 	CHECK(   10000, tx.wait_count_n() );
     }
     catch (...) {
@@ -413,7 +413,7 @@ rgClk			Tx2  ( rgClk::cm_Clk2, &Bx );	// test object, Clk2
 
   CASE( "50c", "default get_busy_count()" );
     try {
-	rgClk		tx  ( rgClk::cm_Clk0, &Bx );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk0 );
 	CHECK(  0,      tx.get_busy_count() );
     }
     catch (...) {

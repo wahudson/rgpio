@@ -220,15 +220,15 @@ rgClkMan::show_debug( std::ostream& sout )
 *    rgAddrMap	amx;		// address map object
 *    amx.open_dev_mem();	// select and open device file
 * call:
-*    rgClk	px  ( enum, &amx );	// constructor with address map
-*    enum  = rgClk_enum enumerator naming the clock manager
+*    rgClk	px  ( &amx, enum );	// constructor with address map
 *    &amx  = pointer to address map object with open device file
+*    enum  = rgClk_enum enumerator naming the clock manager
 * exceptions:
 *    Any from rgAddrMap.
 */
 rgClk::rgClk(
-    rgClk_enum		clknum,
-    rgAddrMap		*xx
+    rgAddrMap		*xx,
+    rgClk_enum		clknum
 )
 {
     uint32_t		offset;

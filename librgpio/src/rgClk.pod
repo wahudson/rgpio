@@ -38,8 +38,8 @@ rgClk class -- Clock Manager, General Purpose Clocks
 =head2			Constructor
 
  rgClk(
-     rgClk_enum		clkenum,	// Clock identifier
-     rgAddrMap		*amx		// object with open device file
+     rgAddrMap		*amx,		// object with open device file
+     rgClk_enum		clkenum		// Clock identifier
  );
 
  rgClk::rgClk_enum	get_clock_enum()	    { return  ClkEnum; }
@@ -334,7 +334,7 @@ This example configures gp_CLK0 for basic operation.
  // Construct an object for CLK0.
     rgAddrMap		amx;		// address map object
     amx.open_dev_mem();			// open device file
-    rgClk		ckx  ( rgClk::cm_Clk0, &amx );	// constructor
+    rgClk		ckx  ( &amx, rgClk::cm_Clk0 );	// constructor
 
  // Reconfigure a clock.
     ckx.grab_regs();

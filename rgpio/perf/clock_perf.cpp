@@ -230,7 +230,7 @@ main( int	argc,
 
 	rgIoPins		Gpx  ( &Amx );		// constructor
 	rgPudPin		Ppx  ( &Amx );		// constructor
-	rgClk			Cky  ( rgClk::cm_Clk0, &Amx );	// constructor
+	rgClk			Cky  ( &Amx, rgClk::cm_Clk0 );	// constructor
 	rgUniSpi		Uspix  ( 1, &Amx );	// constructor
 	uint32_t		vv;
 
