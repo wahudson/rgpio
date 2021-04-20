@@ -95,6 +95,17 @@ Reserved bits should typically be written as 0, and read as don't care.
 Note:  Throughout this manual, comments about a register _w0 (word0) similarly
 apply to _w1 (word1).
 
+=head2			IO Pins
+
+Gpio[3:2] have 1.8 kohm pullup resistors on the pc board for both the
+regular RPi boards and the Compute Modules.
+
+Gpio[1:0] are intended to be reserved for use with an ID EEPROM on an
+attached HAT add-on board.
+During OS boot they are configured for I2C (iic0) and operated to query
+the EEPROM, reverting to inputs once the probe sequence has completed [4].
+Beware what is attached during boot!
+
 =head2			RPi4 Changes
 
 RPi4 adds 4 more gpio pins Gpio[57:54].
@@ -212,6 +223,10 @@ In the librgpio/ source tree:
     http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
+
+ [4] Add-on Board / Hat Design Guide
+    https://github.com/raspberrypi/hats/blob/master/designguide.md
+    https://github.com/raspberrypi/hats/blob/master/README.md
 
 =cut
 
