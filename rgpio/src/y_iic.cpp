@@ -395,7 +395,7 @@ y_iic::doit()
 	for ( int ii=0;  ii<=IicMax;  ii++ )
 	{
 	    if ( Opx.iic_ch[ii] ) {
-		Icx[ii] = new  rgIic  ( ii, AddrMap );	// constructor
+		Icx[ii] = new  rgIic  ( AddrMap, ii );	// constructor
 	    }
 	    // construct all first, in case of exception
 	}

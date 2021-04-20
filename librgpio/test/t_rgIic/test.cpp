@@ -42,11 +42,11 @@ rgAddrMap		Bx;
 
 
 rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
-rgIic			Tx3  ( 3, &Bx );	// test object, Iic0
+rgIic			Tx3  ( &Bx, 3 );	// test object, Iic0
 
 rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );	// RPi3
-rgIic			Tx   ( 0, &Bx );	// test object
-rgIic			Tx1  ( 1, &Bx );	// test object, Iic0
+rgIic			Tx   ( &Bx, 0 );	// test object
+rgIic			Tx1  ( &Bx, 1 );	// test object, Iic0
 
 //--------------------------------------------------------------------------
 //## Constructor, get_bcm_address()
@@ -54,7 +54,7 @@ rgIic			Tx1  ( 1, &Bx );	// test object, Iic0
 
   CASE( "10a", "constructor iic0" );
     try {
-	rgIic		tx  ( 0, &Bx );
+	rgIic		tx  ( &Bx, 0 );
 	CHECKX( 0x7e205000, tx.get_bcm_address() );
 	CHECK(  0,          tx.get_iic_num() );
     }
@@ -64,7 +64,7 @@ rgIic			Tx1  ( 1, &Bx );	// test object, Iic0
 
   CASE( "10b", "constructor iic3" );
     try {
-	rgIic		tx  ( 1, &Bx );
+	rgIic		tx  ( &Bx, 1 );
 	CHECKX( 0x7e804000, tx.get_bcm_address() );
 	CHECK(  1,          tx.get_iic_num() );
     }
@@ -74,7 +74,7 @@ rgIic			Tx1  ( 1, &Bx );	// test object, Iic0
 
   CASE( "10c", "constructor iic2" );
     try {
-	rgIic		tx  ( 2, &Bx );
+	rgIic		tx  ( &Bx, 2 );
 	CHECKX( 0x7e805000, tx.get_bcm_address() );
 	CHECK(  2,          tx.get_iic_num() );
     }
@@ -84,7 +84,7 @@ rgIic			Tx1  ( 1, &Bx );	// test object, Iic0
 
   CASE( "10d", "constructor, bad iic number" );
     try {
-	rgIic		tx  ( 3, &Bx );
+	rgIic		tx  ( &Bx, 3 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
@@ -101,7 +101,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11a", "RPi4 constructor iic0" );
     try {
-	rgIic		tx  ( 0, &Bx );
+	rgIic		tx  ( &Bx, 0 );
 	CHECKX( 0x7e205000, tx.get_bcm_address() );
 	CHECK(  0,          tx.get_iic_num() );
     }
@@ -111,7 +111,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11b", "RPi4 constructor iic3" );
     try {
-	rgIic		tx  ( 1, &Bx );
+	rgIic		tx  ( &Bx, 1 );
 	CHECKX( 0x7e804000, tx.get_bcm_address() );
 	CHECK(  1,          tx.get_iic_num() );
     }
@@ -121,7 +121,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11c", "RPi4 constructor iic2" );
     try {
-	rgIic		tx  ( 2, &Bx );
+	rgIic		tx  ( &Bx, 2 );
 	CHECKX( 0x7e805000, tx.get_bcm_address() );
 	CHECK(  2,          tx.get_iic_num() );
     }
@@ -131,7 +131,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11d", "RPi4 constructor iic3" );
     try {
-	rgIic		tx  ( 3, &Bx );
+	rgIic		tx  ( &Bx, 3 );
 	CHECKX( 0x7e205600, tx.get_bcm_address() );
 	CHECK(  3,          tx.get_iic_num() );
     }
@@ -141,7 +141,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11e", "RPi4 constructor iic4" );
     try {
-	rgIic		tx  ( 4, &Bx );
+	rgIic		tx  ( &Bx, 4 );
 	CHECKX( 0x7e205800, tx.get_bcm_address() );
 	CHECK(  4,          tx.get_iic_num() );
     }
@@ -151,7 +151,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11f", "RPi4 constructor iic5" );
     try {
-	rgIic		tx  ( 5, &Bx );
+	rgIic		tx  ( &Bx, 5 );
 	CHECKX( 0x7e205a80, tx.get_bcm_address() );
 	CHECK(  5,          tx.get_iic_num() );
     }
@@ -161,7 +161,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11g", "RPi4 constructor iic6" );
     try {
-	rgIic		tx  ( 6, &Bx );
+	rgIic		tx  ( &Bx, 6 );
 	CHECKX( 0x7e205c00, tx.get_bcm_address() );
 	CHECK(  6,          tx.get_iic_num() );
     }
@@ -171,7 +171,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11h", "RPi4 constructor iic7" );
     try {
-	rgIic		tx  ( 7, &Bx );
+	rgIic		tx  ( &Bx, 7 );
 	CHECKX( 0x7e205e00, tx.get_bcm_address() );	//#!! guess
 	CHECK(  7,          tx.get_iic_num() );
     }
@@ -181,7 +181,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11i", "RPi4 constructor, bad iic number" );
     try {
-	rgIic		tx  ( 8, &Bx );
+	rgIic		tx  ( &Bx, 8 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
@@ -236,7 +236,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "15d", "register base iic3" );
     try {
-	rgIic		tx  ( 3, &Bx );
+	rgIic		tx  ( &Bx, 3 );
 	CHECK(  3,          tx.get_iic_num() );
 	CHECKX( 0x7e205600, tx.get_bcm_address() );
 	CHECKX( 0x00000600,
@@ -248,7 +248,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "15e", "register base iic4" );
     try {
-	rgIic		tx  ( 4, &Bx );
+	rgIic		tx  ( &Bx, 4 );
 	CHECK(  4,          tx.get_iic_num() );
 	CHECKX( 0x7e205800, tx.get_bcm_address() );
 	CHECKX( 0x00000800,
@@ -260,7 +260,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "15f", "register base iic5" );
     try {
-	rgIic		tx  ( 5, &Bx );
+	rgIic		tx  ( &Bx, 5 );
 	CHECK(  5,          tx.get_iic_num() );
 	CHECKX( 0x7e205a80, tx.get_bcm_address() );
 	CHECKX( 0x00000a80,
@@ -272,7 +272,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "15g", "register base iic6" );
     try {
-	rgIic		tx  ( 6, &Bx );
+	rgIic		tx  ( &Bx, 6 );
 	CHECK(  6,          tx.get_iic_num() );
 	CHECKX( 0x7e205c00, tx.get_bcm_address() );
 	CHECKX( 0x00000c00,

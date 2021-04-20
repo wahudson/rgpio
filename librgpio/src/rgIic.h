@@ -140,8 +140,8 @@ class rgIic {
 
   public:
     rgIic(			// constructor
-	uint32_t	iicnum,		// IIC unit number {0,1,2}
-	rgAddrMap	*xx
+	rgAddrMap	*xx,
+	uint32_t	iicnum		// IIC unit number {0,1,2}
     );
 
     inline

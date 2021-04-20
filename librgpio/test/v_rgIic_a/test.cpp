@@ -47,7 +47,7 @@ rgAddrMap		Bx;
 	FAIL( "unexpected exception" );
     }
 
-rgIic			Tx   ( 1, &Bx );	// test object  iic1
+rgIic			Tx   ( &Bx, 1 );	// test object  iic1
 
   CASE( "01", "verify using iic1" );
     try {

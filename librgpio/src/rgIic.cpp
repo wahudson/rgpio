@@ -26,14 +26,14 @@ using namespace std;
 *    rgAddrMap	amx;		// address map object
 *    amx.open_dev_mem();	// select and open device file
 * call:
-*    rgIic	icx  ( N, &amx );	// constructor with address map
+*    rgIic	icx  ( &amx, N );	// constructor with address map
+*    &amx  = pointer to address map object with open device file
 *    N     = IIC number {0,1,2}  for BCM2837 RPi3 and earlier
 *                       {0..7}   for BCM2711 RPi4
-*    &amx  = pointer to address map object with open device file
 */
 rgIic::rgIic(
-    uint32_t		iicnum,	// IIC number {0..7}
-    rgAddrMap		*xx
+    rgAddrMap		*xx,
+    uint32_t		iicnum	// IIC number {0..7}
 )
 {
     uint32_t		addr;
