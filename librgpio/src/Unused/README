@@ -2,11 +2,13 @@
 		Unused and Obsolete code
 		------------------------
 
-Files:  (2020-09-03)
+Files:  (2021-05-27)
 ------
     rgClock.cpp		General Purpose Clock class, replaced by rgClk
     rgClock.h
     rgClock.pod
+    rgFselPin.cpp	class using register array (before 2021-05-11)
+    rgFselPin.h
     rgIoPin.cpp		GPIO IO Pin control class, replaced by rgIoPins
     rgIoPin.h
     rgIoPin.pod
