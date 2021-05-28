@@ -23,6 +23,34 @@ using namespace std;
 
 /*
 * Constructor.
+* Require address map initialization.
+*    rgAddrMap	amx;		// address map object
+*    amx.open_dev_gpiomem();	// select and open device file
+* call:
+*    rgFselPin	fx   ( &amx );	// constructor with address map
+*    &amx  = pointer to address map object with open device file
+* Note:
+*    FeatureAddr and register offsets could come from rgIoPins class, but
+*    this is more stand-alone.
+*/
+rgFselPin::rgFselPin(
+    rgAddrMap		*xx
+)
+{
+    GpioBase     = xx->get_mem_block( FeatureAddr );
+
+    FselReg[0].init_addr( GpioBase + (0x00 /4) );
+    FselReg[1].init_addr( GpioBase + (0x04 /4) );
+    FselReg[2].init_addr( GpioBase + (0x08 /4) );
+    FselReg[3].init_addr( GpioBase + (0x0c /4) );
+    FselReg[4].init_addr( GpioBase + (0x10 /4) );
+    FselReg[5].init_addr( GpioBase + (0x14 /4) );
+}
+
+
+/*
+* Constructor.  (Deprecated)
+*    This was a cool idea, but does not parallel other Features.
 * Pass in an initialized rgIoPins object, e.g.
 *    rgAddrMap	amx;		// address map object
 *    amx.open_dev_gpiomem();	// select and open device file
@@ -34,7 +62,7 @@ rgFselPin::rgFselPin(
     rgIoPins		*xx
 )
 {
-    IoPinX   = xx;		//#!! not really needed
+    GpioBase     = xx->get_base_addr();
 
     FselReg[0] = xx->Fsel0;	// copy register objects
     FselReg[1] = xx->Fsel1;

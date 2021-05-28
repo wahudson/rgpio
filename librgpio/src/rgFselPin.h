@@ -9,8 +9,11 @@
 
 class rgFselPin {
   private:
-    rgIoPins		*IoPinX;	// IO register object
+    volatile uint32_t	*GpioBase;	// IO base address
 
+    static const uint32_t	FeatureAddr  = 0x7e200000;	// BCM doc
+
+  public:	// private, for test only
     rgReg_rw		FselReg[6];	// Function Select registers
 
   private:
@@ -30,7 +33,8 @@ class rgFselPin {
     // Values are the BCM Function Select register mode values.
 
   public:
-    rgFselPin( rgIoPins  *xx );		// constructor
+    rgFselPin( rgAddrMap  *xx );	// constructor
+    rgFselPin( rgIoPins  *xx );		// constructor (Deprecated)
 
   public:
 		// Direct access
@@ -61,6 +65,9 @@ class rgFselPin {
 			    const char		*name
 			);
 
+    inline	// Test/Debug accessors
+    volatile uint32_t*	get_base_addr()		{ return  GpioBase; }
+    inline uint32_t	get_bcm_address()	{ return  FeatureAddr; }
 };
 
 #endif

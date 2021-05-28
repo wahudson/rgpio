@@ -27,7 +27,7 @@ rgAddrMap		Bx;
 Bx.open_fake_mem();
 
 rgIoPins		Px  ( &Bx );
-rgFselPin		Fx  ( &Px );
+rgFselPin		Fx  ( &Bx );
 
 
 //--------------------------------------------------------------------------
@@ -36,8 +36,30 @@ rgFselPin		Fx  ( &Px );
 
   CASE( "10", "constructor" );
     try {
+	rgFselPin		tx  ( &Bx );
+	PASS( "constructor" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "11", "constructor, deprecated" );
+    try {
 	rgFselPin		tx  ( &Px );
 	PASS( "constructor" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "12", "address" );
+    try {
+	CHECK( 1, Fx.FselReg[0].addr() == Px.Fsel0.addr() );
+	CHECK( 1, Fx.FselReg[1].addr() == Px.Fsel1.addr() );
+	CHECK( 1, Fx.FselReg[2].addr() == Px.Fsel2.addr() );
+	CHECK( 1, Fx.FselReg[3].addr() == Px.Fsel3.addr() );
+	CHECK( 1, Fx.FselReg[4].addr() == Px.Fsel4.addr() );
+	CHECK( 1, Fx.FselReg[5].addr() == Px.Fsel5.addr() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
