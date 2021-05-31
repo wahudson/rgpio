@@ -3,6 +3,8 @@
 #ifndef rgFselPin_P
 #define rgFselPin_P
 
+#include "rgIoPins.h"		// class rgReg_rw
+
 //--------------------------------------------------------------------------
 // rGPIO Pin Function Select class
 //--------------------------------------------------------------------------
