@@ -34,21 +34,38 @@ class rgFselPin {
     };
     // Values are the BCM Function Select register mode values.
 
+    class rgFselPin_reg : public rgReg_rw {
+      public:
+	void		modify_field( unsigned field,  rgFsel_enum mode );
+	void		modify_mask(  uint32_t mask,   rgFsel_enum mode );
+
+	rgFsel_enum	read_field(   unsigned field );
+	uint32_t	read_mask( rgFsel_enum mode   );
+    };
+
+  public:			// Registers
+    rgFselPin_reg	Fsel0;		// Gpio[9:0]
+    rgFselPin_reg	Fsel1;		// Gpio[19:10]
+    rgFselPin_reg	Fsel2;		// Gpio[29:20]
+    rgFselPin_reg	Fsel3;		// Gpio[39:30]
+    rgFselPin_reg	Fsel4;		// Gpio[49:40]
+    rgFselPin_reg	Fsel5;		// Gpio[57:50]   8 bits RPi4
+
   public:
     rgFselPin( rgAddrMap  *xx );	// constructor
     rgFselPin( rgIoPins  *xx );		// constructor (Deprecated)
 
-  public:
-		// Direct access
+    rgFsel_enum		read_Fsel_bitO(   unsigned bit );
+    void		modify_Fsel_bitO( unsigned bit,  rgFsel_enum mode );
 
-    rgFsel_enum		read_Fsel_bit(
-			    int			bit
-			);
+    rgFsel_enum		read_Fsel_bit(   unsigned bit );
+    void		modify_Fsel_bit( unsigned bit,  rgFsel_enum mode );
 
-    void		modify_Fsel_bit(
-			    int			bit,
-			    rgFsel_enum		mode
-			);
+    uint32_t		read_Fsel_w0( rgFsel_enum mode );
+    uint32_t		read_Fsel_w1( rgFsel_enum mode );
+
+    void		modify_Fsel_w0( uint32_t mask,  rgFsel_enum mode );
+    void		modify_Fsel_w1( uint32_t mask,  rgFsel_enum mode );
 
 		// Register field position
 

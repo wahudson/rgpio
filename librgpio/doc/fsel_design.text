@@ -1,0 +1,375 @@
+2021-05-11  William A. Hudson
+
+		GPIO Function Select - Design
+		------------------------------
+
+See also:
+    iopin_design.text
+    pull_up_down.text
+
+References:
+-----------
+BCM2835 ARM Peripherals
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+https://elinux.org/BCM2835_datasheet_errata
+
+See:  p.89-104  6. General Purpose I/O (GPIO)
+
+----------------------------------------------------------------------------
+## History - Function Select
+----------------------------------------------------------------------------
+
+Refactor:
+    Decided to refactor the rgFselPin class to make it more along the lines
+    of the rgPullPin class.
+
+    1) Make more stand-alone, with constructor taking an rgAddrMap argument
+	like all the other Features.
+	(The old one took a pointer to rgIoPins object.)
+
+    2) Make the Fsel0 .. Fsel5 registers public, with methods similar
+	to rgPullPin class.
+
+    3) Add setting Fsel mode by mask.
+
+    4) Remove deprecated functions.
+
+    Take these one step at a time.
+
+    I actually like the old fselreg_bit() method, as it functions just fine.
+    Continue to weigh benefits of public Fsel registers and setting by mask.
+
+Original rgFselPin class:  (prior to 2021-05-11)
+    Constructor took a pointer to rgIoPins object.
+    Fsel registers were private.
+    Had only mode setting by single bit.
+
+    Primarily, it only added the rgFsel_enum and bit mode functions.  It had
+    no other register access (the register array was private).
+
+    It used a central function to take a bit number 0..53 and return a
+    pointer to the Fsel register it is in, along with the field position.
+	fselreg_bit( N, &pos )
+    It was really a private function, but was public to aid testing.
+    Not intended to be called by user.
+    This was a nice idea and worked well, but also tended to confuse the
+    bit-range error message.
+
+    Base function:  fselreg_bit( N, &pos )
+	+ Identified register and field.
+	+ Constant code path - no branching based on bit number.
+	- Requires a Register array to compute pointer.
+	- Private Register array.
+	-- Not really using register objects, is more procedural.
+	+ Operation is intrinsically over all Fsel registers.
+	+ Code quantity seems less than register object method.
+	- Bit-range Error message refers to base function not called by user.
+	- Lean on rgIoPins class for the register objects.
+
+    Overall, I liked aspects of this original class, but having public
+    register objects similar to other Features seems more important.
+
+Timeline:
+
+    2021-05-27  Copy original rgFselPin.h class to src/Unused/
+    2021-05-11  Begin idea to refactor
+
+----------------------------------------------------------------------------
+## Discussion - Function Select
+----------------------------------------------------------------------------
+
+    The Function Select (Fsel) registers control which alternate function
+    is enabled on each GPIO pin.  There are 3-bits for each pin, giving
+    8 alternate functions (In, Out, Alt0, Alt1, .. Alt5).
+
+Relation to rgIoPins class:
+
+    Partitioning the IO pin features into separate classes has worked well
+    to manage the different issues in each area.
+
+    rgIoPins		all GPIO pin registers
+	rgFselPin	    function select
+	rgPudPin	    Rpi3 pull up/down
+	rgPullPin	    Rpi4 pull up/down
+
+    rgPads		pad strength, registers are not in rgIoPins
+
+    Note that rgIoPins registers are duplicated in the specialized
+    sub-features (rgFselPin, rgPullPin, rgPullPin).
+    Duplication is not a problem, as the register objects contain only
+    an address, no register value.
+    Perhaps they should be taken out of rgIoPins?  No - it parallels how
+    the IO pins are documented in BCM doc.
+
+    Note rgPads registers are not in rgIoPins, and are on a different
+    address page.
+
+Register Names - Scalar or Array?
+
+    Registers keep the Fsel0 .. Fsel5 scalar names used in rgIoPins.
+    The use of an array would be handy in code, but array syntax clashes
+    with the simpler notion of each register being a scalar name.
+    Especially when square brackets are used for bit position notation,
+    e.g. Gpio[6:4].
+
+Gpio bit range check:
+
+    RPi3 has 0..53, while RPi4 has 0..57.
+
+    Throw exception when bit number is out-of-range?
+    Should we have a different range check depending on RPi version?
+    Should we go all the way 0..60 in the last register Fsel5?
+
+    A)  Check range according to RPi3 or RPi4
+	+ Warning when accessing an invalid bit.
+	- More complex.
+
+ >  B)  Check range according to RPi4 only
+	+ Simpler.
+	- No warning on RPi3 invalid bit.
+	+ At least warn on RPi4 invalid bit.
+
+    C)  Allow full 10 bits in Fsel5
+	+ Simplest.
+	- No warning on invalid bits.
+	+ Let user access all potential fields.
+	- Future may not apply reserved fields that way.
+
+    Access by Gpio bit number:
+    Possibly simply make no change if out of range.
+    Decide to throw exception, as it is fairly natural to test.
+
+    Access by word Mask:
+    Decide to not throw exception if mask accesses register reserved bits.
+    This is simpler, and allows systematic access to reserved fields.
+
+    Exceptions would arise only for bits beyond Gpio[0:53].
+    Only pins Gpio[0:27] are generally user accessible on RPi boards, so the
+    high order pins are likely little used.
+    Little used areas may not be worth fine grained error detection.
+    But of course that is what a library is for -- so the user does not have
+    to sweat it.
+
+    If behavior is RPi version dependent, then the user code must also be
+    aware.  Exceptions alert the user when a program strays into unexpected
+    situations.
+
+Accessor functions:
+
+    Access by Gpio bit number when only a few bits are needed, using one
+    function call per bit.
+
+    Access by bit-mask when a whole range of bits are needed.  Is one function
+    call with a mask, but all bits must be the same fsel mode.
+
+    These parallel the rgPullPin class.
+
+    Individual Register functions:  (in class rgFselPin::rgFselPin_reg)
+
+	rgFsel_enum	REG.read_field( field )
+				Read mode at given field number {9..0}
+
+	uint32_t	REG.read_mask( rgFselPin::f_Alt0 )
+				Return mask of bits having the given fsel mode.
+
+	void		REG.modify_field(     field, rgFselPin::f_Alt0);
+				Modify mode at given field number {9..0}
+
+	void		REG.modify_mask( 0x000003ff, rgFselPin::f_Alt0);
+				Modify mode bits specified by field mask.
+
+    Top Level functions:
+
+	rgFsel_enum	read_Fsel_bit(   bit );
+				Read mode at given bit number {57..0}
+
+	void		modify_Fsel_bit( bit,  rgFselPin::f_Alt0 );
+				Modify mode at given bit number {57..0}
+
+	uint32_t	read_Fsel_w0( rgFselPin::f_Alt0 );
+	uint32_t	read_Fsel_w1( rgFselPin::f_Alt0 );
+				Return mask of bits having the given fsel mode.
+
+	void		modify_Fsel_w0( 0xff00000f,  rgFselPin::f_Alt0 );
+	void		modify_Fsel_w1( 0x0ff0000f,  rgFselPin::f_Alt0 );
+				Modify mode bits specified by word mask.
+
+Double word mask accessor:
+
+    It would be possible to use a uint64_t (unsigned double word) mask, and
+    thus combine the _w0 and _w1 functions into one.  This seems attractive,
+    but using a double word is inconsistent with all other feature registers
+    being single word, and possibly more confusing in actual use.
+
+Algorithm:
+
+    The register functions do the usual bit twiddling.
+
+    The top-level functions sort out the bit/mask ranges and call the
+    individual register function.
+
+    Decided on an if/else chain as the best method to select individual
+    registers.  The final 'else' becomes the out-of-range exception.
+
+    An alternative is to compute the register number using integer divide
+    with remainder, i.e. std::div(), then:
+    A) Look up the register in an array - needs a shadow array of pointers to
+	registers.
+    B) Use a switch statement - Similar to the if/else chain, but loose control
+	of the order of values tested.
+    With only 6 registers, and most usage in the first three, it is unlikely
+    these alternatives would really be any better in speed or code.
+    In an anecdotal experiment, the old read_Fsel_bit() using array lookup
+    ran slightly slower than the new version using if/else (compiler not
+    optimized, worst case bit number).
+
+Register bit mapping:
+
+    Enumeration helps to see the relationship patterns.
+    Note bits [31:30] are reserved in each Fsel* register.
+
+    GPIO	Word		Fsel Register	Fsel Field
+    pin		bit		field bits	number
+    -------	------		-------------	----------
+    Gpio[0]	_w0[0]		Fsel0[2:0]	0
+    Gpio[1]	_w0[1]		Fsel0[5:3]	1
+    Gpio[2]	_w0[2]		Fsel0[8:6]	2
+    Gpio[3]	_w0[3]		Fsel0[11:9]	3
+    Gpio[4]	_w0[4]		Fsel0[14:12]	4
+    Gpio[5]	_w0[5]		Fsel0[17:15]	5
+    Gpio[6]	_w0[6]		Fsel0[20:18]	6
+    Gpio[7]	_w0[7]		Fsel0[23:21]	7
+    Gpio[8]	_w0[8]		Fsel0[26:24]	8
+    Gpio[9]	_w0[9]		Fsel0[29:27]	9
+
+    Gpio[10]	_w0[10]		Fsel1[2:0]	0
+    Gpio[11]	_w0[11]		Fsel1[5:3]	1
+    Gpio[12]	_w0[12]		Fsel1[8:6]	2
+    Gpio[13]	_w0[13]		Fsel1[11:9]	3
+    Gpio[14]	_w0[14]		Fsel1[14:12]	4
+    Gpio[15]	_w0[15]		Fsel1[17:15]	5
+    Gpio[16]	_w0[16]		Fsel1[20:18]	6
+    Gpio[17]	_w0[17]		Fsel1[23:21]	7
+    Gpio[18]	_w0[18]		Fsel1[26:24]	8
+    Gpio[19]	_w0[19]		Fsel1[29:27]	9
+
+    ...		...		...		...
+
+    Gpio[30]	_w0[30]		Fsel3[2:0]	0
+    Gpio[31]	_w0[31]		Fsel3[5:3]	1
+    Gpio[32]	_w1[0]		Fsel3[8:6]	2
+    Gpio[33]	_w1[1]		Fsel3[11:9]	3
+    Gpio[34]	_w1[2]		Fsel3[14:12]	4
+    Gpio[35]	_w1[3]		Fsel3[17:15]	5
+    Gpio[36]	_w1[4]		Fsel3[20:18]	6
+    Gpio[37]	_w1[5]		Fsel3[23:21]	7
+    Gpio[38]	_w1[6]		Fsel3[26:24]	8
+    Gpio[39]	_w1[7]		Fsel3[29:27]	9
+
+    Gpio[40]	_w1[8]		Fsel4[2:0]	0
+    Gpio[41]	_w1[9]		Fsel4[5:3]	1
+    Gpio[42]	_w1[10]		Fsel4[8:6]	2
+    Gpio[43]	_w1[11]		Fsel4[11:9]	3
+    Gpio[44]	_w1[12]		Fsel4[14:12]	4
+    Gpio[45]	_w1[13]		Fsel4[17:15]	5
+    Gpio[46]	_w1[14]		Fsel4[20:18]	6
+    Gpio[47]	_w1[15]		Fsel4[23:21]	7
+    Gpio[48]	_w1[16]		Fsel4[26:24]	8
+    Gpio[49]	_w1[17]		Fsel4[29:27]	9
+
+    Gpio[50]	_w1[18]		Fsel5[2:0]	0
+    Gpio[51]	_w1[19]		Fsel5[5:3]	1
+    Gpio[52]	_w1[20]		Fsel5[8:6]	2
+    Gpio[53]	_w1[21]		Fsel5[11:9]	3
+    Gpio[54]	_w1[22]		Fsel5[14:12]	4	RPi4
+    Gpio[55]	_w1[23]		Fsel5[17:15]	5	RPi4
+    Gpio[56]	_w1[24]		Fsel5[20:18]	6	RPi4
+    Gpio[57]	_w1[25]		Fsel5[23:21]	7	RPi4
+    Gpio[58]	_w1[26]		Fsel5[26:24]	8	reserved
+    Gpio[59]	_w1[27]		Fsel5[29:27]	9	reserved
+
+    The word boundary _w0/_w1 is the main irregularity.
+    RPi3 has pins Gpio[0:53].
+    RPi4 has pins Gpio[0:57].
+
+----------------------------------------------------------------------------
+## Class Design - Function Select
+----------------------------------------------------------------------------
+
+Possible Class Names:
+ >  rgFselPin		seems best, avoid plural suffix 's'
+
+Register Names:
+
+    Fsel0		Gpio[9:0]	10 bits
+    Fsel1		Gpio[19:10]	10 bits
+    Fsel2		Gpio[29:20]	10 bits
+    Fsel3		Gpio[39:30]	10 bits
+    Fsel4		Gpio[49:40]	10 bits
+
+    Fsel5		Gpio[53:50]	 4 bits RPi3
+    Fsel5		Gpio[57:50]	 8 bits RPi4
+
+    Register names are the same as in rgIoPins class.
+
+Field Names:
+    Bit fields are systematically packed in each register, so there is no
+    need for individual field names.
+
+    Use a logical field number {9 .. 0} to identify fields in each register,
+    numbered right to left.  This was found to be better than using the
+    actual bit position of the field (see pull_up_down.text).
+
+Register Class:
+    In rgIoPins, the Fsel registers are class rgReg_rw, which derives from
+    class rgReg (both in file rgIoPins.h).
+    Here we further derive a class adding the specific field accessors.
+    Arrow points to base class.
+
+    rgReg	Base class, has an addr but no value storage.
+      ^			Provides basic addr(), read(), write().
+      |
+    rgReg_rw	Adds set(), clr(), and modify().
+      ^
+      |
+    rgFsel_reg	Adds Fsel field accessors.
+
+    This completely parallels class rgPullPin for RPi4 pull up/down registers.
+
+Function Select enumeration:  rgFsel_enum
+    Enum values are chosen to be the actual Fsel register bit-field values
+    for each alternate function.  Note the values are scrambled compared
+    to the {Alt0 .. Alt5} names.
+
+----------------------------------------------------------------------------
+## rgFselPin Object - Function Select
+----------------------------------------------------------------------------
+
+Object data:
+{
+    volatile uint32_t		*GpioBase;	// IO base address
+    static const uint32_t	FeatureAddr = 0x7e200000;	// BCM doc
+
+  public:
+    enum rgFsel_enum {		// Function Select mode
+	f_In   = 0,	// 000 binary
+	f_Out  = 1,	// 001
+	f_Alt0 = 4,	// 100
+	f_Alt1 = 5,	// 101
+	f_Alt2 = 6,	// 110
+	f_Alt3 = 7,	// 111
+	f_Alt4 = 3,	// 011
+	f_Alt5 = 2	// 010
+    };
+    // Values are the BCM Function Select register mode (bit-field) values.
+
+				// Registers
+    rgFselPin_reg	Fsel0;		// Gpio[9:0]
+    rgFselPin_reg	Fsel1;		// Gpio[19:10]
+    rgFselPin_reg	Fsel2;		// Gpio[29:20]
+    rgFselPin_reg	Fsel3;		// Gpio[39:30]
+    rgFselPin_reg	Fsel4;		// Gpio[49:40]
+    rgFselPin_reg	Fsel5;		// Gpio[57:50]
+}
+
