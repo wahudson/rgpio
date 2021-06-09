@@ -45,14 +45,6 @@ rgFselPin::rgFselPin(
     Fsel3.init_addr( GpioBase + (0x0c /4) );
     Fsel4.init_addr( GpioBase + (0x10 /4) );
     Fsel5.init_addr( GpioBase + (0x14 /4) );
-
-    FselReg[0].init_addr( GpioBase + (0x00 /4) );
-    FselReg[1].init_addr( GpioBase + (0x04 /4) );
-    FselReg[2].init_addr( GpioBase + (0x08 /4) );
-    FselReg[3].init_addr( GpioBase + (0x0c /4) );
-    FselReg[4].init_addr( GpioBase + (0x10 /4) );
-    FselReg[5].init_addr( GpioBase + (0x14 /4) );
-
 }
 
 
@@ -78,13 +70,6 @@ rgFselPin::rgFselPin(
     Fsel3.init_addr( xx->Fsel3.addr() );
     Fsel4.init_addr( xx->Fsel4.addr() );
     Fsel5.init_addr( xx->Fsel5.addr() );
-
-    FselReg[0] = xx->Fsel0;	// copy register objects
-    FselReg[1] = xx->Fsel1;
-    FselReg[2] = xx->Fsel2;
-    FselReg[3] = xx->Fsel3;
-    FselReg[4] = xx->Fsel4;
-    FselReg[5] = xx->Fsel5;
 }
 
 
@@ -409,113 +394,6 @@ rgFselPin::modify_Fsel_w1(
 
     mask = mask >> 10;
     if ( mask & 0x3ff ) { Fsel5.modify_mask( mask, mode ); }
-}
-
-
-//--------------------------------------------------------------------------
-// Direct Register access
-//--------------------------------------------------------------------------
-
-/*
-* Read Function Select mode of a pin number.
-*    No copy in the object.
-* call:
-*    read_Fsel_bit( bit )
-*        bit = IO pin bit number {0..53}
-* return:
-*    ()  = Fsel mode enum {In, .., Alt5}
-* exceptions:
-*    Throw range_error for bit out-of-range.
-*/
-rgFselPin::rgFsel_enum
-rgFselPin::read_Fsel_bitO(
-    unsigned			bit
-)
-{
-    rgReg_rw			*rp;	// register pointer
-    int				pos;
-    uint32_t			rv;
-    uint32_t			mode;
-
-    rp = fselreg_bit( bit, &pos );	// get register and field position
-
-    rv = rp->read();
-
-    mode = (rv >> pos) & 0x7;
-
-    return  rgFselPin::rgFsel_enum( mode );
-	// explicit int to enum conversion, in range of enum
-}
-
-
-/*
-* Modify Function Select mode of a pin number.
-*    Does read/modify/write.
-*    No copy in the object.
-* call:
-*    modify_Fsel_bit( bit, mode )
-*        bit  = IO pin bit number {0..53}
-*        mode = function select mode {f_In, f_Out, .. f_Alt5}
-* exceptions:
-*    Throw range_error for bit out-of-range.
-*/
-void
-rgFselPin::modify_Fsel_bitO(
-    unsigned			bit,
-    rgFselPin::rgFsel_enum	mode
-)
-{
-    rgReg_rw			*rp;	// register pointer
-    int				pos;
-    uint32_t			mask;
-    uint32_t			value;
-
-    rp = fselreg_bit( bit, &pos );	// get register and field position
-
-    mask  = (                 0x7) << pos;
-    value = ((uint32_t)mode & 0x7) << pos;
-
-    rp->modify( mask, value );
-}
-
-
-//--------------------------------------------------------------------------
-// Register field position
-//--------------------------------------------------------------------------
-
-/*
-* Get Fsel register pointer and field position for a bit number.
-*    The field position pos is the LSB of the 3-bit Fsel mode value.
-* call:
-*    rp = fselreg_bit( bit, &pos )
-*        bit  = pin bit number 0..53
-*        pos  = field position within register, {0,3,6,..,27}
-* return:
-*    ()  = pointer to the Fsel register for that bit
-* exceptions:
-*    Throw range_error for bit out-of-range.
-*/
-rgReg_rw*
-rgFselPin::fselreg_bit(
-    int			bit,		// pin bit number
-    int			*pos
-)
-{
-    if ( (bit < 0) || (bit > 53) ) {
-	std::ostringstream	css;
-	css << "rgFselPin::fselreg_bit():  out-of-range bit= " << bit;
-	throw std::range_error ( css.str() );
-    }
-
-    int  rnum = (int)bit / (int)10;		// register number 0..5
-
-    int  kk = bit - ( rnum * (int)10 );		// sub-bit in register
-
-    *pos = kk * 3;			// location of 3-bit field
-
-//  cout << "bit=" << bit << "  rnum=" << rnum << "  pos=" << *pos <<endl;
-
-    return  &( FselReg[rnum] );
 }
 
 

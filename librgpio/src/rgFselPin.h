@@ -15,24 +15,19 @@ class rgFselPin {
 
     static const uint32_t	FeatureAddr  = 0x7e200000;	// BCM doc
 
-  public:	// private, for test only
-    rgReg_rw		FselReg[6];	// Function Select registers
-
-  private:
     static const char*	ModeStr[];	// Fsel mode string names,
 					//     indexed by rgFsel_enum.
   public:
-    enum rgFsel_enum {		// Function Select mode, 3-bit octal
-	f_In   = 00,
-	f_Out  = 01,
-	f_Alt0 = 04,
-	f_Alt1 = 05,
-	f_Alt2 = 06,
-	f_Alt3 = 07,
-	f_Alt4 = 03,
-	f_Alt5 = 02
+    enum rgFsel_enum {		// Function Select mode, 3-bit field value
+	f_In   = 0,	// 000 binary
+	f_Out  = 1,	// 001
+	f_Alt0 = 4,	// 100
+	f_Alt1 = 5,	// 101
+	f_Alt2 = 6,	// 110
+	f_Alt3 = 7,	// 111
+	f_Alt4 = 3,	// 011
+	f_Alt5 = 2	// 010
     };
-    // Values are the BCM Function Select register mode values.
 
     class rgFselPin_reg : public rgReg_rw {
       public:
@@ -55,8 +50,7 @@ class rgFselPin {
     rgFselPin( rgAddrMap  *xx );	// constructor
     rgFselPin( rgIoPins  *xx );		// constructor (Deprecated)
 
-    rgFsel_enum		read_Fsel_bitO(   unsigned bit );
-    void		modify_Fsel_bitO( unsigned bit,  rgFsel_enum mode );
+		// Top level Read/Modify Fsel pins
 
     rgFsel_enum		read_Fsel_bit(   unsigned bit );
     void		modify_Fsel_bit( unsigned bit,  rgFsel_enum mode );
@@ -67,22 +61,11 @@ class rgFselPin {
     void		modify_Fsel_w0( uint32_t mask,  rgFsel_enum mode );
     void		modify_Fsel_w1( uint32_t mask,  rgFsel_enum mode );
 
-		// Register field position
-
-    rgReg_rw*		fselreg_bit(
-			    int		bit,
-			    int		*pos
-			);
-
 		// Enum string conversion
 
-    static const char*	str_rgFsel_enum(
-			    rgFsel_enum		mode
-			);
+    static const char*	str_rgFsel_enum(  rgFsel_enum mode );
 
-    static rgFsel_enum	find_rgFsel_enum(
-			    const char		*name
-			);
+    static rgFsel_enum	find_rgFsel_enum( const char *name );
 
     inline	// Test/Debug accessors
     volatile uint32_t*	get_base_addr()		{ return  GpioBase; }
