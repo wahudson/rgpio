@@ -6,6 +6,8 @@ usage:  rgpio fsel [options..]  [N..]
     -1                  word 1, bits [53:32]
   modify:
     --mode=In           set mode {In, Out, Alt0, .. Alt5}
+    --w0=0xffffffff     word 0 mask, bits [31:0]
+    --w1=0x003fffff     word 1 mask, bits [53:32]
   options:
     --show              show all alternate functions
     --help              show this usage

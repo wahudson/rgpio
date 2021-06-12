@@ -13,12 +13,14 @@ using namespace std;
 
 #include "Error.h"
 #include "yOption.h"
+#include "yOpVal.h"
 
 #include "rgAddrMap.h"
 #include "rgFselPin.h"
 
 #include "rgAltFuncName.h"
 
+#include "yUtil.h"
 #include "y_fsel.h"
 
 
@@ -41,8 +43,11 @@ class fsel_yOptLong : public yOption {
 
     bool		show;
 
-    bool		w0;
-    bool		w1;
+    bool		Word0 = 0;	// -0
+    bool		Word1 = 0;	// -1
+
+    yOpVal		w0;
+    yOpVal		w1;
 
     const char*		mode;
 
@@ -54,12 +59,17 @@ class fsel_yOptLong : public yOption {
 
     rgFselPin::rgFsel_enum	mode_e;
 
+    bool		ModifyBits = 0;
+
   public:
     fsel_yOptLong( yOption  *opx );	// constructor
 
     void		parse_options();
     void		print_option_flags();
     void		print_usage();
+    void		trace_msg( const char* text );
+    void		cout_fsel_mask_head();
+    void		cout_fsel_mask();
 };
 
 
@@ -73,9 +83,6 @@ fsel_yOptLong::fsel_yOptLong( yOption  *opx )
     : yOption( opx )
 {
     show        = 0;
-
-    w0          = 0;
-    w1          = 0;
 
     mode        = "";
 
@@ -97,8 +104,11 @@ fsel_yOptLong::parse_options()
     {
 	     if ( is( "--show"       )) { show       = 1; }
 
-	else if ( is( "-0"           )) { w0         = 1; }
-	else if ( is( "-1"           )) { w1         = 1; }
+	else if ( is( "-0"           )) { Word0      = 1; }
+	else if ( is( "-1"           )) { Word1      = 1; }
+
+	else if ( is( "--w0="        )) { w0.set(      this->val() ); }
+	else if ( is( "--w1="        )) { w1.set(      this->val() ); }
 
 	else if ( is( "--mode="      )) { mode       = this->val(); }
 
@@ -114,12 +124,26 @@ fsel_yOptLong::parse_options()
 	}
     }
 
-    if ( !( (get_argc() > 0) || w0 || w1 ) ) {	// no bit specified
-	w0 = 1;					// set default
-	if ( *mode ) {
-	    Error::msg( "--mode requires bit numbers or -0 -1" ) <<endl;
+    if ( *mode && (get_argc() > 0) ) {
+	ModifyBits = 1;
+    }
+
+    if ( (get_argc() > 0) && (Word0 || Word1) ) {
+	Error::msg( "disallow -0, -1 with bit number list" ) <<endl;
+    }
+
+    if ( (get_argc() > 0) && (w0.Given || w1.Given) ) {
+	Error::msg( "disallow --w0, --w1 with bit number list" ) <<endl;
+    }
+
+    if ( !((get_argc() > 0) || Word0 || Word1 ) ) {	// no bit specified
+	if ( ! *mode ) {
+	    Word0 = 1;				// set default
 	}
-	//#!! probably disallow modify of full words
+    }
+
+    if ( (w0.Given || w1.Given) && ! *mode ) {
+	Error::msg( "--w0, --w1 requires --mode" ) <<endl;
     }
 
     if ( *mode ) {
@@ -134,6 +158,15 @@ fsel_yOptLong::parse_options()
 	if ( show ) {
 	    Error::msg( "--mode not valid with --show" ) <<endl;
 	}
+
+	if ( Word0 || Word1 ) {		// modify full words
+	    Error::msg( "disallow -0, -1 to modify full words" ) <<endl;
+	    //	Error::msg( "disallow -0, -1 with --mode" ) <<endl;
+	}
+
+	if ( !((get_argc() > 0) || w0.Given || w1.Given) ) {
+	    Error::msg( "--mode requires --w0, --w1, or bit numbers" ) <<endl;
+	}
     }
 }
 
@@ -147,8 +180,16 @@ fsel_yOptLong::print_option_flags()
     // Beware namespace clash with 'hex'.
 
     cout << "--show        = " << show         << endl;
-    cout << "-0            = " << w0           << endl;
-    cout << "-1            = " << w1           << endl;
+    cout << "-0            = " << Word0        << endl;
+    cout << "-1            = " << Word1        << endl;
+
+    cout.fill('0');
+    cout <<std::hex;
+    cout << "--w0          = 0x" <<setw(8) << w0.Val        <<endl;
+    cout << "--w1          = 0x" <<setw(8) << w1.Val        <<endl;
+    cout <<std::dec;
+    cout.fill(' ');
+
     cout << "--mode        = " << mode         << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
@@ -160,6 +201,7 @@ fsel_yOptLong::print_option_flags()
     }
 
     cout << "mode_e        = " << rgFselPin::str_rgFsel_enum( mode_e ) << endl;
+    cout << "ModifyBits    = " << ModifyBits   << endl;
 }
 
 
@@ -178,8 +220,8 @@ fsel_yOptLong::print_usage()
     "    -1                  word 1, bits [53:32]\n"
     "  modify:\n"
     "    --mode=In           set mode {In, Out, Alt0, .. Alt5}\n"
-//  "    --w0=0xffffffff     word 0 mask, bits [31:0]\n"
-//  "    --w1=0x003fffff     word 1 mask, bits [53:32]\n"
+    "    --w0=0xffffffff     word 0 mask, bits [31:0]\n"
+    "    --w1=0x003fffff     word 1 mask, bits [53:32]\n"
     "  options:\n"
     "    --show              show all alternate functions\n"
     "    --help              show this usage\n"
@@ -190,6 +232,50 @@ fsel_yOptLong::print_usage()
 
 // Hidden options:
 //       --TESTOP       test mode show all options
+}
+
+
+/*
+* Output a trace message.
+*    This function provides custom configuration of:
+*    Option for conditional output.  Output stream used.
+*    Argument text should have no prefix or suffix new-line.
+* call:
+*    trace_msg( "text" );
+*/
+void
+fsel_yOptLong::trace_msg( const char* text )
+{
+    if ( verbose ) {
+	cout << "+ " << text <<endl;
+    }
+}
+
+
+/*
+* Output fsel word mask and mode.
+*    Heading coordinated with binary bit mask.
+*/
+void
+cout_fsel_mask_head()	// bit number heading
+{
+    cout << "Bit Mask:         28   24   20   16   12    8    4    0   Mode"
+	<< endl;
+}
+
+void
+cout_fsel_mask(
+    const char*			name,
+    uint32_t			value,
+    rgFselPin::rgFsel_enum	mode
+)
+{
+    cout.fill('0');
+    cout << "0x" <<hex <<setw(8) << value
+	 << "  w0  " << cstr_bits32( value )
+	 << "   "    << rgFselPin::str_rgFsel_enum( mode )
+	 <<dec <<endl;
+    cout.fill(' ');
 }
 
 
@@ -245,14 +331,14 @@ y_fsel::doit()
 
     // Register groups
 
-	if ( Opx.w0 ) {
+	if ( Opx.Word0 ) {
 	    for ( int k=0;  k<=31;  k++ )
 	    {
 		bitarg[bitcnt++] = k;
 	    }
 	}
 
-	if ( Opx.w1 ) {
+	if ( Opx.Word1 ) {
 	    for ( int k=32;  k<=53;  k++ )
 	    {
 		bitarg[bitcnt++] = k;
@@ -331,6 +417,32 @@ y_fsel::doit()
 	    cout << "Modify:" << endl;
 	}
 
+    // Modify Words
+	if ( Opx.w0.Given || Opx.w1.Given ) {
+	    Opx.trace_msg( "Modify words" );
+	    cout_fsel_mask_head();
+	}
+
+	if ( Opx.w0.Given ) {
+	    Fpx.modify_Fsel_w0( Opx.w0.Val, Opx.mode_e );
+	    cout_fsel_mask( "w0", Fpx.read_Fsel_w0( Opx.mode_e ), Opx.mode_e );
+	}
+
+	if ( Opx.w1.Given ) {
+	    Fpx.modify_Fsel_w1( Opx.w1.Val, Opx.mode_e );
+	    cout_fsel_mask( "w1", Fpx.read_Fsel_w1( Opx.mode_e ), Opx.mode_e );
+	}
+
+    // Modify Bits
+	if ( Opx.ModifyBits ) {
+	    Opx.trace_msg( "Modify bits" );
+	    for ( int ii=0;  ii<bitcnt;  ii++ )
+	    {
+		Fpx.modify_Fsel_bit( bitarg[ii], Opx.mode_e );
+	    }
+	}
+
+    // Output Bits
 	cout << "Bit  Mode  Function" <<endl;
 
 	for ( int ii=0;  ii<bitcnt;  ii++ )
@@ -339,11 +451,6 @@ y_fsel::doit()
 	    rgFselPin::rgFsel_enum	mode;
 
 	    bit = bitarg[ii];
-
-	    if ( *Opx.mode ) {	// Modify
-		Fpx.modify_Fsel_bit( bit, Opx.mode_e );
-	    }
-
 	    mode = Fpx.read_Fsel_bit( bit );
 
 	    cout.fill(' ');

@@ -1,0 +1,117 @@
+2021-06-11
+		rgpio-fsel  Function Select Design
+		----------------------------------
+
+History:  y_fsel.cpp
+  < 2021-06-11  Initial version, only modification by bit number.
+
+----------------------------------------------------------------------------
+## User interface
+----------------------------------------------------------------------------
+
+Want simple rules for behavior.  A simple theme of operation.
+
+    usage:  rgpio fsel [options..]  [N..]
+	N                   bit number 0..53
+      show bit number groups:  (accumulate)
+	-0                  word 0, bits [31:0] (default)
+	-1                  word 1, bits [53:32]
+      modify:
+	--mode=In           set mode {In, Out, Alt0, .. Alt5}
+	--w0=0xffffffff     word 0 mask, bits [31:0]
+	--w1=0x003fffff     word 1 mask, bits [53:32]
+      options:
+	--show              show all alternate functions
+	--help              show this usage
+	-v, --verbose       verbose output
+	--debug             debug output
+
+Usage scenarios might be:
+
+    1) Modify Fsel pins
+
+	Modification should show result of the modification, in a form similar
+	to the original specification.
+	The idea is to keep the output clean and focused on what the user is
+	changing, and not add a lot of other information.  Thus probably not
+	allow simultaneous modification by both pin number and mask.
+
+ v	a) By pin number list
+	    % rgpio fsel --mode=Alt0  2 3 16
+	    Modify:
+	    Bit  Mode  Function
+	      2  Alt0  iic1_SDA
+	      3  Alt0  iic1_SCL
+	     16  Alt0  --
+
+ v	b) By bit mask
+	    % rgpio fsel --mode=Out  --w0=0x00000033
+	    Modify:
+	    w0 = 0x0000f03f  Out
+
+    2) Read Fsel pins
+
+ v	a) By pin number list.  Provide user ordered list of pins.
+	    % rgpio fsel 2 3 16
+	    Bit  Mode  Function
+	      2  In    input
+	      3  In    input
+	     16  In    input
+
+ v	b) By word.  Shorthand for all bits in a word.
+	    % rgpio fsel  -0
+	    Bit  Mode  Function
+	      0  In    input
+	      1  In    input
+	      2  In    input
+	      3  In    input
+	     ...
+	     31  In    input
+
+ ?	c) Show bit mask for a given Fsel mode ??
+		i.e. parallel the modification output
+	    % rgpio fsel --mode=Out
+	    w0 = 0x0000f03f  Out
+
+ x	d) Show list of bits for the given mask?
+		i.e. just another way to specify bit numbers
+	    % rgpio fsel --w0=0x0001000c
+	    Bit  Mode  Function
+	      2  In    input
+	      3  In    input
+	     16  Alt4  spi1_CE2_n
+	    This seems like low value for extra complexity.
+
+ ?	e) Show bit mask for only modes In and Out?
+	    % rgpio fsel --io -0
+	    Fsel Pins:                28   24   20   16   12    8    4    0
+	    In    0x0000000f   w0   0000 0000 0000 0000 0000 0000 0000 1111
+	    Out   0x000000f0   w0   0000 0000 0000 0000 0000 0000 1111 0000
+
+
+    Want to minimize confusion and possible accidents between modification
+    and reading.  Thus modification options should not also be used for
+    reading.
+
+    The bit list output format is most useful to show the function provided
+    by the Fsel mode.
+    
+    The binary word patterns can show the mode, but cannot easily show the
+    function.
+
+    The alternate functions {Alt0 .. Alt5} are generally not used with
+    word bit patterns, however the {In, Out} functions are.  Showing these
+    as word bit patterns would help in applying mask patterns.
+
+    Fsel Pins:                28   24   20   16   12    8    4    0
+    In    0x0000000f   w0   0000 0000 0000 0000 0000 0000 0000 1111
+    Out   0x000000f0   w0   0000 0000 0000 0000 0000 0000 1111 0000
+
+    In    0x0000000f   w1   0000 0000 0000 0000 0000 0000 0000 1111
+    Out   0x000000f0   w1   0000 0000 0000 0000 0000 0000 1111 0000
+
+
+    Fsel Pins:          28   24   20   16   12    8    4    0
+    0x0000000f   w0   0000 0000 0000 0000 0000 0000 0000 1111   In
+    0x000000f0   w0   0000 0000 0000 0000 0000 0000 1111 0000   Out
+
