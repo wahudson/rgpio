@@ -159,9 +159,8 @@ fsel_yOptLong::parse_options()
 	    Error::msg( "--mode not valid with --show" ) <<endl;
 	}
 
-	if ( Word0 || Word1 ) {		// modify full words
+	if ( Word0 || Word1 ) {
 	    Error::msg( "disallow -0, -1 to modify full words" ) <<endl;
-	    //	Error::msg( "disallow -0, -1 with --mode" ) <<endl;
 	}
 
 	if ( !((get_argc() > 0) || w0.Given || w1.Given) ) {
@@ -265,15 +264,16 @@ cout_fsel_mask_head()	// bit number heading
 
 void
 cout_fsel_mask(
-    const char*			name,
+    const char*			name,	// 2-character  w0, w1
     uint32_t			value,
     rgFselPin::rgFsel_enum	mode
 )
 {
     cout.fill('0');
     cout << "0x" <<hex <<setw(8) << value
-	 << "  w0  " << cstr_bits32( value )
-	 << "   "    << rgFselPin::str_rgFsel_enum( mode )
+	 << "  "   << name
+	 << "  "   << cstr_bits32( value )
+	 << "   "  << rgFselPin::str_rgFsel_enum( mode )
 	 <<dec <<endl;
     cout.fill(' ');
 }
@@ -408,15 +408,6 @@ y_fsel::doit()
 	    return 0;
 	}
 
-    // Process Fsel bits
-	if ( Opx.verbose ) {
-	    cout << "Pin Function Select:" << endl;
-	}
-
-	if ( *Opx.mode ) {	// Modify
-	    cout << "Modify:" << endl;
-	}
-
     // Modify Words
 	if ( Opx.w0.Given || Opx.w1.Given ) {
 	    Opx.trace_msg( "Modify words" );
@@ -443,7 +434,9 @@ y_fsel::doit()
 	}
 
     // Output Bits
-	cout << "Bit  Mode  Function" <<endl;
+	if ( bitcnt > 0 ) {
+	    cout << "Bit  Mode  Function" <<endl;
+	}
 
 	for ( int ii=0;  ii<bitcnt;  ii++ )
 	{
@@ -470,6 +463,5 @@ y_fsel::doit()
     }
 
     return ( Error::has_err() ? 1 : 0 );
-    //#!! return value?
 }
 

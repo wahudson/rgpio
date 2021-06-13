@@ -123,7 +123,6 @@ run_test( "16", "fsel verbose",
     0,
     Stderr => q(),
     Stdout => q(
-	Pin Function Select:
 	Bit  Mode  Function
 	  0  In    input
     ),
@@ -148,18 +147,17 @@ run_test( "21", "fsel --mode=Out  4",
     0,
     Stderr => q(),
     Stdout => q(
-	Modify:
 	Bit  Mode  Function
 	  4  Out   output
     ),
 );
 
-run_test( "22", "fsel --mode=Out  4",
-    "rgpio --dev=f  fsel --mode=Alt5  14 15 16 17",
+run_test( "22", "fsel --mode=Alt5 bits",
+    "rgpio --dev=f  fsel -v --mode=Alt5  14 15 16 17",
     0,
     Stderr => q(),
     Stdout => q(
-	Modify:
+	+ Modify bits
 	Bit  Mode  Function
 	 14  Alt5  u1_TXD
 	 15  Alt5  u1_RXD
@@ -168,7 +166,7 @@ run_test( "22", "fsel --mode=Out  4",
     ),
 );
 
-run_test( "23", "fsel reset all pins",
+run_test( "23", "disallow modifying -0,-1",
     "rgpio --dev=f  fsel --mode=In -0 -1",
     1,
     Stderr => q(
@@ -188,6 +186,54 @@ run_test( "24", "fsel --mode=Baad",
     Stdout => q(),
 );
 
+run_test( "25", "fsel modify mask",
+    "rgpio --dev=f  fsel --mode=In --w0=0xffffffff --w1=0xffffffff",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	Bit Mask:         28   24   20   16   12    8    4    0   Mode
+	0xffffffff  w0  1111 1111 1111 1111 1111 1111 1111 1111   In
+	0x0fffffff  w1  0000 1111 1111 1111 1111 1111 1111 1111   In
+    ),
+);
+
+run_test( "26", "fsel modify mask",
+    "rgpio --dev=f  fsel -v --mode=Out --w0=0xfccc3333",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	+ Modify words
+	Bit Mask:         28   24   20   16   12    8    4    0   Mode
+	0xfccc3333  w0  1111 1100 1100 1100 0011 0011 0011 0011   Out
+    ),
+);
+
+run_test( "27", "error --w0 with bit number list",
+    "rgpio --dev=f  fsel --mode=In --w0=0xf  8 9",
+    1,
+    Stderr => q(
+	Error:  disallow --w0, --w1 with bit number list
+    ),
+    Stdout => q(),
+);
+
+run_test( "28", "error -1 with bit number list",
+    "rgpio --dev=f  fsel -1  8 9",
+    1,
+    Stderr => q(
+	Error:  disallow -0, -1 with bit number list
+    ),
+    Stdout => q(),
+);
+
+run_test( "29", "error",
+    "rgpio --dev=f  fsel --w0=0xf",
+    1,
+    Stderr => q(
+	Error:  --w0, --w1 requires --mode
+    ),
+    Stdout => q(),
+);
 
 #---------------------------------------------------------------------------
 ## --show

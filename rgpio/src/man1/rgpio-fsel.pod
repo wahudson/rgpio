@@ -10,13 +10,15 @@ rgpio-fsel -- Pin Function Select
 
 =head1		SYNOPSIS
 
- rgpio fsel [options..]  [N..]
+ usage:  rgpio fsel [options..]  [N..]
     N                   bit number 0..53
   show bit number groups:  (accumulate)
     -0                  word 0, bits [31:0] (default)
     -1                  word 1, bits [53:32]
   modify:
     --mode=In           set mode {In, Out, Alt0, .. Alt5}
+    --w0=0xffffffff     word 0 mask, bits [31:0]
+    --w1=0x003fffff     word 1 mask, bits [53:32]
   options:
     --show              show all alternate functions
     --help              show this usage
@@ -32,14 +34,15 @@ Here "pin" refers to the GPIO bit number, not the Raspberry Pi header pin
 number.
 
 The output shows the alternate function {In, Out, Alt0, .. Alt5},
-and decodes it to show the peripheral function signal name.
+along with the peripheral function signal name.
 The signal names generally have a prefix indicating the peripheral they
-belong to.  Special signal names are:
+belong to.  Special names indicate:
 
     --  = reserved
     **  = do NOT USE, may have unexpected results
 
-If modification is requested with --mode=, the process for each bit is:
+If modification is requested with B<--mode>, the process for each bit (or
+Fsel register mask group) is:
 
     0) Identify the Fsel register containing that bit.
     1) Read current hardware register value.
@@ -47,13 +50,8 @@ If modification is requested with --mode=, the process for each bit is:
     3) Write modified value back to hardware register.
     4) Re-read hardware register and display the bit mode.
 
-
-Note:  The function select registers are typically a shared resource
-among multiple asynchronous processes, where each process may use only a few
-pins (bits).
-The read-modify-write process of updating registers is not atomic.
-Therefor a synchronization problem exists, and is typically solved by
-externally synchronizing the processes.
+Note this read-modify-write sequence is not atomic.  It is left to the user
+to avoid synchronization issues.
 
 
 =head1		OPTIONS
@@ -62,32 +60,39 @@ externally synchronizing the processes.
 
 These options are an alias for a list of pin numbers,
 matching the word0 and word1 bits of the B<rgpio-io> command.
-
-These pins are in addition to any pin specified in the argument list,
-and duplicates are NOT removed.
+They are usable only for reading, not modification.
 
 =over
 
-=item B<-0>                 - Pins [31:0].  (default)
+=item B<-0>                 - Word 0, pins Gpio[31:0] (default)
 
-Note that only pins [27:0] are accessable on Raspberry Pi-3 40-pin header.
+=item B<-1>                 - Word 1, pins Gpio[53:32]
 
-=item B<-1>                 - Pins [53:32].
-
-These pins are accessable on the Raspberry Pi compute module.
+Note that only Gpio[27:0] are accessible on the Raspberry Pi 40-pin header.
+The others may be accessible on Raspberry Pi compute modules.
 
 =back
 
 =head2			Modify
 
+The pins to be modified are specified either by the argument bit number list,
+or by the word mask options B<--w0>, B<--w1>.
+
 =over
 
-=item B<--mode=In>          - Set mode {In, Out, Alt0, .. Alt5}.
+=item B<--mode=>In          - Set mode {In, Out, Alt0, .. Alt5}.
 
 Set the mode for the specified pins.
 The default at power-on reset is "--mode=In".
 Beware of what each pin is connected to when changing its mode to avoid
 potential drive fights.
+
+=item B<--w0=>0xffffffff    - Word 0 mask, bits [31:0]
+
+=item B<--w1=>0x003fffff    - Word 1 mask, bits [53:32]
+
+The word value is a bit mask, where ones specify which bits to change
+to the B<--mode> value.
 
 =back
 
@@ -102,7 +107,7 @@ pins.  No pins are modified.
 
 =item B<-v, --verbose>      - Verbose output.
 
-Adds a title "Pin Function Select:" to the output.
+Shows actions taken as the command executes.
 
 =back
 
@@ -124,12 +129,14 @@ Adds a title "Pin Function Select:" to the output.
 
  Set Gpio pins 14..17 to Alt5 UART1 function.
  % rgpio fsel --mode=Alt5  14 15 16 17
+ % rgpio fsel --mode=Alt5  --w0-0x0003c000
 
  Show all alternate functions for all pins.  No pins are modified.
  % rgpio fsel --show -0 -1
+ % rgpio --rpi4 fsel --show -0 -1
 
- Reset all word0 pins to Input.
- % rgpio fsel --mode=In  -0
+ Reset RPi header pins Gpio[27:0] to Input.
+ % rgpio fsel --mode=In --w0=0x0fffffff
 
 
 =head1		ENVIRONMENT
