@@ -30,8 +30,8 @@ rgpio-fsel -- Pin Function Select
 =head1		DESCRIPTION
 
 This command displays the Function Select mode of each GPIO pin specified.
-Here "pin" refers to the GPIO bit number, not the Raspberry Pi header pin
-number.
+Here "pin" or "bit" refers to the GPIO bit number, not the Raspberry Pi
+header pin number.
 
 The output shows the alternate function {In, Out, Alt0, .. Alt5},
 along with the peripheral function signal name.
@@ -49,6 +49,9 @@ Fsel register mask group) is:
     2) Modify the mode bits.
     3) Write modified value back to hardware register.
     4) Re-read hardware register and display the bit mode.
+
+A list of bits [N..] are processed one bit at a time, while a
+mask option (e.g. --w0) is processed one Fsel register at a time.
 
 Note this read-modify-write sequence is not atomic.  It is left to the user
 to avoid synchronization issues.
@@ -129,7 +132,7 @@ Shows actions taken as the command executes.
 
  Set Gpio pins 14..17 to Alt5 UART1 function.
  % rgpio fsel --mode=Alt5  14 15 16 17
- % rgpio fsel --mode=Alt5  --w0-0x0003c000
+ % rgpio fsel --mode=Alt5  --w0=0x0003c000
 
  Show all alternate functions for all pins.  No pins are modified.
  % rgpio fsel --show -0 -1
