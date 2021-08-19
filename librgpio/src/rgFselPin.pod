@@ -1,0 +1,375 @@
+# 2021-05-10  William A. Hudson
+
+# rgFselPin  Pin Function Select class -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgFselPin  class -- Pin Function Select Registers
+
+=head1		SYNOPSIS
+
+ #include "rgAddrMap.h"
+ #include "rgFselPin.h"
+
+=head2			Essential Class members
+
+ class rgFselPin {
+  public:
+				// Function Select Registers
+    rgFselPin_reg	Fsel0;		// Gpio[9:0]
+    rgFselPin_reg	Fsel1;		// Gpio[19:10]
+    rgFselPin_reg	Fsel2;		// Gpio[29:20]
+    rgFselPin_reg	Fsel3;		// Gpio[39:30]
+    rgFselPin_reg	Fsel4;		// Gpio[49:40]
+    rgFselPin_reg	Fsel5;		// Gpio[57:50]  8 bits RPi4
+
+    enum rgFsel_enum {		// Function Select mode, 3-bit field
+	f_In   = 0,     // 000 binary
+	f_Out  = 1,     // 001
+	f_Alt0 = 4,     // 100
+	f_Alt1 = 5,     // 101
+	f_Alt2 = 6,     // 110
+	f_Alt3 = 7,     // 111
+	f_Alt4 = 3,     // 011
+	f_Alt5 = 2      // 010
+    };
+ };
+
+=head2		Constructor
+
+ rgFselPin( rgAddrMap  *amx );
+
+ volatile uint32_t*	get_base_addr();
+ uint32_t		get_bcm_address();
+
+
+=head2		rgFselPin_reg base class methods
+
+ volatile uint32_t*	REG.addr()		     { return  Addr; }
+ uint32_t		REG.read()		     { return *Addr; }
+ void			REG.write(  uint32_t vv )    { *Addr = vv; }
+
+ void			REG.set(    uint32_t mask );
+ void			REG.clr(    uint32_t mask );
+ void			REG.modify( uint32_t mask,  uint32_t value );
+
+
+=head2		rgFselPin_reg class methods
+
+ rgFsel_enum	REG.read_field(   unsigned field );
+ uint32_t	REG.read_mask( rgFsel_enum mode   );
+
+ void		REG.modify_field( unsigned field,  rgFsel_enum mode );
+ void		REG.modify_mask(  uint32_t mask,   rgFsel_enum mode );
+
+Each register method is shown with a prefix "REG." suggesting how they
+should be called with the register object.
+Register class inheritance is:  rgFselPin_reg -> rgReg_rw -> rgReg
+
+
+=head2		Top level Read/Modify Fsel pins
+
+ rgFsel_enum	read_Fsel_bit(   unsigned bit );
+ void		modify_Fsel_bit( unsigned bit,  rgFsel_enum mode );
+
+ uint32_t	read_Fsel_w0( rgFsel_enum mode );
+ uint32_t	read_Fsel_w1( rgFsel_enum mode );
+
+ void		modify_Fsel_w0( uint32_t mask,  rgFsel_enum mode );
+ void		modify_Fsel_w1( uint32_t mask,  rgFsel_enum mode );
+
+
+=head2		Enum string conversion
+
+ static const char*	str_rgFsel_enum( rgFsel_enum mode );
+ static rgFsel_enum	find_rgFsel_enum( const char *name );
+
+
+=head1		DESCRIPTION
+
+This class provides access to the Function Select hardware registers of the
+IO Pins peripheral group.
+
+Each hardware register is represented by an rgFselPin_reg object that
+contains only the address of the register (no register value).
+These are public objects intended for direct access to their methods for
+manipulating the value of the hardware register.
+There is no protection for reserved bits, or for pins that may be used
+by the Raspberry Pi computer hardware or operating system.
+
+Here the Function Select register objects {Fsel0 .. Fsel5} have the same
+low-level accessor functions as in class rgIoPins, and have additional
+field access functions.
+
+Each Gpio pin has a 3-bit mode field that controls which of 8 alternate
+functions that pin should have.
+Registers contain the function select mode for IO pins as follows:
+
+    Register       IO Pins
+    --------       -----------
+    Fsel0	   Gpio[9:0]
+    Fsel1          Gpio[19:10]
+    Fsel2          Gpio[29:20]
+    Fsel3          Gpio[39:30]
+    Fsel4          Gpio[49:40]
+
+    Fsel5          Gpio[53:50]  RPi3 and earlier
+    Fsel5          Gpio[57:50]  RPi4
+
+The 3-bit function select fields in each register are numbered 0..9,
+right to left:
+
+    Register bits  Field number
+    -------------  ------------
+    Fsel*[2:0]     field 0
+    Fsel*[5:3]     field 1
+    Fsel*[8:6]     field 2
+    Fsel*[11:9]    field 3
+    Fsel*[14:12]   field 4
+    Fsel*[17:15]   field 5
+    Fsel*[20:18]   field 6
+    Fsel*[23:21]   field 7
+    Fsel*[26:24]   field 8
+    Fsel*[29:27]   field 9
+    Fsel*[31:30]   reserved
+
+Top level read/modify functions provide access with Gpio pin number {0..57}
+or as 32-bit word bit-masks.  In this case Gpio pins are associated as
+follows:  (same as class rgIoPins)
+
+    Word          IO Pin
+    ----------    -----------
+    *_w0[31:0]  = Gpio[31:0]    32-bits
+    *_w1[21:0]  = Gpio[53:32]   22-bits  RPi3 and earlier
+    *_w1[25:0]  = Gpio[57:32]   26-bits  RPi4
+
+
+=head2			Constructor
+
+=over
+
+=item rgFselPin()
+
+Construct and initialize a new object.  Argument 'amx' is the address map
+object with an open device file or cached memory block.
+
+=item get_base_addr()
+
+Return the object IO memory block virtual address.
+
+=item get_bcm_address();
+
+Return the feature address, the real address shown in BCM doc.
+
+=back
+
+
+=head2			rgFselPin_reg base class methods
+
+These are documented in rgIoPins(3) in the base classes B<rgReg_rw> and
+B<rgReg>.
+
+
+=head2			rgFselPin_reg class methods
+
+These functions read or modify the 3-bit function select mode fields in
+each register, and are used by the similar Top Level functions below.
+Note that register Fsel5 includes reserved fields.
+
+=over
+
+=item REG.read_field()
+
+Read function select mode at field number.
+
+ call:
+    read_field( field )
+    field  = logical field number {0, 1, .. 9}, right-to-left
+ return:
+    ()  = function select enum {f_In, f_Out, f_Alt0, .. f_Alt5}
+
+=item REG.read_mask()
+
+Return a bit-mask representing all fields that have the given function select
+mode.
+
+ call:
+    read_mask( mode )
+    mode  = function select enum {f_In, f_Out, f_Alt0, .. f_Alt5}
+ return:
+    ()  = packed bit mask, [9:0]
+
+=item REG.modify_field()
+
+Modify function select mode at field number.
+Does read/modify/write - not atomic.
+
+ call:
+    modify_field( field, mode )
+    field  = logical field number {0, 1, .. 9}, right-to-left
+    mode   = function select enum {f_In, f_Out, f_Alt0, .. f_Alt5}
+
+=item REG.modify_mask()
+
+Modify function select mode by mask.
+Does read/modify/write - not atomic.
+
+ call:
+    modify_mask( mask, mode )
+    mask  = packed bit mask, only bits [9:0] are used
+    mode  = function select enum {f_In, f_Out, f_Alt0, .. f_Alt5}
+
+=back
+
+=head2			Top level Read/Modify Fsel pins
+
+These are preferred methods for general use.
+They abstract the Gpio pin numbers as Gpio[0:57] or as two 32-bit words.
+Only the necessary Fsel registers are accessed.
+
+=over
+
+=item read_Fsel_bit()
+
+Read Function Select mode of a Gpio pin number.
+
+ call:
+    read_Fsel_bit( bit )
+    bit = Gpio pin number {0..57}
+ return:
+    ()  = function select enum {f_In, f_Out, f_Alt0, .. f_Alt5}
+
+=item modify_Fsel_bit()
+
+Modify Function Select mode of a Gpio pin number.
+Does read/modify/write - not atomic.
+No copy in the object.
+
+ call:
+    modify_Fsel_bit( bit, mode )
+    bit  = Gpio pin number {0..57}
+    mode = function select mode {f_In, f_Out, .. f_Alt5}
+
+=item read_Fsel_w0(), read_Fsel_w1()
+
+Return a bit-mask representing all pins that have the given function select
+mode.  Separate functions for each 32-bit word.
+Reserved fields of Fsel5 are included in the w1 result.
+
+ call:
+    read_Fsel_w0( mode )
+    mode = function select mode {f_In, f_Out, .. f_Alt5}
+ return:
+    ()  = bit mask, [31:0]
+
+=item modify_Fsel_w0(), modify_Fsel_w1()
+
+Modify function select mode for pins specified by a word mask.
+Does read/modify/write - not atomic.
+Only registers with mask bits are accessed.
+
+ call:
+    modify_Fsel_w0( mask, mode )
+    mask = bit mask, [31:0]
+    mode = function select mode {f_In, f_Out, .. f_Alt5}
+
+=back
+
+=head2			Enum string conversion
+
+These may be called as either Class methods or Object methods.
+Character string names are the same as the enum name without the "f_" prefix,
+i.e. {In, Out, .. Alt5}.
+
+=over
+
+=item str_rgFsel_enum()
+
+Get string for an rgFsel_enum (Function Select mode).
+
+ call:
+    rgFselPin::str_rgFsel_enum( rgFselPin::f_Alt3 )
+ return:
+    () = char string
+
+=item find_rgFsel_enum()
+
+Find rgFsel_enum for the corresponding string name.
+Currently uses a linear search, good enough for the typical single lookup.
+
+ call:
+    rgFselPin::find_rgFsel_enum( "Alt3" )
+ return:
+    () = rgFsel_enum
+
+=back
+
+
+=head1		EXCEPTIONS
+
+ std::logic_error
+ std::range_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+ // Construct an object.
+    rgAddrMap			amx;		// address map object
+    amx.open_dev_mem();				// open device file
+    rgFselPin			Fx  ( &amx );	// construct object Fx
+
+    rgFselPin::rgFsel_enum	y;
+    uint32_t			vv;
+
+ // Read pin Gpio[4]
+    y = Fx.read_Fsel_bit( 4 );
+
+ // Modify pin Gpio[4], enum accessed by class or object
+    modify_Fsel_bit( 4, rgFselPin::f_Alt0 );
+    modify_Fsel_bit( 4,         Fx.f_Alt0 );
+
+ // Read mask corresponding to word0 pins that are set to Output
+    vv = read_Fsel_w0( rgFselPin::f_Out );
+
+ // Modify word0 pins by mask, Gpio[7,6,5,4]
+    modify_Fsel_w0( 0x000000f0, rgFselPin::f_Out );
+
+ // Low-level field access, Fsel1 field 2 is pin Gpio[12]
+    y = Fx.Fsel1.read_field( 2 );
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgFselPin.h
+ src/rgFselPin.cpp
+
+
+=head1		SEE ALSO
+
+ rgFselPin(7)	hardware register description
+ rgIoPins(3)
+ rgAddrMap(3)
+ rgpio-fsel(1)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.89-101  ch 6. General Purpose I/O (GPIO)
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (2020-10-16)
+    p.64-80  ch 5. General Purpose I/O (GPIO)
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
+
+ https://elinux.org/BCM2835_datasheet_errata
+
+=cut
+
