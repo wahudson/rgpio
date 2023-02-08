@@ -100,17 +100,27 @@ The Universal SPI Master is essentially a shift register controller.
 
 =head2			Features
 
- - Single beat bit length between 1 and 32 bits.
+ - Single beat bit length between 1 and 32 bits - ShiftLength_6.
  - Single beat variable bit length between 1 and 24 bits.
- - Multi beat infinite bit length.
- - 3 independent chip selects per master.
+ - Multi beat infinite bit length - using register FifoH.
+ - 3 independent chip selects per master - ChipSelects_3.
  - 4 entries 32-bit wide transmit and receive FIFOs.
- - Data out on rising or falling clock edge.
- - Data in on rising or falling clock edge.
- - Clock inversion (Idle high or idle low).
- - Wide clocking range.
- - Programmable data out hold time.
- - Shift in/out MS or LS bit first.
+ - Data out on rising or falling clock edge - OutRising_1.
+ - Data in on rising or falling clock edge - InRising_1.
+ - Clock inversion (Idle high or idle low) - InvertClk_1.
+ - Wide clocking range - Speed_12.
+ - Programmable data out hold time - DoutHoldTime_2.
+ - Shift in/out MS or LS bit first - InMsbFirst_1, OutMsbFirst_1.
+
+Here a "beat" refers to data sent by one FIFO entry.
+Infinite beat length is achieved by writing to register B<FifoH>, which will
+hold CS active, and then finally writing register B<Fifo> to release CS.
+
+Variable bit length is enabled by B<VariableWidth_1> and length is taken
+from Tx FIFO[28:24], leaving only 24 bits of data in the FIFO entry.
+
+Similarly, variable Chip Select pattern is enabled by B<VariableCs_1> with
+the pattern taken from Tx FIFO[31:29].
 
 =head2			Hardware Signals
 
@@ -295,11 +305,11 @@ Frequency = system_clock_freq / (2 * (Speed_12 + 1))
 
 =item B<ChipSelects_3>      - The pattern output on the CS pins when active.
 
- 1= high level
- 0= low level
+ 1= high level, CS inactive
+ 0= low  level, CS active (chip selected)
 
 Bit positions are {CE2, CE1, CE0}, left to right.
-When inactive, all three CS lines are held high.
+When the interface is inactive, all three CS lines are held high.
 There is no control to invert the CS signals, so all three are active low.
 For example, setting (ChipSelects_3 = 0x3) would set only CE2 low, and
 setting (ChipSelects_3 = 0x7) would not activate any CS line.
