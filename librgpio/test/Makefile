@@ -10,6 +10,7 @@ test:
 	cd t_rgAddrMap        && make test
 	cd t_rgClk            && make test
 	cd t_rgFselPin        && make test
+	cd t_rgHeaderPin      && make test
 	cd t_rgIic            && make test
 	cd t_rgIoPins         && make test
 	cd t_rgPads           && make test
@@ -38,6 +39,7 @@ clean:
 	cd t_rgAddrMap        && make clean
 	cd t_rgClk            && make clean
 	cd t_rgFselPin        && make clean
+	cd t_rgHeaderPin      && make clean
 	cd t_rgIic            && make clean
 	cd t_rgIoPins         && make clean
 	cd t_rgPads           && make clean
