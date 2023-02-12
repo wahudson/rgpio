@@ -1,0 +1,261 @@
+2023-02-10  William A. Hudson
+
+		rgpio-header  Header Pin Function Design
+		----------------------------------------
+
+Display header pin numbers and functions.
+
+    Separate from 'rgpio fsel'.
+	Only display current fsel mode, cannot change it.
+
+    Order by header pin number.
+	Indent even numbers to make pseudo double row.
+	Only for 40-pin header.
+
+Uses:  Thinking about
+    a)  Power pins.
+    b)  Current Alternate function.
+    c)  All alternate functions.
+    d)  Gpio bit number, parallel gpio data.
+
+    The essential idea is to provide a convenient 40-pin header pin number
+    reference, but not replace or modify existing classes.
+    Mostly for use in rgpio, but maybe a support class in librgpio.
+    Only support the current 40-pin header on RPi3 and RPi4.
+
+Two output formats:
+    a) Show current function of each pin
+    b) Show all alternate functions for all pins
+
+ Pin   Gpio     Mode     Function
+  1    --       --       +3.3V
+    2  --       --       +5.0V
+  3    gpio2    Alt0     iic1_SDA
+    4  --       --       +5.0V
+  5    gpio3    In       input
+    6  --       --       GND
+ ...
+ 39    --       --       GND
+   40  gpio21   Alt0     pcm_DOUT
+
+
+ Pin   Gpio    Alt0        Alt1      Alt2      Alt3        Alt4        Alt5
+  1    +3.3V   --          --        --        --          --          --
+    2  +5.0V   --          --        --        --          --          --
+  3    gpio2   iic1_SDA    sm_A3     dpi_VSYNC **          **          **
+    4  +5.0V   --          --        --        --          --          --
+  5    gpio3   iic1_SCL    sm_A2     dpi_HSYNC **          **          **
+ ...
+ 39    GND     --          --        --        --          --          --
+   40  gpio21  pcm_DOUT    sm_D13    dpi_D17   bsc_CE_n    spi1_SCLK   gp_CLK1
+
+Ideas:
+    Stagger Pin numbers to mimic the dual row header.
+    This looks really nice, and helps visualize the dual rows.
+
+    Possibly use different indent to distinguish power pins.
+    This looks better, but more complex.
+    Prototype implementation looks good enough without it.
+    The "--" in the other columns helps identify a power pin.
+
+    Leading zero on pin number?
+    Leading zero on gpio number?
+    Leading zeros help sorting, but don't look as nice.
+
+    Gpio name with capital letter:  Gpio21
+    I tend to favor that.
+
+Other Styles Considered:
+
+ Pin   Gpio     Mode     Function
+  1    +3.3V    --       --
+    2  +5.0V    --       --
+  3    gpio2    Alt0     iic1_SDA
+    4  +5.0V    --       --
+  5    gpio3    In       input
+    6  GND      --       --
+ ...
+ 39    GND      --       --
+   40  gpio21   Alt0     pcm_DOUT
+
+
+ Pin   Gpio     Mode     Function
+  1    +3.3V    --       --
+    2  +5.0V    --       --
+  3      gpio2  Alt0     iic1_SDA
+    4  +5.0V    --       --
+  5      gpio3  In       input
+    6  GND      --       --
+ 39    GND      --       --
+   40    gpio21 Alt0     pcm_DOUT
+
+
+ Pin   Gpio     Mode     Function
+  1      +3.3V  --       --
+    2    +5.0V  --       --
+  3    gpio2    Alt0     iic1_SDA
+    4    +5.0V  --       --
+  5    gpio3    In       input
+    6    GND    --       --
+ 39      GND    --       --
+   40  gpio21   Alt0     pcm_DOUT
+
+
+ Pin   Gpio     Mode     Function
+  1    +3.3V    --       --
+    2  +5.0V    --       --
+  3    2        Alt0     iic1_SDA
+    4  +5.0V    --       --
+  5    3        In
+    6  GND      --       --
+ 39    GND      --       --
+   40  21       Alt0     pcm_DOUT
+
+
+ Pin   Gpio     Mode     Function
+  1    --       --       +3.3V
+    2  --       --       +5.0V
+  3    2        Alt0     iic1_SDA
+    4  --       --       +5.0V
+  5    3        In       input
+    6  --       --       GND
+ 39    --       --       GND
+   40  21       Alt0     pcm_DOUT
+
+
+>>  This looks good.
+
+ Pin   Gpio    Mode  Function
+  1    --      --      +3.3V
+    2  --      --      +5.0V
+  3    gpio2   Alt0  iic1_SDA
+    4  --      --      +5.0V
+  5    gpio3   In    input
+    6  --      --      GND
+ 39    --      --      GND
+   40  gpio21  Alt0  pcm_DOUT
+
+----------------------------------------------------------------------------
+## rgHeaderPin Class
+----------------------------------------------------------------------------
+
+Essential information to be related:
+    a) Header pin number.
+    b) GPIO bit number
+    c) Power pin name, i.e. +3.3V, GND, etc.
+
+    The current Alt function can be looked up with the rgFselPin class.
+
+    Name lookup array, indexed by header pin number:
+
+    A) Two independent arrays
+       int		GpioBit[]
+       Value is gpio bit number.  Let -1 indicate a power pin.
+
+       const char*	PowerName[]
+       Value is a string that is the power pin name.
+       Null string "" is a Gpio pin (avoid NULL pointers).
+
+ >  B) An array of structures
+	Structure elements are the Gpio bit number and Power pin name string,
+	as above.
+	Possibly each pin is an object.
+
+    Possibly use an Enum for the power pin name.  Or just negative integers.
+    Mostly make internal structures simple and easy to see correctness.
+    Accessor functions provide user interface.
+
+Accessor Functions:  (ideas)
+
+ >  pin2gpio( pin )
+	Return gpio bit number, -1 otherwise.
+
+    gpio2pin( gpio )
+	Return header pin number, -1 otherwise.
+	Is the inverse of pin2gpio().
+
+ >  pin2power_name( pin )
+	Return string that is the power pin name, null string '' otherwise.
+
+    pin2name( pin )
+	Return string that is the pin name, both power and gpio.
+
+ x  pin2function( pin )
+	Return current function name.  Looks up current function.
+	Depends on rgFselPin, and creates unnecessary coupling.
+	Probably better to let the user do it.
+
+
+class rgHeaderPin	(initial idea)
+{
+  private:
+    static const int	MaxPin  = 40;	// header pin number
+    static const int	MaxGpio = 27;	// gpio bit number
+
+				// index by header pin number
+    static const int	GpioBit[   MaxPin+1 ];
+    static const char*	PowerName[ MaxPin+1 ];
+
+  public:
+    rgHeaderPin();			// constructor
+
+    static const int	pin2gpio( int pin );
+    static const int	gpio2pin( int gpio );
+
+    static const char*	pin2power_name( int pin );
+}
+
+----------------------------------------------------------------------------
+## rgpio header - Command
+----------------------------------------------------------------------------
+
+Feature Name:
+    pins
+	Seems like a good choice, but the word "pin" has multiple uses and
+	meanings.  Actual header pin numbers are generally not used
+	anywhere else in rgpio, and it would be good to keep it that way.
+
+ >  header
+	Is more specific that we are using header pin numbers here.
+
+    head
+	Shorter, but less obvious.
+
+Usage Ideas:
+
+    usage:  rgpio header [options..]  [N..]
+	N                   header pin number 1..40
+      modify:
+	--mode=In	set function mode {In, Out, Alt0, .. Alt5}
+
+      options:
+ x	--even		show even pin numbers
+ x	--odd		show odd  pin numbers
+	--row		show by row, odd first then even
+
+	--gpio		gpio pins
+	--power		power pins
+
+	--show		show all alternate functions
+
+    Code is derived from y_fsel.cpp, which provided some ideas.
+
+Modes of operation:
+
+    A pin list is assembled from these inputs.
+    The list preserves user argv in user order.
+
+	argv	--row	--gpio	--power
+    v	0	0	0	0	default, all pins
+    v	1	0	0	0	only argv
+    v	0	1	0	0	all pins by row
+    v	0	0	1	0	only Gpio pins
+    v	0	0	0	1	only Power pins
+    v	0	0	1	1	both Gpio and Power pins
+
+    x	1	0	0	1	augment Power pins
+    x	1	0	1	0	augment Gpio pins
+
+    Augmenting the argv pin list with the other groups by appending does not
+    look so good, and makes duplicates.  Keep it simple.
+

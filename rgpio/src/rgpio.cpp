@@ -16,6 +16,7 @@ using namespace std;
 
 #include "y_clk.h"
 #include "y_fsel.h"
+#include "y_header.h"
 #include "y_iic.h"
 #include "y_info.h"
 #include "y_io.h"
@@ -172,7 +173,8 @@ yOptLong::print_usage()
     "usage:  " << ProgName << " [main_options..]  feature  [options..]\n"
     "  feature:\n"
     "    io           General Purpose IO pins\n"
-    "    fsel         Pin Function Select\n"
+    "    fsel         Pin Function Select, by Gpio bit number\n"
+    "    header       Pin Function, by pin number on 40-pin header\n"
     "    clk          Clock generator\n"
     "    iic          I2C Master\n"
     "    info         RPi Revision Information\n"
@@ -292,6 +294,10 @@ main( int	argc,
 	}
 	else if ( Opx.feature == "fsel"    ) {
 	    y_fsel		fx  ( &Opx, &Amx );	// constructor
+	    retv = fx.doit();
+	}
+	else if ( Opx.feature == "header"    ) {
+	    y_header		fx  ( &Opx, &Amx );	// constructor
 	    retv = fx.doit();
 	}
 	else if ( Opx.feature == "clk"     ) {
