@@ -6,7 +6,7 @@ A C++ library to manipulate the Raspberry Pi GPIO peripherals.
 
 Revision control:  git
 
-Files:  (2020-08-30)
+Files:  (2023-02-11)
 ------
 README			this file
 
@@ -15,11 +15,14 @@ README			this file
 doc/		    Documentation
     architecture.text	Architecture description
     clock_design.text	rgClk - Clock Manager design
+    fsel_design.text    rgFselPin - Function Select design
     iic_design.text	rgIic - I2C design
-    iopin_design.text	rgIoPins - IO Pin Registers Design
+    iopin_design.text	rgIoPins - IO Pin Registers design
     manpage.text	Manpage documentation design
     mem_barrier.text	Memory Barrier notes
+    pads_design.text	rgPads - Pads Control design
     privilege.text	Process Privilege Control
+    pull_up_down.text	rgPudPin - IO Pin Pull Up/Down design
     pwm_design.text	rgPwm - PWM (Pulse Width Modulator) design
     rpi_revision.text	rgRpiRev - Raspberry Pi Revision design
     spi0_design.text	rgSpi0 - SPI0 Master design
@@ -46,6 +49,9 @@ src/		    Source code
     rgClk.pod
     rgFselPin.cpp	GPIO Pin Function Select class
     rgFselPin.h
+    rgFselPin.pod
+    rgHeaderPin.cpp	Header Pin Names class (40-pin header)
+    rgHeaderPin.h
     rgIic.cpp		I2C Master class
     rgIic.h
     rgIoPins.cpp	GPIO IO Pin Registers class (object registers)
@@ -53,14 +59,18 @@ src/		    Source code
     rgIoPins.pod
     rgPads.cpp		Pads Control
     rgPads.h
-    rgPudPin.cpp	IO Pin Pull Up/Down
+    rgPudPin.cpp	IO Pin Pull Up/Down for Rpi3 and earlier
     rgPudPin.h
+    rgPudPin.pod
+    rgPullPin.cpp	IO Pin Pull Up/Down for RPi4
+    rgPullPin.h
     rgPwm.cpp		PWM Pulse Width Modulator class
     rgPwm.h
     rgRegister.cpp	Register base class
     rgRegister.h
     rgRpiRev.cpp	Raspberry Pi Revision class
     rgRpiRev.h
+    rgRpiRev.pod
     rgSpi0.cpp		SPI0 Master class
     rgSpi0.h
     rgSysTimer.cpp	System Timer class
@@ -70,7 +80,7 @@ src/		    Source code
     rgUniSpi.pod
     rgVersion.h		Version Number (inline code) - define here
 
-bin/		    Commands
+bin/		    Commands  (none)
 
 lib/		    Library
     librgpio.a		The compiled library
@@ -112,5 +122,5 @@ Dependencies:
 
 Primary developers:
 -------------------
-    William Hudson
+    William A. Hudson
 
