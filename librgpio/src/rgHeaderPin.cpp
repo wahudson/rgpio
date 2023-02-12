@@ -2,9 +2,13 @@
 //
 // rGPIO Header Pin Names (40-pin header only)
 //
-// See:  Raspberry Pi Pinout  https://pinout.xyz/#
-//     Raspberry Pi hardware - GPIO and the 40-pin Header
+// See also:
+//   Raspberry Pi Pinout
+//     https://pinout.xyz/#
+//   Raspberry Pi hardware - GPIO and the 40-pin Header
 //     https://www.raspberrypi.com/documentation/computers/raspberry-pi.html
+//
+// Header pin numbers should only appear in this class, and no other rg* class.
 //--------------------------------------------------------------------------
 
 #include <iostream>
@@ -31,114 +35,61 @@ rgHeaderPin::rgHeaderPin()
 //--------------------------------------------------------------------------
 
 /*
-* Gpio bit number for each header pin number.  (private)
+* Header Pin map to Gpio number and pin name.  (private)
 *
-* GpioBit[ pin ]	Gpio bit number, -1 otherwise
+* PinMap[ pin ]		pinRec structure indexed by pin number
 *     pin  = header pin number, {1..MaxPin}
+* pinRec structure:
+*     Gnum    = gpio bit number, otherwise -1= GND, -2= +5.0V, -3= +3.3V
+*     Name[8] = pin name string
 */
-const int		rgHeaderPin::GpioBit[rgHeaderPin::MaxPin + 1] = {
-     // gpio       pin
-	-1,	//  0  zero does not exist
-	-1,	//  1
-	-1,	//  2
-	 2,	//  3
-	-1,	//  4
-	 3,	//  5
-	-1,	//  6
-	 4,	//  7
-	14,	//  8
-	-1,	//  9
+rgHeaderPin::pinRec	rgHeaderPin::PinMap[rgHeaderPin::MaxPin + 1] = {
+  // Gnum Name[8]          pin
+    { -1, ""       },	//  0  pin zero does not exist
 
-	15,	// 10
-	17,	// 11
-	18,	// 12
-	27,	// 13
-	-1,	// 14
-	22,	// 15
-	23,	// 16
-	-1,	// 17
-	24,	// 18
-	10,	// 19
+    { -3, "+3.3V"  },	//  1
+    { -2, "+5V"    },	//  2
+    {  2, "Gpio2"  },	//  3
+    { -2, "+5V"    },	//  4
+    {  3, "Gpio3"  },	//  5
+    { -1, "GND"    },	//  6
+    {  4, "Gpio4"  },	//  7
+    { 14, "Gpio14" },	//  8
+    { -1, "GND"    },	//  9
+    { 15, "Gpio15" },	// 10
 
-	-1,	// 20
-	 9,	// 21
-	25,	// 22
-	11,	// 23
-	 8,	// 24
-	-1,	// 25
-	 7,	// 26
-	 0,	// 27
-	 1,	// 28
-	 5,	// 29
+    { 17, "Gpio17" },	// 11
+    { 18, "Gpio18" },	// 12
+    { 27, "Gpio27" },	// 13
+    { -1, "GND"    },	// 14
+    { 22, "Gpio22" },	// 15
+    { 23, "Gpio23" },	// 16
+    { -3, "+3.3V"  },	// 17
+    { 24, "Gpio24" },	// 18
+    { 10, "Gpio10" },	// 19
+    { -1, "GND"    },	// 20
 
-	-1,	// 30
-	 6,	// 31
-	12,	// 32
-	13,	// 33
-	-1,	// 34
-	19,	// 35
-	16,	// 36
-	26,	// 37
-	20,	// 38
-	-1,	// 39
+    {  9, "Gpio9"  },	// 21
+    { 25, "Gpio25" },	// 22
+    { 11, "Gpio11" },	// 23
+    {  8, "Gpio8"  },	// 24
+    { -1, "GND"    },	// 25
+    {  7, "Gpio7"  },	// 26
+    {  0, "Gpio0"  },	// 27
+    {  1, "Gpio1"  },	// 28
+    {  5, "Gpio5"  },	// 29
+    { -1, "GND"    },	// 30
 
-	21	// 40
-};
-
-
-/*
-* Power pin name for each header pin number.  (private)
-*
-* PowerName[ pin ]	Power name string, "" otherwise
-*     pin  = header pin number, {1..MaxPin}
-*/
-const char*		rgHeaderPin::PowerName[rgHeaderPin::MaxPin + 1] = {
-     // power		   pin
-	"",		//  0  zero does not exist
-	"+3.3V",	//  1
-	"+5V",		//  2
-	"",		//  3
-	"+5V",		//  4
-	"",		//  5
-	"GND",		//  6
-	"",		//  7
-	"",		//  8
-	"GND",		//  9
-
-	"",		// 10
-	"",		// 11
-	"",		// 12
-	"",		// 13
-	"GND",		// 14
-	"",		// 15
-	"",		// 16
-	"+3.3V",	// 17
-	"",		// 18
-	"",		// 19
-
-	"GND",		// 20
-	"",		// 21
-	"",		// 22
-	"",		// 23
-	"",		// 24
-	"GND",		// 25
-	"",		// 26
-	"",		// 27
-	"",		// 28
-	"",		// 29
-
-	"GND",		// 30
-	"",		// 31
-	"",		// 32
-	"",		// 33
-	"GND",		// 34
-	"",		// 35
-	"",		// 36
-	"",		// 37
-	"",		// 38
-	"GND",		// 39
-
-	""		// 40
+    {  6, "Gpio6"  },	// 31
+    { 12, "Gpio12" },	// 32
+    { 13, "Gpio13" },	// 33
+    { -1, "GND"    },	// 34
+    { 19, "Gpio19" },	// 35
+    { 16, "Gpio16" },	// 36
+    { 26, "Gpio26" },	// 37
+    { 20, "Gpio20" },	// 38
+    { -1, "GND"    },	// 39
+    { 21, "Gpio21" },	// 40
 };
 
 //--------------------------------------------------------------------------
@@ -148,45 +99,49 @@ const char*		rgHeaderPin::PowerName[rgHeaderPin::MaxPin + 1] = {
 /*
 * Lookup gpio bit number given a header pin number.
 * call:  (class or object)
-*    pin2gpio( pin )
+*    pin2gpio_int( pin )
 *    pin = header pin number {1..40}
 * return:
-*    () = gpio bit number, -1 otherwise
+*    () = gpio bit number, otherwise -1= GND, -2= +5.0V, -3= +3.3V
+* exception:
+*    Throw range_error if pin number is invalid.
 */
 const int
-rgHeaderPin::pin2gpio(
+rgHeaderPin::pin2gpio_int(
     int		pin
 )
 {
-    if ( (pin <= 0) || (pin > 40) ) {
+    if ( (pin <= 0) || (pin > MaxPin) ) {
 	std::ostringstream      css;
-	css << "pin2gpio():  pin out-of-range:  " << pin;
+	css << "pin2gpio_int():  header pin out-of-range:  " << pin;
 	throw std::range_error ( css.str() );
     }
 
-    return  GpioBit[ pin ];
+    return  PinMap[pin].Gnum;
 }
 
 
 /*
-* Lookup power pin name given a header pin number.
+* Lookup pin name given a header pin number.
 * call:  (class or object)
-*    pin2power_name( pin )
+*    pin2name_cstr( pin )
 *    pin = header pin number {1..40}
 * return:
-*    () = power name string, null string "" otherwise
+*    () = pin name string
+* exception:
+*    Throw range_error if pin number is invalid.
 */
 const char*
-rgHeaderPin::pin2power_name(
+rgHeaderPin::pin2name_cstr(
     int		pin
 )
 {
-    if ( (pin <= 0) || (pin > 40) ) {
+    if ( (pin <= 0) || (pin > MaxPin) ) {
 	std::ostringstream      css;
-	css << "pin2power_name():  pin out-of-range:  " << pin;
+	css << "pin2name_cstr():  header pin out-of-range:  " << pin;
 	throw std::range_error ( css.str() );
     }
 
-    return  PowerName[ pin ];
+    return  PinMap[pin].Name;
 }
 

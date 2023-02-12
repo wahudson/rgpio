@@ -14,18 +14,21 @@ class rgHeaderPin {
     static const int	MaxGpio = 27;	// max gpio bit number on header
 
   private:
-				// index by header pin number
-    static const int	GpioBit[   MaxPin+1 ];
-    static const char*	PowerName[ MaxPin+1 ];
+    struct pinRec {
+	const int	Gnum;		// gpio bit number, otherwise encode
+					//     -1= GND, -2= +5.0V, -3= +3.3V
+	const char	Name[8];	// pin name string
+    };
+
+    static pinRec	PinMap[ MaxPin+1 ];	// index by header pin number
 
   public:
     rgHeaderPin();			// constructor
 
-    static const int	pin2gpio( int pin );
+    static const int	pin2gpio_int( int pin );
 //  const int		gpio2pin( int gpio );
 
-    static const char*	pin2power_name( int pin );
-//  const char*		pin2name( int pin );
+    static const char*	pin2name_cstr( int pin );
 };
 
 #endif
