@@ -2,7 +2,8 @@
 usage:  rgpio [main_options..]  feature  [options..]
   feature:
     io           General Purpose IO pins
-    fsel         Pin Function Select
+    fsel         Pin Function Select, by Gpio bit number
+    header       Pin Function, by pin number on 40-pin header
     clk          Clock generator
     iic          I2C Master
     info         RPi Revision Information

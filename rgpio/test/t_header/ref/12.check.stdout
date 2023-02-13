@@ -1,0 +1,15 @@
+    Header Pin Functions, by pin number on 40-pin header
+usage:  rgpio header [options..]  [N..]
+  header pin number list:  (default all by pin number)
+    N                   header pin number 1..40
+    --gpio              gpio header pins
+    --power             power header pins
+    --row               all by row, odd pins first then even
+  modify:
+    --mode=In           set function mode {In, Out, Alt0, .. Alt5}
+  options:
+    --show              show all alternate functions
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)
