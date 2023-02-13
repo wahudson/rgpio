@@ -145,3 +145,41 @@ rgHeaderPin::pin2name_cstr(
     return  PinMap[pin].Name;
 }
 
+
+/*
+* Lookup header pin number given a gpio bit number.
+* call:  (class or object)
+*    gpio2pin_int( gpio )
+*    gpio = gpio bit number {0..57}
+* return:
+*    () = header pin number, otherwise 0
+* exception:
+*    Throw range_error if gpio bit number is invalid.
+*/
+const int
+rgHeaderPin::gpio2pin_int(
+    int		gpio
+)
+{
+    int		pin;
+
+    if ( (gpio < 0) || (gpio > 57) ) {
+	std::ostringstream      css;
+	css << "gpio2pin_int():  invalid gpio bit number:  " << gpio;
+	throw std::range_error ( css.str() );
+    }
+
+    if ( gpio > MaxGpio ) {	// not on header
+	return  0;
+    }
+
+    for ( pin=MaxPin;  pin>=0;  pin-- ) {
+	if ( gpio == PinMap[pin].Gnum ) { break; }
+    }
+    // Reverse search hits fewer power pins.
+    // If gpio not found (bad lookup table), then pin=0.
+    //#!! Linear search - complexity tradeoff, expect low use.
+
+    return  pin;
+}
+

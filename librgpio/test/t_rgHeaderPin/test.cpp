@@ -4,7 +4,7 @@
 //    10-19  Constructor
 //    20-29  pin2gpio_int()
 //    30-39  pin2name_cstr()
-//    40-49  .
+//    40-49  gpio2pin_int()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -254,6 +254,93 @@ rgHeaderPin		Tx;	// test object
   CASE( "39", "class call pin2name_cstr()" );
     try {
 	CHECK( "GND",    rgHeaderPin::pin2name_cstr( 39 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## gpio2pin_int()
+//--------------------------------------------------------------------------
+
+  CASE( "40", "gpio2pin_int( 0..9)" );
+    try {
+	CHECK(  27,  Tx.gpio2pin_int(  0 ) );
+	CHECK(  28,  Tx.gpio2pin_int(  1 ) );
+	CHECK(   3,  Tx.gpio2pin_int(  2 ) );
+	CHECK(   5,  Tx.gpio2pin_int(  3 ) );
+	CHECK(   7,  Tx.gpio2pin_int(  4 ) );
+	CHECK(  29,  Tx.gpio2pin_int(  5 ) );
+	CHECK(  31,  Tx.gpio2pin_int(  6 ) );
+	CHECK(  26,  Tx.gpio2pin_int(  7 ) );
+	CHECK(  24,  Tx.gpio2pin_int(  8 ) );
+	CHECK(  21,  Tx.gpio2pin_int(  9 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "41", "gpio2pin_int( 10..19)" );
+    try {
+	CHECK(  19,  Tx.gpio2pin_int( 10 ) );
+	CHECK(  23,  Tx.gpio2pin_int( 11 ) );
+	CHECK(  32,  Tx.gpio2pin_int( 12 ) );
+	CHECK(  33,  Tx.gpio2pin_int( 13 ) );
+	CHECK(   8,  Tx.gpio2pin_int( 14 ) );
+	CHECK(  10,  Tx.gpio2pin_int( 15 ) );
+	CHECK(  36,  Tx.gpio2pin_int( 16 ) );
+	CHECK(  11,  Tx.gpio2pin_int( 17 ) );
+	CHECK(  12,  Tx.gpio2pin_int( 18 ) );
+	CHECK(  35,  Tx.gpio2pin_int( 19 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "42", "gpio2pin_int( 20..29)" );
+    try {
+	CHECK(  38,  Tx.gpio2pin_int( 20 ) );
+	CHECK(  40,  Tx.gpio2pin_int( 21 ) );
+	CHECK(  15,  Tx.gpio2pin_int( 22 ) );
+	CHECK(  16,  Tx.gpio2pin_int( 23 ) );
+	CHECK(  18,  Tx.gpio2pin_int( 24 ) );
+	CHECK(  22,  Tx.gpio2pin_int( 25 ) );
+	CHECK(  37,  Tx.gpio2pin_int( 26 ) );
+	CHECK(  13,  Tx.gpio2pin_int( 27 ) );
+	CHECK(   0,  Tx.gpio2pin_int( 28 ) );	// not on header
+	CHECK(   0,  Tx.gpio2pin_int( 29 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "47", "gpio2pin_int(0) invalid" );
+    try {
+	Tx.gpio2pin_int( -1 );
+	FAIL( "no throw" );
+    }
+    catch ( std::runtime_error& e ) {
+	CHECK( "gpio2pin_int():  invalid gpio bit number:  -1", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "48", "gpio2pin_int(58) invalid" );
+    try {
+	Tx.gpio2pin_int( 58 );
+	FAIL( "no throw" );
+    }
+    catch ( std::runtime_error& e ) {
+	CHECK( "gpio2pin_int():  invalid gpio bit number:  58", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "49", "class call gpio2pin_int()" );
+    try {
+	CHECK(  7,  rgHeaderPin::gpio2pin_int( 4 ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

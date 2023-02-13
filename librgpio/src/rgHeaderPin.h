@@ -26,7 +26,7 @@ class rgHeaderPin {
     rgHeaderPin();			// constructor
 
     static const int	pin2gpio_int( int pin );
-//  const int		gpio2pin( int gpio );
+    static const int	gpio2pin_int( int gpio );
 
     static const char*	pin2name_cstr( int pin );
 };
