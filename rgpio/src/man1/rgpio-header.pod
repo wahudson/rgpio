@@ -1,0 +1,221 @@
+# 2023-02-14  William A. Hudson
+
+# rgpio-header -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio-header -- Header Pin Functions, by pin number on 40-pin header
+
+=head1		SYNOPSIS
+
+ usage:  rgpio header [options..]  [N..]
+  header pin list formation:  (choose one)
+    [N..]               header pin numbers 1..40, default all
+    --gpio  [N..]       Gpio bit numbers   0..27, default all
+    --signal            signal header pins
+    --power             power  header pins
+    --row               header pins by row, odd first then even
+  modify:
+    --mode=In           set function mode {In, Out, Alt0, .. Alt5}
+  options:
+    --show              show all alternate functions
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)
+
+
+=head1		DESCRIPTION
+
+This command displays the Function Select mode of each GPIO pin specified.
+
+Essentially it is active documentation mapping the 40-pin header pins
+to Gpio bit numbers that are acted upon using the B<rgFsel> class.
+As such, it is equivalent to the B<rgpio-fsel> command, but restricted to
+only the Gpio pins on the 40-pin header (Gpio0 .. Gpio27), making it somewhat
+safer.
+
+It is the only B<rgpio> command to use header pin numbers, all others use
+Gpio bit numbers.
+
+=head2			Output Tables
+
+Output tables show the header pin numbers staggered, with the even numbers
+indented to suggest the two row header.
+
+Normal output shows the header Pin number, the Gpio name {Gpio0 .. Gpio27},
+the alternate function Mode {In, Out, Alt0, .. Alt5}, and the Function name.
+Power pins are shown as {+3.3V, +5V, GND} in the Function column, where
+"GND" is a Ground connection.  e.g.
+
+ Pin   Gpio    Mode  Function
+  3    Gpio2   In    input
+    4  --      --    +5V
+
+With --show, the table columns show the header Pin number, the Gpio name
+(or the Power pin name), and the six alternate function names
+{Alt0 .. Alt5}.  The current pin function is not shown.
+It is intended to show all the possible peripheral functions available
+on each pin.  e.g.
+
+ Pin  Gpio    Alt0       Alt1    Alt2       Alt3       Alt4    Alt5
+  3   Gpio2   iic1_SDA   sm_A3   dpi_VSYNC  spi3_MOSI  u2_CTS  iic3_SDA
+    4 +5V     --         --      --         --         --      --
+
+The alternate Function names generally have a prefix indicating the
+peripheral they belong to.  Special names indicate:
+
+    --  = reserved, or a Power pin
+    **  = do NOT USE, may have unexpected results
+
+Note:  RPi4 (BCM2711) introduced additional instances of IIC, SPI and UART,
+and moved the Slave I2C bsc_* alternate functions.
+
+=head2			Modification
+
+If modification is requested with B<--mode>, the process for each bit is:
+
+    1) Read current hardware register value.
+    2) Modify the mode field for that bit.
+    3) Write modified value back to hardware register.
+    4) After all bits are modified, re-read registers for display.
+
+Note this read-modify-write sequence is not atomic.  It is left to the user
+to avoid synchronization issues.
+
+
+=head1		OPTIONS
+
+=head2			Pin List Formation
+
+Argument numbers [N..] are header pin numbers, except with --gpio they
+are interpreted as Gpio bit numbers.
+The order given on the command line is preserved in the output tables.
+Default behavior is to list all 40 pins in header pin number order.
+
+=over
+
+=item B<--gpio>             - Gpio bit numbers (0..27)
+
+Interpret argument numbers [N..] as Gpio bit numbers, instead of header
+pin numbers.
+With no argument numbers, list all signal pins in Gpio bit number order.
+Not valid with --signal or --row.
+
+=item B<--signal>           - Signal header pins
+
+List all signal pins in header pin number order.
+Argument pin numbers [N..] are not allowed.
+Not valid with --gpio or --row.
+
+=item B<--power>            - Power  header pins
+
+List all power pins in header pin number order.
+Argument pin numbers [N..] are not allowed.
+Not valid with --row.
+
+=item B<--row>              - Header pins by row, odd first then even
+
+List all header pins by row.
+Argument pin numbers [N..] are not allowed.
+Not valid with --gpio or --signal or --power.
+
+=back
+
+=head2			Modify
+
+All signal pins in the specified pin list are modified, power pins are
+ignored.  This is reasonably safe (unlike B<rgpio-fsel>), as none of the
+header pins are used by the operating system.
+Be aware of pin connections when changing mode to avoid potential drive fights.
+
+=over
+
+=item B<--mode=>In          - Set function mode {In, Out, Alt0, .. Alt5}.
+
+Set the mode for the specified pin list.
+The default at power-on reset is "--mode=In".
+Not valid with --power or --show.
+
+=back
+
+=head2			Options
+
+=over
+
+=item B<--show>             - Show all alternate functions.
+
+Output a table of all alternate functions {Alt0..Alt5} for the specified
+pin list.  No pins are modified.
+
+=item B<-v, --verbose>      - Verbose output.
+
+Shows actions taken as the command executes.
+
+=back
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ Show pins 0..40 by default.
+ % rgpio header
+
+ Show all signal pins ordered by header pin number {0..40}
+ % rgpio header --signal
+
+ Show all signal pins ordered by Gpio bit number {0..27}
+ % rgpio header --gpio
+
+ Show/modify selected pins in given order
+ % rgpio header               23 19 21 24 26
+ % rgpio header --show        23 19 21 24 26
+ % rgpio header --mode=Alt0   23 19 21 24 26
+
+ Set Gpio bits 14..17 to Alt5 UART1 function.
+ % rgpio header --mode=Alt5 --gpio  14 15 16 17
+
+ Show all alternate functions for all pins.  No pins are modified.
+ % rgpio        header --show
+ % rgpio --rpi4 header --show
+
+ Reset all header pins to Input.
+ % rgpio header --mode=In
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		FILES
+
+In the source directory tree:
+
+ librgpio/src/rgHeaderPin.h
+ librgpio/src/rgFselPin.h
+ librgpio/src/rgAltFuncName.h
+
+
+=head1		SEE ALSO
+
+B<rgpio>(1)
+B<rgpio-fsel>(1)
+B<rgpio-io>(1)
+B<librgpio>(3)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.102-104  6.2  Alternative Function Assignments
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (18 Jan 2022)
+    p.77-81  ch 5.3  Alternative Function Assignments
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
+
+=cut
+

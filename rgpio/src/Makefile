@@ -86,6 +86,7 @@ man:	$(MAN)/man1 \
 	$(MAN)/man1/rgpio.1 \
 	$(MAN)/man1/rgpio-clk.1 \
 	$(MAN)/man1/rgpio-fsel.1 \
+	$(MAN)/man1/rgpio-header.1 \
 	$(MAN)/man1/rgpio-io.1 \
 	$(MAN)/man1/rgpio-pads.1
 
@@ -186,6 +187,10 @@ $(MAN)/man1/rgpio-clk.1:	man1/rgpio-clk.pod
 $(MAN)/man1/rgpio-fsel.1:	man1/rgpio-fsel.pod
 	pod2man -s 1 -n rgpio-fsel --center='Raspberry Pi GPIO' \
 		   man1/rgpio-fsel.pod  $@
+
+$(MAN)/man1/rgpio-header.1:	man1/rgpio-header.pod
+	pod2man -s 1 -n rgpio-header --center='Raspberry Pi GPIO' \
+		   man1/rgpio-header.pod  $@
 
 $(MAN)/man1/rgpio-io.1:		man1/rgpio-io.pod
 	pod2man -s 1 -n rgpio-io --center='Raspberry Pi GPIO' \

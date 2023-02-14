@@ -68,6 +68,7 @@ src/		    Source code
     man1/	      Manpage source for sub-commands
 	rgpio-clk.pod
 	rgpio-fsel.pod
+	rgpio-header.pod
 	rgpio-io.pod
 	rgpio-pads.pod
 
