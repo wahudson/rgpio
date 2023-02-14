@@ -3,10 +3,10 @@
 
 # Testing:  rgpio-header  subcommand.
 #    10-19  header basic options, --help
-#    20-29  --row, --gpio, --power
+#    20-29  --row, --signal, --power
 #    30-39  --mode
 #    40-49  --show
-#    50-59  .
+#    50-59  --gpio
 
 # usage:  ./test.pl
 # files:
@@ -129,7 +129,7 @@ run_test( "15", "invalid header pins",
 );
 
 #---------------------------------------------------------------------------
-## --row, --gpio, --power
+## --row, --signal, --power
 #---------------------------------------------------------------------------
 
 run_test( "21", "pins by row",
@@ -203,7 +203,7 @@ run_test( "22", "power pins",
 );
 
 run_test( "23", "gpio pins",
-    "rgpio --dev=f  header --gpio",
+    "rgpio --dev=f  header --signal",
     0,
     Stderr => q(),
     Stdout => q(
@@ -239,11 +239,12 @@ run_test( "23", "gpio pins",
     ),
 );
 
+#!!
 run_test( "24", "invalid --row combination",
-    "rgpio --dev=f  header --gpio --row",
+    "rgpio --dev=f  header --signal --row",
     1,
     Stderr => q(
-	Error:  --row not valid with --gpio --power
+	Error:  --row not valid with --signal --power
     ),
     Stdout => q(),
 );
@@ -252,7 +253,7 @@ run_test( "25", "invalid --row combination",
     "rgpio --dev=f  header --row --power",
     1,
     Stderr => q(
-	Error:  --row not valid with --gpio --power
+	Error:  --row not valid with --signal --power
     ),
     Stdout => q(),
 );
@@ -262,16 +263,16 @@ run_test( "28a", "invalid --row with pin list",
     "rgpio --dev=f  header --row 7",
     1,
     Stderr => q(
-	Error:  argv not valid with --gpio --power --row
+	Error:  argv not valid with --signal --power --row
     ),
     Stdout => q(),
 );
 
-run_test( "28b", "invalid --gpio with pin list",
-    "rgpio --dev=f  header --gpio 7",
+run_test( "28b", "invalid --signal with pin list",
+    "rgpio --dev=f  header --signal 7",
     1,
     Stderr => q(
-	Error:  argv not valid with --gpio --power --row
+	Error:  argv not valid with --signal --power --row
     ),
     Stdout => q(),
 );
@@ -280,7 +281,7 @@ run_test( "28c", "invalid --power with pin list",
     "rgpio --dev=f  header --power 7",
     1,
     Stderr => q(
-	Error:  argv not valid with --gpio --power --row
+	Error:  argv not valid with --signal --power --row
     ),
     Stdout => q(),
 );
@@ -334,16 +335,21 @@ run_test( "37", "invalid --mode combination",
     "rgpio --dev=f  header --mode=In --row --power --show",
     1,
     Stderr => q(
-	Error:  --row not valid with --gpio --power
+	Error:  --row not valid with --signal --power
 	Error:  --mode not valid with --power
-	Error:  --mode not valid with --row
 	Error:  --mode not valid with --show
     ),
     Stdout => q(),
 );
 
-run_test( "38", "valid --mode with --gpio",
-    "rgpio --dev=f  header -v --mode=Alt4 --gpio",
+run_test( "38", "valid --mode with --signal",
+    "rgpio --dev=f  header -v --mode=Alt4 --signal",
+    0,
+    Stderr => q(),
+);
+
+run_test( "39", "valid --mode with --gpio",
+    "rgpio --dev=f  header --mode=Alt4 --gpio",
     0,
     Stderr => q(),
 );
@@ -380,6 +386,87 @@ run_test( "43", "header --show invalid with --mode",
     1,
     Stderr => q(
 	Error:  --mode not valid with --show
+    ),
+    Stdout => q(),
+);
+
+run_test( "44", "show gpio bits",
+    "rgpio --dev=f  header --show --gpio  8 4",
+    0,
+    Stderr => q(),
+    Stdout => q(
+ Pin  Gpio    Alt0       Alt1       Alt2       Alt3       Alt4       Alt5      
+   24 Gpio8   spi0_CE0_n sm_D0      dpi_D4     **         **         **        
+  7   Gpio4   gp_CLK0    sm_A1      dpi_D0     **         **         arm_TDI   
+    ),
+    # trailing space
+);
+
+#---------------------------------------------------------------------------
+## --gpio
+#---------------------------------------------------------------------------
+
+run_test( "50", "gpio default",
+    "rgpio --dev=f  header --gpio",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	 Pin   Gpio    Mode  Function
+	 27    Gpio0   In    input
+	   28  Gpio1   In    input
+	  3    Gpio2   In    input
+	  5    Gpio3   In    input
+	  7    Gpio4   In    input
+	 29    Gpio5   In    input
+	 31    Gpio6   In    input
+	   26  Gpio7   In    input
+	   24  Gpio8   In    input
+	 21    Gpio9   In    input
+	 19    Gpio10  In    input
+	 23    Gpio11  In    input
+	   32  Gpio12  In    input
+	 33    Gpio13  In    input
+	    8  Gpio14  In    input
+	   10  Gpio15  In    input
+	   36  Gpio16  In    input
+	 11    Gpio17  In    input
+	   12  Gpio18  In    input
+	 35    Gpio19  In    input
+	   38  Gpio20  In    input
+	   40  Gpio21  In    input
+	 15    Gpio22  In    input
+	   16  Gpio23  In    input
+	   18  Gpio24  In    input
+	   22  Gpio25  In    input
+	 37    Gpio26  In    input
+	 13    Gpio27  In    input
+    ),
+);
+
+run_test( "51", "gpio bits",
+    "rgpio --dev=f  header --gpio  8 2 7",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	 Pin   Gpio    Mode  Function
+	   24  Gpio8   In    input
+	  3    Gpio2   In    input
+	   26  Gpio7   In    input
+    ),
+);
+
+run_test( "52", "valid --gpio with --power",
+    "rgpio --dev=f  header --gpio --power",
+    0,
+    Stderr => q(),
+);
+
+run_test( "53", "invalid --gpio combination",
+    "rgpio --dev=f  header --gpio --row --signal",
+    1,
+    Stderr => q(
+	Error:  --gpio not valid with --signal --row
+	Error:  --row not valid with --signal --power
     ),
     Stdout => q(),
 );

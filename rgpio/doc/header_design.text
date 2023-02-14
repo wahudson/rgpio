@@ -240,6 +240,9 @@ Usage Ideas:
 
     Code is derived from y_fsel.cpp, which provided some ideas.
 
+    Note --power and --show are essentially only documentation, with no
+    modification action.
+
 Modes of operation:
 
     A pin list is assembled from these inputs.
@@ -258,4 +261,32 @@ Modes of operation:
 
     Augmenting the argv pin list with the other groups by appending does not
     look so good, and makes duplicates.  Keep it simple.
+
+Initial prototype:  (Git 2023-02-12  39881b1f8)
+    Looking good.  Operations by header pin number really help.
+    Default all header pins is the key feature.
+    --row  is a nice odd/even grouping.
+    Group by --gpio or --power is somewhat helpful.
+    Appling --mode with any pin list is good, and reasonably safe.
+
+    It would be good to sort by Gpio bit number, to lookup corresponding
+    header pin.
+
+    Rename old option --gpio to --signal.
+    Let --gpio mean pin list is by Gpio bit number, essentially another way
+    of pin list formation.
+
+    --gpio  [N..]       N= Gpio bit numbers, default all bits on header
+
+    usage:  rgpio header [options..]  [N..]
+      header pin list formation:  (choose one)
+	[N..]               header pin numbers {1..40}
+	--gpio  [N..]       Gpio bit numbers {0..27}, order by Gpio
+	--signal            signal header pins
+	--power             power header pins
+	--row               header pins by row, odd pins first then even
+      ...
+
+    All 5 list specifiers are be mutually exclusive.
+    (except --power and (--signal or --gpio) could be combined).
 

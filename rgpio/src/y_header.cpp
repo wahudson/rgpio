@@ -43,6 +43,7 @@ class header_yOptLong : public yOption {
   public:	// option values
 
     bool		gpio  = 0;
+    bool		signal = 0;
     bool		power = 0;
     bool		row   = 0;
 
@@ -100,6 +101,7 @@ header_yOptLong::parse_options()
 	     if ( is( "--show"       )) { show       = 1; }
 
 	else if ( is( "--gpio"       )) { gpio       = 1; }
+	else if ( is( "--signal"     )) { signal     = 1; }
 	else if ( is( "--power"      )) { power      = 1; }
 	else if ( is( "--row"        )) { row        = 1; }
 
@@ -118,14 +120,21 @@ header_yOptLong::parse_options()
     }
 
     if ( get_argc() > 0 ) {
-	if ( gpio || power || row ) {
-	    Error::msg( "argv not valid with --gpio --power --row" ) <<endl;
+	if ( signal || power || row ) {
+	    Error::msg( "argv not valid with --signal --power --row" ) <<endl;
 	}
     }
 
+    if ( gpio ) {
+	if ( signal || row ) {
+	    Error::msg( "--gpio not valid with --signal --row" ) <<endl;
+	}
+	// allow --power
+    }
+
     if ( row ) {
-	if ( gpio || power ) {
-	    Error::msg( "--row not valid with --gpio --power" ) <<endl;
+	if ( signal || power ) {
+	    Error::msg( "--row not valid with --signal --power" ) <<endl;
 	}
     }
 
@@ -141,10 +150,6 @@ header_yOptLong::parse_options()
 
 	if ( power ) {
 	    Error::msg( "--mode not valid with --power" ) <<endl;
-	}
-
-	if ( row ) {
-	    Error::msg( "--mode not valid with --row" ) <<endl;
 	}
 
 	if ( show ) {
@@ -163,6 +168,7 @@ header_yOptLong::print_option_flags()
     // Beware namespace clash with 'hex'.
 
     cout << "--gpio        = " << gpio         << endl;
+    cout << "--signal      = " << signal       << endl;
     cout << "--power       = " << power        << endl;
     cout << "--row         = " << row          << endl;
 
@@ -192,11 +198,12 @@ header_yOptLong::print_usage()
     cout <<
     "    Header Pin Functions, by pin number on 40-pin header\n"
     "usage:  " << ProgName << " header [options..]  [N..]\n"
-    "  header pin number list:  (default all by pin number)\n"
-    "    N                   header pin number 1..40\n"
-    "    --gpio              gpio header pins\n"
-    "    --power             power header pins\n"
-    "    --row               all by row, odd pins first then even\n"
+    "  header pin list formation:  (choose one)\n"
+    "    [N..]               header pin numbers 1..40, default all\n"
+    "    --gpio  [N..]       Gpio bit numbers   0..27, default all\n"
+    "    --signal            signal header pins\n"
+    "    --power             power  header pins\n"
+    "    --row               header pins by row, odd first then even\n"
     "  modify:\n"
     "    --mode=In           set function mode {In, Out, Alt0, .. Alt5}\n"
     "  options:\n"
@@ -283,6 +290,13 @@ y_header::doit()
 	if ( Opx.get_argc() == 0 ) {
 
 	    if ( Opx.gpio ) {
+		for ( int k=0;  k <= rgHeaderPin::MaxGpio;  k++ )
+		{
+		    pinlist[pincnt++] = rgHeaderPin::gpio2pin_int( k );
+		}
+	    }
+
+	    if ( Opx.signal ) {
 		for ( int k=1;  k<=40;  k++ )
 		{
 		    if ( rgHeaderPin::pin2gpio_int( k ) >= 0 ) {
@@ -327,13 +341,21 @@ y_header::doit()
 	    int				n;
 
 	    n = strtol( arg, NULL, 0 );
-	    if ( (n < 1) || (n > 40) ) {
-		Error::msg( "pin arg out-of-range {1..40}:  " ) << n <<endl;
-		continue;
-	    }
 
-	    pinlist[pincnt] = n;
-	    pincnt++;
+	    if ( Opx.gpio ) {
+		if ( (n < 0) || (n > 27) ) {
+		    Error::msg( "bit arg out-of-range {0..27}:  " ) << n <<endl;
+		    continue;
+		}
+		pinlist[pincnt++] = rgHeaderPin::gpio2pin_int( n );
+	    }
+	    else {
+		if ( (n < 1) || (n > 40) ) {
+		    Error::msg( "pin arg out-of-range {1..40}:  " ) << n <<endl;
+		    continue;
+		}
+		pinlist[pincnt++] = n;
+	    }
 
 	    if ( pincnt > PinLimit ) {
 		Error::msg( "max pin args:  " ) << PinLimit <<endl;
@@ -387,6 +409,7 @@ y_header::doit()
 				rgAltFuncName::str_altfunc_bit( mode, bit ));
 		}
 		cout <<endl;
+		// remove trailing <space> chars?
 	    }
 
 	    return 0;
