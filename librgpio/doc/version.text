@@ -9,6 +9,8 @@ Version Release Process:  (2020-10-24)
     Tag only useful release points.  Other changes are captured by the
     Makefile version generation process using 'git describe'.
 
+    0. Update Tag Log in this file, and commit.  Commit message:
+	Doc:  Update for release.
     1. Create version tag in the repository.
 	% git tag -a  vX.Y.Z
     2. Force generation of "version.inc" file.
@@ -26,6 +28,21 @@ Version Release Process:  (2020-10-24)
 
 Tag      Date        Message
 -------  ----------  -------
+
+v0.21.0  2023-02-14  New classes and rgpio commands.  Major interface changes.
+    rgpio-header:  New Header Pin Functions.
+    rgHeaderPin:  New Header Pin Names class (40-pin header only)
+    Man:  rgUniSpi(7) Improve Features section.
+    Man:  rgFselPin(3) New manpage
+    rgpio-fsel:  New --w0, --w1 options to modify by word mask.
+    rgFselPin:  Refactor.  Complete redesign, similar to rgPullPin class.
+    rgUniSpi:  Reverse constructor argument order.  Not back compatible.
+    rgClk:     Reverse constructor argument order.  Not back compatible.
+    rgIic:     Reverse constructor argument order.  Not back compatible.
+    Man:  rgIoPins(7) Notes on special IO pins.
+    Man:  New rgPads(7), rgpio-pads(1) man pages.
+    rgpio-pads:  New command for Pads Control.
+    rgPads:  New Pads Control class.
 
 v0.20.0  2021-03-08  Multi-RPi version support.  Extended RPi4 units.
     rgAddrMap:  BaseAddr default to the running RPi, was hardwired RPi3.
@@ -91,6 +108,9 @@ Version:  X.Y.Z-PreRelease
         Patch Z= Bug fixes not affecting the API
 	-PreRelease    = optional string
 	+BuildMetadata = optional string
+
+    Version zero (v0.X.Y) may break back compatibility, as it is not mature
+    enough to be worth tracking.
 
 Git Tag:  Prefix the version number with a 'v'.
 
