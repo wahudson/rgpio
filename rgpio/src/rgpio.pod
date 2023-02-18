@@ -13,7 +13,8 @@ rgpio -- Raspberry Pi GPIO utility
  rgpio [main_options..]  feature  [options..]
   feature:
     io           General Purpose IO pins
-    fsel         Pin Function Select
+    fsel         Pin Function Select, by Gpio bit number
+    header       Pin Function, by pin number on 40-pin header
     clk          Clock generator
     iic          I2C Master
     info         RPi Revision Information
@@ -133,6 +134,7 @@ B<librgpio> class.
  ------- ----------    ---------    -------------------------------
  clk     rgpio-clk     rgClk        Clock generators
  fsel    rgpio-fsel    rgFselPin    Pin Function Select
+ header  rgpio-header  rgHeaderPin  Pin Function on 40-pin header
  iic     rgpio-iic     rgIic        I2C Master
  info    rgpio-info    rgRpiRev     RPi Revision Information
  io      rgpio-io      rgIoPins     General Purpose IO pins
@@ -202,7 +204,7 @@ If /dev/gpiomem is used instead, they may silently do nothing, e.g. all
 values appear stuck zero.
 
 Device /dev/gpiomem is really only usable with the GPIO pin features, i.e.
-sub-commands B<fsel>, B<io>, B<pud>, and B<pull>.
+sub-commands B<fsel>, B<header>, B<io>, B<pud>, and B<pull>.
 
 
 =head1		ENVIRONMENT

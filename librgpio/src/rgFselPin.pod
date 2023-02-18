@@ -357,9 +357,11 @@ In the librgpio/ source tree:
 =head1		SEE ALSO
 
  rgFselPin(7)	hardware register description
+ rgHeaderPin(3)	header pin names
  rgIoPins(3)
  rgAddrMap(3)
  rgpio-fsel(1)
+ rgpio-header(1)
 
  BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
     p.89-101  ch 6. General Purpose I/O (GPIO)

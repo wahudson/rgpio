@@ -158,12 +158,17 @@ In the source directory tree:
 =head1		SEE ALSO
 
 B<rgpio>(1)
+B<rgpio-header>(1)
 B<rgpio-io>(1)
 B<librgpio>(3)
 
- BCM2835 ARM Peripherals (2012)
+ BCM doc:  BCM2835 ARM Peripherals (2012)
     p.102-104  6.2  Alternative Function Assignments
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (18 Jan 2022)
+    p.77-81  ch 5.3  Alternative Function Assignments
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
 
 =cut
 
