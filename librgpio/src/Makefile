@@ -64,6 +64,7 @@ man:	$(MAN)/man3 \
 	$(MAN)/man3/rgAddrMap.3 \
 	$(MAN)/man3/rgClk.3 \
 	$(MAN)/man3/rgFselPin.3 \
+	$(MAN)/man3/rgHeaderPin.3 \
 	$(MAN)/man3/rgIoPins.3 \
 	$(MAN)/man3/rgPudPin.3 \
 	$(MAN)/man3/rgRpiRev.3 \
@@ -173,6 +174,10 @@ $(MAN)/man3/rgClk.3:		rgClk.pod
 $(MAN)/man3/rgFselPin.3:	rgFselPin.pod
 	pod2man -s 3 -n rgFselPin    --center='librgpio Raspberry Pi GPIO' \
 	    rgFselPin.pod  $@
+
+$(MAN)/man3/rgHeaderPin.3:	rgHeaderPin.pod
+	pod2man -s 3 -n rgHeaderPin    --center='librgpio Raspberry Pi GPIO' \
+	    rgHeaderPin.pod  $@
 
 $(MAN)/man3/rgIoPins.3:		rgIoPins.pod
 	pod2man -s 3 -n rgIoPins  --center='librgpio Raspberry Pi GPIO' \
