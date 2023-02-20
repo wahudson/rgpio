@@ -147,3 +147,28 @@ Finding tool install dir:
 	ToolDir = /home/pi/work/rgpio/rgpio
 	ManDir  = /home/pi/work/rgpio/rgpio/man
 
+----------------------------------------------------------------------------
+## Manpage Format, etc.
+----------------------------------------------------------------------------
+
+Here we outline some choices made with a view toward some uniformity and
+making new man pages.  This is balanced with exploring new methods.
+Absolute uniformity is not a goal.
+
+Both librgpio and rgpio man pages are discussed here.
+
+SYNOPSIS:
+    Generally the class structure is not complete, leaving out private
+    members.
+
+    Sometimes public functions are grouped under headings outside of the
+    class declaration, where the grouping is the important aspect and matches
+    the function description section, as in rgClk(3).
+
+SEE ALSO:
+    List other pages that might be helpful, then web references.
+    Order by section (1,3,7), then mostly alphabetic.
+    Sometimes more meaningful in the context earlier.
+
+    "BCM doc:" references.  Follow form in librgpio(3).
+

@@ -1,0 +1,142 @@
+# 2023-02-17  William A. Hudson
+
+# rgHeaderPin  Header Pin Names class (40-pin header) -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgHeaderPin  class -- Header Pin Names (40-pin header only)
+
+=head1		SYNOPSIS
+
+ #include "rgHeaderPin.h"
+
+=head2			Essential Class members
+
+ class rgHeaderPin {
+  public:
+    static const int	MaxPin  = 40;	// max header pin number
+    static const int	MaxGpio = 27;	// max gpio bit number on header
+
+    rgHeaderPin();			// constructor
+
+    static const int	pin2gpio_int( int pin );
+    static const int	gpio2pin_int( int gpio );
+
+    static const char*	pin2name_cstr( int pin );
+ };
+
+
+=head1		DESCRIPTION
+
+This class provides names of the 40-pin header pins and mapping to the
+Gpio bit numbers.
+It is pure name mapping and does not access any hardware registers.
+
+It is the only class to use header pin numbers, all others use
+Gpio bit numbers.
+
+=head2			Constructor
+
+=over
+
+=item B<rgHeaderPin>()
+
+Construct a new object.  It has no data, but may be useful for accessing
+the conversion functions.
+
+=back
+
+
+=head2			Pin/Gpio conversions
+
+These may be called as either Class methods or Object methods and are
+implemented by a static lookup table indexed by header pin number.
+
+Header Pin names are character strings of the form:
+
+    Name      Description
+    ------    ---------------
+    +5.0V     power  (2 pins)
+    +3.3V     power  (2 pins)
+    GND       ground (8 pins)
+    Gpio0     Gpio bit 0
+    ...       ...
+    Gpio27    Gpio bit 27
+
+=over
+
+=item B<pin2gpio_int>( pin )
+
+Convert header pin number {1..40} to a gpio bit number.
+Return gpio bit number {0..27}, otherwise -1= GND, -2= +5.0V, -3= +3.3V.
+Throw B<std::range_error> if pin number is invalid.
+
+=item B<pin2name_cstr>( pin )
+
+Convert header pin number {1..40} to a header pin c-string name.
+Throw B<std::range_error> if pin number is invalid.
+
+=item B<gpio2pin_int>( gpio )
+
+Convert Gpio bit number {0..57} to header pin number{1..40}, otherwise
+return 0.
+Throw B<std::range_error> if Gpio bit number is invalid.
+
+Currently this is implemented as a search by header pin number, but could be
+changed to array lookup if need warrants.
+
+=back
+
+
+=head1		EXCEPTIONS
+
+ std::range_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+    rgHeaderPin		hx;	// header pin object
+
+    int			pin;
+    int			gpio;
+    char*		cstr;
+
+    gpio =           hx.pin2gpio_int( 40 );	// Gpio21
+    gpio = rgHeaderPin::pin2gpio_int( 40 );
+
+    pin  =           hx.gpio2pin_int( 0 );	// pin 27
+    pin  = rgHeaderPin::gpio2pin_int( 0 );
+
+    cstr =           hx.pin2name_cstr( 1 );	// "+3.3V"
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgHeaderPin.h
+ src/rgHeaderPin.cpp
+
+
+=head1		SEE ALSO
+
+ rgFselPin(3)
+ rgpio-fsel(1)
+ rgpio-header(1)
+
+ Raspberry Pi hardware - GPIO and the 40-pin Header
+    https://www.raspberrypi.com/documentation/computers/raspberry-pi.html
+
+ Raspberry Pi Pinout
+    https://pinout.xyz/#
+
+=cut
+
