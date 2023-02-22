@@ -406,7 +406,7 @@ y_header::doit()
 		    mode = mode_tab[jj];
 		    cout << " " << setw(10) <<left
 			 << (( bit < 0 ) ? "--" :
-				rgAltFuncName::str_altfunc_bit( mode, bit ));
+				rgAltFuncName::cstr_altfunc_bit( mode, bit ));
 		}
 		cout <<endl;
 		// remove trailing <space> chars?
@@ -450,7 +450,7 @@ y_header::doit()
 		mode = Fpx.read_Fsel_bit( bit );
 		gpio_str = rgHeaderPin::pin2name_cstr( pin );
 		mode_str = Fpx.str_rgFsel_enum( mode );
-		func_str = rgAltFuncName::str_altfunc_bit( mode, bit );
+		func_str = rgAltFuncName::cstr_altfunc_bit( mode, bit );
 	    } else {
 		gpio_str = "--";
 		mode_str = "--";

@@ -221,7 +221,7 @@ const int		rgAltFuncName::altN_enum[] = {
 *    Is additional information about the alternate function on a pin.
 *    Intended for human use.
 * call:  (class or object)
-*    str_altfunc_bit( mode, bit )
+*    cstr_altfunc_bit( mode, bit )
 *    mode = rgFsel_enum, alternate function Fsel mode
 *    bit  = bit number 0..53
 * return:
@@ -229,7 +229,7 @@ const int		rgAltFuncName::altN_enum[] = {
 *         Max string length is 12 char (currently 10 char).
 */
 const char*
-rgAltFuncName::str_altfunc_bit(
+rgAltFuncName::cstr_altfunc_bit(
     rgFselPin::rgFsel_enum	mode,
     int				bit
 )
@@ -239,7 +239,7 @@ rgAltFuncName::str_altfunc_bit(
 
     if ( (bit < 0) || (bit > 53) ) {
 	std::ostringstream      css;
-	css << "str_altfunc_bit():  bit out-of-range:" << bit;
+	css << "cstr_altfunc_bit():  bit out-of-range:" << bit;
 	throw std::range_error ( css.str() );
     }
 

@@ -19,7 +19,7 @@ class rgAltFuncName {
   public:
     rgAltFuncName();			// constructor
 
-    static const char*		str_altfunc_bit(
+    static const char*		cstr_altfunc_bit(
 	rgFselPin::rgFsel_enum      mode,
 	int                         bit
     );

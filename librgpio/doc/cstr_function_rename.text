@@ -1,0 +1,104 @@
+2023-02-16  William A. Hudson
+
+		Renaming some C-string Functions
+		--------------------------------
+
+Issue:
+    Old names had "str" in the name, which is ambiguous in C++ as it has a
+    "string" class, and uses "cstr" to refer to plain character strings.
+
+    Want to settle on good function names before library is widely used.
+
+Name styles:
+
+    A) Prefix cstr_*() as in "string of ..."
+	char*	cstr_rgFsel_enum( rgFsel_enum );
+	char*	cstr_soc_enum( Soc_enum );
+
+    B) The xx2cstr() form
+	char*	rgFsel_enum2cstr( rgFsel_enum );
+	char*	soc_enum2cstr( Soc_enum );
+
+    I have been leaning toward (B) xx2cstr() as maybe a little easier to
+    see the pattern.  And it seems widely used in other libraries.
+    Especially when the thing being converted has underscore characters.
+    Both forms seem reasonable, and may not be worth renaming just for form.
+
+    Renaming str_() still seems good.
+
+Where it appears:  (2023-02-16)
+
+    % cd librgpio/src/
+    % grep 'char*' *.h
+    Edit to keep only string functions.
+    ...
+
+    Six Other char* functions:
+rgFselPin.h:   static rgFsel_enum	find_rgFsel_enum( const char *name );
+rgRpiRev.h:    const char*		init_file()	{ return  InFile; }
+rgRpiRev.h:    void			init_file( const char* v )	{ InFile = v; }
+rgRpiRev.h:    uint32_t			read_rev_code( const char*	ifile );
+rgRpiRev.h:	const char*		cstr()	{ return  soc_enum2cstr( find() ); }
+rgVersion.h:   static const char *	get_Version();
+
+    Two functions have the unwanted str_xx() style:
+
+rgAltFuncName.h:  static const char*	str_altfunc_bit( ... )
+rgFselPin.h:   static const char*	str_rgFsel_enum(  rgFsel_enum mode );
+
+    Two Functions in cstr_xx() style:
+
+rgClk.h:       const char*		cstr_clk_enum( rgClk_enum clknum );
+rgRpiRev.h:    static const char*	cstr_SocEnum()	{ return  Config.SocEnum.cstr();  }
+
+    Four Functions in xx2yy() style:
+
+rgHeaderPin.h: static const char*	pin2name_cstr( int pin );
+rgPudPin.h:    static const char*	pud_enum2cstr( rgPud_enum dir );
+rgPullPin.h:   static const char*	pull_enum2cstr( rgPull_enum dir );
+rgRpiRev.h:    static const char*	soc_enum2cstr( Soc_enum  soc );
+
+Thoughts:
+    Renaming the str_() functions seems to have the most value, to prevent
+    confusion with the C++ string class.
+    The other two cstr_() functions do not seem to warrant re-naming.
+
+
+In rgFselPin.h:
+    The str_() function parallels the find_() function.  Old functions:
+
+	static const char*  str_rgFsel_enum(  rgFsel_enum mode );
+	static rgFsel_enum  find_rgFsel_enum( const char *name );
+
+    The find_() is a search, so the "find" name seems reasonable.
+    Except it is actually a conversion and could be implemented as a lookup.
+    In addition, the find_() is not clear what is being returned.
+    Thus the xx2yy() form may be more appropriate for both.
+
+	static const char*  cstr_rgFsel_enum( rgFsel_enum mode );
+	static rgFsel_enum  find_rgFsel_enum( const char *name );
+    or
+ >	static const char*  rgFsel_enum2cstr( rgFsel_enum mode );
+ >	static rgFsel_enum  cstr2rgFsel_enum( const char *name );
+
+    NOT yet changed.
+
+
+In rgAltFuncName.h:
+    The function takes two arguments and is not a pure conversion.
+    Thus the xx2yy() form does not seem appropriate.
+    New function choices:
+
+ >>	static const char*          cstr_altfunc_bit(
+	    rgFselPin::rgFsel_enum      mode,
+	    int                         bit
+	);
+    or
+ x	static const char*          altfunc_bit2cstr(
+	    rgFselPin::rgFsel_enum      mode,
+	    int                         bit
+	);
+
+    Maybe rename this one first, then the other two if it seems worthwhile.
+    Easy, as it appeared in only 4 places in rgpio, and no tests or man page.
+

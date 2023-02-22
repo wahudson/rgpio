@@ -400,7 +400,7 @@ y_fsel::doit()
 		{
 		    mode = mode_tab[jj];
 		    cout << " " << setw(11) <<left
-			 << rgAltFuncName::str_altfunc_bit( mode, bit );
+			 << rgAltFuncName::cstr_altfunc_bit( mode, bit );
 		}
 		cout <<endl;
 	    }
@@ -450,7 +450,7 @@ y_fsel::doit()
 	    cout <<dec;
 	    cout << " "  <<setw(2) <<right << bit
 		 << "  " <<setw(4) <<left  << Fpx.str_rgFsel_enum( mode )
-		 << "  " << rgAltFuncName::str_altfunc_bit( mode, bit )
+		 << "  " << rgAltFuncName::cstr_altfunc_bit( mode, bit )
 		 <<endl;
 	}
 
