@@ -15,6 +15,7 @@ test:
 	cd t_iic              && make test
 	cd t_info             && make test
 	cd t_io               && make test
+	cd t_pads             && make test
 	cd t_pud              && make test
 	cd t_pull             && make test
 	cd t_pwm              && make test
@@ -31,6 +32,7 @@ clean:
 	cd t_iic              && make clean
 	cd t_info             && make clean
 	cd t_io               && make clean
+	cd t_pads             && make clean
 	cd t_pud              && make clean
 	cd t_pull             && make clean
 	cd t_pwm              && make clean
