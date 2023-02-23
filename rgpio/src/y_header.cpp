@@ -184,7 +184,7 @@ header_yOptLong::print_option_flags()
 	cout << "arg:          = " << arg          << endl;
     }
 
-    cout << "mode_e        = " << rgFselPin::str_rgFsel_enum( mode_e ) << endl;
+    cout << "mode_e        = " << rgFselPin::rgFsel_enum2cstr( mode_e ) <<endl;
     cout << "ModifyBits    = " << ModifyBits   << endl;
 }
 
@@ -381,7 +381,7 @@ y_header::doit()
 	    for ( int jj=0;  jj<=5;  jj++ )		// heading
 	    {
 		cout << " " << setw(10) <<left
-		     << Fpx.str_rgFsel_enum( mode_tab[jj] );
+		     << Fpx.rgFsel_enum2cstr( mode_tab[jj] );
 	    }
 	    cout <<endl;
 
@@ -449,7 +449,7 @@ y_header::doit()
 	    if ( bit >= 0 ) {
 		mode = Fpx.read_Fsel_bit( bit );
 		gpio_str = rgHeaderPin::pin2name_cstr( pin );
-		mode_str = Fpx.str_rgFsel_enum( mode );
+		mode_str = Fpx.rgFsel_enum2cstr( mode );
 		func_str = rgAltFuncName::cstr_altfunc_bit( mode, bit );
 	    } else {
 		gpio_str = "--";

@@ -199,7 +199,7 @@ fsel_yOptLong::print_option_flags()
 	cout << "arg:          = " << arg          << endl;
     }
 
-    cout << "mode_e        = " << rgFselPin::str_rgFsel_enum( mode_e ) << endl;
+    cout << "mode_e        = " << rgFselPin::rgFsel_enum2cstr( mode_e ) <<endl;
     cout << "ModifyBits    = " << ModifyBits   << endl;
 }
 
@@ -273,7 +273,7 @@ cout_fsel_mask(
     cout << "0x" <<hex <<setw(8) << value
 	 << "  "   << name
 	 << "  "   << cstr_bits32( value )
-	 << "   "  << rgFselPin::str_rgFsel_enum( mode )
+	 << "   "  << rgFselPin::rgFsel_enum2cstr( mode )
 	 <<dec <<endl;
     cout.fill(' ');
 }
@@ -383,7 +383,7 @@ y_fsel::doit()
 	    for ( int jj=0;  jj<=5;  jj++ )		// heading
 	    {
 		cout << " " << setw(11) <<left
-		     << Fpx.str_rgFsel_enum( mode_tab[jj] );
+		     << Fpx.rgFsel_enum2cstr( mode_tab[jj] );
 	    }
 	    cout <<endl;
 
@@ -449,7 +449,7 @@ y_fsel::doit()
 	    cout.fill(' ');
 	    cout <<dec;
 	    cout << " "  <<setw(2) <<right << bit
-		 << "  " <<setw(4) <<left  << Fpx.str_rgFsel_enum( mode )
+		 << "  " <<setw(4) <<left  << Fpx.rgFsel_enum2cstr( mode )
 		 << "  " << rgAltFuncName::cstr_altfunc_bit( mode, bit )
 		 <<endl;
 	}

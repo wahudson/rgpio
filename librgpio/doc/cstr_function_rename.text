@@ -75,13 +75,15 @@ In rgFselPin.h:
     In addition, the find_() is not clear what is being returned.
     Thus the xx2yy() form may be more appropriate for both.
 
-	static const char*  cstr_rgFsel_enum( rgFsel_enum mode );
-	static rgFsel_enum  find_rgFsel_enum( const char *name );
+ x	static const char*  cstr_rgFsel_enum( rgFsel_enum mode );
+ >>	static rgFsel_enum  find_rgFsel_enum( const char *name );
     or
- >	static const char*  rgFsel_enum2cstr( rgFsel_enum mode );
- >	static rgFsel_enum  cstr2rgFsel_enum( const char *name );
+ >>	static const char*  rgFsel_enum2cstr( rgFsel_enum mode );
+	static rgFsel_enum  cstr2rgFsel_enum( const char *name );
 
-    NOT yet changed.
+    DONE.
+    I kind of like the find_*() name, since it suggests a search.  So leave
+    it the same for now, and change the str_*() name only.
 
 
 In rgAltFuncName.h:
@@ -99,6 +101,7 @@ In rgAltFuncName.h:
 	    int                         bit
 	);
 
+    DONE.
     Maybe rename this one first, then the other two if it seems worthwhile.
     Easy, as it appeared in only 4 places in rgpio, and no tests or man page.
 

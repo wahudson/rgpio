@@ -419,21 +419,21 @@ const char*        rgFselPin::ModeStr[] = {
 * Get string for an rgFsel_enum (Function Select mode).
 *    Compiler checks type of enum.
 * call:
-*    rgFselPin::str_rgFsel_enum( rgFselPin::f_Alt3 )	class method
-*             x.str_rgFsel_enum( rgFselPin::f_Alt3 )	object method
+*    rgFselPin::rgFsel_enum2cstr( rgFselPin::f_Alt3 )	class method
+*             x.rgFsel_enum2cstr( rgFselPin::f_Alt3 )	object method
 * return:
 *    () = char string
 * exception:
 *    Throw range_error if enum is invalid.
 */
 const char*
-rgFselPin::str_rgFsel_enum(
+rgFselPin::rgFsel_enum2cstr(
     rgFsel_enum		mode
 )
 {
     if ( (mode < 0) || (mode > 7) ) {
 	std::ostringstream	css;
-	css << "rgFselPin::str_rgFsel_enum():  bad enum= " << mode;
+	css << "rgFselPin::rgFsel_enum2cstr():  bad enum= " << mode;
 	throw std::range_error ( css.str() );
     }
 

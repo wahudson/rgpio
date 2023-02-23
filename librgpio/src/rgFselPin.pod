@@ -83,7 +83,7 @@ Register class inheritance is:  rgFselPin_reg -> rgReg_rw -> rgReg
 
 =head2		Enum string conversion
 
- static const char*	str_rgFsel_enum( rgFsel_enum mode );
+ static const char*	rgFsel_enum2cstr( rgFsel_enum mode );
  static rgFsel_enum	find_rgFsel_enum( const char *name );
 
 
@@ -285,12 +285,12 @@ i.e. {In, Out, .. Alt5}.
 
 =over
 
-=item str_rgFsel_enum()
+=item rgFsel_enum2cstr()
 
 Get string for an rgFsel_enum (Function Select mode).
 
  call:
-    rgFselPin::str_rgFsel_enum( rgFselPin::f_Alt3 )
+    rgFselPin::rgFsel_enum2cstr( rgFselPin::f_Alt3 )
  return:
     () = char string
 

@@ -63,7 +63,7 @@ class rgFselPin {
 
 		// Enum string conversion
 
-    static const char*	str_rgFsel_enum(  rgFsel_enum mode );
+    static const char*	rgFsel_enum2cstr( rgFsel_enum mode );
 
     static rgFsel_enum	find_rgFsel_enum( const char *name );
 

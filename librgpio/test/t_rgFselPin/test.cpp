@@ -350,7 +350,7 @@ rgFselPin		Tx  ( &Bx );
 	Tx.Fsel0.modify_field(       9, rgFselPin::f_Alt5 );
 	CHECKX(             0xd7ffffff, Tx.Fsel0.read() );
 	CHECK(                       2,    Tx.Fsel0.read_field( 9 ) );
-	CHECK( "Alt5", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 9 ) ) );
+	CHECK( "Alt5", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 9 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -363,7 +363,7 @@ rgFselPin		Tx  ( &Bx );
 	Tx.Fsel0.modify_field(       0, rgFselPin::f_Alt5 );
 	CHECKX(             0xfffffffa, Tx.Fsel0.read() );
 	CHECK(                       2,    Tx.Fsel0.read_field( 0 ) );
-	CHECK( "Alt5", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 0 ) ) );
+	CHECK( "Alt5", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 0 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -379,8 +379,8 @@ rgFselPin		Tx  ( &Bx );
 	CHECKX(             0xf9fff1ff, Tx.Fsel0.read() );
 	CHECK(                       0,    Tx.Fsel0.read_field( 3 ) );
 	CHECK(                       1,    Tx.Fsel0.read_field( 8 ) );
-	CHECK( "In",   Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 3 ) ) );
-	CHECK( "Out",  Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 8 ) ) );
+	CHECK( "In",   Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 3 ) ) );
+	CHECK( "Out",  Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 8 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -395,8 +395,8 @@ rgFselPin		Tx  ( &Bx );
 	CHECKX(             0xfdfff9ff, Tx.Fsel0.read() );
 	CHECK(                       4,    Tx.Fsel0.read_field( 3 ) );
 	CHECK(                       5,    Tx.Fsel0.read_field( 8 ) );
-	CHECK( "Alt0", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 3 ) ) );
-	CHECK( "Alt1", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 8 ) ) );
+	CHECK( "Alt0", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 3 ) ) );
+	CHECK( "Alt1", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 8 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -411,8 +411,8 @@ rgFselPin		Tx  ( &Bx );
 	CHECKX(             0x07000c00, Tx.Fsel0.read() );
 	CHECK(                       6,    Tx.Fsel0.read_field( 3 ) );
 	CHECK(                       7,    Tx.Fsel0.read_field( 8 ) );
-	CHECK( "Alt2", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 3 ) ) );
-	CHECK( "Alt3", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 8 ) ) );
+	CHECK( "Alt2", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 3 ) ) );
+	CHECK( "Alt3", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 8 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -427,8 +427,8 @@ rgFselPin		Tx  ( &Bx );
 	CHECKX(             0xfaff0600, Tx.Fsel0.read() );
 	CHECK(                       3,    Tx.Fsel0.read_field( 3 ) );
 	CHECK(                       2,    Tx.Fsel0.read_field( 8 ) );
-	CHECK( "Alt4", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 3 ) ) );
-	CHECK( "Alt5", Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 8 ) ) );
+	CHECK( "Alt4", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 3 ) ) );
+	CHECK( "Alt5", Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 8 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -712,8 +712,8 @@ rgFselPin		Tx  ( &Bx );
 	CHECK(                       1,    Tx.read_Fsel_bit(  9 ) );
 	CHECK(                       0,    Tx.Fsel0.read_field( 0 ) );
 	CHECK(                       1,    Tx.Fsel0.read_field( 9 ) );
-	CHECK( "In",   Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 0 ) ) );
-	CHECK( "Out",  Tx.str_rgFsel_enum( Tx.Fsel0.read_field( 9 ) ) );
+	CHECK( "In",   Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 0 ) ) );
+	CHECK( "Out",  Tx.rgFsel_enum2cstr( Tx.Fsel0.read_field( 9 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -1173,20 +1173,20 @@ rgFselPin		Tx  ( &Bx );
 //## rgFsel_enum string conversion
 //--------------------------------------------------------------------------
 
-  CASE( "80a", "str_rgFsel_enum() object call" );
+  CASE( "80a", "rgFsel_enum2cstr() object call" );
     try {
 	const char		*v;
-	v = Tx.str_rgFsel_enum( rgFselPin::f_Alt3 );
+	v = Tx.rgFsel_enum2cstr( rgFselPin::f_Alt3 );
 	CHECK( "Alt3", v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "80b", "str_rgFsel_enum() class call" );
+  CASE( "80b", "rgFsel_enum2cstr() class call" );
     try {
 	const char		*v;
-	v = rgFselPin::str_rgFsel_enum( rgFselPin::f_Alt3 );
+	v = rgFselPin::rgFsel_enum2cstr( rgFselPin::f_Alt3 );
 	CHECK( "Alt3", v );
     }
     catch (...) {
@@ -1194,23 +1194,23 @@ rgFselPin		Tx  ( &Bx );
     }
 
 //---------------------------------------
-  CASE( "81a", "str_rgFsel_enum() cast an integer" );
+  CASE( "81a", "rgFsel_enum2cstr() cast an integer" );
     try {
 	const char		*v;
-	v = Tx.str_rgFsel_enum( (rgFselPin::rgFsel_enum) 3 );
+	v = Tx.rgFsel_enum2cstr( (rgFselPin::rgFsel_enum) 3 );
 	CHECK( "Alt4", v );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "81b", "str_rgFsel_enum() bad enum" );
+  CASE( "81b", "rgFsel_enum2cstr() bad enum" );
     try {
-	Tx.str_rgFsel_enum( (rgFselPin::rgFsel_enum) 8 );
+	Tx.rgFsel_enum2cstr( (rgFselPin::rgFsel_enum) 8 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-	CHECK( "rgFselPin::str_rgFsel_enum():  bad enum= 8",
+	CHECK( "rgFselPin::rgFsel_enum2cstr():  bad enum= 8",
 	    e.what()
 	);
     }
@@ -1222,28 +1222,28 @@ rgFselPin		Tx  ( &Bx );
   CASE( "82", "str_IoReg_enum() all enum" );
     try {
 	CHECK(                              "In",
-	    Tx.str_rgFsel_enum( rgFselPin::f_In   )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_In   )
 	);
 	CHECK(                              "Out",
-	    Tx.str_rgFsel_enum( rgFselPin::f_Out  )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_Out  )
 	);
 	CHECK(                              "Alt0",
-	    Tx.str_rgFsel_enum( rgFselPin::f_Alt0 )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_Alt0 )
 	);
 	CHECK(                              "Alt1",
-	    Tx.str_rgFsel_enum( rgFselPin::f_Alt1 )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_Alt1 )
 	);
 	CHECK(                              "Alt2",
-	    Tx.str_rgFsel_enum( rgFselPin::f_Alt2 )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_Alt2 )
 	);
 	CHECK(                              "Alt3",
-	    Tx.str_rgFsel_enum( rgFselPin::f_Alt3 )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_Alt3 )
 	);
 	CHECK(                              "Alt4",
-	    Tx.str_rgFsel_enum( rgFselPin::f_Alt4 )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_Alt4 )
 	);
 	CHECK(                              "Alt5",
-	    Tx.str_rgFsel_enum( rgFselPin::f_Alt5 )
+	    Tx.rgFsel_enum2cstr( rgFselPin::f_Alt5 )
 	);
     }
     catch (...) {
