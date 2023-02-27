@@ -48,6 +48,7 @@ Test suites:  (2023-02-11)
  p      = Program test (command)
 ------  --------------
  u   s  t_rgAddrMap/	rgAddrMap	Address Map class.
+ u   s  t_rgAltFuncName/ rgAltFuncName	Alternate Function Names class
  u   s  t_rgClk/	rgClk		General Clock Manager class.
  u   s  t_rgFselPin/	rgFselPin	Pin Function Select class.
  u   s  t_rgHeaderPin/	rgHeaderPin	Header Pin Names (40-pin header only)
@@ -102,6 +103,8 @@ Run Tests:
     # Run a specific test
     % cd t_<dir>/
     % make test
+
+    Pass if output numbered lines show "OK", fail if "NOT OK".
 
     Note some tests switch based on RPi version, typically using rgRpiRev.
     The switch variables should incorporate 'TEST' in the name for easier
