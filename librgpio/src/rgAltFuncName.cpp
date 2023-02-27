@@ -239,7 +239,7 @@ rgAltFuncName::cstr_altfunc_bit(
 
     if ( (bit < 0) || (bit > 53) ) {
 	std::ostringstream      css;
-	css << "cstr_altfunc_bit():  bit out-of-range:" << bit;
+	css << "cstr_altfunc_bit():  bit out-of-range:  " << bit;
 	throw std::range_error ( css.str() );
     }
 
