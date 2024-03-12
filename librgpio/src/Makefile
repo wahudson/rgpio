@@ -62,6 +62,7 @@ mkdirs:   $(OJ)  $(LIBDIR)
 
 man:	$(MAN)/man3 \
 	$(MAN)/man3/rgAddrMap.3 \
+	$(MAN)/man3/rgAltFuncName.3 \
 	$(MAN)/man3/rgClk.3 \
 	$(MAN)/man3/rgFselPin.3 \
 	$(MAN)/man3/rgHeaderPin.3 \
@@ -166,6 +167,10 @@ $(OJ)/rgVersion.o:	rgVersion.cpp  rgVersion.h  version.inc
 $(MAN)/man3/rgAddrMap.3:	rgAddrMap.pod
 	pod2man -s 3 -n rgAddrMap  --center='librgpio Raspberry Pi GPIO' \
 	    rgAddrMap.pod  $@
+
+$(MAN)/man3/rgAltFuncName.3:	rgAltFuncName.pod
+	pod2man -s 3 -n rgAltFuncName  --center='librgpio Raspberry Pi GPIO' \
+	    rgAltFuncName.pod  $@
 
 $(MAN)/man3/rgClk.3:		rgClk.pod
 	pod2man -s 3 -n rgClk    --center='librgpio Raspberry Pi GPIO' \

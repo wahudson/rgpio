@@ -129,6 +129,7 @@ In the librgpio/ source tree:
 =head1		SEE ALSO
 
  rgFselPin(3)
+ rgAltFuncName(3)
  rgpio-fsel(1)
  rgpio-header(1)
 

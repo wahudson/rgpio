@@ -1,0 +1,155 @@
+# 2023-02-23  William A. Hudson
+
+# rgAltFuncName  Alternate Function Names class
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgAltFuncName  class -- Alternate Function Names
+
+=head1		SYNOPSIS
+
+ #include "rgAddrMap.h"
+ #include "rgFselPin.h"
+ #include "rgAltFuncName.h"
+
+=head2			Essential Class members
+
+ class rgAltFuncName {
+  public:
+    rgAltFuncName();                    // constructor
+
+    static const char*          cstr_altfunc_bit(
+	rgFselPin::rgFsel_enum      mode,
+	int                         bit
+    );
+ };
+
+
+=head1		DESCRIPTION
+
+This class provides Alternate Function names for all Gpio bits on the
+Raspberry Pi BCM2711 (RPi4), and BCM2837 (RPi3) thru BCM2835.
+It is pure name mapping and does not access any hardware registers.
+It uses the rgRpiRev class to determine which model of Raspberry Pi to display.
+
+The BCM doc has somewhat different function (signal) names.
+Here we take the opportunity to make name modifications to create a somewhat
+more systematic naming.
+
+Each name has a lower-case prefix identifying the peripheral unit it belongs
+to, followed by the upper-case signal name.  e.g. "iic0_SDA"
+Unit numbers in braces {} replace the '0' in the Prefix.
+
+Signal Name prefixes are:
+
+    Prefix   Peripheral unit              Manpage
+    ------   ---------------------------  ---------
+    iic0_    I2C master {0..7}            rgIic(7)
+    gp_      General Purpose Clocks       rgClk(7)
+    pwm0_    Pulse Width Modulator {0,1}  rggPwm(7)
+    spi0_    SPI master {0..6}            rgSpi0(7), rgUniSpi(7)
+    u0_      UART {0..5}                  ??
+    pcm_     Pulse Code Modulator         ??
+    sm_      Secondary Memory
+    dpi_     Display Parallel Interface
+    bsc_     Broadcom Slave Controller
+    sd0_     SD card {0,1}
+    sdc_     SD card control (Undocumented)
+    arm_     ARM JTAG interface
+    miia_    Undocumented
+    rgmii_   Undocumented
+
+See the manpage or BCM doc for hardware signal name explanations.
+Run command  "rgpio --rpi4 fsel --show -0 -1"  to see all signal names.
+
+Special names:  (from the BCM doc)
+
+    "--"  = reserved
+    "**"  = do NOT USE, may have unexpected results
+
+Note only Gpio bits {0..27} are available on the 40-pin header and thus of
+primary interest to users.  The CM3 Compute Module provides access to some
+additional Gpio bits.
+
+=head2			Constructor
+
+=over
+
+=item B<rgAltFuncName>()
+
+Construct a new object.  It has no data, but may be useful for accessing
+the conversion functions.
+
+=back
+
+
+=head2			Alternate Function Name Lookup
+
+These may be called as either Class methods or Object methods and are
+implemented by static lookup tables.
+
+=over
+
+=item B<cstr_altfunc_bit>( mode, bit )
+
+Return the alternate function c-string name for the given rgFsel_enum and Gpio
+bit number.
+Throw B<std::range_error> if Gpio bit number is invalid (i.e. > 53).
+
+=back
+
+
+=head1		EXCEPTIONS
+
+ std::range_error
+
+
+=head1		RETURN VALUE
+
+Functions are either void, or return valid data.  Exceptions are thrown
+where error conditions can be detected.
+
+
+=head1		EXAMPLES
+
+    #include "rgAltFuncName.h"
+
+    rgAltFuncName	nx;	// object
+    char*		cstr;
+
+    cstr = rgAltFuncName::cstr_altfunc_bit( rgFselPin::f_Alt0, 4 );
+    cstr =             nx.cstr_altfunc_bit( rgFselPin::f_Alt0, 4 );
+	// Alt0 on Gpio4 is "gp_CLK0"
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgAltFuncName.h
+ src/rgAltFuncName.cpp
+
+
+=head1		SEE ALSO
+
+ rgFselPin(3)
+ rgRpiRev(3)
+ librgpio(3)
+ rgpio-fsel(1)
+ rgpio-header(1)
+
+ BCM doc:  BCM2835 ARM Peripherals (06 February 2012)
+    p.89-101  ch 6. General Purpose I/O (GPIO)
+    https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
+
+ BCM doc:  BCM2711 ARM Peripherals (18 Jan 2022)
+    p.77-81  ch 5.3. Alternative Function Assignments
+    http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
+
+ CM3 Compute Module Datasheet
+    https://www.raspberrypi.org/documentation/hardware/computemodule/datasheets/rpi_DATA_CM_2p0.pdf
+
+=cut
+

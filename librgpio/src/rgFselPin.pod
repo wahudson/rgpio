@@ -358,6 +358,7 @@ In the librgpio/ source tree:
 
  rgFselPin(7)	hardware register description
  rgHeaderPin(3)	header pin names
+ rgAltFuncName(3)
  rgIoPins(3)
  rgAddrMap(3)
  rgpio-fsel(1)
