@@ -17,10 +17,10 @@ Version Release Process:  (2020-10-24)
 	% cd .../librgpio/src
 	% make version
     3. Compile library
-	% make compile
+	% make compile man
     4. Compile rgpio
 	% cd .../rgpio/src
-	% make compile
+	% make compile man
 
 ----------------------------------------------------------------------------
 ## Tag Log - whole repository
@@ -28,6 +28,12 @@ Version Release Process:  (2020-10-24)
 
 Tag      Date        Message
 -------  ----------  -------
+
+v0.22.0  2024-03-11  Last Tag before RPi5 evolution.
+    Interface changes to rename string conversion functions.
+    rgFselPin:  Rename str_rgFsel_enum() to rgFsel_enum2cstr().
+    rgAltFuncName:  Rename str_altfunc_bit() to cstr_altfunc_bit()
+    Man:  New rgHeaderPin(3), rgAltFuncName(3)
 
 v0.21.0  2023-02-14  New classes and rgpio commands.  Major interface changes.
     rgpio-header:  New Header Pin Functions.
