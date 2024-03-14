@@ -88,7 +88,7 @@ rgWord::put_field(
 * Class Data.
 *     Initialized by the constructors.
 */
-rgRpiRev	rgRpiRev::Config;
+rgRpiRev	rgRpiRev::Global;
 
 /*
 * Constructor sub-class.

@@ -20,7 +20,7 @@ rgRpiRev class -- Raspberry Pi Revision
     rgRpiRev_Soc	SocEnum;	// chip id
     rgRpiRev_Base	BaseAddr;	// IO base address
 
-    static rgRpiRev	Config;     // Global config data is this class
+    static rgRpiRev	Global;     // global config data is this class
 
   public:
     enum Soc_enum {	// SOC chip identifiers
@@ -34,10 +34,10 @@ rgRpiRev class -- Raspberry Pi Revision
     rgRpiRev();			// constructor
 
 				// preferred short-hand accessors
-    static Soc_enum	find_SocEnum() { return Config.SocEnum.find(); }
-    static uint32_t	find_BaseAddr(){ return Config.BaseAddr.find();}
+    static Soc_enum	find_SocEnum() { return Global.SocEnum.find(); }
+    static uint32_t	find_BaseAddr(){ return Global.BaseAddr.find();}
 
-    static const char*	cstr_SocEnum() { return Config.SocEnum.cstr(); }
+    static const char*	cstr_SocEnum() { return Global.SocEnum.cstr(); }
 
 				// enum conversions
     static const char*	soc_enum2cstr( Soc_enum  soc );
@@ -167,7 +167,7 @@ format.  No "Revision" line implies not an RPi.
 The idea is to not make exceptions too burdensome, but have failed conditions
 that can be checked.
 
-Initial values of the global B<rgRpiRev::Config> registers are set for
+Initial values of the global B<rgRpiRev::Global> registers are set for
 automatic derivation:
 
     RevCode.get()     == 0
@@ -189,13 +189,13 @@ They can be individually overridden by:  e.g. for RPi4
 
 =over
 
-=item B<rgRpiRev::Config>	- Global data is this class
+=item B<rgRpiRev::Global>	- Global data is this class
 
 This is the intended primary use.
 
-The B<Config> member is a static member of this class, whose type is this
+The B<Global> member is a static member of this class, whose type is this
 class.  This definition seems a bit recursive, but not really.  Each object
-has a member B<Config> that is a reference to the same global class data.
+has a member B<Global> that is a reference to the same global class data.
 
 =back
 
@@ -206,7 +206,7 @@ has a member B<Config> that is a reference to the same global class data.
 =item B<rgRpiRev>()	- Construct and initialize a new object.
 
 This is typically not needed, but is useful for manipulations without
-disturbing the global B<Config>.
+disturbing the global data object B<Global>.
 
 =back
 
@@ -214,15 +214,15 @@ disturbing the global B<Config>.
 
 These inline functions simply call the corresponding register REG.B<find>()
 function (see below).
-Note these static functions access the global B<Config>.
+Note these static functions access the global data object B<Global>.
 
 =over
 
-=item B<find_SocEnum>()		- return B<Config.SocEnum.find>()
+=item B<find_SocEnum>()		- return B<Global.SocEnum.find>()
 
-=item B<find_BaseAddr>()	- return B<Config.BaseAddr.find>()
+=item B<find_BaseAddr>()	- return B<Global.BaseAddr.find>()
 
-=item B<cstr_SocEnum>()		- return C-string for B<Config.SocEnum.find>()
+=item B<cstr_SocEnum>()		- return C-string for B<Global.SocEnum.find>()
 
 =back
 
@@ -384,26 +384,26 @@ where error conditions can be detected.
     bool			final, fail;
 
  // Query the global configuration
-    code  = rgRpiRev::Config.RevCode.get();
-    final = rgRpiRev::Config.RevCode.is_final();
+    code  = rgRpiRev::Global.RevCode.get();
+    final = rgRpiRev::Global.RevCode.is_final();
 
-    soc   = rgRpiRev::Config.SocEnum.get();
-    final = rgRpiRev::Config.SocEnum.is_final();
-    fail  = rgRpiRev::Config.SocEnum.is_fail();
+    soc   = rgRpiRev::Global.SocEnum.get();
+    final = rgRpiRev::Global.SocEnum.is_final();
+    fail  = rgRpiRev::Global.SocEnum.is_fail();
 
-    addr  = rgRpiRev::Config.BaseAddr.get();
-    final = rgRpiRev::Config.BaseAddr.is_final();
+    addr  = rgRpiRev::Global.BaseAddr.get();
+    final = rgRpiRev::Global.BaseAddr.is_final();
 
  // Configure global
-    rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );
+    rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
 
  // Find/derive values
-    code  = rgRpiRev::Config.RevCode.find();
+    code  = rgRpiRev::Global.RevCode.find();
 
-    soc   = rgRpiRev::Config.SocEnum.find();
+    soc   = rgRpiRev::Global.SocEnum.find();
     soc   = rgRpiRev::find_SocEnum();		// short-hand
 
-    addr  = rgRpiRev::Config.BaseAddr.find();
+    addr  = rgRpiRev::Global.BaseAddr.find();
     addr  = rgRpiRev::find_BaseAddr();		// short-hand
 
  // Apply to rgAddrMap
@@ -423,7 +423,7 @@ where error conditions can be detected.
     }
 
  // Extract a RevCode field
-    code = rgRpiRev::Config.RevCode.get_MemSize_3();
+    code = rgRpiRev::Global.RevCode.get_MemSize_3();
 
  // Ensure no later exceptions by deriving each value:
     try {
@@ -434,7 +434,7 @@ where error conditions can be detected.
 	cerr << "Error:  " << e.what() <<endl;
     }
 
- // Construct a local object, unrelated to global rgRpiRev::Config, which
+ // Construct a local object, unrelated to global rgRpiRev::Global, which
  //     has all the same functions.
     rgRpiRev		rvx;
     addr = rvx.BaseAddr.find();

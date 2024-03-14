@@ -41,7 +41,7 @@ rgAddrMap		Bx;
 
 rgSpi0			Tx   ( &Bx );		// test object
 
-rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );  // RPi3
+rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );  // RPi3
 
 //--------------------------------------------------------------------------
 //## Constructor, get_bcm_address()
@@ -82,7 +82,7 @@ rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );  // RPi3
     }
 
 //--------------------------------------
-rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
+rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11a", "RPi4 constructor spi0" );
     try {

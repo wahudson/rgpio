@@ -147,15 +147,15 @@ class rgRpiRev {
     rgRpiRev_Soc	SocEnum;	// chip id
     rgRpiRev_Base	BaseAddr;	// IO base address
 
-    static rgRpiRev	Config;		// config data is this class
+    static rgRpiRev	Global;		// global config data is this class
 
     rgRpiRev();		// constructor
 
   public:	// preferred user level short-hand accessors
-    static Soc_enum	find_SocEnum()	{ return  Config.SocEnum.find();  }
-    static uint32_t	find_BaseAddr()	{ return  Config.BaseAddr.find(); }
+    static Soc_enum	find_SocEnum()	{ return  Global.SocEnum.find();  }
+    static uint32_t	find_BaseAddr()	{ return  Global.BaseAddr.find(); }
 
-    static const char*	cstr_SocEnum()	{ return  Config.SocEnum.cstr();  }
+    static const char*	cstr_SocEnum()	{ return  Global.SocEnum.cstr();  }
 
   public:	// enum conversions
     static const char*	soc_enum2cstr( Soc_enum  soc );

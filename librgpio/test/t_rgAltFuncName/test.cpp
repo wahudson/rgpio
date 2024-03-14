@@ -39,7 +39,7 @@ rgAltFuncName		Tx;	// test object
 
   CASE( "01", "find rgRpiRev BaseAddr first" );
     try {
-	rgRpiRev::Config.BaseAddr.find();
+	rgRpiRev::Global.BaseAddr.find();
 	CHECK( 0, 0 );
     }
     catch (...) {
@@ -70,8 +70,8 @@ rgAltFuncName		Tx;	// test object
 
   CASE( "30a", "config RPi3" );
     try {
-	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );
-	CHECK( "BCM2837", rgRpiRev::Config.SocEnum.cstr() );
+	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	CHECK( "BCM2837", rgRpiRev::Global.SocEnum.cstr() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -143,8 +143,8 @@ rgAltFuncName		Tx;	// test object
 
   CASE( "40a", "config RPi4" );
     try {
-	rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );
-	CHECK( "BCM2711", rgRpiRev::Config.SocEnum.cstr() );
+	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	CHECK( "BCM2711", rgRpiRev::Global.SocEnum.cstr() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

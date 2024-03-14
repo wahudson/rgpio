@@ -63,3 +63,9 @@ clean:
 	cd v_rgSpi0_gpio      && make clean
 	cd v_rgUniSpi         && make clean
 
+base:
+	cd t_rgRpiRev_Code    && make test
+	cd t_rgRpiRev_Word    && make test
+	cd t_rgRpiRev_a       && make test
+	cd t_rgAddrMap        && make test
+
