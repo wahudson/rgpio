@@ -239,21 +239,21 @@ main( int	argc,
 	Amx.config_Debug( Opx.debug );
 
 	if ( Opx.rpi3 ) {
-	    rgRpiRev::Config.BaseAddr.find();	// config first
-	    rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	    rgRpiRev::Global.BaseAddr.find();	// config first
+	    rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );
 	}
 
 	if ( Opx.rpi4 ) {
-	    rgRpiRev::Config.BaseAddr.find();	// config first
-	    rgRpiRev::Config.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	    rgRpiRev::Global.BaseAddr.find();	// config first
+	    rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
 	}
 
 	if ( Opx.debug ) {
 	    cout.fill('0');
 	    cout <<hex
-		<< "+ rgRpiRev::Config.SocEnum  = soc_" <<
+		<< "+ rgRpiRev::Global.SocEnum  = soc_" <<
 		    rgRpiRev::soc_enum2cstr( rgRpiRev::find_SocEnum() ) <<endl
-		<< "+ rgRpiRev::Config.BaseAddr = 0x" <<setw(8) <<
+		<< "+ rgRpiRev::Global.BaseAddr = 0x" <<setw(8) <<
 		    rgRpiRev::find_BaseAddr() <<endl
 		;
 	    cout.fill(' ');

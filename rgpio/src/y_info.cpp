@@ -137,7 +137,7 @@ info_yOptLong::print_usage()
     cout <<
     "    RPi Revision Information\n"
     "usage:  " << ProgName << " info [options..]\n"
-    "  decode:  (default is rgRpiRev::Config)\n"
+    "  decode:  (default is rgRpiRev::Global)\n"
     "    --file=/proc/cpuinfo  read revision code from file\n"
     "    --code=0x00000000     decode this revision code\n"
     "  options:\n"
@@ -207,7 +207,7 @@ y_info::doit()
 	uint32_t		code;
 	rgRpiRev::Soc_enum	soc;
 
-	rpx = &rgRpiRev::Config;	// point at global
+	rpx = &rgRpiRev::Global;	// point at global
 
 	if ( *Opx.file ) {
 	    rpx = &Rvx;			// point at local

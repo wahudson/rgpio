@@ -148,8 +148,8 @@ run_test( "21", "rgpio --rpi3",
     0,
     Stderr => q(),
     Stdout => qq(
-	+ rgRpiRev::Config.SocEnum  = soc_BCM2837
-	+ rgRpiRev::Config.BaseAddr = $TEST_BaseAddr
+	+ rgRpiRev::Global.SocEnum  = soc_BCM2837
+	+ rgRpiRev::Global.BaseAddr = $TEST_BaseAddr
 	Using Fake memory
 	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
 	Do nothing.  Try 'rgpio --help'
@@ -161,8 +161,8 @@ run_test( "22", "rgpio --rpi4",
     0,
     Stderr => q(),
     Stdout => qq(
-	+ rgRpiRev::Config.SocEnum  = soc_BCM2711
-	+ rgRpiRev::Config.BaseAddr = $TEST_BaseAddr
+	+ rgRpiRev::Global.SocEnum  = soc_BCM2711
+	+ rgRpiRev::Global.BaseAddr = $TEST_BaseAddr
 	Using Fake memory
 	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
 	Do nothing.  Try 'rgpio --help'

@@ -1,6 +1,6 @@
     RPi Revision Information
 usage:  rgpio info [options..]
-  decode:  (default is rgRpiRev::Config)
+  decode:  (default is rgRpiRev::Global)
     --file=/proc/cpuinfo  read revision code from file
     --code=0x00000000     decode this revision code
   options:

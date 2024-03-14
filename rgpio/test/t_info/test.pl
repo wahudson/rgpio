@@ -43,7 +43,7 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 #---------------------------------------------------------------------------
 
 if ( ! $TEST_isRPi ) {
-  run_test( "11", "info no args, show global Config",
+  run_test( "11", "info no args, show object Global",
     "rgpio --dev=f  info",
     0,
     Stderr => q(),

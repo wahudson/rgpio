@@ -31,7 +31,7 @@ main( int	argc,
 
     try {
 	cout.fill('0');
-	cout << "0x" <<hex <<setw(8) << rgRpiRev::Config.BaseAddr.find() <<endl;
+	cout << "0x" <<hex <<setw(8) << rgRpiRev::Global.BaseAddr.find() <<endl;
     }
     catch ( std::exception& e ) {
 	cerr << "Error:  exception caught:  " << e.what() <<endl;

@@ -100,6 +100,8 @@ Run Tests:
     % cd t_<dir>/
     % make test
 
+    Pass if output numbered lines show "OK", fail if "NOT OK".
+
     Note:  Some tests depend on the version of RPi being run (e.g. t_rgpio/).
     Helper commands (e.g. bin/rpi_BaseAddr) provide an RPi version dependent
     mechanism to alter test behavior.
