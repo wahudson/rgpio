@@ -4,7 +4,10 @@
 
 Identify RPi chip revision for peripheral feature behavior.
 
-Raspberry Pi revision codes
+Raspberry Pi revision codes (2024-03-05)
+    https://www.raspberrypi.com/documentation/computers/raspberry-pi.html
+
+Raspberry Pi revision codes (2020-11-03)
     https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
 
 OTP register and bit definitions
@@ -183,12 +186,12 @@ Exceptions:
     the application.
     [Not implemented, decide to only use exceptions.]
 
-    Decide to throw exception on derivation failure, as it is much simpler.
+ >  Decide to throw exception on derivation failure, as it is much simpler.
     Failure to derive is a kind of error, especially when a critical thing
     like BaseAddr depends on it.  The error flag/message idea was explored on
     initial implementation, and did not seem worth the effort.  (2020-12-10)
 
-    Modifed slightly so non-RPi machine is not an error, below.  (2020-12-17)
+ >  Modified slightly so non-RPi machine is not an error, below.  (2020-12-17)
 
 Result Outcome of Derivation:
 
@@ -738,7 +741,7 @@ rgRpiRev::get_soc_enum()
     return  SocEnum.get();
 }
 
-Compile time configuration:
+Compile time configuration:  (NOT implemented)
 ---------------------------
 Use #define words passed in from the Makefile.
 The #define words should NOT be in the header file, because their intent is
@@ -828,4 +831,539 @@ Idea for a derived RevCode value:  (NOT used)
 
  >  Maybe let user construct a new RevCode object, and use it to ensure a
     derived value is obtained.  This seems simpler and more direct.
+
+============================================================================
+## Review  2024-03-05  Evolution for RPi5
+============================================================================
+
+Review code and doc with a view toward RPi5 extensions.
+
+Initial assessment:
+    The manpage seems a bit complex and not clear on essential principles
+    of operation and how to use it.  The override seemed confusing.
+    (Reading 3 years after I wrote it.)
+
+    The find() register chain actually looked quite clean in the code.
+    Consider making the 3 registers more similar with flags for both Final and
+    Failed.
+
+    RPi5 is a major change in register structure requiring new object classes.
+    Consider ways for user code to switch between RPi4 and newer RPi5.
+
+    Perhaps rename rgWord::put() to putf() or override() to be more clear
+    that there are side effects.
+
+    Find a simple clear concept of how it should work.
+
+New Definition:  rgRpiRev class
+
+    The rgRpiRev class has 3 registers capturing key values in a derivation
+    chain.  (The 'V' arrow points toward source.)
+
+    BaseAddr:  The IO space base address, where all peripheral devices
+	    are located.
+	    Used by the library for memory mapping IO registers.
+	    Derived from SocEnum using a hardcoded lookup table.
+    V
+
+    SocEnum:  The SOC (processor chip) identification.
+	    Used to switch both library and user code.
+	    Derived from the corresponding RevCode field.
+    V
+
+    RevCode:  The revision code stored in One Time Programmable (OTP) memory
+	    register.  This is the official Raspberry Pi hardware mechanism
+	    encoding information about the platform.
+	    Not used by the library, but available for user code.
+	    Derived from /proc/cpuinfo.
+    V
+
+    /proc/cpuinfo:
+	    The Linux OS file identifying the RevCode.
+	    This file is recommended by Raspberry Pi documentation.
+
+    These objects have no hardware register, but we call them "registers"
+    to parallel other hardware registers in the library.
+
+    Each register has the following private attributes:  (class rgWord)
+	WordVal   The word value itself.
+	Final     Flag value is cached, and will not be derived again.
+	Failed    Flag that derivation failed or that WordVal is invalid.
+
+    Each register has a find() caching accessor that will derive the value
+    if it is not Final, otherwise simply return the WordVal.
+
+    Override of the derivation chain is provided by override() accessors in
+    each register.  These will insert the given value, set Final, and clear
+    Failed.
+
+    The purpose of Override, is to provide a mechanism for the user to
+    supply correct values when the built-in derivation has failed or gotten
+    the wrong answer.  i.e. Avoid the user having to hack the library code.
+    The library peripheral Feature classes use only BaseAddr and SocEnum,
+    not RevCode.
+
+    The derivation of values is automatic as needed.  Caching prevents
+    re-derivation, since they are not expected to change over the life
+    of the program process.
+
+    With no override, the 3 values will be consistent, based on the
+    derivation chain, regardless of which value is accessed first.
+
+    With override, it is possible for them to be inconsistent.  E.g.
+    find BaseAddr first, thus finding consistent SocEnum and RevCode,
+    then override SocEnum to something inconsistent.
+    Don't do this, or accept the inconsistency.
+    The library should not babysit the users overrides.
+
+    It is intended that all Override be done with the rgRpiRev class
+    before the first peripheral (Feature) class object is constructed.
+
+Global Data:
+
+    The library has a global object  rgRpiRev::Global  that is a static
+    object of class rgRpiRev.
+    It is used by library Feature classes to switch code for the different
+    RPi platforms, and is intended for that use in user code.
+    It is global (static) data so it can be accessed directly.
+
+    The name is scoped inside the rgRpiRev class to clarify what it is, and
+    to avoid name space pollution.
+
+Real Address size:  BaseAddr
+
+    On RPi5 the real IO space base address is 0x1f_0000_0000.
+
+    Thus BaseAddr must change to uint64_t.
+    Need to revisit rgAddrMap.
+
+    With this change, all 3 registers have a different type for WordVal.
+    Investigate the value of deriving from rgWord.
+
+Simplify:  Maybe remove short-hand accessor functions:
+    rgRpiRev::find_SocEnum()
+    rgRpiRev::find_BaseAddr()
+
+    They add abstraction complexity and documentation confusion.
+    It was a nice idea, but is now becoming a wart.
+    The corresponding register find() is sufficient.
+    See below.
+
+find() Exceptions:
+
+    The find() functions (methods) are high-level operations intended to
+    both derive a value and cache that value for later use.
+    The return value should always be correct (to the limit of the derivation
+    algorithms), and if not, throw an exception.
+    This way the user code can call the function and use the value without
+    any need for further inspection.
+
+    The earlier implementation (tag v0.21.0, 2023 Feb 14) had a hybrid of
+    exceptions for some errors, and a Failed flag along with the cached
+    value for others.  Thus if find() returns a value, the Failed status
+    must always be checked to see if it is valid.
+    e.g. It could be that the exception was caught and ignored.
+
+    [See Stroustrup p.193, 296, 315]
+    The C++ Programming Language, Second Edition, C 1991
+
+    The Failed flag could be handy where the exception is caught.
+    It could also trigger further exceptions if find() is used again.
+    Is the Failed flag necessary?  Is it overkill?  Is it babysitting?
+
+Override method:
+
+    The putf() methods in each register described above is the essential
+    operation, but not so obvious from a high level.
+    Thinking of a way to provide the common override situations.
+
+    Perhaps an Override() method could set one or all 3 global registers.
+
+    Override() would set the appropriate registers, set Final, clear Failed,
+    and set a static flag to throw an exception if called a second time.
+
+    Ensuring Override() is called only once helps catch problem of multiple
+    overrides in different places with different values.
+    Each register could have an Overrode flag.
+
+    A)
+    rgRpiRev::Override( uint32_t )		// BaseAddr
+    rgRpiRev::Override( Soc_enum )		// SocEnum
+    rgRpiRev::Override( uint32_t, Soc_enum )	// BaseAddr and SocEnum
+    rgRpiRev::Override( uint32_t, Soc_enum, uint32_t )
+
+    B)
+    rgRpiRev::Override( Soc_enum )		// SocEnum
+    rgRpiRev::Override( Soc_enum, uint32_t )	// SocEnum and BaseAddr
+    rgRpiRev::Override( Soc_enum, uint32_t, uint32_t )	// and RevCode
+
+	The list of 3 arguments is not clear which is which.
+
+    C)
+    Possibly Override() could also force derivation of down stream registers.
+    This would help provide consistency, and help avoid possible exceptions
+    later.
+
+    rgRpiRev::Override_Base( uint32_t )		// BaseAddr
+    rgRpiRev::Override_Soc(  Soc_enum )		// SocEnum => BaseAddr
+    rgRpiRev::Override_Code( uint32_t )		// RevCode => SocEnum, BaseAddr
+
+    rgRpiRev::Override_Soc_Base( Soc_enum, uint32_t )	// SocEnum and BaseAddr
+	These are the two critical ones.
+
+	The idea here is to make simple overrides clear.  More complex things
+	can be done with the individual register putf() methods.
+
+	If you know enough to override the BaseAddr, you might as well
+	override the SocEnum to match.
+
+    D)  Possibly each register could have an Override().  Trickier to derive
+    down stream registers, but the linkage could be made.
+
+ >  E)  Maybe just clean up the individual register overrides and use that.
+    Any override is really the user knowing better than the built-in
+    derivation.  Minimal typing (of code) is NOT needed.  Make the resulting
+    user code be as clear as practical.  Accept possible inconsistency.
+    If BaseAddr is overridden, then SocEnum should also be overridden.
+    The library should not babysit the users overrides.
+
+Consequence of wrong values:
+
+    Assuming the others are correct, possible consequences of a single
+    wrong register value are:
+
+    BaseAddr:  Is critical.  A wrong address means some unexpected page
+	is being read or worse written.
+
+    SocEnum:  Wrong peripheral objects would be operated.  The accessed
+	addresses could still be far off, since the peripheral address
+	offset can be very large.
+
+    RevCode:  Not used by the library (so far).  User code would be mislead,
+	but library addresses and SocEnum code behavior would be correct.
+
+Rename:
+
+    Rename static object member 'Config' to 'Global'.  To indicate that
+    this is the globally accessible revision information.
+
+    Rename the register rgWord::put() method to override(), to express
+    the intent and side effects.  Maybe still have a primitive put() with
+    no side effects.
+
+Override in user code:
+
+    See what direct register override might look like with new names.
+    Can be applied in any order.  No other derivation is initiated.
+
+	rgRpiRev::Global.RevCode.override( 0xfec03111 );	// RPi4B
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.BaseAddr.override( 0xfe000000 );
+
+    Just RevCode, let others derive from that.
+
+	rgRpiRev::Global.RevCode.override( 0xfec03111 );	// RPi4B
+
+    Just SocEnum, let BaseAddr derive from that.  RevCode could derive
+    later and be inconsistent, which is acceptable.
+
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
+
+    Both SocEnum and BaseAddr.  Accept possible inconsistent RevCode.
+
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.BaseAddr.override( 0xfe000000 );
+
+ >  It is up to the user to put overrides together in a good place early in
+    the program.
+
+ >  The long structured names is fine, and adds clarity.
+    Runtime efficiency is not critical.
+
+    Possibly add a set of short-hand override accessors would parallel the
+    corresponding set of find accessors:
+    e.g.
+	rgRpiRev::override_RevCode( 0xfec03111 );
+	rgRpiRev::override_SocEnum( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::override_BaseAddr( 0xfe000000 );
+
+	rgRpiRev::find_RevCode()	- not implemented
+	rgRpiRev::find_SocEnum()
+	rgRpiRev::find_BaseAddr()
+
+    The abstraction is somewhat comforting if it was the only thing
+    that is used.  But the real work is in the registers, and especially
+    the RevCode register is used for field extraction.
+    And the short-hand find_() accessors are essentially replaced by the new
+    platform test functions (e.g. rgRpiRev::isRPi5() see below).
+    The additional abstraction confusion is not worth it.
+ >  Decide against short-hand override accessors.
+
+Efficiency and find():
+
+    Operations that are done rarely in a process lifetime typically do not
+    need to be super efficient, and we are happy to trade a little more
+    runtime for correctness.
+
+    The SocEnum value can be used to switch code when the peripheral register
+    structure differs by RPi platform.
+    It would be great if the cached find() function were very efficient and
+    could be used directly even in an inner loop.  e.g. If it could be
+    inline code that simply returns the cached value.
+
+    Unfortunately it is likely a real function call that must both test the
+    Final flag to see if derivation is needed, and test the Failed flag
+    to be sure it is valid (or else throw an exception).
+    Probably not so desirable in an inner loop.
+
+    One solution is to call and save the find() result in a local variable
+    outside the loop, and test the variable in the inner loop.
+
+Code switch on RPi platform:
+
+    So far, the processor chip ID name (i.e. SocEnum) has strong correlation
+    with the different RPi peripheral register structures.
+    Thus the SocEnum value can be used to switch code blocks.
+
+    The main idea is to get the SocEnum by calling:
+
+	rgRpiRev::Soc_enum	soc = rgRpiRev::find_SocEnum();
+	rgRpiRev::Soc_enum	soc = rgRpiRev::Global.SocEnum.find();
+
+    Then switch code blocks.
+
+    A) if-then-else
+
+	if      ( soc == rgRpiRev::soc_BCM2835 ) {
+	    // do RPi1
+	}
+	else if ( (soc == rgRpiRev::soc_BCM2836) ||
+		  (soc == rgRpiRev::soc_BCM2837) ) {
+	    // do RPi3, RPi2
+	}
+	else if ( soc == rgRpiRev::soc_BCM2711 ) {
+	    // do RPi4
+	}
+	else if ( soc == rgRpiRev::soc_BCM2712 ) {
+	    // do RPi5
+	}
+
+    B) switch statement
+
+	switch ( rgRpiRev::find_SocEnum() ) {
+	  case  rgRpiRev::soc_BCM2835:
+	  case  rgRpiRev::soc_BCM2836:
+	  case  rgRpiRev::soc_BCM2837:
+	    // do RPi3, RPi2, RPi1
+	    break;
+	  case  rgRpiRev::soc_BCM2711:
+	    // do RPi4
+	    break;
+	  case  rgRpiRev::soc_BCM2712:
+	    // do RPi5
+	    break;
+	}
+
+	The switch statement allows cases to fall thru.
+	If the switch has no "default:", the compiler checks that all enums are
+	represented, which helps catch situations where a new enum is added.
+
+    The two switch blocks can be completely equivalent.
+
+ >  Note the slightly longer (more typing) find function would also be
+    acceptable here.  Saving only 7 characters is not worth the complexity
+    of another abstraction.
+
+    Note the soc_BCM names do not mean much to users who are more familiar
+    with the RPi1 .. RPi5 sequential model numbers.  i.e. Need comments
+    to make that association.
+
+    See "## Platform test functions" below for another alternative.
+
+User Interface Evolution:
+
+    Thinking about library evolution and the user interface.
+    Generally want widely used interfaces to be quite stable so a newer
+    library version can be adopted in an old program with minimal, or no,
+    code changes.  e.g. Using only the old features on old platforms.
+
+    Names should be chosen carefully.  Although a name change is a much
+    easier edit than a functionality change.
+
+    Future proofing should be avoided.  The future cannot be predicted.
+    The past is known, and does not change.
+    Good design greatly aids future evolution.
+
+    The platform test functions, e.g. isRPi5(), is one area:
+    It is likely widely used.
+    It should have a clean, well understood definition.
+    It should neatly encapsulate the past in accessor functions with an
+    interface that need not change.
+
+----------------------------------------------------------------------------
+## Platform test functions:  isRPi5(), ...
+----------------------------------------------------------------------------
+
+    The idea is to have a set of global (static) flags in class rgRpiRev
+    that indicate the current platform.  Then the flags can be tested
+    for TRUE to select code blocks, and avoid the Soc_enum comparison.
+    The flags could be named by the generic names RPi5, RPi4, RPi3, etc.
+
+    If the flag is TRUE, then that is the running platform, else the
+    platform is unknown.  Unknown is critical here, because future
+    extension may add new platforms, e.g. RPi6.
+    Knowing that it is not RPi5 does not imply it must be RPi4 thru RPi1.
+
+    It might look like this:
+
+	class rgRpiRev {
+	  private:
+	    static int		IsRPi5 = 0;
+	    static int		IsRPi4 = 0;
+	    static int		IsRPi3 = 0;
+	    ...
+	    static int		IsRPi1 = 0;
+
+	  public:
+	    void		init_isRPi();	// initialize platform flags
+
+	    static int		isRPi5()	{ IsRPi5; }
+	    ...
+	    static int		isRPi1()	{ IsRPi1; }
+
+	    static int		isRPi4321()	{ IsRPi4 || IsRPi3 || IsRPi2 ||
+						  IsRPi1; }
+	}
+
+	void rgRpiRev::init_isRPi()
+	{
+	    IsRPi1 = 0;
+	    IsRPi2 = 0;
+	    IsRPi3 = 0;
+	    IsRPi4 = 0;
+	    IsRPi5 = 0;
+
+	    switch ( rgRpiRev::find_SocEnum() ) {	// may throw
+	      case  rgRpiRev::soc_BCM2835:
+		IsRPi1 = 1;  break;
+	      case  rgRpiRev::soc_BCM2836:
+		IsRPi2 = 1;  break;
+	      case  rgRpiRev::soc_BCM2837:
+		IsRPi3 = 1;  break;
+	      case  rgRpiRev::soc_BCM2711:
+		IsRPi4 = 1;  break;
+	      case  rgRpiRev::soc_BCM2712:
+		IsRPi5 = 1;  break;
+	    }
+	}
+
+    The isRPi5() methods are accessor functions providing read-only access
+    to the flags.  They should have no overhead with compiler in-line.
+
+    The init_isRPi() method is called by the user to initialize the flags
+    before any calls to isRPi5() functions are made.
+
+    Initialization of a static object could be done by the object
+    constructor, and would occur before any statement of the main program
+    is executed (I think).  This would be handy to avoid the need for
+    the user to call init_isRPi().  A disadvantage is it would also run the
+    rather complex process of reading  /proc/cpuinfo  to derive SocEnum,
+    possibly throwing exceptions.  It would also prevent user override of the
+    derivation process.  Thus probably not initialized by constructor.
+
+    Static global data for these flags fits their use quite well:  They
+    are set once, and can be accessed anywhere in the program without
+    passing around some kind of access handle.
+
+    Top level accessor functions are essential here, as they allow the
+    underlying implementation to evolve if necessary.  They also have
+    access to RevCode or any future things needed to determine platform.
+    And they provide a simple encapsulation of the past, avoiding user
+    code changes.
+
+    Example use:
+
+	rgRpiRev::init_isRPi();
+	rgRpiRev::initialize_isRPi();	// clearer name
+
+	if ( rgRpiRev::isRPi5() ) {
+	    ...
+	}
+	else if ( rgRpiRev::isRPi4321() ) {
+	    ...
+	}
+
+    This seems pretty good and straight forward.  It helps to clarify
+    code switch on a more recognizable name than the SocEnum.
+
+Global object:  (user interface)
+
+    The flags as defined here are global (static).  Thus a private copy
+    cannot be created for testing/exploring as can be done with the
+    Global object member.  This is less critical for now.  The accessor
+    functions allow evolution of the underlying code.
+
+    User interface:  (assuming appropriate differences in implementation)
+
+ >  A)  rgRpiRev::isRPi5()
+
+	++ Top-level, hides more implementation.
+	+ Shorter, helping use in logical expressions.
+	- Less obvious it is global (static).
+
+    B)  rgRpiRev::Global.isRPi5()
+
+	-- Showing more implementation.
+	+ Obvious it is global.
+	+ Uses Global somewhat similar to the override() methods.
+
+    These are widely used, whereas the Override methods are not.  Thus the
+    user interface is more critical.
+
+    Implementation hiding is more useful for future evolution.  Favor top-level
+    accessors for this.
+
+Future name evolution:
+
+    Expect new generations of RPi to continue and have unexpected changes.
+    The existing RPi versions are well identified by the isRPi5() name style,
+    and can remain unchanged.
+
+    New platforms may need other information from RevCode to implement a
+    code switch.  e.g. The same SOC may get a new IO chip and new register
+    arrangement.
+
+ >  New platform names could be in a different style or have a complete
+    different derivation, and old names and function could remain the same.
+    This is not possible with the old SocEnum comparison method.
+
+    Possible Names:
+	rgRpiRev::isRpi5()
+
+ >	rgRpiRev::isRPi5()
+	rgRpiRev::is_RPi5()
+
+	rgRpiRev::isRPi_5()
+	rgRpiRev::is_RPi_5()
+
+ >	rgRpiRev::isRPi321()
+	rgRpiRev::isRPi_321()
+
+	The prefix 'isRPi' groups them together, i.e. in a search pattern.
+	The 'is_' helps readability some.
+	The 'Rpi5' may avoid the common use of RPi5 (good or bad?).
+
+	I feel like the dense version (no underscores) is best.  (2024-03-13)
+
+    Possibly name by the IO chip name, e.g. isRP1()?  This seems like too much
+    future-proofing of names.
+
+Separate Class:
+
+    The platform test functions could be implemented as a separate class
+    or sub-class.
+    It would probably be private.
+    Not really intended for the user.
+    May help testing.
+ >  Seems like a lot of complexity for not much benefit.
 

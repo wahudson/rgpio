@@ -1,0 +1,727 @@
+2024-02-29  William A. Hudson
+
+		Extensions for RPi5
+		-------------------
+
+[1]
+'RP1 Peripherals'
+    https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
+    Draft version  2023-11-07.
+    Copy:  /home/var/ref/rp1-peripherals.2023-11-07.pdf
+
+[2]
+RP1: the silicon controlling Raspberry Pi 5 I/O, designed here at Raspberry Pi
+    https://www.raspberrypi.com/news/rp1-the-silicon-controlling-raspberry-pi-5-i-o-designed-here-at-raspberry-pi/
+    Eben Upton confirms:  the RP1 peripherals is initial draft documentation
+    is partial, and future may expose more features.
+
+----------------------------------------------------------------------------
+## Summary Changes
+----------------------------------------------------------------------------
+
+    The new Raspberry Pi 5 (RPi5) uses the new silicon chip RP1 to provide
+    all the IO features - USB, Ethernet, as well as the low speed peripherals
+    (SPI, I2C, UART, parallel GPIO, etc.).
+    Here we focus on the low speed peripherals.
+
+    The first release of the 'RP1 Peripherals' (2023-11-07) gave a general
+    overview, and detailed registers only for PWM and the parallel gpio pins.
+
+    The ultimate functionality is essentially the same, but the register
+    details look quite different.
+
+ >  In particular the parallel gpio pin status/configuration is now organized
+    per pin, whereas before each property register contained all pins.
+    Essentially the matrix (table) is transposed (turned on its side).
+
+    Given the large differences in register definitions, it seems RPi5 is not
+    easily compatible with previous RPi4 and earlier.
+
+    It is expected that the high level hardware behavior will be compatible,
+    i.e. do the same things but in a different way.
+
+Atomic register access:
+
+    This is a general mechanism applied to many registers.
+    It provides 4 register address for each hardware register which are
+    decoded to provide special write (and read) methods.
+
+    Addr + 0x0000:  hw = v          normal write,  normal read
+    Addr + 0x1000:  hw = hw XOR v   flip  bitmask, read without side effects
+    Addr + 0x2000:  hw = hw OR  v   set   bitmask, normal read
+    Addr + 0x3000:  hw = hw AND v   clear bitmask, normal read
+
+	hw = hardware register
+	v  = value written
+
+    These write operations are atomic in the sense that they occur at the
+    hardware register as an atomic operation w.r.t. any other read/write
+    access.
+
+    This ability is applied to PWM, and parallel gpio pins, but not to
+    the classic SPI, I2C, UART, I2S type peripheral devices.
+
+    Each offset is a 4 kbyte block, and together make a 16 kbyte block.
+    Each peripheral device has a 16 kbyte block base address (i.e.
+    0x0000, 0x4000, 0x8000, 0xc000).
+
+ >  Thus we need to map 16 kbyte pages with the mmap() system call.
+
+Real Address 64-bit:
+    Real IO space address size is 40-bits (i.e. use a 64-bit int) on RPi5.
+
+    [3] Suggests that mmap() call needs to be at 0x1f00000000 for RPi5.
+    So now BaseAddr needs to be uint64_t.
+
+    Note that RPi4 had 35-bit real addresses, but the BaseAddr fit in a
+    32-bit word.
+
+    Virtual addresses (i.e. pointers) are always the right size for the
+    machine they are compiled on.
+
+    Address offsets (byte) to peripheral registers can still be 32-bit.
+
+    Affects:  rgRpiRev, rgAddrMap
+
+Register Access Latency:
+
+    The PCIe link between RP1 and the host processor inserts an unavoidable
+    latency, typically 1us.
+    This may impact high-speed use of parallel gpio compared to RPi4.
+
+New RP2040 type features:
+    This is speculation only.
+    It looks like each gpio pin may have the PIO capability of RP2040.
+    The RP1 chip also has two Cortex M3 cores with memory, similar to RP2040.
+    These may be exposed for users at a future date.
+    Imagine an RP2040 integrated into RPi5 on the PCIe bus!
+    This would open up huge possibilities, and risk to the OS.
+
+----------------------------------------------------------------------------
+## Linux GPIO base address
+----------------------------------------------------------------------------
+
+Google:  raspberry pi 5 memory mapped gpio base address
+
+[3]
+Raspberry Pi IoT In C - Pi 5 Memory Mapped GPIO
+    Harry Fairhead,  10 Jan 2024
+    https://www.i-programmer.info/programming/148-hardware/16887-raspberry-pi-iot-in-c-pi-5-memory-mapped-gpio.html
+
+    Suggests that mmap() call needs to be at 0x1f00000000 for RPi5.
+
+    He wrote a book, extracted this note to share.
+
+[4]
+Programming GPIO pins on RPi 5  (28 Jan 2024)
+    https://forums.raspberrypi.com/viewtopic.php?t=364473
+
+    With the defaults under linux, 0x1F_0000_0000 maps to 0x4000_0000 in
+    the 32bit space so the RIO at 0x400e0000, would be 0x1F_000e_0000
+    physical on linux.
+
+    Also is programming RP1 processors directly.
+
+----------------------------------------------------------------------------
+## Discussion
+----------------------------------------------------------------------------
+
+Major usage domains:
+    Library
+    rgpio command
+    User code
+
+New Library:
+    Should RPi5 features be a new library?  No
+
+    The object classes for RPi5 will be different.  Using the wrong class
+    for the hardware RPi will not work, and is hazardous to actually write
+    to unexpected IO addresses.
+    Thus the user must know which RPi model is running, and use the proper
+    object classes for that model.
+    In user code, the naming of the object classes should be distinct.
+
+    A completely separate library would be very clear.  However, some
+    classes would be essentially the same, e.g. rgRpiRev, rgAddrMap.
+    Documentation and regression tests would also have much overlap.
+
+    This library (librgpio) is intended to be close to the hardware and NOT
+    provide an abstraction that hides differences between RPi models.
+
+    Many user programs are expected to run essentially the same across many
+    models of RPi, i.e. they use a subset of peripheral functionality.
+    This library does not provide that capability.  User code must provide
+    that abstraction, which is can be easier because it need only work for a
+    subset at a much higher level.
+
+    A separate library would be clear, but not that helpful to the user.
+
+    It seems much better to incorporate new RPi5 classes as needed, and
+    switch within existing classes where appropriate as is already done
+    for RPi4.
+
+    To switch behavior in object methods, the object structure should
+    be sufficiently the same.  A complete different set of object attributes
+    (registers) would be silly.
+    Minor changes, like an added configuration bit, or an added function
+    could be appropriate.
+
+    A) Separate Library
+	+ Really clear that each RPi model is different.
+	- Duplicated classes rgRpiRev, rgAddrMap, etc.
+	- Duplicated documentation.
+	- Hard to see minor changes.
+	- User wants one library.
+
+Class Names:
+
+    Assume we extend the existing library with new classes.
+
+    Want a way to readily identify the new RPi5 classes that cannot be used
+    on RPi4 and earlier.
+
+    Existing class names are all prefixed with 'rg' to provide some degree
+    of uniform identification in user code.
+
+    A) New prefix, e.g. 'sg'
+	+ Very clear distinction.
+	-- Loose association with the library 'librgpio'.
+
+ >  B) Preserve the 'rg' prefix and add a letter, 'rgs'
+	+ The first two letters match the existing 'rg' prefix.
+	- Looks like a new 3-letter prefix.
+	+ Prefix letters group the name list nicely.
+
+    C) Suffix letter or number.  rgIoPins5
+	- Not very distinctive.
+	- No grouping of name list.
+
+    The high-level peripheral classes can be named this way.
+
+    Low-level classes, like a new register base class might be better
+    without the distinction.  They tend to be almost private to the
+    high level classes.
+
+    The wrong object class for the platform (i.e. writing a wrong address)
+    can corrupt the OS and other processes.  The user MUST be aware of the
+    RPi platform.  Using a different class name prefix, e.g. 'rgs' helps
+    make it clear what set of classes work together on a platform.
+
+Address Pages:
+
+    The system page size is 4 kbytes.
+    Previously each feature (peripheral) was on a 4 kbyte page.
+    Now it can span 4 pages for the Atomic register access.
+    Let each Feature class allocate a 16 kbyte (4 page) block from rgAddrMap.
+
+ >  Need to enhance rgAddrMap:get_mem_block() to take a block size argument.
+
+Atomic register access implementation:
+
+    A) Implement the normal rw access object, and then construct objects
+	    with the 4 offsets of the atomic register addresses.  Now each of
+	    the 4 objects has the corresponding hardware operation (normal,
+	    flip, set, clear).  Literally the objects change behavior.
+	+ Really simple to do.  (constructor takes an "atomic address offset")
+	-- Do not really want to switch objects to change between modes.
+	- User has to keep track of which object does which operation.
+	- Harder to make a virtual register combining the modes.
+	+ Gives separate storage for each bitmask mode of access.
+	+ Can use existing 4 kbyte pages of rgAddrMap.
+	- Now multiple objects of the same Feature class do different things.
+	-- The object methods change meaning but have the same function name.
+	+ Mostly an interesting possibility.
+
+ >  B) Register base class implements the new flip(), set(), clear()
+	    hardware write methods.
+	+ More natural use and documentation.
+	+ The access modes are explicit named methods.
+	- User must still track how the register value is being used.
+	+ Easier to make a virtual register combining the modes.
+	- Not quite as fully orthogonal.
+	- Need more methods to cover all the access combinations.
+	+ Better parallelism to RPi4 Feature objects.
+
+    Choice (B) seems safer and more obvious in the user code.
+
+Register Base Class:  rgRegAtomic
+
+    It will provide the new Atomic register operations.
+    Perhaps inherit from the rgRegister base class.
+    This is a mostly private class.
+    Probably only used in the gpio pins and PWM peripherals.
+
+    Names:
+	rgRegister	existing base class
+
+	rgAtomicReg	new atomic register class
+	rgAtomReg
+	rgAtReg
+
+	rgsRegister	new 'rgs' prefix
+ >	rgsRegAtomic
+
+	rgRegisterAt	group nicely with existing rgRegister
+	rgRegAt
+	rgRegAtomic
+
+	I like the name grouping with rgRegister, but the 'rgs' prefix
+	may be more important.
+
+    New methods for the Atomic register operations.
+
+	peak()		read without side effects (read XOR) address
+
+	grab_peak()	read without side effects (read XOR) address
+	grab_set()	(read OR)  address
+	grab_clr()	(read AND) address
+
+	push_flip()	write flip bitmask (XOR)
+	push_set()	write set bitmask (OR)
+	push_clr()	write clear bitmask (AND)
+
+    This is a very low-level base class.  It should NOT try to check on the
+    RPi platform.
+
+Gpio Configuration:  Function Select, Pad Drive, Status
+
+    GPIO bits are now configured with 3 registers per pin.
+    Previously (RPi4), they had registers per configuration feature, where each
+    register had one GPIO pin per bit.  Essentially rotate (transpose) the
+    matrix.
+
+    Each Gpio bit has 3 registers:  Status, Ctrl, Pads
+    Here are all 5 groups of data associated with Gpio bits:
+
+    Status:  (register per gpio bit)
+	Interrupt status
+	Input level, debounce/filter result
+	Event/edge detect
+	Output signal values before and after overrides.
+
+    Ctrl:  (register per gpio bit)
+	IRQ masks
+	Input invert, force 1/0
+	Output enables
+	Output invert, force drive 1/0
+	Filter/debounce time constant
+	Function select
+
+    Pads:  (register per gpio bit)
+	output disable (reset 1, disabled)
+	input enable   (reset 0, disabled)
+	drive strength
+	pull up/down
+	schmitt trigger
+	slew rate
+
+    Interrupts:  (gpio bits packed in registers)
+	Raw interrupts
+	Proc0 and Proc1 (the RP1 processors) and PCIe
+	Interrupt enable, force and status.
+
+    RIO:  (gpio bits packed in registers)
+	Output drive level
+	Output drive enable
+	Input direct read
+	Input synchronized read
+
+    These 5 groups appear in each of 3 Banks, and are assigned 16 kbyte
+    address blocks as follows:
+
+	0x400d0000  io_bank0:    Status, Ctrl
+	0x400d4000  io_bank1:    Status, Ctrl
+	0x400d8000  io_bank2:    Status, Ctrl
+
+	0x400e0000  sys_rio0:    RIO
+	0x400e4000  sys_rio1:    RIO
+	0x400e8000  sys_rio2:    RIO
+
+	0x400f0000  pads_bank0:  Pads, Interrupts
+	0x400f4000  pads_bank1:  Pads, Interrupts
+	0x400f8000  pads_bank2:  Pads, Interrupts
+
+Gpio Classes:
+
+    Object classes could group these registers in most any way.
+    Possibly group them into one giant class.
+    Possibly make 5 groups as above.
+    Possibly group by address blocks above (similar to RPi4).
+    Possibly regroup by register organization:
+	rgsRioReg    RIO, Interrupts     (gpio bits packed in registers)
+	rgsRioBit    Status, Ctrl, Pads  (register per gpio bit)
+
+    The power-ON input/outputs are disabled, safer for unknown connections.
+    Of course, the OS could enable input/output to be more compatible.
+
+ >  Decide to make 5 object classes, grouped as above.
+    There are a lot of registers, so dividing them up according to function
+    and style helps to manage them.
+    Each group could have 3 Banks, but start with only Bank0 for now.
+
+    Class Names:
+	rgsRio
+	rgsRioCntl
+	rgsRioStat
+	rgsRioPads
+	rgsRioIntr
+
+    Register Banks:
+	Registers having a group (bank) of Gpio bits do need to be
+	identified by bank.
+
+	Registers that are per Gpio bit really do not care what bank they
+	belong to.  They can be more simply named by Gpio bit.
+
+	See also:  doc/pads_design.text
+
+Gpio Banks:
+
+    The Gpio bits are numbered consecutively, and are divided into 3 Banks.
+    The Banks reflect physical hardware grouping on the RP1 chip.
+    Each Bank shares some common properties, such as IO level Voltage Select.
+    This is similar to RPi4.
+
+    Where RPi5 (RP1 chip) is different, is that the packing of logical bits
+    into 32-bit registers is also based on Bank.
+    On Rpi4 the logical bits were packed into two 32-bit words.
+
+    On RPi4:
+	Bank0    Gpio[27:0]     28 bits
+	Bank1    Gpio[45:28]    18 bits
+	Bank2    Gpio[53:46]     8 bits
+
+	reg_w0   Gpio[31:0]     32 bits  packed into two words
+	reg_w1   Gpio[57:32]    25 bits
+
+    On RPi5:
+	Bank0    Gpio[27:0]     28 bits
+	Bank1    Gpio[??]        ? bits
+	Bank2    Gpio[??]        ? bits
+
+	reg0     Gpio[27:0]     28 bits  register bits split by bank
+	reg1     Gpio[45:28]?   18 bits ?
+	reg2     Gpio[53:46]?    8 bits ?
+
+	Only Bank0 is described in the preliminary doc, so the number of
+	bits in Bank1 and Bank2 is unknown, but might be the same as RPi4,
+	as shown here.  Also the upper bits of Bank0 registers are unknown.
+
+	The last two banks could be available in a future compute module.
+
+    Breaking Gpio bits into registers by bank avoids overlapping two banks.
+    Bank0 is full user access, while Bank1 is only for the system (except on
+    compute modules).  Thus having only Bank0 bits in RIO registers avoids
+    having to be careful not to modify Bank1 bits.
+
+Gpio Bit Numbering:
+
+    On RPi4 Gpio bits were numbered consecutively Gpio[57:0], which
+    spanned all 3 Banks.  They were also packed into two 32-bit words.
+
+    On RPi5, it is pretty clear that the Register IO (RIO) registers
+    are also divided by Bank.  sys_rio0, sys_rio1, sys_rio2
+    The RIO registers have one Gpio bit per register bit.
+    For Bank0, the RIO register word has only Gpio[27:0], and the upper
+    bits are not defined.  It seems likely the upper bits do not exist.
+
+    There is no reason to number all existing Gpio bits consecutively across
+    the banks.  Especially since the RIO register word in each bank may
+    have different numbers of functional (existing) bits.
+    It seems likely that the existing bits would be packed right-justified
+    in each RIO register word.  Expanding the number of bits in a Bank would
+    then simply fill in on the left.
+
+ >  Thus the hardware Gpio bit numbers are really defined by Bank number [2:0]
+ >  and bit position in the RIO register word [31:0].
+ >  This library is close to the hardware, so should follow suit, i.e.
+ >  follow this naming structure.
+
+    The naming of the corresponding hardware pins could be pretty much
+    anything, and is mostly documentation.  One possible naming would
+    match the existing RPi4.
+
+    Each of the 3 banks has the same functional structure, but may differ
+    in number of bits implemented.  Conjecture, but reasonable given
+    hardware engineers look for the same economy in design.
+
+Gpio Bank Classes:
+
+    Assuming the hardware is divided into 3 banks of similar structure.
+
+    Make a class describing Bank0.  Allow the constructor to take a bank
+    number, to create objects for all 3 banks.
+    They could all have the same number of Gpio bits, since addresses
+    for them exist even if not implemented in hardware.
+    Possibly define 32 bits in each bank, which would allow exploring (probing)
+    unimplemented registers.
+
+Gpio RIO pins:
+
+    The Registered IO (RIO) interface is the parallel Gpio pin registers.
+    It has one bit per gpio bit in each register.
+
+    There are 4 registers:
+	RIO_OUT       controls the GPIO output drive (level?)
+	RIO_OE        controls the GPIO output drive enable
+	RIO_NOSYNC_IN samples the GPIO inputs directly
+	RIO_SYNC_IN   samples input synchronized to clk_sys
+
+    All 4 have the four atomic register access addresses.
+    The base address block is referred to as "sys_rio0" at 0x4000e0000.
+
+    There is no detailed description or addresses for these 4 registers.
+    Assume they have one bit per gpio pin?
+    Assume the two *_IN registers are read-only?
+
+    Register offsets from the reference kernel implementation are:
+	#define RP1_RIO_OUT                     0x00
+	#define RP1_RIO_OE                      0x04
+	#define RP1_RIO_IN                      0x08
+	Guessing RIO_SYNC_IN is 0x0c?
+
+Gpio Function Select:
+
+    The function select is a 5-bit field in each Gpio bit control (CTRL)
+    register.  The field value code looks completely different from RPi4.
+
+    The old function selects for Input and Output are now combined into one
+    select value for the registered IO (SYS_RIO) Feature.
+
+Register Object per Gpio Bit:
+
+    There are many cases of an array of register objects indexed by
+    Gpio bit number.  We want both literal access to a single object, and
+    indexed access for walking the array.
+
+    It would be simple to define an array of objects:
+	rgsRegAtomic	PadsGpio[28];
+
+    How safe is C++ indexing into an array?
+    Is a literal index range checked at compile time?   e.g. PadsGpio[32]
+
+    I suspect array indexing cannot be automatically checked.  Even if it
+    could, a mysterious runtime exception really does not help the user.
+    A compile time error would be best.
+
+    Accessor functions, or iterators, are the best way check array bounds
+    and producing a meaningful message.
+
+    One solution is to declare scalar elements for literal access, and
+    construct an array of pointers for array index access.  Provide array
+    accessors or iterators that avoid or report index range errors.
+    This still seems like the best approach.
+    [It seems I did this once before.]
+
+----------------------------------------------------------------------------
+## rgsPads Class
+----------------------------------------------------------------------------
+    Example design.  The other Gpio groups would follow.
+
+----------------------------------------------------------------------------
+## rgpio Command
+----------------------------------------------------------------------------
+
+RPi5 vs RPi4:
+
+    The RPi5 Features are sufficiently different that it should have
+    separate sub-commands.
+
+    Want a single command, for consistency across all RPi models.
+    Things like 'rgpio info', and exploring various platform options,
+    e.g. --rpi3 --rpi4 --rpi5.
+
+    A separate command would have less interface clutter from the unused
+    platforms.
+
+    Sub-commands could have one set of names and switch on platform.
+    The outputs and options would be quite different on the two platforms.
+    Designed for human output, this would work OK.
+    The commands would be fairly complex, especially with two almost
+    independent sets of options and outputs.
+
+    I do not like commands that show a different usage depending on platform.
+    That really messes with user cognition/perception (i.e. spatial
+    orientation).
+
+    A first try for rgpio sub-commands:
+
+	Common:
+	   man          man pager
+	   info         RPi Revision Information
+	   header       Pin Function, by pin number on 40-pin header
+	Peripheral Devices:  these could be switched internally
+	   clk          Clock generator
+	   iic          I2C Master
+	   pwm          PWM Pulse Width Modulator
+	   spi          SPI Master
+	   timer        System Timer
+	RPi4:
+	   io           General Purpose IO pins
+	   fsel         Pin Function Select, by Gpio bit number
+	   pads         Pads Control
+	   pud          Pin Pull-Up/Down - RPi3 and earlier
+	   pull         Pin Pull-Up/Down - RPi4
+	   uspi         Universal SPI Master, Spi1, Spi2
+	RPi5:
+	   rio          Register IO pins
+	   stat	        Status, event/edge detect, debug overrides
+	   cntl	        Control, functions select, enables, inverts
+	   pads	        Pad drive strength, enables, pull up, slew
+	   intr	        Interrupts, enable, force, status
+
+	I like the 5 classes of RIO registers as separate commands.
+	It helps focus what each is about.
+	Logically grouping commands is more helpful than alphabetic.
+	Short commands seems much better (repeated running of rgpio).
+	Prefix letters help grouping, but seem too clunky.
+
+	RPi5:  name ideas
+	   rio       rio      rio     Register IO pins
+	   riostat   ostat    stat
+	   riocntl   ocon     cntl
+	   riopads   opads    pads
+	   riointr   ointr    intr
+
+rgpio cntl display:
+
+    Has 15 bit fields.
+
+    a) Display raw table with field function down, Gpio bit across:
+
+	Gpio:               3           2            1
+	Gpio:              1098 7654 3210 9876 5432 1098 7654 3210
+
+	Fsel_5    [4]      0000 0000 0000 0000 0000 0000 0000 0000
+	Fsel_5    [3:0]    0000 0000 0000 0000 0000 0000 0000 0000
+
+	InOver_2  [17:16]  0000 0000 0000 0000 0000 0000 0002 1030
+
+    Multi-bit fields could be in hexadecimal.  Stack rows for multi-digit
+    values.
+
+    Bit brackets by field name could help identify bit positions in register.
+
+    Function select:
+    Might be just by integer.  No need for an enum.
+
+    b) Display decoded field values for requested bits.
+	This could be a linear list.
+
+	Gpio0
+	    Fsel_5    [4:0]   0x03  iic0_SDA
+	    InOver_2  [17:16] 0x1   invert
+	    OutOver_2 [13:12] 0x1   invert peripheral
+	    ...
+	Gpio1
+	    ...
+
+    c) --fsel  Display Gpio bit column with only fselect field
+
+	Bit  Fsel  Function
+	  0   0    iic0_SDA
+	  1   3    u1_CTS
+	 ...
+
+	The RPi4 'fsel' command has too many options that are not appropriate
+	for RPi5.
+
+    Possibly make an RPi5 'fsel' command, since that is a very common thing
+    to view.  Especially things like the full table.
+
+rgpio cntl modification:
+
+    Want a Gpio bit or bit range, since it is common to set several bits
+    to the same configuration.
+
+    Possibly options specify field name and value.
+	--OutOver_2=1  --Fsel_5=3
+
+rgpio cntl usage:
+
+    rgpio cntl [bank] [options] [M:N]
+	M:N        gpio bit range, N is optional
+      display:
+	--raw
+	--list
+	--fsel
+      modify fields:
+	--OutOver_2=0
+	--Fsel_5=3
+
+----------------------------------------------------------------------------
+## Example user code:
+----------------------------------------------------------------------------
+
+    Explore switching between two different parallel IO pin classes.
+    Some initial ideas:
+
+    A) Construct both objects, then switch on use.
+	rgIoPins		iox	( AddrMap );
+	rgRioPins		ioy	( AddrMap );
+
+	Both objects exist.
+	Presumably one is internally disabled, and would throw an exception
+	on use.  Except, low level methods will not check to preserve
+	performance.  Maybe.
+
+	Perhaps the invalid object could be a null pointer?  At least get
+	a runtime error on use.
+
+    B) Construct only the object used.  Switch the entire user code block.
+
+	if ( rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712 ) {
+	    rgRioPins		ioy	( AddrMap );
+	    ...
+	else {
+	    rgIoPins		iox	( AddrMap );
+	    ...
+	}
+
+	This allows exception to be thrown on construction.
+	This is the best place to detect wrong platform for the object.
+
+	Each object is in its own block, so really clear what operations
+	go together.
+
+	Duplicate user code where the operation is done to both, i.e.
+	the essential data transfer manipulations.  e.g. both objects
+	are used the same way in writing the data word.
+
+	Essentially want configuration split (the big differences), but the
+	use combined.
+
+	Possibly pointer to union of objects??
+
+    C) Extract pointer to the register base class in each object.
+	The base class is common to both, and has the same methods (functions).
+
+	In the case of the parallel pins, the register base class (e.g.
+	rgRegister) does not have the appropriate hardware set/clear functions.
+
+    D) Parallel pins - extract the raw address of register.
+	Now loose all benefits of an object.
+
+    E) Switch on use, e.g. writing to the parallel pins.
+	Assume both platform objects exist.
+
+	if ( rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712 ) {
+	    ...
+	    ioy.VirtReg.put( 0x00000050 );
+	    ioy.VirtReg.write_set();
+	    ioy.VirtReg.put( 0x000000a0 );
+	    ioy.VirtReg.write_clr();
+	else {
+	    ...
+	    iox.PinLevel_w0.set( 0x00000050 );
+	    iox.PinLevel_w0.clr( 0x000000a0 );
+	}
+
+	How can wrong object for platform be detected?
+	e.g. One of these should throw an exception:
+	    ioy.VirtReg.write_set();
+	    iox.PinLevel_w0.set( 0x00000050 );
+	But these are low-level access, and want minimum overhead.
+
+    Need to try real use cases.  See what is really needed.
+

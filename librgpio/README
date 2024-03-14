@@ -6,7 +6,7 @@ A C++ library to manipulate the Raspberry Pi GPIO peripherals.
 
 Revision control:  git
 
-Files:  (2023-02-11)
+Files:  (2024-03-14)
 ------
 README			this file
 
@@ -15,6 +15,8 @@ README			this file
 doc/		    Documentation
     architecture.text	Architecture description
     clock_design.text	rgClk - Clock Manager design
+    cstr_function_rename.text   Renaming some C-string Functions
+    extend_rpi5.text    Extensions for RPi5
     fsel_design.text    rgFselPin - Function Select design
     iic_design.text	rgIic - I2C design
     iopin_design.text	rgIoPins - IO Pin Registers design
@@ -44,6 +46,7 @@ src/		    Source code
     rgAddrMap.pod
     rgAltFuncName.cpp	Alternate Function Names class
     rgAltFuncName.h
+    rgAltFuncName.pod
     rgClk.cpp		Clock Manager enumerated class
     rgClk.h
     rgClk.pod
@@ -52,6 +55,7 @@ src/		    Source code
     rgFselPin.pod
     rgHeaderPin.cpp	Header Pin Names class (40-pin header)
     rgHeaderPin.h
+    rgHeaderPin.pod
     rgIic.cpp		I2C Master class
     rgIic.h
     rgIoPins.cpp	GPIO IO Pin Registers class (object registers)
@@ -78,7 +82,8 @@ src/		    Source code
     rgUniSpi.cpp	Universal SPI Master class - SPI1, SPI2
     rgUniSpi.h
     rgUniSpi.pod
-    rgVersion.h		Version Number (inline code) - define here
+    rgVersion.cpp	Version identification class
+    rgVersion.h
 
 bin/		    Commands  (none)
 
