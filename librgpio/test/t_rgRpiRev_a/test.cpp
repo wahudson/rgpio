@@ -2,9 +2,9 @@
 //
 // Testing:  rgRpiRev - Raspberry Pi Revision
 //    10-19  Constructors, accessors
-//    20-29  rgRpiRev_Soc  get(), put()
+//    20-29  rgRpiRev_Soc  get(), override()
 //    30-39  rgRpiRev_Soc  find(), cstr()
-//    40-49  rgRpiRev_Base  get(), put()
+//    40-49  rgRpiRev_Base  get(), override()
 //    50-59  rgRpiRev_Base  find()
 //    60-68  Global object find() chain
 //    70-78  Soc_enum - soc_enum2cstr()
@@ -41,12 +41,14 @@ rgRpiRev		Tx;		// test object
 	rgRpiRev	tx;
 	CHECKX( 0x00000000,     tx.RevCode.get() );
 	CHECK(  0,              tx.RevCode.is_final() );
+	CHECK(  1,              tx.RevCode.is_unknown() );
 	CHECK( "/proc/cpuinfo", tx.RevCode.init_file() );
 	CHECK(  0,              tx.SocEnum.get() );
 	CHECK(  0,              tx.SocEnum.is_final() );
-	CHECK(  0,              tx.SocEnum.is_fail() );
+	CHECK(  1,              tx.SocEnum.is_unknown() );
 	CHECKX( 0x00000000,     tx.BaseAddr.get() );
 	CHECK(  0,              tx.BaseAddr.is_final() );
+	CHECK(  1,              tx.BaseAddr.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -56,12 +58,14 @@ rgRpiRev		Tx;		// test object
     try {
 	CHECKX( 0x00000000,     Tx.RevCode.get() );
 	CHECK(  0,              Tx.RevCode.is_final() );
+	CHECK(  1,              Tx.RevCode.is_unknown() );
 	CHECK( "/proc/cpuinfo", Tx.RevCode.init_file() );
 	CHECK(  0,              Tx.SocEnum.get() );
 	CHECK(  0,              Tx.SocEnum.is_final() );
-	CHECK(  0,              Tx.SocEnum.is_fail() );
+	CHECK(  1,              Tx.SocEnum.is_unknown() );
 	CHECKX( 0x00000000,     Tx.BaseAddr.get() );
 	CHECK(  0,              Tx.BaseAddr.is_final() );
+	CHECK(  1,              Tx.BaseAddr.is_unknown() );
 //	CHECK(  0,              (uint64_t) Tx.BaseAddr.init_ptr() );
     }
     catch (...) {
@@ -72,12 +76,14 @@ rgRpiRev		Tx;		// test object
     try {
 	CHECKX( 0x00000000,     Tx.Global.RevCode.get() );
 	CHECK(  0,              Tx.Global.RevCode.is_final() );
+	CHECK(  1,              Tx.RevCode.is_unknown() );
 	CHECK( "/proc/cpuinfo", Tx.Global.RevCode.init_file() );
 	CHECK(  0,              Tx.Global.SocEnum.get() );
 	CHECK(  0,              Tx.Global.SocEnum.is_final() );
-	CHECK(  0,              Tx.Global.SocEnum.is_fail() );
+	CHECK(  1,              Tx.Global.SocEnum.is_unknown() );
 	CHECKX( 0x00000000,     Tx.Global.BaseAddr.get() );
 	CHECK(  0,              Tx.Global.BaseAddr.is_final() );
+	CHECK(  1,              Tx.BaseAddr.is_unknown() );
 //	CHECK(  0,              (uint64_t) Tx.Global.BaseAddr.init_ptr() );
     }
     catch (...) {
@@ -91,7 +97,7 @@ rgRpiRev		Tx;		// test object
 	CHECK( "/proc/cpuinfo", rgRpiRev::Global.RevCode.init_file() );
 	CHECKX( 0x00000000,     rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,              rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,              rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  1,              rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECKX( 0x00000000,     rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,              rgRpiRev::Global.BaseAddr.is_final() );
 //	CHECK(  0,   (uint64_t) rgRpiRev::Global.BaseAddr.init_ptr() );
@@ -138,19 +144,19 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------------------------------------------
-//## rgRpiRev_Soc  get(), put()
+//## rgRpiRev_Soc  get(), override()
 //--------------------------------------------------------------------------
 
 // Global object
 //--------------------------------------
   CASE( "21a", "Global.SocEnum.get() Final=0" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.clear_final();
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
     }
     catch (...) {
@@ -159,12 +165,12 @@ rgRpiRev		Tx;		// test object
 
   CASE( "21b", "Global.SocEnum.get() Final=1" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	rgRpiRev::Global.SocEnum.mark_final();
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
     }
     catch (...) {
@@ -172,32 +178,32 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------
-  CASE( "22a", "Global.SocEnum.put() Final=0" );
+  CASE( "22a", "Global.SocEnum.override() Final=0" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "22b", "Global.SocEnum.put() Final=1" );
+  CASE( "22b", "Global.SocEnum.override() Final=1" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.mark_final();
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
     }
     catch (...) {
@@ -205,20 +211,20 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------
-  CASE( "23", "Global.SocEnum.put() bad enum" );
+  CASE( "23", "Global.SocEnum.override() bad enum" );
     try {
 	rgRpiRev::Global.SocEnum.mark_final();
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
-	rgRpiRev::Global.SocEnum.put( (rgRpiRev::Soc_enum) -1 );
+	rgRpiRev::Global.SocEnum.override( (rgRpiRev::Soc_enum) -1 );
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
-	CHECK( "rgRpiRev::rgRpiRev_Soc::put() enum out of range:  -1",
+	CHECK( "rgRpiRev::rgRpiRev_Soc::override() enum out of range:  -1",
 	    e.what()
 	);
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
 	// no change, does not mark failed
@@ -228,9 +234,9 @@ rgRpiRev		Tx;		// test object
     }
 
 /*****
-  CASE( "21d", "Global.SocEnum.put() not enum type" );
+  CASE( "21d", "Global.SocEnum.override() not enum type" );
     try {
-	rgRpiRev::Global.SocEnum.put( 99 );	// fail compile
+	rgRpiRev::Global.SocEnum.override( 99 );	// fail compile
 	FAIL( "no compile error" );
     }
     catch (...) {
@@ -242,12 +248,12 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "27a", "SocEnum.get() Final=0" );
     try {
-	Tx.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	Tx.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	Tx.SocEnum.clear_final();
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  0,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2835, Tx.SocEnum.get() );
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  0,                    Tx.SocEnum.is_final() );
     }
     catch (...) {
@@ -256,32 +262,32 @@ rgRpiRev		Tx;		// test object
 
   CASE( "27b", "SocEnum.get() Final=1" );
     try {
-	Tx.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	Tx.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	Tx.SocEnum.mark_final();
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, Tx.SocEnum.get() );
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "27c", "SocEnum.put() bad enum" );
+  CASE( "27c", "SocEnum.override() bad enum" );
     try {
 	Tx.SocEnum.mark_final();
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, Tx.SocEnum.get() );
-	Tx.SocEnum.put( (rgRpiRev::Soc_enum) 99 );
+	Tx.SocEnum.override( (rgRpiRev::Soc_enum) 99 );
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
-	CHECK( "rgRpiRev::rgRpiRev_Soc::put() enum out of range:  99",
+	CHECK( "rgRpiRev::rgRpiRev_Soc::override() enum out of range:  99",
 	    e.what()
 	);
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2711, Tx.SocEnum.get() );
     }
@@ -295,12 +301,12 @@ rgRpiRev		Tx;		// test object
 
   CASE( "31", "SocEnum.find() Final=1" );
     try {
-	Tx.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	Tx.SocEnum.override( rgRpiRev::soc_BCM2837 );
 	Tx.SocEnum.mark_final();
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, Tx.SocEnum.find() );
-	CHECK(  0,                    Tx.SocEnum.is_fail() );
+	CHECK(  0,                    Tx.SocEnum.is_unknown() );
 	CHECK(  1,                    Tx.SocEnum.is_final() );
     }
     catch (...) {
@@ -309,15 +315,15 @@ rgRpiRev		Tx;		// test object
 
   CASE( "32", "Global.SocEnum.find() RPi3" );
     try {
-	rgRpiRev::Global.RevCode.put( 0x00a22082 );	// RPi3
+	rgRpiRev::Global.RevCode.override( 0x00a22082 );	// RPi3
 	rgRpiRev::Global.RevCode.mark_final();
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.find() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
     }
     catch (...) {
@@ -326,16 +332,16 @@ rgRpiRev		Tx;		// test object
 
   CASE( "33", "Global.SocEnum.find() with RevCode failure" );
     try {
-	rgRpiRev::Global.RevCode.put( 0x00000000 );	// failed
+	rgRpiRev::Global.RevCode.override( 0x00000000 );	// failed
 	rgRpiRev::Global.RevCode.mark_final();
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2836 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2836 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	//
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.find() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
     }
@@ -345,19 +351,19 @@ rgRpiRev		Tx;		// test object
 
   CASE( "34", "Global.SocEnum.find() chip number not enum" );
     try {
-	rgRpiRev::Global.RevCode.put( 0x00a2f082 );	// RPi3, ChipNumber=15
+	rgRpiRev::Global.RevCode.override( 0x00a2f082 );	// RPi3, ChipNumber=15
 	rgRpiRev::Global.RevCode.mark_final();
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2836 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2836 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	rgRpiRev::Global.SocEnum.find();
 	FAIL( "no throw" );
     }
     catch ( runtime_error& e ) {
 	CHECK( "rgRpiRev_Soc::find() ChipNumber has no enum:  15", e.what() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
     }
@@ -367,11 +373,11 @@ rgRpiRev		Tx;		// test object
 
   CASE( "37", "Global.SocEnum.cstr() Final=1" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( "BCM2837",             rgRpiRev::Global.SocEnum.cstr() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
     }
     catch (...) {
@@ -381,11 +387,11 @@ rgRpiRev		Tx;		// test object
   CASE( "38", "SocEnum.cstr() local tx" );
     try {
 	rgRpiRev	tx;
-	tx.SocEnum.put( rgRpiRev::soc_BCM2711 );
-	CHECK(  0,                    tx.SocEnum.is_fail() );
+	tx.SocEnum.override( rgRpiRev::soc_BCM2711 );
+	CHECK(  0,                    tx.SocEnum.is_unknown() );
 	CHECK(  1,                    tx.SocEnum.is_final() );
 	CHECK( "BCM2711",             tx.SocEnum.cstr() );
-	CHECK(  0,                    tx.SocEnum.is_fail() );
+	CHECK(  0,                    tx.SocEnum.is_unknown() );
 	CHECK(  1,                    tx.SocEnum.is_final() );
     }
     catch (...) {
@@ -395,12 +401,12 @@ rgRpiRev		Tx;		// test object
   CASE( "39", "SocEnum.cstr() local tx" );
     try {
 	rgRpiRev	tx;
-	tx.RevCode.put( 0x00000000 );	// failed
+	tx.RevCode.override( 0x00000000 );	// failed
 	CHECK(  1,                    tx.RevCode.is_final() );
-	CHECK(  0,                    tx.SocEnum.is_fail() );
+	CHECK(  0,                    tx.SocEnum.is_unknown() );
 	CHECK(  0,                    tx.SocEnum.is_final() );
 	CHECK( "BCM2835",             tx.SocEnum.cstr() );
-	CHECK(  1,                    tx.SocEnum.is_fail() );
+	CHECK(  1,                    tx.SocEnum.is_unknown() );
 	CHECK(  1,                    tx.SocEnum.is_final() );
     }
     catch (...) {
@@ -408,14 +414,14 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------------------------------------------
-//## rgRpiRev_Base  get(), put()
+//## rgRpiRev_Base  get(), override()
 //--------------------------------------------------------------------------
 
 // Global object
 //--------------------------------------
   CASE( "41a", "Global.BaseAddr.get() Final=0" );
     try {
-	rgRpiRev::Global.BaseAddr.put( 0xcc33ee55 );
+	rgRpiRev::Global.BaseAddr.override( 0xcc33ee55 );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECKX( 0xcc33ee55,           rgRpiRev::Global.BaseAddr.get() );
@@ -427,7 +433,7 @@ rgRpiRev		Tx;		// test object
 
   CASE( "41b", "Global.BaseAddr.get() Final=1" );
     try {
-	rgRpiRev::Global.BaseAddr.put( 0x22222222 );
+	rgRpiRev::Global.BaseAddr.override( 0x22222222 );
 	rgRpiRev::Global.BaseAddr.mark_final();
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECKX( 0x22222222,           rgRpiRev::Global.BaseAddr.get() );
@@ -438,13 +444,13 @@ rgRpiRev		Tx;		// test object
     }
 
 //--------------------------------------
-  CASE( "42a", "Global.BaseAddr.put() Final=0" );
+  CASE( "42a", "Global.BaseAddr.override() Final=0" );
     try {
-	rgRpiRev::Global.BaseAddr.put( 0x33333333 );
+	rgRpiRev::Global.BaseAddr.override( 0x33333333 );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECKX( 0x33333333,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
-	rgRpiRev::Global.BaseAddr.put( 0x55aaaa55 );
+	rgRpiRev::Global.BaseAddr.override( 0x55aaaa55 );
 	CHECKX( 0x55aaaa55,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
     }
@@ -452,13 +458,13 @@ rgRpiRev		Tx;		// test object
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "42b", "Global.BaseAddr.put() Final=1" );
+  CASE( "42b", "Global.BaseAddr.override() Final=1" );
     try {
-	rgRpiRev::Global.BaseAddr.put( 0x33333333 );
+	rgRpiRev::Global.BaseAddr.override( 0x33333333 );
 	rgRpiRev::Global.BaseAddr.mark_final();
 	CHECKX( 0x33333333,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
-	rgRpiRev::Global.BaseAddr.put( 0x55aaaa55 );
+	rgRpiRev::Global.BaseAddr.override( 0x55aaaa55 );
 	CHECKX( 0x55aaaa55,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
     }
@@ -470,7 +476,7 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "47a", "BaseAddr.get() Final=0" );
     try {
-	Tx.BaseAddr.put( 0xcc33ee55 );
+	Tx.BaseAddr.override( 0xcc33ee55 );
 	Tx.BaseAddr.clear_final();
 	CHECK(  0,                    Tx.BaseAddr.is_final() );
 	CHECKX( 0xcc33ee55,           Tx.BaseAddr.get() );
@@ -482,7 +488,7 @@ rgRpiRev		Tx;		// test object
 
   CASE( "47b", "BaseAddr.get() Final=1" );
     try {
-	Tx.BaseAddr.put( 0x22222222 );
+	Tx.BaseAddr.override( 0x22222222 );
 	Tx.BaseAddr.mark_final();
 	CHECK(  1,                    Tx.BaseAddr.is_final() );
 	CHECKX( 0x22222222,           Tx.BaseAddr.get() );
@@ -498,7 +504,7 @@ rgRpiRev		Tx;		// test object
 
   CASE( "51", "Global.BaseAddr.find() Final=1" );
     try {
-	rgRpiRev::Global.BaseAddr.put( 0x00abbaff );
+	rgRpiRev::Global.BaseAddr.override( 0x00abbaff );
 	rgRpiRev::Global.BaseAddr.mark_final();
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECKX( 0x00abbaff,           rgRpiRev::Global.BaseAddr.find() );
@@ -511,12 +517,12 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "52a", "Global.BaseAddr.find() RPi1" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.mark_final();
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	rgRpiRev::Global.BaseAddr.put( 0x33333333 );
+	rgRpiRev::Global.BaseAddr.override( 0x33333333 );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECKX( 0x33333333,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
@@ -529,12 +535,12 @@ rgRpiRev		Tx;		// test object
 
   CASE( "52b", "Global.BaseAddr.find() RPi2" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2836 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2836 );
 	rgRpiRev::Global.SocEnum.mark_final();
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	rgRpiRev::Global.BaseAddr.put( 0xffffffff );
+	rgRpiRev::Global.BaseAddr.override( 0xffffffff );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECKX( 0xffffffff,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
@@ -547,12 +553,12 @@ rgRpiRev		Tx;		// test object
 
   CASE( "52c", "Global.BaseAddr.find() RPi3" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );
 	rgRpiRev::Global.SocEnum.mark_final();
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	rgRpiRev::Global.BaseAddr.put( 0xffffffff );
+	rgRpiRev::Global.BaseAddr.override( 0xffffffff );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECKX( 0xffffffff,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
@@ -565,12 +571,12 @@ rgRpiRev		Tx;		// test object
 
   CASE( "52d", "Global.BaseAddr.find() RPi4" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	rgRpiRev::Global.SocEnum.mark_final();
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	rgRpiRev::Global.BaseAddr.put( 0xffffffff );
+	rgRpiRev::Global.BaseAddr.override( 0xffffffff );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECKX( 0xffffffff,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
@@ -584,16 +590,16 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "53a", "Setup SocEnum as failed" );
     try {
-	rgRpiRev::Global.RevCode.put( 0x00000000 );	// failed
+	rgRpiRev::Global.RevCode.override( 0x00000000 );	// failed
 	rgRpiRev::Global.RevCode.mark_final();
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	//
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.find() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
     }
@@ -603,10 +609,10 @@ rgRpiRev		Tx;		// test object
 
   CASE( "53b", "Global.BaseAddr.find() with SocEnum failure" );
     try {
-	rgRpiRev::Global.BaseAddr.put( 0x77777777 );
+	rgRpiRev::Global.BaseAddr.override( 0x77777777 );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x77777777,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
@@ -614,7 +620,7 @@ rgRpiRev		Tx;		// test object
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.find() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
     }
@@ -630,7 +636,7 @@ rgRpiRev		Tx;		// test object
   CASE( "61a", "RevCode.find() good file" );
     try {
 	rgRpiRev::Global.RevCode.init_file( "ref/rpi3.in" );
-	rgRpiRev::Global.RevCode.put( 0xffffffff );
+	rgRpiRev::Global.RevCode.override( 0xffffffff );
 	rgRpiRev::Global.RevCode.clear_final();
 	CHECK( "ref/rpi3.in", rgRpiRev::Global.RevCode.init_file() );
 	CHECK(  0,            rgRpiRev::Global.RevCode.is_final() );
@@ -653,13 +659,13 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "62a", "SocEnum.find() from RevCode" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.find() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -669,7 +675,7 @@ rgRpiRev		Tx;		// test object
     try {
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.find() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -678,7 +684,7 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "63a", "BaseAddr.find() from SocEnum" );
     try {
-	rgRpiRev::Global.BaseAddr.put( 0xffffffff );
+	rgRpiRev::Global.BaseAddr.override( 0xffffffff );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
@@ -702,13 +708,13 @@ rgRpiRev		Tx;		// test object
 //--------------------------------------
   CASE( "65a", "find_SocEnum() from RevCode" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::find_SocEnum() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -718,7 +724,7 @@ rgRpiRev		Tx;		// test object
     try {
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::find_SocEnum() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -728,7 +734,7 @@ rgRpiRev		Tx;		// test object
   CASE( "66a", "find_BaseAddr() from SocEnum" );
     try {
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
-	rgRpiRev::Global.BaseAddr.put( 0xffffffff );
+	rgRpiRev::Global.BaseAddr.override( 0xffffffff );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
@@ -754,11 +760,11 @@ rgRpiRev		Tx;		// test object
   CASE( "67a", "BaseAddr.find() ripple to good file" );
     try {
 	rgRpiRev::Global.RevCode.init_file( "ref/rpi3.in" );
-	rgRpiRev::Global.RevCode.put( 0xffffffff );
+	rgRpiRev::Global.RevCode.override( 0xffffffff );
 	rgRpiRev::Global.RevCode.clear_final();
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.clear_final();
-	rgRpiRev::Global.BaseAddr.put( 0x77777777 );
+	rgRpiRev::Global.BaseAddr.override( 0x77777777 );
 	rgRpiRev::Global.BaseAddr.clear_final();
 	//
 	CHECKX( 0xffffffff,           rgRpiRev::Global.RevCode.get() );
@@ -776,7 +782,7 @@ rgRpiRev		Tx;		// test object
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -908,12 +914,12 @@ rgRpiRev		Tx;		// test object
 
   CASE( "90", "cstr_SocEnum()" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK( "BCM2711",             rgRpiRev::cstr_SocEnum() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -921,17 +927,17 @@ rgRpiRev		Tx;		// test object
 
   CASE( "91", "cstr_SocEnum() from RevCode" );
     try {
-	rgRpiRev::Global.RevCode.put( 0x00a22082 );	// RPi3
+	rgRpiRev::Global.RevCode.override( 0x00a22082 );	// RPi3
 	CHECKX( 0x00a22082,           rgRpiRev::Global.RevCode.get() );
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2835 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2835 );
 	rgRpiRev::Global.SocEnum.clear_final();
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK( "BCM2837",             rgRpiRev::cstr_SocEnum() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_fail() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
