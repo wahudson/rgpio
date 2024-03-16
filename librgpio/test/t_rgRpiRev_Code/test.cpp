@@ -1,8 +1,8 @@
 // 2020-12-03  William A. Hudson
 //
 // Testing:  rgRpiRev_Code class in rgRpiRev.h - Raspberry Pi Revision
-//    10-19  Constructor, get(), put(), mark_final(), clear_final()
-//    20-29  .
+//    10-19  Constructor, get(), put(), putFU() flags
+//    20-29  override() flags
 //    30-39  read_rev_code( istream* )
 //    40-49  read_rev_code( "file" )
 //    50-59  find()
@@ -31,7 +31,7 @@ int main()
 rgRpiRev_Code		Tx;		// test object
 
 //--------------------------------------------------------------------------
-//## Constructor, get(), put(), mark_final(), clear_final()
+//## Constructor, get(), put(), putFU() flags
 //--------------------------------------------------------------------------
 
   CASE( "10", "rgRpiRev_Code constructor init to zero" );
@@ -39,6 +39,7 @@ rgRpiRev_Code		Tx;		// test object
 	rgRpiRev_Code	tx;
 	CHECKX( 0x00000000,     tx.get() );
 	CHECK(  0,              tx.is_final() );
+	CHECK(  1,              tx.is_unknown() );
 	CHECK( "/proc/cpuinfo", tx.init_file() );
     }
     catch (...) {
@@ -49,6 +50,7 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	CHECKX( 0x00000000,     Tx.get() );
 	CHECK(  0,              Tx.is_final() );
+	CHECK(  1,              Tx.is_unknown() );
 	CHECK( "/proc/cpuinfo", Tx.init_file() );
     }
     catch (...) {
@@ -56,67 +58,101 @@ rgRpiRev_Code		Tx;		// test object
     }
 
 //--------------------------------------
-  CASE( "12a", "put() Final=0" );
+  CASE( "12a", "put() flags unchanged" );
     try {
 	Tx.put( 0x00000000 );
-	Tx.clear_final();
+	Tx.putFU( 0, 0 );
 	CHECKX( 0x00000000, Tx.get() );
 	CHECK(  0,          Tx.is_final() );
-	Tx.put( 0xf00fc33c );			// sets Final
-	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	Tx.put( 0xf00fc33c );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "12b", "put() Final=1" );
+  CASE( "12b", "put() flags unchanged" );
+    try {
+	Tx.put( 0xffffffff );
+	Tx.putFU( 1, 1 );
+	CHECKX( 0xffffffff, Tx.get() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	Tx.put( 0xf00fc33c );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0xf00fc33c, Tx.get() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## override() flags
+//--------------------------------------------------------------------------
+
+  CASE( "21", "override()" );
     try {
 	Tx.put( 0x00000000 );
-	Tx.mark_final();
+	Tx.putFU( 0, 0 );
+	CHECKX( 0x00000000, Tx.get() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	Tx.override( 0xf00fc33c );			// sets Final
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	CHECKX( 0xf00fc33c, Tx.get() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "22", "override()" );
+    try {
+	Tx.put( 0xffffffff );
+	Tx.putFU( 0, 1 );
+	CHECKX( 0xffffffff, Tx.get() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	Tx.override( 0xf00fc33c );			// sets Final
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	CHECKX( 0xf00fc33c, Tx.get() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "23", "override()" );
+    try {
+	Tx.put( 0xffffffff );
+	Tx.putFU( 1, 0 );
+	CHECKX( 0xffffffff, Tx.get() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	Tx.override( 0xf00fc33c );			// sets Final
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	CHECKX( 0xf00fc33c, Tx.get() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24", "override()" );
+    try {
+	Tx.put( 0x00000000 );
+	Tx.putFU( 1, 1 );
 	CHECKX( 0x00000000, Tx.get() );
 	CHECK(  1,          Tx.is_final() );
-	Tx.put( 0xf00fc33c );			// sets Final
+	CHECK(  1,          Tx.is_unknown() );
+	Tx.override( 0xf00fc33c );			// sets Final
 	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "13", "mark_final()" );
-    try {
-	Tx.clear_final();
-	CHECK(  0,          Tx.is_final() );
-	CHECKX( 0xf00fc33c, Tx.get() );
-	Tx.mark_final();
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0xf00fc33c, Tx.get() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "14", "put() not limited by Final" );
-    try {
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0xf00fc33c, Tx.get() );
-	Tx.put( 0x33cc8811 );
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0x33cc8811, Tx.get() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "15", "clear_final()" );
-    try {
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0x33cc8811, Tx.get() );
-	Tx.clear_final();
-	CHECK(  0,          Tx.is_final() );
-	CHECKX( 0x33cc8811, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -258,9 +294,10 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "40", "read_rev_code() Setup" );	// should have no effect
     try {
 	Tx.put( 0xffffffff );
-	Tx.clear_final();
-	CHECK(  0,          Tx.is_final() );
+	Tx.putFU( 0, 1 );
 	CHECKX( 0xffffffff, Tx.get() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -310,12 +347,14 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.init_file( "/dev/null" );
 	Tx.put( 0xffffffff );
-	Tx.clear_final();
+	Tx.putFU( 0, 1 );
 	CHECK( "/dev/null", Tx.init_file() );
-	CHECK(  0,          Tx.is_final() );
 	CHECKX( 0xffffffff, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );	// action
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0x00000000, Tx.find() );	// action #!! should throw
 	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0x00000000, Tx.get() );
     }
     catch (...) {
@@ -326,7 +365,9 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00000000, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );
+	CHECKX( 0x00000000, Tx.find() );	// action
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -337,12 +378,14 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.init_file( "ref/no_rev.in" );
 	Tx.put( 0xffffffff );
-	Tx.clear_final();
+	Tx.putFU( 0, 1 );
 	CHECK( "ref/no_rev.in", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xffffffff, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );	// action
+	CHECKX( 0x00000000, Tx.find() );	// action #!! should throw
 	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0x00000000, Tx.get() );
     }
     catch (...) {
@@ -353,7 +396,9 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00000000, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );
+	CHECKX( 0x00000000, Tx.find() );	// action
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -364,11 +409,15 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.init_file( "ref/rpi3.in" );
 	Tx.put( 0xffffffff );
-	Tx.clear_final();
+	Tx.putFU( 0, 1 );
 	CHECK( "ref/rpi3.in", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xffffffff, Tx.get() );
-	CHECKX( 0x00a22082, Tx.find() );
+	CHECKX( 0x00a22082, Tx.find() );	// action
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );	// success
+	CHECKX( 0x00a22082, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -378,7 +427,9 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00a22082, Tx.get() );
-	CHECKX( 0x00a22082, Tx.find() );
+	CHECKX( 0x00a22082, Tx.find() );	// action
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -389,9 +440,10 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.init_file( "not_exist" );
 	Tx.put( 0xffffffff );
-	Tx.clear_final();
+	Tx.putFU( 0, 1 );
 	CHECK( "not_exist", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xffffffff, Tx.get() );
 	Tx.find();
 	FAIL( "no throw" );
@@ -399,6 +451,7 @@ rgRpiRev_Code		Tx;		// test object
     catch ( std::runtime_error& e ) {
 	CHECK( "read_rev_code() cannot open file:  not_exist", e.what() );
 	CHECK(  1,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0x00000000, Tx.get() );
     }
     catch (...) {
@@ -410,6 +463,8 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00000000, Tx.get() );
 	CHECKX( 0x00000000, Tx.find() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
