@@ -21,17 +21,6 @@ using namespace std;
 //==========================================================================
 
 /*
-* Constructor.
-* call:
-*    rgWord		rx;
-*/
-rgWord::rgWord()
-{
-    WordVal = 0;
-    Final   = 0;
-}
-
-/*
 * Word bits are numbered [31:0], left to right.
 * Field position is the bit number of the field LSB.
 * Mask is a contiguous bit-field of ones, and is the maximum field value.
@@ -107,8 +96,10 @@ rgRpiRev_Code::rgRpiRev_Code()
 */
 rgRpiRev::rgRpiRev_Soc::rgRpiRev_Soc()
 {
+    SocVal      = soc_BCM2835;
     RevCode_ptr = NULL;
-    FailDerive  = 0;
+    Final       = 0;
+    Unknown     = 1;
 }
 
 /*
@@ -118,7 +109,10 @@ rgRpiRev::rgRpiRev_Soc::rgRpiRev_Soc()
 */
 rgRpiRev::rgRpiRev_Base::rgRpiRev_Base()
 {
+    BaseVal     = 0;
     SocEnum_ptr = NULL;
+    Final       = 0;
+    Unknown     = 1;
 }
 
 /*
@@ -143,9 +137,10 @@ rgRpiRev::rgRpiRev()
 // Alternative is to make rgWord a template class.
 
 /*
+* //#!! Obsolete
 * Put WordVal
 *    Range check here ensures that WordVal can never be invalid on get().
-*    Clears FailDerive flag.
+*    Clears Unknown flag.
 * call:
 *    put( soc );
 *    soc = soc enum
@@ -153,7 +148,7 @@ rgRpiRev::rgRpiRev()
 *    std::runtime_error
 */
 void
-rgRpiRev::rgRpiRev_Soc::put(
+rgRpiRev::rgRpiRev_Soc::putf(
     rgRpiRev::Soc_enum	soc
 )
 {
@@ -163,11 +158,37 @@ rgRpiRev::rgRpiRev_Soc::put(
 	throw std::runtime_error ( css.str() );
     }
 
-    WordVal    = soc;	// promote to uint32_t by assignment
+    SocVal     = soc;	// promote to uint32_t by assignment
     Final      = 1;
-    FailDerive = 0;
+    Unknown    = 0;
 }
 
+
+/*
+* Override SocVal
+*    Range check ensures that SocVal can never be invalid on get().
+*    Set Final flag, clear Unknown flag.
+* call:
+*    override( soc );
+*    soc = soc enum
+* exceptions:
+*    std::runtime_error
+*/
+void
+rgRpiRev::rgRpiRev_Soc::override(
+    rgRpiRev::Soc_enum	soc
+)
+{
+    if (!( (0 <= soc) && (soc <= soc_MaxEnum) )) {
+	std::ostringstream      css;
+	css << "rgRpiRev::rgRpiRev_Soc::override() enum out of range:  " << soc;
+	throw std::runtime_error ( css.str() );
+    }
+
+    SocVal     = soc;
+    Final      = 1;
+    Unknown    = 0;
+}
 
 //--------------------------------------------------------------------------
 // rgRpiRev_Code - read revision code functions.
@@ -322,7 +343,7 @@ rgRpiRev_Code::find()
 *    find();
 * return:
 *    ()  = SOC chip id enum
-*    FailDerive :  0= all OK, 1= non-RPi or derivation error
+*    Unknown :  0= all OK, 1= non-RPi or derivation error
 * exceptions:
 *    std::runtime_error		Error in derivation
 */
@@ -338,7 +359,7 @@ rgRpiRev::rgRpiRev_Soc::find()
     }
 
     Final = 1;
-    FailDerive = 1;	// flag failed
+    Unknown = 1;	// flag failed
 
     code = RevCode_ptr->find();			// may throw exception
 
@@ -347,7 +368,8 @@ rgRpiRev::rgRpiRev_Soc::find()
 
 	try {
 	    soc = rgRpiRev::int2soc_enum( num );
-	    put( soc );		// and clear FailDerive
+	    put( soc );		// and clear Unknown
+//#!!	    override( soc );	// and clear Unknown
 	}
 	catch (...) {
 	    std::ostringstream      css;
@@ -373,15 +395,16 @@ rgRpiRev::rgRpiRev_Soc::find()
 * exceptions:
 *    std::runtime_error		Error in derivation
 */
-uint32_t
+uint64_t
 rgRpiRev::rgRpiRev_Base::find()
 {
     Soc_enum		soc;
-    uint32_t		addr;
+    uint64_t		addr;
 
     if ( ! Final ) {
 	Final   = 1;
-	WordVal = 0;	// flag failed
+	Unknown = 1;	// flag failed
+	BaseVal = 0;
 
 	soc   = SocEnum_ptr->find();		// may throw exception
 
@@ -399,11 +422,12 @@ rgRpiRev::rgRpiRev_Base::find()
 		    break;
 	    }
 
-	    WordVal = addr;
+	    BaseVal = addr;
+//#!!	    override( addr );
 	}
     }
 
-    return  WordVal;
+    return  BaseVal;
 }
 
 //--------------------------------------------------------------------------

@@ -1201,6 +1201,92 @@ User Interface Evolution:
     interface that need not change.
 
 ----------------------------------------------------------------------------
+## Refactor  rgRpiRev  class structure
+----------------------------------------------------------------------------
+
+    Now that BaseAddr is 64-bits, all 3 registers have a different type for
+    the word value and need different access functions.  Thus having a
+    common base class for the word value is not helpful.
+
+    The derivation flags are common, so it might make sense to have a base
+    class for them.
+
+    We want all 3 registers to work similarly and have the same methods
+    even though the word value types are different.  i.e. We want them to
+    look polymorphic, but don't actually have to be polymorphic.
+
+Flag Final:
+    Word value is final, no further derivation should be attempted.
+
+    Final	1= no further derivation, 0= not
+
+Flag Unknown:
+    Word value is unknown, as in not yet derived, or because of failed
+    derivation.
+
+    Unknown	1= unknown, 0= known good value
+
+    Previously this condition was encoded as zero in the word value
+    for RevCode and BaseAddr, while SocEnum had a FailDerive flag.
+    RevCode could never really be zero.
+    BaseAddr could possibly be zero, but has not been so far.
+    It seems best to add an Unknown flag for all 3 registers.
+
+Class rgWord:
+    Can pretty much remain the same, but pull out the Final flag.
+    Is a base class for only RevCode.
+
+New class rgFlag:
+    Can hold the flags and accessor functions, common to all 3 registers.
+
+Class rgRpiRev_Code:
+    Mostly unchanged, except now derive from both rgWord and rgFlag.
+
+Class outlines:
+    Here we outline the essential attributes from a user perspective.
+    Additional methods should be provided to aid testing.
+    Especially note the type differences in find() and override().
+
+    Successful find() sets:  Final=1, Unknown=0
+    Failed     find() sets:  Final=1, Unknown=1
+    User   override() sets:  Final=1, Unknown=0
+
+class rgFlag {
+  protected:
+    bool		Final;		// 1= no further derivation, 0= not
+    bool		Unknown;	// 1= unknown, 0= known good value
+  public:
+    bool		is_final()	{ return  Final; }
+    bool		is_unknown()	{ return  Unknown; }
+};
+
+class rgRpiRev::rgRpiRev_Code : public rgFlag, public rgWord {
+  private:
+    ...
+  public:
+    uint32_t		find();
+    void		override( uint32_t v );
+};
+
+class rgRpiRev::rgRpiRev_Soc : public rgFlag {
+  private:
+    Soc_enum		SocVal;
+    rgRpiRev_Code	*RevCode_ptr;
+  public:
+    Soc_enum		find();
+    void		override( Soc_enum v );
+};
+
+class rgRpiRev::rgRpiRev_Base : public rgFlag {
+  private:
+    uint64_t		BaseVal;
+    rgRpiRev_Soc	*SocEnum_ptr;
+  public:
+    uint64_t		find();
+    void		override( uint64_t v );
+};
+
+----------------------------------------------------------------------------
 ## Platform test functions:  isRPi5(), ...
 ----------------------------------------------------------------------------
 

@@ -11,24 +11,46 @@
 //--------------------------------------------------------------------------
 
 /*
-* rgWord base class.
-*    Idea is to cache a word value derived from external sources.
-*    The flag tracks whether derivation is final, and should not be repeated.
+* rgFlag base class.
+*    Idea is to provide flags for caching derived data stored elsewhere.
+*    Final   = Derivation is final, use the cached value.
+*    Unknown = Cached value is unknown.
 */
-class rgWord {
+class rgFlag {
   protected:
-    uint32_t		WordVal;	// 32-bit value
     bool		Final;		// 1= no further derivation, 0= not
+    bool		Unknown;	// 1= unknown, 0= known good value
 
   public:
-    rgWord();		// constructor
-
-    uint32_t		get()			{ return  WordVal; }
-    void		put( uint32_t v )	{ WordVal = v;  Final = 1; }
+    rgFlag()		{ Final = 0;  Unknown = 1; } // constructor
 
     bool		is_final()		{ return  Final; }
-    void		mark_final()		{ Final = 1; }
-    void		clear_final()		{ Final = 0; }
+    bool		is_unknown()		{ return  Unknown; }
+
+    bool		is_fail()	{ return Unknown; }	//#!! obsolete
+
+  public:	// (private) testing
+    void	putFU( bool f, bool u )		{ Final = f;  Unknown = u; }
+
+		//#!! test aliases
+    void		mark_final()		{ Final = 1;  Unknown = 0; }
+    void		clear_final()		{ Final = 0;  Unknown = 0; }
+};
+
+
+/*
+* rgWord base class.
+*    Provides storage and generic field accessors for derived classes.
+*/
+class rgWord : public rgFlag {
+  protected:
+    uint32_t		WordVal;	// 32-bit value
+
+  public:
+    rgWord()		{ WordVal = 0; }	// constructor
+
+    uint32_t		get()			{ return  WordVal; }
+    void		put( uint32_t v )	{ WordVal = v; }
 
   protected:	// Generic Field accessors:  (derived registers only)
     uint32_t		get_field(
@@ -54,7 +76,13 @@ class rgRpiRev_Code : public rgWord {
     void		init_file( const char* v )	{ InFile = v; }
     const char*		init_file()			{ return  InFile; }
 
+    void		put( uint32_t v )	{ override( v ); }	//#!!
+
+  public:
     uint32_t		find();		// find/return RevCode
+
+    void		override( uint32_t v )	{
+				    WordVal = v;  Final = 1;  Unknown = 0; }
 
   public:				// field access
 
@@ -107,10 +135,11 @@ class rgRpiRev {
 	soc_MaxEnum = soc_BCM2711	// make identical to highest enum
     };
 
-    class rgRpiRev_Soc : public rgWord {
+    class rgRpiRev_Soc : public rgFlag {
       private:
+	Soc_enum	SocVal;
 	rgRpiRev_Code	*RevCode_ptr;
-	bool		FailDerive;
+
       public:
 	rgRpiRev_Soc();			// constructor
 
@@ -120,29 +149,36 @@ class rgRpiRev {
 	Soc_enum	find();		// find/return SocEnum
 	const char*	cstr()		{ return  soc_enum2cstr( find() ); }
 
-	bool		is_fail()	{ return FailDerive; }
+	void		override( Soc_enum v );
 
-				// these hide rgWord functions of the same name
-	Soc_enum	get()		{ return  (Soc_enum) WordVal; }
-	void		put( Soc_enum v );
+	Soc_enum	get()		{ return  SocVal; }
+	void		put( Soc_enum v )	{ override( v ); }	//#!!
 
-	void		mark_final()	{ Final = 1;  FailDerive = 0; }
-	void		clear_final()	{ Final = 0;  FailDerive = 0; }
+	void		putf( Soc_enum v );			//#!!
     };
 
-    class rgRpiRev_Base : public rgWord {
+    class rgRpiRev_Base : public rgFlag {
       private:
+	uint64_t	BaseVal;
 	rgRpiRev_Soc	*SocEnum_ptr;
+
       public:
 	rgRpiRev_Base();		// constructor
 
 	void		init_ptr( rgRpiRev_Soc *wp ) { SocEnum_ptr = wp; }
 	rgRpiRev_Soc*	init_ptr()		     { return  SocEnum_ptr; }
 
-	uint32_t	find();		// find/return BaseAddr
+	uint64_t	get()		{ return  BaseVal; }
+	void		put( uint64_t v )	{ override( v ); }	//#!!
+
+      public:
+	uint64_t	find();		// find/return BaseAddr
+
+	void		override( uint64_t v )	{
+				    BaseVal = v;  Final = 1;  Unknown = 0; }
     };
 
-  public:	// word registers for user configure or query
+  public:	// word registers for user override or query
     rgRpiRev_Code	RevCode;	// revision code
     rgRpiRev_Soc	SocEnum;	// chip id
     rgRpiRev_Base	BaseAddr;	// IO base address
