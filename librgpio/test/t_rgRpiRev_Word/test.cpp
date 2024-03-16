@@ -1,7 +1,7 @@
-// 2020-12-03  William A. Hudson
+// 2024-03-15  William A. Hudson
 //
-// Testing:  rgWord class in rgRpiRev.h - Raspberry Pi Revision
-//    10-19  Constructor, get(), put(), mark_final(), clear_final()
+// Testing:  rgWord base class in rgRpiRev.h
+//    10-19  Constructor, get(), put()
 //    20-29  Generic get_field(), using Dx
 //    30-39  Generic put_field(), using Dx
 //    40-49  .
@@ -49,14 +49,13 @@ rgWord			Tx;		// test object, the base class
 tcWord			Dx;		// derived object
 
 //--------------------------------------------------------------------------
-//## Constructor, get(), put(), mark_final(), clear_final()
+//## Constructor, get(), put()
 //--------------------------------------------------------------------------
 
   CASE( "10", "constructor init to zero" );
     try {
 	rgWord	tx;
 	CHECKX( 0x00000000, tx.get() );
-	CHECK(  0,          tx.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -65,74 +64,29 @@ tcWord			Dx;		// derived object
   CASE( "11", "get() as initialized" );
     try {
 	CHECKX( 0x00000000, Tx.get() );
-	CHECK(  0,          Tx.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
 //--------------------------------------
-  CASE( "12a", "put() Final=0" );
+  CASE( "12a", "put()" );
     try {
 	Tx.put( 0x00000000 );
-	Tx.clear_final();
 	CHECKX( 0x00000000, Tx.get() );
-	CHECK(  0,          Tx.is_final() );
-	Tx.put( 0xabba5225 );			// sets Final
-	CHECK(  1,          Tx.is_final() );
+	Tx.put( 0xabba5225 );
 	CHECKX( 0xabba5225, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "12b", "put() Final=1" );
+  CASE( "12b", "put()" );
     try {
-	Tx.put( 0x00000000 );
-	Tx.mark_final();
-	CHECKX( 0x00000000, Tx.get() );
-	CHECK(  1,          Tx.is_final() );
-	Tx.put( 0xabba5225 );			// sets Final
-	CHECK(  1,          Tx.is_final() );
+	Tx.put( 0xffffffff );
+	CHECKX( 0xffffffff, Tx.get() );
+	Tx.put( 0xabba5225 );
 	CHECKX( 0xabba5225, Tx.get() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------
-  CASE( "13", "mark_final()" );
-    try {
-	Tx.clear_final();
-	CHECK(  0,          Tx.is_final() );
-	CHECKX( 0xabba5225, Tx.get() );
-	Tx.mark_final();
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0xabba5225, Tx.get() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "14", "put() not limited by Final" );
-    try {
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0xabba5225, Tx.get() );
-	Tx.put( 0xf00fc33c );
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0xf00fc33c, Tx.get() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-  CASE( "15", "clear_final()" );
-    try {
-	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0xf00fc33c, Tx.get() );
-	Tx.clear_final();
-	CHECK(  0,          Tx.is_final() );
-	CHECKX( 0xf00fc33c, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -145,9 +99,7 @@ tcWord			Dx;		// derived object
   CASE( "20", "init for get_field()" );
     try {
 	Dx.put( 0x00000000 );
-	Dx.clear_final();
 	CHECKX( 0x00000000, Dx.get() );
-	CHECK(  0,          Dx.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -264,9 +216,7 @@ tcWord			Dx;		// derived object
   CASE( "30", "init for put_field()" );
     try {
 	Dx.put( 0x00000000 );
-	Dx.clear_final();
 	CHECKX( 0x00000000, Dx.get() );
-	CHECK(  0,          Dx.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
