@@ -133,35 +133,6 @@ rgRpiRev::rgRpiRev()
 //--------------------------------------------------------------------------
 // rgRpiRev_Soc  class functions.
 //--------------------------------------------------------------------------
-// These override rgWord functions accessing (uint32_t WordVal).
-// Alternative is to make rgWord a template class.
-
-/*
-* //#!! Obsolete
-* Put WordVal
-*    Range check here ensures that WordVal can never be invalid on get().
-*    Clears Unknown flag.
-* call:
-*    put( soc );
-*    soc = soc enum
-* exceptions:
-*    std::runtime_error
-*/
-void
-rgRpiRev::rgRpiRev_Soc::putf(
-    rgRpiRev::Soc_enum	soc
-)
-{
-    if (!( (0 <= soc) && (soc <= soc_MaxEnum) )) {
-	std::ostringstream      css;
-	css << "rgRpiRev::rgRpiRev_Soc::put() enum out of range:  " << soc;
-	throw std::runtime_error ( css.str() );
-    }
-
-    SocVal     = soc;	// promote to uint32_t by assignment
-    Final      = 1;
-    Unknown    = 0;
-}
 
 
 /*
@@ -321,12 +292,14 @@ rgRpiRev_Code::find()
 
     if ( ! Final ) {
 	Final   = 1;
+	Unknown = 1;
 	WordVal = 0;	// flag failed
 
 	code = read_rev_code( InFile );		// may throw exception
 //	cout << "find:  " << code <<endl;
 
 	WordVal = code;
+	Unknown = 0;
     }
 
     return  WordVal;
@@ -368,8 +341,7 @@ rgRpiRev::rgRpiRev_Soc::find()
 
 	try {
 	    soc = rgRpiRev::int2soc_enum( num );
-	    put( soc );		// and clear Unknown
-//#!!	    override( soc );	// and clear Unknown
+	    override( soc );	// set Final, clear Unknown
 	}
 	catch (...) {
 	    std::ostringstream      css;
@@ -408,7 +380,7 @@ rgRpiRev::rgRpiRev_Base::find()
 
 	soc   = SocEnum_ptr->find();		// may throw exception
 
-	if ( ! SocEnum_ptr->is_fail() ) {
+	if ( ! SocEnum_ptr->is_unknown() ) {
 	    switch ( soc ) {
 	    case  soc_BCM2835:
 		    addr = 0x20000000;

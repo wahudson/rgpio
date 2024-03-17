@@ -240,12 +240,12 @@ main( int	argc,
 
 	if ( Opx.rpi3 ) {
 	    rgRpiRev::Global.BaseAddr.find();	// config first
-	    rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	    rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );
 	}
 
 	if ( Opx.rpi4 ) {
 	    rgRpiRev::Global.BaseAddr.find();	// config first
-	    rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	    rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	}
 
 	if ( Opx.debug ) {

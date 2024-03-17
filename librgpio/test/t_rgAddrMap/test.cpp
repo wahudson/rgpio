@@ -35,7 +35,7 @@ int main()
 
 uint32_t	TEST_BaseAddr = rgRpiRev::find_BaseAddr();
 
-rgRpiRev::Global.BaseAddr.put( 0x00000000 );	// config as not on RPi
+rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 
 //--------------------------------------------------------------------------
 //## Constructor, is_fake_mem(), config_BaseAddr()
@@ -549,7 +549,7 @@ if ( ! TEST_BaseAddr ) {		// Not on RPi, end of tests
     return  0;
 }
 
-rgRpiRev::Global.BaseAddr.put( TEST_BaseAddr );		// restore true addr
+rgRpiRev::Global.BaseAddr.override( TEST_BaseAddr );	// restore true addr
 
 //--------------------------------------
   CASE( "61", "Constructor, real RPi" );

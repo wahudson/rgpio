@@ -216,8 +216,7 @@ y_info::doit()
 
 	if ( Opx.code.Given ) {
 	    rpx = &Rvx;			// point at local
-	    rpx->RevCode.put( Opx.code.Val );
-	    rpx->RevCode.mark_final();
+	    rpx->RevCode.override( Opx.code.Val );
 	}
 
 	rgRpiRev_Code&		Rcx = rpx->RevCode;	// reference

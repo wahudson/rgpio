@@ -27,10 +27,8 @@ class rgFlag {
     bool		is_final()		{ return  Final; }
     bool		is_unknown()		{ return  Unknown; }
 
-    bool		is_fail()	{ return Unknown; }	//#!! obsolete
-
   public:	// (private) testing
-    void	putFU( bool f, bool u )		{ Final = f;  Unknown = u; }
+    void		putFU( bool f, bool u )	{ Final = f;  Unknown = u; }
 
 		//#!! test aliases
     void		mark_final()		{ Final = 1;  Unknown = 0; }
@@ -42,7 +40,7 @@ class rgFlag {
 * rgWord base class.
 *    Provides storage and generic field accessors for derived classes.
 */
-class rgWord : public rgFlag {
+class rgWord {
   protected:
     uint32_t		WordVal;	// 32-bit value
 
@@ -66,7 +64,7 @@ class rgWord : public rgFlag {
 };
 
 
-class rgRpiRev_Code : public rgWord {
+class rgRpiRev_Code : public rgWord, public rgFlag {
   private:
     const char*		InFile;		// rev code file name
 
@@ -76,7 +74,8 @@ class rgRpiRev_Code : public rgWord {
     void		init_file( const char* v )	{ InFile = v; }
     const char*		init_file()			{ return  InFile; }
 
-    void		put( uint32_t v )	{ override( v ); }	//#!!
+//    void		put( uint32_t v )	{ override( v ); }	//#!!
+			//#!! put() stub alias
 
   public:
     uint32_t		find();		// find/return RevCode
@@ -152,9 +151,8 @@ class rgRpiRev {
 	void		override( Soc_enum v );
 
 	Soc_enum	get()		{ return  SocVal; }
-	void		put( Soc_enum v )	{ override( v ); }	//#!!
-
-	void		putf( Soc_enum v );			//#!!
+//	void		put( Soc_enum v )	{ override( v ); }	//#!!
+			//#!! put() stub alias
     };
 
     class rgRpiRev_Base : public rgFlag {
@@ -169,7 +167,8 @@ class rgRpiRev {
 	rgRpiRev_Soc*	init_ptr()		     { return  SocEnum_ptr; }
 
 	uint64_t	get()		{ return  BaseVal; }
-	void		put( uint64_t v )	{ override( v ); }	//#!!
+//	void		put( uint64_t v )	{ override( v ); }	//#!!
+			//#!! put() stub alias
 
       public:
 	uint64_t	find();		// find/return BaseAddr

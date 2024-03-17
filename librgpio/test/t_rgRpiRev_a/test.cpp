@@ -403,7 +403,7 @@ rgRpiRev		Tx;		// test object
 	rgRpiRev	tx;
 	tx.RevCode.override( 0x00000000 );	// failed
 	CHECK(  1,                    tx.RevCode.is_final() );
-	CHECK(  0,                    tx.SocEnum.is_unknown() );
+	CHECK(  1,                    tx.SocEnum.is_unknown() );
 	CHECK(  0,                    tx.SocEnum.is_final() );
 	CHECK( "BCM2835",             tx.SocEnum.cstr() );
 	CHECK(  1,                    tx.SocEnum.is_unknown() );
