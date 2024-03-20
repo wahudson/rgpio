@@ -79,6 +79,7 @@ rgWord::put_field(
 */
 rgRpiRev	rgRpiRev::Global;
 
+
 /*
 * Constructor sub-class.
 * call:
@@ -133,7 +134,6 @@ rgRpiRev::rgRpiRev()
 //--------------------------------------------------------------------------
 // rgRpiRev_Soc  class functions.
 //--------------------------------------------------------------------------
-
 
 /*
 * Override SocVal
@@ -288,7 +288,7 @@ rgRpiRev_Code::read_rev_code(
 uint32_t
 rgRpiRev_Code::find()
 {
-    uint32_t		code = 0;	// default fail
+    uint32_t		code;			// revision code
 
     if ( ! Final ) {
 	Final   = 1;
@@ -296,10 +296,10 @@ rgRpiRev_Code::find()
 	WordVal = 0;	// flag failed
 
 	code = read_rev_code( InFile );		// may throw exception
-//	cout << "find:  " << code <<endl;
 
+	Final   = 1;
+	Unknown = 0;	// success
 	WordVal = code;
-	Unknown = 0;
     }
 
     return  WordVal;
@@ -311,7 +311,7 @@ rgRpiRev_Code::find()
 *    Normally return cached enum.
 *    If not final, then derive enum from RevCode.
 *    If derivation failed, then leave enum unchanged and mark final.
-*    User must check is_fail() to determine if result is valid.
+*    User must check is_unknown() to determine if result is valid.
 * call:
 *    find();
 * return:
@@ -327,31 +327,34 @@ rgRpiRev::rgRpiRev_Soc::find()
     uint32_t		code;			// revision code
     uint32_t		num;			// chip number
 
-    if ( Final ) {
-	return  get();
+    if ( ! Final ) {
+	Final   = 1;
+	Unknown = 1;		// flag failed
+	// SocVal		// leave unchanged
+
+	code = RevCode_ptr->find();		// may throw exception
+
+	if ( code ) {		//#!! check Unknown?
+
+	    num = RevCode_ptr->get_ChipNumber_4();
+
+	    try {
+		soc = rgRpiRev::int2soc_enum( num );
+	    }
+	    catch (...) {
+		std::ostringstream      css;
+		css << "rgRpiRev_Soc::find() ChipNumber has no enum:  " << num;
+		throw std::runtime_error ( css.str() );
+	    }
+
+	    Final   = 1;
+	    Unknown = 0;	// success
+	    SocVal  = soc;
+	}
+	// otherwise no change to SocVal
     }
 
-    Final = 1;
-    Unknown = 1;	// flag failed
-
-    code = RevCode_ptr->find();			// may throw exception
-
-    if ( code ) {
-	num = RevCode_ptr->get_ChipNumber_4();
-
-	try {
-	    soc = rgRpiRev::int2soc_enum( num );
-	    override( soc );	// set Final, clear Unknown
-	}
-	catch (...) {
-	    std::ostringstream      css;
-	    css << "rgRpiRev_Soc::find() ChipNumber has no enum:  " << num;
-	    throw std::runtime_error ( css.str() );
-	}
-    }
-    // otherwise no change to enum
-
-    return  get();
+    return  SocVal;
 }
 
 
@@ -375,8 +378,8 @@ rgRpiRev::rgRpiRev_Base::find()
 
     if ( ! Final ) {
 	Final   = 1;
-	Unknown = 1;	// flag failed
-	BaseVal = 0;
+	Unknown = 1;
+	BaseVal = 0;	// flag failed
 
 	soc   = SocEnum_ptr->find();		// may throw exception
 
@@ -393,9 +396,11 @@ rgRpiRev::rgRpiRev_Base::find()
 		    addr = 0xfe000000;
 		    break;
 	    }
+	    // No "default:" so compiler checks all enums are represented.
 
+	    Final   = 1;
+	    Unknown = 0;	// success
 	    BaseVal = addr;
-//#!!	    override( addr );
 	}
     }
 

@@ -30,7 +30,6 @@ class rgFlag {
   public:	// (private) testing
     void		putFU( bool f, bool u )	{ Final = f;  Unknown = u; }
 
-		//#!! test aliases
     void		mark_final()		{ Final = 1;  Unknown = 0; }
     void		clear_final()		{ Final = 0;  Unknown = 0; }
 };
@@ -74,10 +73,7 @@ class rgRpiRev_Code : public rgWord, public rgFlag {
     void		init_file( const char* v )	{ InFile = v; }
     const char*		init_file()			{ return  InFile; }
 
-//    void		put( uint32_t v )	{ override( v ); }	//#!!
-			//#!! put() stub alias
-
-  public:
+  public:	// user
     uint32_t		find();		// find/return RevCode
 
     void		override( uint32_t v )	{
@@ -145,14 +141,13 @@ class rgRpiRev {
 	void		init_ptr( rgRpiRev_Code *wp ) { RevCode_ptr = wp; }
 	rgRpiRev_Code*	init_ptr()		      { return  RevCode_ptr; }
 
+	Soc_enum	get()		{ return  SocVal; }
+
+      public:	// user
 	Soc_enum	find();		// find/return SocEnum
 	const char*	cstr()		{ return  soc_enum2cstr( find() ); }
 
 	void		override( Soc_enum v );
-
-	Soc_enum	get()		{ return  SocVal; }
-//	void		put( Soc_enum v )	{ override( v ); }	//#!!
-			//#!! put() stub alias
     };
 
     class rgRpiRev_Base : public rgFlag {
@@ -167,10 +162,8 @@ class rgRpiRev {
 	rgRpiRev_Soc*	init_ptr()		     { return  SocEnum_ptr; }
 
 	uint64_t	get()		{ return  BaseVal; }
-//	void		put( uint64_t v )	{ override( v ); }	//#!!
-			//#!! put() stub alias
 
-      public:
+      public:	// user
 	uint64_t	find();		// find/return BaseAddr
 
 	void		override( uint64_t v )	{
