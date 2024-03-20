@@ -41,10 +41,10 @@ rgAddrMap		Bx;
     }
 
 
-rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );	// RPi4
 rgIic			Tx3  ( &Bx, 3 );	// test object, Iic0
 
-rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );	// RPi3
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 rgIic			Tx   ( &Bx, 0 );	// test object
 rgIic			Tx1  ( &Bx, 1 );	// test object, Iic0
 
@@ -97,7 +97,7 @@ rgIic			Tx1  ( &Bx, 1 );	// test object, Iic0
     }
 
 //--------------------------------------
-rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );	// RPi4
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );	// RPi4
 
   CASE( "11a", "RPi4 constructor iic0" );
     try {

@@ -70,7 +70,7 @@ rgAltFuncName		Tx;	// test object
 
   CASE( "30a", "config RPi3" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2837 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );
 	CHECK( "BCM2837", rgRpiRev::Global.SocEnum.cstr() );
     }
     catch (...) {
@@ -143,7 +143,7 @@ rgAltFuncName		Tx;	// test object
 
   CASE( "40a", "config RPi4" );
     try {
-	rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
 	CHECK( "BCM2711", rgRpiRev::Global.SocEnum.cstr() );
     }
     catch (...) {
