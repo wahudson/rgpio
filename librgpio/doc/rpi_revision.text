@@ -971,6 +971,35 @@ find() Exceptions:
     It could also trigger further exceptions if find() is used again.
     Is the Failed flag necessary?  Is it overkill?  Is it babysitting?
 
+Failed find():  (2024-03-17)
+    The two status flags are:  (see "## Refactor" below)
+	Final:    True means no further derivation should be attempted.
+	Unknown:  Word value is unknown, either not yet derived, or failed.
+
+    When find() attempts derivation and fails, it should throw an exception
+    as described above.  The failed object should be left in a state with
+    Final=1, and Unknown=1.  If find() is called again, it will not attempt
+    derivation and should throw an exception.
+
+    Initial state		find() action
+    ----------------------	--------------------
+    Final = 0, Unknown = 0	Derive new value.
+    Final = 0, Unknown = 1	Derive new value.
+    Final = 1, Unknown = 0	Return cached value.
+    Final = 1, Unknown = 1	Throw exception.
+
+    If find() returns (no exception) then Final=1, Unknown=0 and the value
+    is good.
+
+    If find() takes an exception, the object will have Final=1, Unknown=1 and
+    the value is unknown and should not be used.  Generally the value will
+    be set to 0 as an additional precaution.
+
+    Note:  find() should directly set the flags.  It should NOT use override(),
+    because, for example, override() could evolve to set an override flag.
+
+    See also:  "## Simulation" below.
+
 Override method:
 
     The putf() methods in each register described above is the essential
@@ -1201,6 +1230,206 @@ User Interface Evolution:
     interface that need not change.
 
 ----------------------------------------------------------------------------
+## Simulation RevCode:  (non-RPi fake memory)  2024-03-17
+----------------------------------------------------------------------------
+
+    The  rgAddrMap  address map class has a fake memory capability to allow
+    simulation of any RPi platform.  This is extremely useful for rgpio and
+    program development on non-RPi machines.
+
+    The revision code find(), i.e. rgRpiRev_Code::find(),  must not throw
+    exceptions on a non-RPi platform to allow simulation.
+    Even RPi platforms must allow simulation of other RPi versions.
+
+    In rgAddrMap:
+	Constructor call to get BaseAddr:  rgRpiRev::find_BaseAddr()
+	Which is an alias for:  rgRpiRev::Global.SocEnum.find()
+
+	The value BaseAddr=0 was used to indicate fake memory (simulation)
+	should be used.
+
+	This is where the hybrid method of having an exception on derivation
+	errors, but allow a zero value to not have an exception, was used.
+
+    Somehow we want no exceptions when on a non-RPi platform.
+
+    We have these cases:
+    a) Override - values have Unknown=0, find() has no exceptions.
+    b) Derivation on RPi - normal process, find() exceptions on Unknown.
+    c) Derivation non-RPi - find() no exceptions, use default values.
+
+    Force simulation:
+    User is telling rgRpiRev to simulate results using default or override
+    values.  Essentially a user override specifying non-RPi platform.
+    The find() functions then must check this condition before attempting
+    derivation.
+
+    Perhaps rgRpiRev can check for non-RPi platform and save a status flag.
+
+BaseAddr and Fake Memory:
+
+    Seems like a good idea to continue with BaseAddr=0 as a way to confirm
+    that Fake memory should be used in rgAddrMap, in addition to any
+    real RPi flag.  When zero becomes a valid BaseAddr in a future RPi
+    platform, then refactor.
+
+Structure ideas:
+
+    To determine if platform is a real RPi.
+    To accept a user provided force simulation status.
+
+    A)
+    Perhaps a member object RealPi to parallel the others.  A find() function
+    could then determine if the platform is an RPi.  It would do significant
+    work, have caching, and would have all the same methods find(),
+    override(), get() and rgFlags.
+
+    Possible Names:
+	SimRpi    SimPi		- how used
+	FakeRpi   FakePi
+	RpiPlat   PiPlat
+    >	RealRpi   RealPi
+	TrueRpi   TruePi
+	IsRpi     IsPi
+
+	Name should indicate the property (attribute) to be determined.
+
+    The other register find() could then access the global platform flag
+    with  rgRpiRev::Global.RealPi.find()
+    This access via Global is not fully parallel to the others, which also
+    have the pointer method.
+    Making even more pointer links seems like too much.
+    Global access seems good enough.
+
+    B)
+    Maybe just a single private global (static) flag and derivation function,
+    with a public override function.  e.g.
+
+	private:
+	    static int	RealPi = -1;
+	    static bool	find_realpi() { if ( RealPi < 0 ) { derive it ... } }
+	public:
+	    void	override_realpi( bool b )  { RealPi = b; }
+
+	User call names:
+	    rgRpiRev::override_realpi( 0 );
+	    rgRpiRev::simulate_rpi();
+	    rgRpiRev::fake_pi();
+	    rgRpiRev::override_fake_pi();
+
+    C)
+    Maybe override of BaseAddr=0 could be the fake (simulate) flag.
+    Then let the rgRpiRev_Base::find() check for real RPi platform, probably
+    by calling a public function.
+    This solves BaseAddr, but leaves RevCode still having to check platform.
+
+    D)
+    Maybe extend rgRpiRev_Code to also identify RealPi from the
+    /proc/cpuinfo "Hardware" line.
+
+    E)
+    Maybe a new class rgRpiRev_CpuInfo to read /proc/cpuinfo and extract both
+    "Hardware" and "Revision" lines.
+
+    F)
+    Maybe a new class rgRpiRev_Real to read various sources to make
+    determination.
+
+    Seems like a separate class as a container for the methods and data
+    is a good idea.  Mostly private.  Allow change.
+    Maybe start with extending rgRpiRev_Code, then split out if needed later.
+
+Identify Real RPi:
+
+    See also:  "Derivation Methods" above.
+    See also:  doc/architecture.text  "## Validate on Raspberry Pi"
+
+    How can platform being a real RPi be discovered?
+
+    A) Device file  /dev/gpiomem  exists on RPi and not others.
+	Used by rgAddrMap as a simple cross-check.
+	Not very robust, but better than nothing.
+	+ Simple test for existence.
+	- File need not exist on RPi.
+	- File could exist on non-RPi.
+
+    B) Read  /proc/cpuinfo  for "Hardware : BCM2835" line.
+	RPi documentation says "All Raspberry Pi computers report BCM2835".
+	+ Documented by Raspberry Pi.
+	+ Very unlikely another machine would claim that hardware.
+	+ Is already read for the "Revision" line.
+	- There could be other Arm machines using the same chip.
+
+    C) File  /sys/firmware/devicetree/base/model  exists on RPi and
+	contains the text model identification.  e.g.
+	"Raspberry Pi 3 Model B Rev 1.2"
+	+ Documented by Raspberry Pi.
+	+ Non-existence probably is not RPi.
+	+ Existence on other machines would not have "Raspberry Pi" in it.
+	- Somehow seems less robust.
+
+    Seems like (B) is best, but all 3 add some level of assurance.
+
+Ways to force simulation:
+
+    Methods for user code to force simulation, i.e. mark as non-RPi.
+    Required before constructing rgAddrMap, or using isRPi*() functions.
+    Assume using static (global) flag RealPi under the hood.
+
+    A) Use rgAddrMap.
+	+ It does the actual simulation.
+	- But simulation state is needed by rgRpiRev.
+	-- Not sensible for rgAddrMap to push flags back to rgRpiRev.
+
+    B) With  initialize_isRPi()
+	Could take an argument, True would set RealPi=0.
+	+ Call with no arguments is a global initialization of library.
+	- Not so obvious what the value means.
+	+ Is a natural point in code to provide force simulation.
+	+ Avoids another new function.
+
+    C) New  rgRpiRev::force_simulation()
+	+ Pretty clear in user code.
+	- Not as clear it needs to be with overrides before initialize_isRPi().
+
+    D) Class object  rgRpiRev::Global.RealPi.override()
+	+ Parallel other overrides.
+	- A bit deep and obscure for a commonly used attribute setting.
+	- Siloed.  Hard to share reading /proc/cpuinfo.
+
+    Seems like (B) or (C) is best.  Good to have abstraction for a commonly
+    used call in user code.
+
+User Platform flag:  isRPiReal()
+
+    A "real" flag to go along with the other isRpi5() could be made.
+    If True, then are running on an actual RPi platform.  Else platform is
+    simulated or unknown.
+
+    Other names:
+	isRPiReal()
+	isRPiNon()
+	isRPiPlatform()
+
+    The initialization, i.e. initialize_isRPi(), could also accept a flag
+    to force simulation by setting the isRPiReal flag false.
+
+Feature classes:
+
+    Each Feature class should perform the same whether simulated or real.
+
+    It should verify that it is on the proper platform, and throw exception
+    if not.  The constructor is the best place for this check.
+
+Idea:
+    Perhaps the rgAddrMap constructor can initialize things as a side
+    effect.  e.g. call  rgRpiRev::initialize_isRpi().
+
+All Platforms:
+    Class rgRpiRev must operate on all platforms.  Its job is to identify
+    the platform.
+
+----------------------------------------------------------------------------
 ## Refactor  rgRpiRev  class structure
 ----------------------------------------------------------------------------
 
@@ -1285,6 +1514,11 @@ class rgRpiRev::rgRpiRev_Base : public rgFlag {
     uint64_t		find();
     void		override( uint64_t v );
 };
+
+Constructors:
+    Could take the predecessor pointer as an argument.
+    Then can initialize in the register declarations and not need the
+    init_ptr() functions.
 
 ----------------------------------------------------------------------------
 ## Platform test functions:  isRPi5(), ...
