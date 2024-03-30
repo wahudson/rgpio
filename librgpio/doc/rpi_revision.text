@@ -457,6 +457,8 @@ Field Names:  (from Raspberry Pi revision codes)
     BoardType_8		[11:4]   TTTTTTTT  Type
     BoardRev_4		[3:0]    RRRR      Revision
 
+    Word bits:  NOQu uuWu FMMM CCCC PPPP TTTT TTTT RRRR
+
 Abbreviations appropriate for this context are:
 	Rev   Revision
 	Dis   Disallowed
@@ -1265,6 +1267,18 @@ User Interface Evolution:
     derivation.
 
     Perhaps rgRpiRev can check for non-RPi platform and save a status flag.
+    e.g. RealPi below.
+
+Derivation and find() Exceptions:
+
+    Decided on reading /proc/cpuinfo to determine both derived values and
+    platform is a RealPi (below), and to fall back to simulation mode if not
+    on a RealPi.  i.e. RealPi is true if derivation succeeds, and false if it
+    fails.  Essentially any errors during derivation implies that RealPi is
+    false, and are not really errors, and so cannot throw exception.
+
+    An interesting twist, suggesting that RevCode.find() should not throw
+    any exceptions.
 
 BaseAddr and Fake Memory:
 
@@ -1397,8 +1411,68 @@ Ways to force simulation:
 	- A bit deep and obscure for a commonly used attribute setting.
 	- Siloed.  Hard to share reading /proc/cpuinfo.
 
-    Seems like (B) or (C) is best.  Good to have abstraction for a commonly
-    used call in user code.
+ >  E) New  rgRpiRev::simulate_soc( enum )
+	    rgRpiRev::simulate_revcode( code )
+	Both force simulation and set the SocEnum.
+	Solves the problem of overriding and missing the force simulation on
+	a real RPi.  Top level function provides information hiding, and
+	has access to all the revision registers.
+
+    Seems like (E) is best - It provides the simulation value in addition
+    to forcing simulation.  A top-level method provides more abstraction
+    for a commonly used call in user code.
+
+RealPi Definition:
+
+    It is a boolean flag:
+	1= library enabled for real IO access
+	0= not enabled, i.e. simulation mode or not a real RPi
+
+    True only if it is a real RPi and not simulation mode.
+    This is how it would be used.
+
+    Otherwise would need two flags and ignore RealPi when in simulation mode.
+
+Unknown Propagation:
+
+    Both override and force simulation mark objects known, i.e. Unknown=0.
+
+    Derivation may result in non-RPi, i.e. RealPi=0, in which case the
+    corresponding RevCode value is actually unknown, but is left with a
+    default value (or forced zero).
+    Perhaps RevCode should be marked unknown (Unknown=1).
+    Then the unknown condition could be propagated by the downstream find()
+    functions.  This seems practical, and more correct.
+    The Unknown flag would indicate default value, which might be useful
+    somewhere.
+
+    Note non-RPi is the only place where the result is unknown.
+    We want non-RPi to fall back to simulation with default values.
+    Thus find() cannot throw exception on Unknown, but it could leave the
+    Unknown condition for later testing.
+
+    Possibly have a FakeNoPi flag to indicate whether exceptions should be
+    thrown, like in rgAddrMap?  No.  This adds unnecessary complexity.
+    Better to let the user check ioRPiReal() and take evasive action if
+    desired.
+
+    Propagation of Unknown is almost unnecessary:
+    Derivation happens only because the object has not been modified by
+    override or previous derivation, i.e. Final=0 from construction.
+    If derivation would be unknown from a predecessor, the result is the
+    same as the constructed value Unknown=1.
+
+    The one case where propagation is critical is in rgRpiRev_Base::find().
+ >  The BaseAddr is critical, and if the predecessor SocEnum is unknown,
+    then we really want to mark BaseAddr unknown (and set BaseAddr=0 as an
+    extra precaution checked by rgAddrMap).
+    The RealPi flag almost makes BaseAddr unknown redundant, but given the
+    complexity, it is better to have redundant checks for critical elements.
+
+ >  Decide to keep and correctly check/propagate Unknown (2024-03-25).
+    Proofs that it is unneeded are complex.  It is small overhead in a
+    place where overhead can be tolerated.  It has a clear definition and
+    is good for a cross check.
 
 User Platform flag:  isRPiReal()
 
@@ -1407,12 +1481,97 @@ User Platform flag:  isRPiReal()
     simulated or unknown.
 
     Other names:
-	isRPiReal()
+	isRPiReal()	- True if live, not simulation
 	isRPiNon()
 	isRPiPlatform()
+	ioRPiSim()	- True if simulation
+ >	ioRPiReal()	- True if live, not simulation
 
     The initialization, i.e. initialize_isRPi(), could also accept a flag
     to force simulation by setting the isRPiReal flag false.
+
+Default non-RPi:
+
+    Want a way to specify the default values used when a non-RPi falls back
+    to fake memory simulation.
+
+    This also means find() failure, i.e. unknown result, can not force the
+    result to zero.  It must leave the default unchanged.  [Unless we store
+    the default somewhere and use it to force the result.]
+
+    A) Low-level register default() method.
+	+ Parallels the low-level override() methods.
+	+ Fewer top-level methods.
+	+ Closer to the data.
+	- Exposes deeper implementation.
+	+ These are object methods.
+
+ >  B) Top-level default_SocEnum() and default_RevCode() methods.
+	+ Parallels the top-level simulate_*().
+	+ Benefits of a top-level abstraction.
+	- These are class methods, operate only on static (Global) data.
+
+    The top-level abstraction seems most useful for the published interface.
+    The low-level implementation could still be in each register.
+    Operation is almost trivial.
+
+    No default() method for BaseAddr.  Not needed for typical user code
+    application.
+
+    Keyword "default" is reserved.  Need another name.
+    defautlv()  deefault()  deFault()  ddfault()  ddefault()  efault()
+
+Class vs Object methods:
+
+    Thinking about high-level user interface.
+
+    The top level functions can be either Class (static) methods that
+    operate only on global (static) data, or can be Object methods that
+    operate only on objects.
+    e.g.  The simulate() function applied to Global data:
+
+    A) Class methods
+	static void	rgRpiRev::simulate();		// declaration
+	rgRpiRev::simulate();				// use
+	rgRpiRev::Global.simulate();			// use option
+
+	+ Short top-level name.
+	- Can only operate on Global data.
+	+ Less confusing to be only Global, i.e. less options.
+	+ Top-level, hides more implementation.
+	+ Parallels isRPi5() use.
+	- Less obvious it is global (static).
+
+ >  B) Object methods
+	void		rgRpiRev::simulate();		// declaration
+	rgRpiRev::Global.simulate();			// use
+
+	- A bit longer name.
+	+ Can operate on both Global, and on constructed rgRpiRev objects.
+	- Can NOT call as a class method:  rgRpiRev::simulate();
+	- Not parallel to isRPi5() use.
+	+ Obvious it is global.
+
+    The global object is named  rgRpiRev::Global  for clarity.
+    The IO capability flags, e.g. ioRPi5(), are Class (static) functions
+    because that is their essential definition, i.e. to be only Global.
+
+    I don't like limiting capability that could be provided simply.
+    The trade-off seems to boil down to whether "Global." is part of
+    the published interface.  If it is, then there is no point in making
+    them class methods.
+
+ >  These high-level user functions are typically applied only in one place,
+    where clarity is more important then name length or efficiency.
+
+ >  I favor "rgRpiRev::Global." as the published interface.
+    The implementation can choose either (A) or (B) as needed for reliability
+    or testing.  (2024-03-29)
+
+    A user alias can be made by constructing a pointer to rgRpiRev::Global,
+    e.g.
+	rgRpiRev		*Rvx = &rgRpiRev::Global;
+    The pointer can then be used for everything global.
 
 Feature classes:
 
@@ -1523,6 +1682,7 @@ Constructors:
 ----------------------------------------------------------------------------
 ## Platform test functions:  isRPi5(), ...
 ----------------------------------------------------------------------------
+    GPIO Capabilities
 
     The idea is to have a set of global (static) flags in class rgRpiRev
     that indicate the current platform.  Then the flags can be tested
@@ -1678,6 +1838,21 @@ Future name evolution:
     Possibly name by the IO chip name, e.g. isRP1()?  This seems like too much
     future-proofing of names.
 
+Name choice:
+
+    A) rgRpiRev::isRPi5()
+ >  B) rgRpiRev::ioRPi5()
+
+    The prefix 'is' suggests it is an RPi5.
+    The prefix 'io' suggests the IO is like an RPi5.
+
+    These flags are for switching IO capabilities.
+    It might be best to reserve the 'is' for another platform identification.
+
+    The sense of logical truth would still be evident by the use in
+    conditional statements, e.g.
+	if( rgRpiRev::ioRPi5() ) { ... }
+
 Separate Class:
 
     The platform test functions could be implemented as a separate class
@@ -1686,4 +1861,61 @@ Separate Class:
     Not really intended for the user.
     May help testing.
  >  Seems like a lot of complexity for not much benefit.
+
+----------------------------------------------------------------------------
+## User Interface
+----------------------------------------------------------------------------
+
+    Trying to identify the essential user interface while leaving the
+    underlying implementation more hidden.
+
+Purpose:
+
+    The purpose of rgRpiRev is to identify the platform IO capabilities.
+    These capabilities vary with RPi platform and have corresponding
+    differences in the library.  Some are minor, others require a completely
+    new object class.
+
+    Essential values:
+	RevCode
+	SocEnum
+	BaseAddr
+
+	The RevCode object is the essential source of information.  It has
+	field accessors that are a useful interface.
+	The SocEnum and BaseAddr objects have essential derived information
+	necessary for the library, but not so necessary for the user.
+	All three are exposed in the interface for parallelism.
+
+    Simulation:
+	When not on an RPi platform, the library (i.e. rgAddrMap) falls back
+	to a simulation mode with a block of fake IO memory.
+	The user can also force the simulation mode, i.e. when on a real RPi.
+
+    Override:
+	The automatic derivation may be wrong.
+	The user may want to force simulation of a particular RPi platform.
+	Override of the three essential values is provided by the object
+	override() functions.
+
+    Derivation:
+	Automatic derivation from /proc/cpuinfo is provided.
+	An initialization function must be called after the simulation/override
+	functions are called, and before the first call to the rgAddrMap
+	constructor.
+
+    IO capability switch:
+	Capability flags, e.g. ioRPi5(), are a simple way for user code to
+	switch among library objects.
+
+    The interface is intended for currently existing RPi platforms.
+    Not intended to be future-proof.
+
+Manpages:
+
+    rgRpiRev(3) - The essential user interface.
+    rgRpiRev(7) - The full details of how it is done.
+
+    This would help clarify the essential user interface without being
+    overwhelmed with override and derivation details.
 

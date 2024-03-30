@@ -125,25 +125,19 @@ rgRpiRev::rgRpiRev()
 {
     SocEnum.init_ptr(  &RevCode );
     BaseAddr.init_ptr( &SocEnum );
-
-//    SocEnum.put(  rgRpiRev::soc_BCM2836 );
-//    BaseAddr.put( 0xabbabaab );
-
 }
 
 //--------------------------------------------------------------------------
-// rgRpiRev_Soc  class functions.
+// rgRpiRev_Soc  functions.
 //--------------------------------------------------------------------------
 
 /*
 * Override SocVal
-*    Range check ensures that SocVal can never be invalid on get().
 *    Set Final flag, clear Unknown flag.
 * call:
-*    override( soc );
-*    soc = soc enum
+*    override( rgRpiRev::soc_BCM2837 );
 * exceptions:
-*    std::runtime_error
+*    std::runtime_error  - enum out of range
 */
 void
 rgRpiRev::rgRpiRev_Soc::override(
@@ -159,6 +153,31 @@ rgRpiRev::rgRpiRev_Soc::override(
     SocVal     = soc;
     Final      = 1;
     Unknown    = 0;
+}
+
+
+/*
+* Default SocVal
+*    Clear Final flag, set Unknown flag.
+* call:
+*    defaultv( rgRpiRev::soc_BCM2837 );
+* exceptions:
+*    std::runtime_error  - enum out of range
+*/
+void
+rgRpiRev::rgRpiRev_Soc::defaultv(
+    rgRpiRev::Soc_enum	soc
+)
+{
+    if (!( (0 <= soc) && (soc <= soc_MaxEnum) )) {
+	std::ostringstream      css;
+	css << "rgRpiRev::rgRpiRev_Soc::defaultv() enum out of range:  " << soc;
+	throw std::runtime_error ( css.str() );
+    }
+
+    SocVal     = soc;
+    Final      = 0;
+    Unknown    = 1;
 }
 
 //--------------------------------------------------------------------------
@@ -277,13 +296,16 @@ rgRpiRev_Code::read_rev_code(
 * Find RevCode.
 *    Normally return cached code.
 *    If not final, then read from InFile, normally "/proc/cpuinfo".
-*    If derivation failed, then set RevCode to zero and mark final.
+*    If read failed, then leave default code unchanged and mark Unknown,
+*    otherwise mark Final and known.
 * call:
 *    find();
 * return:
-*    ()  = revision code, null if non-RPi or derivation error
+*    ()  = revision code, unchanged value if non-RPi
+*    RealPi=1, Unknown=0  on success
+*    RealPi=0, Unknown=1  on failure indicating non_RPi
 * exceptions:
-*    std::runtime_error		Error in derivation
+*    No exceptions - Allow fallback to non-RPi simulation.
 */
 uint32_t
 rgRpiRev_Code::find()
@@ -292,14 +314,25 @@ rgRpiRev_Code::find()
 
     if ( ! Final ) {
 	Final   = 1;
-	Unknown = 1;
-	WordVal = 0;	// flag failed
+	Unknown = 1;	// flag failed
+	// WordVal	// leave default unchanged
 
-	code = read_rev_code( InFile );		// may throw exception
+	try {
+	    code = read_rev_code( InFile );	// may throw exception
+	}
+	catch (...) {
+	    code = 0;	// flag as not RPi
+	}
 
-	Final   = 1;
-	Unknown = 0;	// success
-	WordVal = code;
+	if ( code ) {		// real-RPi
+	    RealPi  = 1;
+	    Unknown = 0;	// success
+	    WordVal = code;
+	}
+	else {			// non-RPi, leave WordVal unchanged
+	    RealPi  = 0;
+	    Unknown = 1;
+	}
     }
 
     return  WordVal;
@@ -319,22 +352,22 @@ rgRpiRev_Code::find()
 *    Unknown :  0= all OK, 1= non-RPi or derivation error
 * exceptions:
 *    std::runtime_error		Error in derivation
+* Note:  NewStyle_1 is not checked because ChipNumber_4 is correct either way.
 */
 rgRpiRev::Soc_enum
 rgRpiRev::rgRpiRev_Soc::find()
 {
     Soc_enum		soc;
-    uint32_t		code;			// revision code
     uint32_t		num;			// chip number
 
     if ( ! Final ) {
 	Final   = 1;
 	Unknown = 1;		// flag failed
-	// SocVal		// leave unchanged
+	// SocVal		// leave default unchanged
 
-	code = RevCode_ptr->find();		// may throw exception
+	RevCode_ptr->find();		// may throw exception
 
-	if ( code ) {		//#!! check Unknown?
+	if ( ! RevCode_ptr->is_unknown() ) {
 
 	    num = RevCode_ptr->get_ChipNumber_4();
 
@@ -405,6 +438,109 @@ rgRpiRev::rgRpiRev_Base::find()
     }
 
     return  BaseVal;
+}
+
+//--------------------------------------------------------------------------
+// Simulation overrides
+//--------------------------------------------------------------------------
+
+/*
+* Force simulation of given SocEnum or RevCode.
+*    Force SocEnum to be Final and not Unknown.
+*    Force RevCode and RealPi to be Final and not Unknown.
+*    Force BaseAddr zero to signal fake memory simulation.
+*    All override() or defaultv() functions should be called first.
+* call:
+*    simulate_SocEnum( rgRpiRev::soc_BCM2837 );
+*    simulate_RevCode( 0x00a22082 );
+*    simulate();		// simulate existing default values
+*/
+void
+rgRpiRev::simulate_SocEnum( Soc_enum soc )
+{
+    Global.SocEnum.override( soc );
+    Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
+    Global.BaseAddr.override( 0 );		// extra safety
+    Global.BaseAddr.putFU( 1, 1 );
+}
+
+void
+rgRpiRev::simulate_RevCode( uint32_t code )
+{
+    Global.RevCode.override( code );
+    Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
+    Global.BaseAddr.override( 0 );		// extra safety
+    Global.BaseAddr.putFU( 1, 1 );
+}
+
+void
+rgRpiRev::simulate()
+{
+    Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
+    Global.BaseAddr.override( 0 );		// extra safety
+    Global.BaseAddr.putFU( 1, 1 );
+}
+
+//--------------------------------------------------------------------------
+// IO Capability
+//--------------------------------------------------------------------------
+
+/*
+* Initialize the IO Platform Capability flags.
+*    Calls all the find() functions to be sure everything is derived.
+*    All override() and simulate*() functions should be called first.
+*    Any changes after this function is called will not be applied.
+* call:
+*    initialize_ioRPi();
+* exceptions:
+*    std::runtime_error		Error in derivation
+*/
+void
+rgRpiRev::initialize_ioRPi()
+{
+    Soc_enum		soc;
+
+    Global.IoRPi0 = 0;
+    Global.IoRPi3 = 0;
+    Global.IoRPi4 = 0;
+
+    Global.RevCode.find();
+
+    if ( Global.RevCode.get_realpi() && Global.RevCode.is_unknown() ) {
+	std::ostringstream      css;
+	css << "rgRpiRev::initialize_ioRPi() RevCode is Unknown";
+	throw std::runtime_error ( css.str() );
+    }
+
+    soc = Global.SocEnum.find();
+
+    if ( Global.RevCode.get_realpi() && Global.SocEnum.is_unknown() ) {
+	std::ostringstream      css;
+	css << "rgRpiRev::initialize_ioRPi() SocEnum is Unknown";
+	throw std::runtime_error ( css.str() );
+    }
+
+    Global.BaseAddr.find();
+
+    if ( Global.RevCode.get_realpi() && Global.BaseAddr.is_unknown() ) {
+	std::ostringstream      css;
+	css << "rgRpiRev::initialize_ioRPi() BaseAddr is Unknown";
+	throw std::runtime_error ( css.str() );
+    }
+
+    switch ( soc ) {
+    case  soc_BCM2835:
+    case  soc_BCM2836:
+	    Global.IoRPi0 = 1;
+	    break;
+    case  soc_BCM2837:
+	    Global.IoRPi3 = 1;
+	    break;
+    case  soc_BCM2711:
+	    Global.IoRPi4 = 1;
+	    break;
+    }
+    // No "default:" so compiler checks all enums are represented.
 }
 
 //--------------------------------------------------------------------------

@@ -67,6 +67,14 @@ class rgRpiRev_Code : public rgWord, public rgFlag {
   private:
     const char*		InFile;		// rev code file name
 
+    bool		RealPi = 0;	// enable real IO access
+
+  public:	// private internal only
+    bool		find_realpi()	{ find();  return  RealPi; }
+    void		override_realpi( bool v ) {
+				    RealPi = v;  Final = 1;  Unknown = 0; }
+    bool		get_realpi()	{ return  RealPi; }
+
   public:
     rgRpiRev_Code();			// constructor
 
@@ -78,6 +86,9 @@ class rgRpiRev_Code : public rgWord, public rgFlag {
 
     void		override( uint32_t v )	{
 				    WordVal = v;  Final = 1;  Unknown = 0; }
+
+    void		defaultv( uint32_t v )	{
+				    WordVal = v;  Final = 0;  Unknown = 1; }
 
   public:				// field access
 
@@ -148,6 +159,7 @@ class rgRpiRev {
 	const char*	cstr()		{ return  soc_enum2cstr( find() ); }
 
 	void		override( Soc_enum v );
+	void		defaultv( Soc_enum v );
     };
 
     class rgRpiRev_Base : public rgFlag {
@@ -179,9 +191,31 @@ class rgRpiRev {
 
     rgRpiRev();		// constructor
 
+  public:
+    static void		simulate_RevCode( uint32_t code );
+    static void		simulate_SocEnum( Soc_enum soc );
+    static void		simulate();
+
+    void		default_RevCode( uint32_t code ) {
+					RevCode.defaultv( code ); }
+    void		default_SocEnum( Soc_enum soc )  {
+					SocEnum.defaultv( soc ); }
+
+  private:	// True is IO platform, False is Unknown
+    bool		IoRPi0 = 0;
+    bool		IoRPi3 = 0;
+    bool		IoRPi4 = 0;
+
+  public:	// platform IO capability status functions
+    static void		initialize_ioRPi();
+    static bool		ioRPiReal()     { return  Global.RevCode.get_realpi(); }
+    static bool		ioRPi0()        { return  Global.IoRPi0; }
+    static bool		ioRPi3()        { return  Global.IoRPi3; }
+    static bool		ioRPi4()        { return  Global.IoRPi4; }
+
   public:	// preferred user level short-hand accessors
     static Soc_enum	find_SocEnum()	{ return  Global.SocEnum.find();  }
-    static uint32_t	find_BaseAddr()	{ return  Global.BaseAddr.find(); }
+    static uint64_t	find_BaseAddr()	{ return  Global.BaseAddr.find(); }
 
     static const char*	cstr_SocEnum()	{ return  Global.SocEnum.cstr();  }
 
