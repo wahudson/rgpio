@@ -346,16 +346,16 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "50a", "find() null file" );
     try {
 	Tx.init_file( "/dev/null" );
-	Tx.put( 0xffffffff );
+	Tx.put( 0xffabbaff );
 	Tx.putFU( 0, 1 );
 	CHECK( "/dev/null", Tx.init_file() );
-	CHECKX( 0xffffffff, Tx.get() );
+	CHECKX( 0xffabbaff, Tx.get() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
-	CHECKX( 0x00000000, Tx.find() );	// action #!! should throw
+	CHECKX( 0xffabbaff, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
-	CHECK(  0,          Tx.is_unknown() );
-	CHECKX( 0x00000000, Tx.get() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0xffabbaff, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -364,10 +364,10 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "50b", "find() second" );
     try {
 	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0x00000000, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );	// action
+	CHECKX( 0xffabbaff, Tx.get() );
+	CHECKX( 0xffabbaff, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
-	CHECK(  0,          Tx.is_unknown() );
+	CHECK(  1,          Tx.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -377,16 +377,16 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "51a", "find() no revision" );
     try {
 	Tx.init_file( "ref/no_rev.in" );
-	Tx.put( 0xffffffff );
+	Tx.put( 0x0033cc77 );
 	Tx.putFU( 0, 1 );
 	CHECK( "ref/no_rev.in", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
-	CHECKX( 0xffffffff, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );	// action #!! should throw
+	CHECKX( 0x0033cc77, Tx.get() );
+	CHECKX( 0x0033cc77, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
-	CHECK(  0,          Tx.is_unknown() );
-	CHECKX( 0x00000000, Tx.get() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0x0033cc77, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -395,10 +395,10 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "51b", "find() second" );
     try {
 	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0x00000000, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );	// action
+	CHECKX( 0x0033cc77, Tx.get() );
+	CHECKX( 0x0033cc77, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
-	CHECK(  0,          Tx.is_unknown() );
+	CHECK(  1,          Tx.is_unknown() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -439,20 +439,16 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "53a", "find() file not found" );
     try {
 	Tx.init_file( "not_exist" );
-	Tx.put( 0xffffffff );
+	Tx.put( 0xabba5335 );
 	Tx.putFU( 0, 1 );
 	CHECK( "not_exist", Tx.init_file() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
-	CHECKX( 0xffffffff, Tx.get() );
-	Tx.find();
-	FAIL( "no throw" );
-    }
-    catch ( std::runtime_error& e ) {
-	CHECK( "read_rev_code() cannot open file:  not_exist", e.what() );
+	CHECKX( 0xabba5335, Tx.get() );
+	CHECKX( 0xabba5335, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
-	CHECKX( 0x00000000, Tx.get() );
+	CHECKX( 0xabba5335, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -461,8 +457,8 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "53b", "find() second" );
     try {
 	CHECK(  1,          Tx.is_final() );
-	CHECKX( 0x00000000, Tx.get() );
-	CHECKX( 0x00000000, Tx.find() );
+	CHECKX( 0xabba5335, Tx.get() );
+	CHECKX( 0xabba5335, Tx.find() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
     }
