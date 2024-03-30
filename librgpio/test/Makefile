@@ -22,6 +22,7 @@ test:
 	cd t_rgRpiRev_Code    && make test
 	cd t_rgRpiRev_Word    && make test
 	cd t_rgRpiRev_a       && make test
+	cd t_rgRpiRev_usr     && make test
 	cd t_rgSpi0           && make test
 	cd t_rgSysTimer       && make test
 	cd t_rgUniSpi         && make test
@@ -52,6 +53,7 @@ clean:
 	cd t_rgRpiRev_Code    && make clean
 	cd t_rgRpiRev_Word    && make clean
 	cd t_rgRpiRev_a       && make clean
+	cd t_rgRpiRev_usr     && make clean
 	cd t_rgSpi0           && make clean
 	cd t_rgSysTimer       && make clean
 	cd t_rgUniSpi         && make clean
@@ -67,5 +69,6 @@ base:
 	cd t_rgRpiRev_Code    && make test
 	cd t_rgRpiRev_Word    && make test
 	cd t_rgRpiRev_a       && make test
+	cd t_rgRpiRev_usr     && make test
 	cd t_rgAddrMap        && make test
 

@@ -62,6 +62,7 @@ Test suites:  (2023-02-11)
  u   s  t_rgRpiRev_Code/ rgRpiRev	RPi Revision rgRpiRev_Code class
  u   s  t_rgRpiRev_Word/ rgRpiRev	RPi Revision rgWord        class
  u   s  t_rgRpiRev_a/	 rgRpiRev	RPi Revision rgRpiRev      class
+ u   s  t_rgRpiRev_usr/  rgRpiRev	RPi Revision rgRpiRev main interface
  u   s  t_rgSpi0/	rgSpi0		SPI0 Master class.
  u   s  t_rgSysTimer/	rgSysTimer	System Timer class.
  u   s  t_rgUniSpi/	rgUniSpi	Universal SPI Master class.
