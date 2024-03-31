@@ -7,6 +7,8 @@
 //    40-49  read_rev_code( "file" )
 //    50-59  find()
 //    60-79  Object Field Accessors  get_(), put_()
+//    80-89  defaultv() flags
+//    90-99  override_realpi(), find_realpi()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -37,6 +39,7 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "10", "rgRpiRev_Code constructor init to zero" );
     try {
 	rgRpiRev_Code	tx;
+	CHECK(  0,              tx.get_realpi() );
 	CHECKX( 0x00000000,     tx.get() );
 	CHECK(  0,              tx.is_final() );
 	CHECK(  1,              tx.is_unknown() );
@@ -48,6 +51,7 @@ rgRpiRev_Code		Tx;		// test object
 
   CASE( "11", "Tx as initialized" );
     try {
+	CHECK(  0,              Tx.get_realpi() );
 	CHECKX( 0x00000000,     Tx.get() );
 	CHECK(  0,              Tx.is_final() );
 	CHECK(  1,              Tx.is_unknown() );
@@ -62,6 +66,7 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.put( 0x00000000 );
 	Tx.putFU( 0, 0 );
+	CHECK(  0,          Tx.get_realpi() );
 	CHECKX( 0x00000000, Tx.get() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
@@ -69,6 +74,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  0,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -76,8 +82,10 @@ rgRpiRev_Code		Tx;		// test object
 
   CASE( "12b", "put() flags unchanged" );
     try {
+	Tx.override_realpi( 1 );
 	Tx.put( 0xffffffff );
 	Tx.putFU( 1, 1 );
+	CHECK(  1,          Tx.get_realpi() );
 	CHECKX( 0xffffffff, Tx.get() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
@@ -85,6 +93,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  1,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -94,10 +103,20 @@ rgRpiRev_Code		Tx;		// test object
 //## override() flags
 //--------------------------------------------------------------------------
 
+  CASE( "20", "clear RealPi" );
+    try {
+	Tx.override_realpi( 0 );
+	CHECK(  0,          Tx.get_realpi() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
   CASE( "21", "override()" );
     try {
 	Tx.put( 0x00000000 );
 	Tx.putFU( 0, 0 );
+	CHECK(  0,          Tx.get_realpi() );
 	CHECKX( 0x00000000, Tx.get() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
@@ -105,6 +124,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  0,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -114,6 +134,7 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.put( 0xffffffff );
 	Tx.putFU( 0, 1 );
+	CHECK(  0,          Tx.get_realpi() );
 	CHECKX( 0xffffffff, Tx.get() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
@@ -121,6 +142,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  0,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -130,6 +152,7 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.put( 0xffffffff );
 	Tx.putFU( 1, 0 );
+	CHECK(  0,          Tx.get_realpi() );
 	CHECKX( 0xffffffff, Tx.get() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
@@ -137,6 +160,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  0,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -146,6 +170,7 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	Tx.put( 0x00000000 );
 	Tx.putFU( 1, 1 );
+	CHECK(  0,          Tx.get_realpi() );
 	CHECKX( 0x00000000, Tx.get() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
@@ -153,6 +178,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
 	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  0,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -293,8 +319,10 @@ rgRpiRev_Code		Tx;		// test object
 
   CASE( "40", "read_rev_code() Setup" );	// should have no effect
     try {
+	Tx.override_realpi( 0 );
 	Tx.put( 0xffffffff );
 	Tx.putFU( 0, 1 );
+	CHECK(  0,          Tx.get_realpi() );
 	CHECKX( 0xffffffff, Tx.get() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
@@ -333,6 +361,7 @@ rgRpiRev_Code		Tx;		// test object
 	uint32_t	rc;
 	rc = Tx.read_rev_code( "ref/rpi3.in" );
 	CHECKX( 0x00a22082, rc );
+	CHECK(  0,          Tx.get_realpi() );	// not set by read
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -346,9 +375,11 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "50a", "find() null file" );
     try {
 	Tx.init_file( "/dev/null" );
+	Tx.override_realpi( 1 );
 	Tx.put( 0xffabbaff );
 	Tx.putFU( 0, 1 );
 	CHECK( "/dev/null", Tx.init_file() );
+	CHECK(  1,          Tx.get_realpi() );
 	CHECKX( 0xffabbaff, Tx.get() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
@@ -356,6 +387,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xffabbaff, Tx.get() );
+	CHECK(  0,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -368,6 +400,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECKX( 0xffabbaff, Tx.find() );	// action
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
+	CHECK(  0,          Tx.get_realpi() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -377,13 +410,16 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "51a", "find() no revision" );
     try {
 	Tx.init_file( "ref/no_rev.in" );
+	Tx.override_realpi( 1 );
 	Tx.put( 0x0033cc77 );
 	Tx.putFU( 0, 1 );
 	CHECK( "ref/no_rev.in", Tx.init_file() );
+	CHECK(  1,          Tx.get_realpi() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0x0033cc77, Tx.get() );
 	CHECKX( 0x0033cc77, Tx.find() );	// action
+	CHECK(  0,          Tx.get_realpi() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0x0033cc77, Tx.get() );
@@ -397,6 +433,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x0033cc77, Tx.get() );
 	CHECKX( 0x0033cc77, Tx.find() );	// action
+	CHECK(  0,          Tx.get_realpi() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
     }
@@ -408,13 +445,16 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "52a", "find() good file" );
     try {
 	Tx.init_file( "ref/rpi3.in" );
+	Tx.override_realpi( 0 );
 	Tx.put( 0xffffffff );
 	Tx.putFU( 0, 1 );
 	CHECK( "ref/rpi3.in", Tx.init_file() );
+	CHECK(  0,          Tx.get_realpi() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xffffffff, Tx.get() );
 	CHECKX( 0x00a22082, Tx.find() );	// action
+	CHECK(  1,          Tx.get_realpi() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );	// success
 	CHECKX( 0x00a22082, Tx.get() );
@@ -428,6 +468,7 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0x00a22082, Tx.get() );
 	CHECKX( 0x00a22082, Tx.find() );	// action
+	CHECK(  1,          Tx.get_realpi() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  0,          Tx.is_unknown() );
     }
@@ -439,13 +480,16 @@ rgRpiRev_Code		Tx;		// test object
   CASE( "53a", "find() file not found" );
     try {
 	Tx.init_file( "not_exist" );
+	Tx.override_realpi( 1 );
 	Tx.put( 0xabba5335 );
 	Tx.putFU( 0, 1 );
 	CHECK( "not_exist", Tx.init_file() );
+	CHECK(  1,          Tx.get_realpi() );
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xabba5335, Tx.get() );
 	CHECKX( 0xabba5335, Tx.find() );	// action
+	CHECK(  0,          Tx.get_realpi() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xabba5335, Tx.get() );
@@ -458,7 +502,8 @@ rgRpiRev_Code		Tx;		// test object
     try {
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0xabba5335, Tx.get() );
-	CHECKX( 0xabba5335, Tx.find() );
+	CHECKX( 0xabba5335, Tx.find() );	// action
+	CHECK(  0,          Tx.get_realpi() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
     }
@@ -619,6 +664,115 @@ rgRpiRev_Code		Tx;		// test object
 	Tx.put_BoardRev_4(      0x0 );
 	CHECKX(          0xfffffff0, Tx.get() );
 	CHECKX(                 0x0, Tx.get_BoardRev_4() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## defaultv() flags
+//--------------------------------------------------------------------------
+
+  CASE( "81", "defaultv()" );
+    try {
+	Tx.override_realpi( 0 );
+	Tx.put( 0x00000000 );
+	Tx.putFU( 0, 0 );
+	CHECK(  0,          Tx.get_realpi() );
+	CHECKX( 0x00000000, Tx.get() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	Tx.defaultv( 0xf00fc33c );			// clears Final
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  0,          Tx.get_realpi() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "82", "defaultv()" );
+    try {
+	Tx.override_realpi( 1 );
+	Tx.put( 0x00000000 );
+	Tx.putFU( 1, 1 );
+	CHECK(  1,          Tx.get_realpi() );
+	CHECKX( 0x00000000, Tx.get() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	Tx.defaultv( 0xf00fc33c );			// clears Final
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0xf00fc33c, Tx.get() );
+	CHECK(  1,          Tx.get_realpi() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## override_realpi(), find_realpi()
+//--------------------------------------------------------------------------
+
+  CASE( "91", "override_realpi( 0 )" );
+    try {
+	Tx.override_realpi( 1 );
+	Tx.put( 0x00abba00 );
+	Tx.putFU( 0, 1 );
+	CHECK(  1,          Tx.get_realpi() );
+	CHECKX( 0x00abba00, Tx.get() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	//
+	Tx.override_realpi( 0 );
+	CHECK(  0,          Tx.get_realpi() );
+	CHECKX( 0x00abba00, Tx.get() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "92", "override_realpi( 1 )" );
+    try {
+	Tx.override_realpi( 0 );
+	Tx.put( 0x00abba00 );
+	Tx.putFU( 0, 1 );
+	CHECK(  0,          Tx.get_realpi() );
+	CHECKX( 0x00abba00, Tx.get() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	//
+	Tx.override_realpi( 1 );
+	CHECK(  1,          Tx.get_realpi() );
+	CHECKX( 0x00abba00, Tx.get() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "95", "find_realpi() good file" );
+    try {
+	Tx.init_file( "ref/rpi3.in" );
+	Tx.override_realpi( 0 );
+	Tx.put( 0xffffffff );
+	Tx.putFU( 0, 1 );
+	CHECK( "ref/rpi3.in", Tx.init_file() );
+	CHECK(  0,          Tx.get_realpi() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0xffffffff, Tx.get() );
+	//
+	CHECK(  1,          Tx.find_realpi() );		// calls find()
+	CHECK(  1,          Tx.get_realpi() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  0,          Tx.is_unknown() );
+	CHECKX( 0x00a22082, Tx.get() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
