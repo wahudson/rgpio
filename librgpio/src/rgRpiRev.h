@@ -138,7 +138,8 @@ class rgRpiRev {
 	soc_BCM2836,		// RPi2
 	soc_BCM2837,		// RPi3, and later RPi2
 	soc_BCM2711,		// RPi4
-	soc_MaxEnum = soc_BCM2711	// make identical to highest enum
+	soc_BCM2712,		// RPi5, RP1 io chip
+	soc_MaxEnum = soc_BCM2712	// make identical to highest enum
     };
 
     class rgRpiRev_Soc : public rgFlag {
@@ -205,6 +206,7 @@ class rgRpiRev {
     bool		IoRPi0 = 0;
     bool		IoRPi3 = 0;
     bool		IoRPi4 = 0;
+    bool		IoRPi5 = 0;
 
   public:	// platform IO capability status functions
     static void		initialize_ioRPi();
@@ -212,6 +214,7 @@ class rgRpiRev {
     static bool		ioRPi0()        { return  Global.IoRPi0; }
     static bool		ioRPi3()        { return  Global.IoRPi3; }
     static bool		ioRPi4()        { return  Global.IoRPi4; }
+    static bool		ioRPi5()        { return  Global.IoRPi5; }
 
   public:	// preferred user level short-hand accessors
     static Soc_enum	find_SocEnum()	{ return  Global.SocEnum.find();  }

@@ -884,7 +884,8 @@ rgRpiRev		Tx;		// test object
 	CHECK(  1, rgRpiRev::soc_BCM2836 );
 	CHECK(  2, rgRpiRev::soc_BCM2837 );
 	CHECK(  3, rgRpiRev::soc_BCM2711 );
-	CHECK(  3, rgRpiRev::soc_MaxEnum );
+	CHECK(  4, rgRpiRev::soc_BCM2712 );
+	CHECK(  4, rgRpiRev::soc_MaxEnum );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -896,6 +897,7 @@ rgRpiRev		Tx;		// test object
 	CHECK( "BCM2836",  Tx.soc_enum2cstr( rgRpiRev::soc_BCM2836  ) );
 	CHECK( "BCM2837",  Tx.soc_enum2cstr( rgRpiRev::soc_BCM2837  ) );
 	CHECK( "BCM2711",  Tx.soc_enum2cstr( rgRpiRev::soc_BCM2711  ) );
+	CHECK( "BCM2712",  Tx.soc_enum2cstr( rgRpiRev::soc_BCM2712  ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -907,6 +909,7 @@ rgRpiRev		Tx;		// test object
 	CHECK( "BCM2836",  rgRpiRev::soc_enum2cstr( rgRpiRev::soc_BCM2836  ) );
 	CHECK( "BCM2837",  rgRpiRev::soc_enum2cstr( rgRpiRev::soc_BCM2837  ) );
 	CHECK( "BCM2711",  rgRpiRev::soc_enum2cstr( rgRpiRev::soc_BCM2711  ) );
+	CHECK( "BCM2712",  rgRpiRev::soc_enum2cstr( rgRpiRev::soc_BCM2712  ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -936,6 +939,7 @@ rgRpiRev		Tx;		// test object
 	CHECK( "BCM2836", Tx.soc_enum2cstr( Tx.int2soc_enum( 1 ) ) );
 	CHECK( "BCM2837", Tx.soc_enum2cstr( Tx.int2soc_enum( 2 ) ) );
 	CHECK( "BCM2711", Tx.soc_enum2cstr( Tx.int2soc_enum( 3 ) ) );
+	CHECK( "BCM2712", Tx.soc_enum2cstr( Tx.int2soc_enum( 4 ) ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -947,6 +951,7 @@ rgRpiRev		Tx;		// test object
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::int2soc_enum( 1 ) );
 	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::int2soc_enum( 2 ) );
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::int2soc_enum( 3 ) );
+	CHECK( rgRpiRev::soc_BCM2712, rgRpiRev::int2soc_enum( 4 ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -969,11 +974,11 @@ rgRpiRev		Tx;		// test object
 
   CASE( "82b", "int2soc_enum() bad int" );
     try {
-	Tx.int2soc_enum( 4 );
+	Tx.int2soc_enum( 5 );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-	CHECK( "rgRpiRev::int2soc_enum() int out of range:  4",
+	CHECK( "rgRpiRev::int2soc_enum() int out of range:  5",
 	    e.what()
 	);
     }

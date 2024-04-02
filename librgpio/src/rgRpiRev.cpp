@@ -428,6 +428,9 @@ rgRpiRev::rgRpiRev_Base::find()
 	    case  soc_BCM2711:
 		    addr = 0xfe000000;
 		    break;
+	    case  soc_BCM2712:
+		    addr = 0x1f00000000;
+		    break;
 	    }
 	    // No "default:" so compiler checks all enums are represented.
 
@@ -503,6 +506,7 @@ rgRpiRev::initialize_ioRPi()
     Global.IoRPi0 = 0;
     Global.IoRPi3 = 0;
     Global.IoRPi4 = 0;
+    Global.IoRPi5 = 0;
 
     Global.RevCode.find();
 
@@ -539,6 +543,9 @@ rgRpiRev::initialize_ioRPi()
     case  soc_BCM2711:
 	    Global.IoRPi4 = 1;
 	    break;
+    case  soc_BCM2712:
+	    Global.IoRPi5 = 1;
+	    break;
     }
     // No "default:" so compiler checks all enums are represented.
 }
@@ -568,6 +575,7 @@ rgRpiRev::soc_enum2cstr(
 	case  soc_BCM2836:   strp = "BCM2836";   break;
 	case  soc_BCM2837:   strp = "BCM2837";   break;
 	case  soc_BCM2711:   strp = "BCM2711";   break;
+	case  soc_BCM2712:   strp = "BCM2712";   break;
     }
     // No "default:" so compiler checks all enums are represented.
 

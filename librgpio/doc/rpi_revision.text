@@ -1838,6 +1838,34 @@ Future name evolution:
     Possibly name by the IO chip name, e.g. isRP1()?  This seems like too much
     future-proofing of names.
 
+Aggregation:
+
+    Flags can be combined (logical OR) when the same code block works for
+    multiple IO platforms.  e.g.
+
+	if ( rgRpiRev::ioRPi3() || rgRpiRev::ioRPi4() ) { ... }
+
+    An initial idea was ioRPi0() represented all platforms before RPi3
+    because they all used the BCM2835 data sheet.  Thus avoiding the need
+    for flags ioRPi1 and ioRPi2 that would be largely unused.
+
+    A common combination is all RPi3 and earlier, or now all RPi4 and earlier.
+    These aggregates could be represented as single flags:
+	ioRPi30()	RPi3 and earlier (all before RPi4)
+	ioRPi430()	RPi4 and earlier (all before RPi5)
+
+    Trying to avoid the disadvantages of too many flags.  Add only as needed.
+    Could ioRPi0 be eliminated?
+
+    An aggregate could be a shorthand for the longer expression, or could be
+    a computed flag that is stored.
+
+    The SocEnum (Soc_enum) values are intrinsically ordered.  Thus:
+	( soc <= rgRpiRev::soc_BCM2837 )	RPi3 and earlier
+	( soc <= rgRpiRev::soc_BCM2711 )	RPi4 and earlier
+
+    Which to use?  For now, both are implemented.  (2024-04-02)
+
 Name choice:
 
     A) rgRpiRev::isRPi5()
@@ -1877,6 +1905,7 @@ Purpose:
     new object class.
 
     Essential values:
+	RealPi   flag
 	RevCode
 	SocEnum
 	BaseAddr
@@ -1886,6 +1915,12 @@ Purpose:
 	The SocEnum and BaseAddr objects have essential derived information
 	necessary for the library, but not so necessary for the user.
 	All three are exposed in the interface for parallelism.
+
+    Derivation:
+	Automatic derivation from /proc/cpuinfo is provided.
+	An initialization function must be called after the simulation/override
+	functions are called, and before the first call to the rgAddrMap
+	constructor.
 
     Simulation:
 	When not on an RPi platform, the library (i.e. rgAddrMap) falls back
@@ -1898,11 +1933,10 @@ Purpose:
 	Override of the three essential values is provided by the object
 	override() functions.
 
-    Derivation:
-	Automatic derivation from /proc/cpuinfo is provided.
-	An initialization function must be called after the simulation/override
-	functions are called, and before the first call to the rgAddrMap
-	constructor.
+    Default:
+	Default values can be specified for RevCode and SocEnum.
+	These will be used for fallback simulation on a non-Rpi, and replaced
+	by derived values on a real-RPi.
 
     IO capability switch:
 	Capability flags, e.g. ioRPi5(), are a simple way for user code to

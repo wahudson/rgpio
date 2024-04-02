@@ -1,13 +1,13 @@
 // 2024-03-26  William A. Hudson
 //
-// Testing:  rgRpiRev class, main user interface
+// Testing:  rgRpiRev class - Main user interface, only Global.
 //    10-19  Global constructed state
 //    20-29  RevCode.defaultv(), SocEnum.defaultv()
 //    30-39  default_RevCode(), default_SocEnum()
 //    40-49  simulate_RevCode(), simulate_SocEnum(), simulate()
 //    50-59  Register override(), Low-level
 //    60-68  .
-//    70-78  .
+//    70-78  initialize_ioRPi() All flags
 //    80-89  initialize_ioRPi() Exceptions
 //    90-99  .
 //--------------------------------------------------------------------------
@@ -66,12 +66,6 @@ int main()
 {
 
 //--------------------------------------------------------------------------
-//## Shared object
-//--------------------------------------------------------------------------
-
-//#!! rgRpiRev		Tx;		// test object
-
-//--------------------------------------------------------------------------
 //## Global constructed state
 //--------------------------------------------------------------------------
 
@@ -81,6 +75,7 @@ int main()
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -149,6 +144,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -183,6 +179,7 @@ int main()
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
 	CHECK(  1,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -223,6 +220,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -259,6 +257,7 @@ int main()
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
 	CHECK(  1,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -336,6 +335,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -372,6 +372,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -407,6 +408,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -442,6 +444,7 @@ int main()
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  1,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -477,6 +480,7 @@ int main()
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  1,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -512,8 +516,10 @@ int main()
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
-	CHECK(  0,                    rgRpiRev::ioRPi0() ); CHECK(  0,                    rgRpiRev::ioRPi3() );
+	CHECK(  0,                    rgRpiRev::ioRPi0() );
+	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  1,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -602,14 +608,143 @@ int main()
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00ee0000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECKX( 0x9000001f,           rgRpiRev::Global.BaseAddr.get() >>32 );
+	CHECKX( 0x9000001f00ee0000,   rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
-	//#!! kludge BaseAddr check
-	cout << "BaseAddr.get() = 0x"
-	     <<hex << rgRpiRev::Global.BaseAddr.get()
-	     <<dec <<endl;
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------------------------------------------
+//## initialize_ioRPi() All flags
+//--------------------------------------------------------------------------
+
+  CASE( "71", "ioRPi0()" );
+    try {
+	Reset_Global();
+	rgRpiRev::Global.RevCode.override_realpi( 1 );
+	rgRpiRev::Global.RevCode.override( 0x00800000 );
+	rgRpiRev::initialize_ioRPi();
+	CHECK(  1,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECK(  1,                    rgRpiRev::ioRPiReal() );
+	CHECK(  1,                    rgRpiRev::ioRPi0() );
+	CHECK(  0,                    rgRpiRev::ioRPi3() );
+	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
+	CHECKX( 0x00800000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x20000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "72", "ioRPi0() soc_BCM2836" );
+    try {
+	Reset_Global();
+	rgRpiRev::Global.RevCode.override_realpi( 1 );
+	rgRpiRev::Global.RevCode.override( 0x00801000 );
+	rgRpiRev::initialize_ioRPi();
+	CHECK(  1,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECK(  1,                    rgRpiRev::ioRPiReal() );
+	CHECK(  1,                    rgRpiRev::ioRPi0() );
+	CHECK(  0,                    rgRpiRev::ioRPi3() );
+	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
+	CHECKX( 0x00801000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x3f000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "73", "ioRPi3()" );
+    try {
+	Reset_Global();
+	rgRpiRev::Global.RevCode.override_realpi( 1 );
+	rgRpiRev::Global.RevCode.override( 0x00802000 );
+	rgRpiRev::initialize_ioRPi();
+	CHECK(  1,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECK(  1,                    rgRpiRev::ioRPiReal() );
+	CHECK(  0,                    rgRpiRev::ioRPi0() );
+	CHECK(  1,                    rgRpiRev::ioRPi3() );
+	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
+	CHECKX( 0x00802000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x3f000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "74", "ioRPi4()" );
+    try {
+	Reset_Global();
+	rgRpiRev::Global.RevCode.override_realpi( 1 );
+	rgRpiRev::Global.RevCode.override( 0x00803000 );
+	rgRpiRev::initialize_ioRPi();
+	CHECK(  1,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECK(  1,                    rgRpiRev::ioRPiReal() );
+	CHECK(  0,                    rgRpiRev::ioRPi0() );
+	CHECK(  0,                    rgRpiRev::ioRPi3() );
+	CHECK(  1,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
+	CHECKX( 0x00803000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0xfe000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "75", "ioRPi5()" );
+    try {
+	Reset_Global();
+	rgRpiRev::Global.RevCode.override_realpi( 1 );
+	rgRpiRev::Global.RevCode.override( 0x00804000 );
+	rgRpiRev::initialize_ioRPi();
+	CHECK(  1,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECK(  1,                    rgRpiRev::ioRPiReal() );
+	CHECK(  0,                    rgRpiRev::ioRPi0() );
+	CHECK(  0,                    rgRpiRev::ioRPi3() );
+	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  1,                    rgRpiRev::ioRPi5() );
+	CHECKX( 0x00804000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2712, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x1f00000000,         rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
