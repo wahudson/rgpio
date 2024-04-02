@@ -1,6 +1,6 @@
 // 2017-05-20  William A. Hudson
 
-// utLib1 version 1.01 -- Unit Test Library.
+// utLib1 version 1.01  2024-04-01 -- Unit Test Library.
 
 // User interface is thru #define macros.
 // Class methods operate on state of a test.  No object.
@@ -158,6 +158,8 @@ utLib1::ut_CHECK(
 * Check comparison -- int
 * call:
 *    utLib1::ut_CHECK( line, 42, exp )
+* Note:  Ambiguous overload (long int) and (const char*) with a null pointer
+*    is resolved by declaring (int).
 */
 void
 utLib1::ut_CHECK(
@@ -190,8 +192,8 @@ utLib1::ut_CHECK(
 void
 utLib1::ut_CHECKX(
     int			line,
-    unsigned int	ref,
-    unsigned int	exp
+    uint64_t		ref,
+    uint64_t		exp
 )
 {
     GotAssert  = 1;

@@ -6,11 +6,6 @@
 
 SHELL      = /bin/sh
 OJ         = ../obj
-#LIB        = ../lib
-
-		# all include files for main program dependency
-INCS       = \
-        utLib1.h
 
 		# objects not including main()
 OBJS       = \
@@ -27,7 +22,7 @@ mkdirs:   $(OJ)
 $(OJ):
 	mkdir -p  $(OJ)
 
-clean: 
+clean:
 	rm -f  $(OJ)/*
 
 clobber:

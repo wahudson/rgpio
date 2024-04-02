@@ -51,8 +51,8 @@ class utLib1 {
 
     static void		ut_CHECKX(
 			    int                 line,
-			    unsigned int	ref,
-			    unsigned int	exp
+			    uint64_t		ref,
+			    uint64_t		exp
 			);
 };
 

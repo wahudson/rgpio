@@ -76,7 +76,7 @@ int main()
 
     CASE( "17", "pass hex check" );
     try {
-	int		jj = 0xaaaa5555;
+	uint32_t	jj = 0xaaaa5555;
 	CHECKX( 0xaaaa5555, jj );
     }
     catch (...) {
@@ -84,7 +84,7 @@ int main()
 
     CASE( "17b", "fail hex check" );
     try {
-	int		jj = -1;
+	int32_t		jj = -1;	// sign extend
 	CHECKX( 0x00000001, jj );
     }
     catch (...) {
@@ -118,6 +118,13 @@ int main()
     }
     catch (...) {
 	FAIL( "unexpected exception" );
+    }
+
+    CASE( "21", "pass ambiguous overload CHECK()" );
+    try {
+	CHECK( 0, 0 );	// ambiguous call (long int) and (const char*)
+    }
+    catch (...) {
     }
 
     utLib1::ut_CASE( "99", "Done" );
