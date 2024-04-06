@@ -1,25 +1,27 @@
     Raspberry Pi GPIO utility
 usage:  rgpio [main_options..]  feature  [options..]
-  feature:
-    io           General Purpose IO pins
-    fsel         Pin Function Select, by Gpio bit number
-    header       Pin Function, by pin number on 40-pin header
-    clk          Clock generator
-    iic          I2C Master
+  common:
     info         RPi Revision Information
     man          man pager
-    pads         Pads Control
-    pud          Pin Pull-Up/Down - RPi3 and earlier
-    pull         Pin Pull-Up/Down - RPi4
+    fsel         Pin Function Select, by Gpio bit number
+    header       Pin Function, by pin number on 40-pin header
+  RPi4 and earlier:
+    io           General Purpose IO pins
+    clk          Clock generator
+    iic          I2C Master
     pwm          PWM Pulse Width Modulator
     spi0         SPI0 Master
     timer        System Timer
     uspi         Universal SPI Master, Spi1, Spi2
+    pads         Pads Control
+    pud          Pin Pull-Up/Down - RPi3 and earlier
+    pull         Pin Pull-Up/Down - RPi4 only
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
     --rpi3              act like RPi3 or earlier
-    --rpi4              act like RPi4 or later
+    --rpi4              act like RPi4 or earlier
+    --rpi5              act like RPi5
     --help              show this usage
     -v, --verbose       verbose output, show if fake memory
     --debug             debug output

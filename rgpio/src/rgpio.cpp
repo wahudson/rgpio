@@ -55,6 +55,7 @@ class yOptLong : public yOption {
     bool		ro;
     bool		rpi3;
     bool		rpi4;
+    bool		rpi5;
 
     bool		version;
     bool		verbose;
@@ -89,6 +90,7 @@ yOptLong::yOptLong( int argc,  char* argv[] )
     ro          = 0;
     rpi3        = 0;
     rpi4        = 0;
+    rpi5        = 0;
 
     version     = 0;
     verbose     = 0;
@@ -111,6 +113,7 @@ yOptLong::parse_options()
 	else if ( is( "--ro"         )) { ro         = 1; }
 	else if ( is( "--rpi3"       )) { rpi3       = 1; }
 	else if ( is( "--rpi4"       )) { rpi4       = 1; }
+	else if ( is( "--rpi5"       )) { rpi5       = 1; }
 
 	else if ( is( "--version"    )) { version    = 1; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
@@ -134,8 +137,8 @@ yOptLong::parse_options()
 	Error::msg( "require --dev=m|g|f" ) <<endl;
     }
 
-    if ( rpi3 && rpi4 ) {
-	Error::msg( "require only one:  --rpi3 --rpi4" ) <<endl;
+    if ( (rpi3 + rpi4 + rpi5) > 1 ) {
+	Error::msg( "require only one:  --rpi3 --rpi4 --rpi5" ) <<endl;
     }
 }
 
@@ -171,27 +174,30 @@ yOptLong::print_usage()
     cout <<
     "    Raspberry Pi GPIO utility\n"
     "usage:  " << ProgName << " [main_options..]  feature  [options..]\n"
-    "  feature:\n"
-    "    io           General Purpose IO pins\n"
-    "    fsel         Pin Function Select, by Gpio bit number\n"
-    "    header       Pin Function, by pin number on 40-pin header\n"
-    "    clk          Clock generator\n"
-    "    iic          I2C Master\n"
+    "  common:\n"
     "    info         RPi Revision Information\n"
     "    man          man pager\n"
-    "    pads         Pads Control\n"
-    "    pud          Pin Pull-Up/Down - RPi3 and earlier\n"
-    "    pull         Pin Pull-Up/Down - RPi4\n"
+    "    fsel         Pin Function Select, by Gpio bit number\n"
+    "    header       Pin Function, by pin number on 40-pin header\n"
+    "  RPi4 and earlier:\n"
+    "    io           General Purpose IO pins\n"
+    "    clk          Clock generator\n"
+    "    iic          I2C Master\n"
     "    pwm          PWM Pulse Width Modulator\n"
     "    spi0         SPI0 Master\n"
     "    timer        System Timer\n"
     "    uspi         Universal SPI Master, Spi1, Spi2\n"
+    "    pads         Pads Control\n"
+    "    pud          Pin Pull-Up/Down - RPi3 and earlier\n"
+    "    pull         Pin Pull-Up/Down - RPi4 only\n"
+//  "  RPi5 only:\n"
     "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
     "                                          g= /dev/gpiomem, f= fake\n"
 //  "  # --ro                read only\n"
     "    --rpi3              act like RPi3 or earlier\n"
-    "    --rpi4              act like RPi4 or later\n"
+    "    --rpi4              act like RPi4 or earlier\n"
+    "    --rpi5              act like RPi5\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output, show if fake memory\n"
     "    --debug             debug output\n"
@@ -232,29 +238,28 @@ main( int	argc,
 
 	if ( Error::has_err() )  return 1;
 
-	// Put rgAddrMap first to help validate default BaseAddr.
+	if ( Opx.rpi3 ) {
+	    rgRpiRev::Global.simulate_SocEnum( rgRpiRev::soc_BCM2837 );
+	}
+	if ( Opx.rpi4 ) {
+	    rgRpiRev::Global.simulate_SocEnum( rgRpiRev::soc_BCM2711 );
+	}
+	if ( Opx.rpi5 ) {
+	    rgRpiRev::Global.simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	}
+
 	rgAddrMap		Amx;	// constructor
 
 	Amx.config_FakeNoPi( 1 );	// when not on RPi
 	Amx.config_Debug( Opx.debug );
 
-	if ( Opx.rpi3 ) {
-	    rgRpiRev::Global.BaseAddr.find();	// config first
-	    rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );
-	}
-
-	if ( Opx.rpi4 ) {
-	    rgRpiRev::Global.BaseAddr.find();	// config first
-	    rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );
-	}
-
 	if ( Opx.debug ) {
 	    cout.fill('0');
 	    cout <<hex
 		<< "+ rgRpiRev::Global.SocEnum  = soc_" <<
-		    rgRpiRev::soc_enum2cstr( rgRpiRev::find_SocEnum() ) <<endl
+		      rgRpiRev::Global.SocEnum.cstr() << endl
 		<< "+ rgRpiRev::Global.BaseAddr = 0x" <<setw(8) <<
-		    rgRpiRev::find_BaseAddr() <<endl
+		      rgRpiRev::Global.BaseAddr.find() <<endl
 		;
 	    cout.fill(' ');
 	    cout <<dec;
