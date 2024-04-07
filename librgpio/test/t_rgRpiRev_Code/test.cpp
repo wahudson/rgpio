@@ -488,7 +488,11 @@ rgRpiRev_Code		Tx;		// test object
 	CHECK(  0,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
 	CHECKX( 0xabba5335, Tx.get() );
-	CHECKX( 0xabba5335, Tx.find() );	// action
+	Tx.find();
+	FAIL( "no throw" );
+    }
+    catch ( std::runtime_error& e ) {
+	CHECK( "read_rev_code() cannot open file:  not_exist", e.what() );
 	CHECK(  0,          Tx.get_realpi() );
 	CHECK(  1,          Tx.is_final() );
 	CHECK(  1,          Tx.is_unknown() );
@@ -499,6 +503,45 @@ rgRpiRev_Code		Tx;		// test object
     }
 
   CASE( "53b", "find() second" );
+    try {
+	CHECK(  1,          Tx.is_final() );
+	CHECKX( 0xabba5335, Tx.get() );
+	CHECKX( 0xabba5335, Tx.find() );	// action
+	CHECK(  0,          Tx.get_realpi() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "54a", "find() bad Revision 0" );
+    try {
+	Tx.init_file( "ref/rev_zero.in" );
+	Tx.override_realpi( 1 );
+	Tx.put( 0xabba5335 );
+	Tx.putFU( 0, 1 );
+	CHECK( "ref/rev_zero.in", Tx.init_file() );
+	CHECK(  1,          Tx.get_realpi() );
+	CHECK(  0,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0xabba5335, Tx.get() );
+	Tx.find();
+	FAIL( "no throw" );
+    }
+    catch ( std::runtime_error& e ) {
+	CHECK( "read_rev_code() bad line:  'Revision	: 0'", e.what() );
+	CHECK(  0,          Tx.get_realpi() );
+	CHECK(  1,          Tx.is_final() );
+	CHECK(  1,          Tx.is_unknown() );
+	CHECKX( 0xabba5335, Tx.get() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "54b", "find() second" );
     try {
 	CHECK(  1,          Tx.is_final() );
 	CHECKX( 0xabba5335, Tx.get() );

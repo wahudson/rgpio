@@ -1280,6 +1280,13 @@ Derivation and find() Exceptions:
     An interesting twist, suggesting that RevCode.find() should not throw
     any exceptions.
 
+ >  Now decide that RevCode.find() should throw exceptions on true errors
+    in derivation, e.g. file not found, or bad number conversion.  They
+    also imply non-RPi (RealPi=0) and should put the object in that state.
+    In particular we expect /proc/cpuinfo to exist on linux machines, and
+    any parsing problem is an error.  Non-existence of a "Revision" line is
+    NOT an error, and is the deduction for non-RPi.  (2024-04-07)
+
 BaseAddr and Fake Memory:
 
     Seems like a good idea to continue with BaseAddr=0 as a way to confirm

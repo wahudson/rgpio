@@ -296,8 +296,8 @@ rgRpiRev_Code::read_rev_code(
 * Find RevCode.
 *    Normally return cached code.
 *    If not final, then read from InFile, normally "/proc/cpuinfo".
-*    If read failed, then leave default code unchanged and mark Unknown,
-*    otherwise mark Final and known.
+*    If read failed, then infer non-RPI, leave default code unchanged and
+*    mark Unknown, otherwise mark Final and known.
 * call:
 *    find();
 * return:
@@ -305,7 +305,7 @@ rgRpiRev_Code::read_rev_code(
 *    RealPi=1, Unknown=0  on success
 *    RealPi=0, Unknown=1  on failure indicating non_RPi
 * exceptions:
-*    No exceptions - Allow fallback to non-RPi simulation.
+*    std::runtime_error		Errors reading InFile
 */
 uint32_t
 rgRpiRev_Code::find()
@@ -314,24 +314,16 @@ rgRpiRev_Code::find()
 
     if ( ! Final ) {
 	Final   = 1;
+	RealPi  = 0;	// non-RPi
 	Unknown = 1;	// flag failed
 	// WordVal	// leave default unchanged
 
-	try {
-	    code = read_rev_code( InFile );	// may throw exception
-	}
-	catch (...) {
-	    code = 0;	// flag as not RPi
-	}
+	code = read_rev_code( InFile );		// may throw exception
 
 	if ( code ) {		// real-RPi
 	    RealPi  = 1;
 	    Unknown = 0;	// success
 	    WordVal = code;
-	}
-	else {			// non-RPi, leave WordVal unchanged
-	    RealPi  = 0;
-	    Unknown = 1;
 	}
     }
 
