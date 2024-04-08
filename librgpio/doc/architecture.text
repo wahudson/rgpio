@@ -374,7 +374,49 @@ Error handling:
     is a global error flag for reporting at program termination.
     Especially for utility type tools.
     Now a gui type tool that persists over many operations and needs to
-    recover objects after an error would benifit from per-object tracking.
+    recover objects after an error would benefit from per-object tracking.
+
+Constructor Exceptions:  (2024-04-03)
+    Some Feature objects are only valid on certain RPi versions, especially
+    with the new RPi5.  The constructor should check the platform and
+    throw an exception if necessary.  e.g. std::domain_error
+    See also:  rpi_revision.text
+
+    Earlier versions of the library did not block execution on any RPi
+    platform because any register variations generally fell within compatible
+    IO address pages.  Now with RPi5, the documented IO address space is
+    totally different and could conflict with other OS processes.  i.e. Much
+    more dangerous to write to unexpected addresses.
+
+    An alternative would be to fall back to simulation (fake memory) and
+    leave it to the user to check if that happened.  Does not seem good.
+
+    Decide to throw:  std::domain_error
+    The std library does not throw it.  It is designed to be used by programs.
+    [https://cplusplus.com/reference/stdexcept/domain_error/]
+    Think of the RPi platform as the domain of the Feature class.
+
+    Use rgRpiRev class to determine the platform.
+    Explore to see which works best on current Feature objects.
+    Example:  Require RPi4 as platform.
+
+    A) if ( ! rgRpiRev::ioRPi4() )  { throw ... }
+	Same high-level flags as for user code.
+	+ Clear which RPi version.
+	- The actual hardware SocEnum is not clear.
+
+    B) if ( !(rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2711) )
+	High level accessor.
+	- May change to better suit the public interface, e.g. throw
+		exception on Unknown.
+
+    C) if ( !(rgRpiRev::Global.SocEnum.find() == rgRpiRev::soc_BCM2711) )
+	Low level accessor.
+	+ May be best for internal use (within the library).
+
+    The SocEnum may be better for checking before a certain RPi version.
+    e.g. RPi4 and earlier:
+	if ( !(rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2711) )
 
 FeatureAddr BCM Doc address:
     This is the base address of the peripheral feature as specified in the

@@ -133,7 +133,7 @@ class rgRpiRev_Code : public rgWord, public rgFlag {
 */
 class rgRpiRev {
   public:
-    enum Soc_enum {	// SOC chip identifiers
+    enum Soc_enum {	// SOC chip identifiers, order can be relied on
 	soc_BCM2835 = 0,	// RPi1, Zero
 	soc_BCM2836,		// RPi2
 	soc_BCM2837,		// RPi3, and later RPi2

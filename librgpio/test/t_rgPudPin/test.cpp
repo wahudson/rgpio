@@ -17,6 +17,7 @@
 
 #include "utLib1.h"		// unit test library
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgPudPin.h"
 
@@ -30,6 +31,8 @@ int main()
 //--------------------------------------------------------------------------
 //## Shared object
 //--------------------------------------------------------------------------
+
+rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2837 );	// RPi3
 
 rgAddrMap		Bx;
 
@@ -52,6 +55,42 @@ rgPudPin		Tx   ( &Bx );		// test object
     try {
 	rgPudPin	tx  ( &Bx );
 	PASS( "constructor" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10b", "rgPudPin constructor RPi0" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2835 );
+	rgPudPin	tx  ( &Bx );
+	PASS( "constructor" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10c", "rgPudPin domain_error RPi4" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );
+	rgPudPin	tx  ( &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgPudPin:  require RPi3 (soc_BCM2837) or earlier", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10d", "rgPudPin domain_error RPi5" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	rgPudPin	tx  ( &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgPudPin:  require RPi3 (soc_BCM2837) or earlier", e.what() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

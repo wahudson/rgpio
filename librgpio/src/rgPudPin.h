@@ -7,7 +7,7 @@
 #include "rgIoPins.h"		// class rgReg_rw
 
 //--------------------------------------------------------------------------
-// rgPudPin IO Pin Pull Up/Down
+// rgPudPin IO Pin Pull Up/Down (RPi3 and earlier)
 //--------------------------------------------------------------------------
 
 class rgPudPin_Mode : public rgRegister {

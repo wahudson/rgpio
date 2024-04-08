@@ -1,6 +1,6 @@
 // 2020-09-05  William A. Hudson
 
-// rgPudPin IO Pin Pull Up/Down
+// rgPudPin IO Pin Pull Up/Down (RPi3 and earlier)
 //
 // See:  BCM2835 ARM Peripherals (2012)
 //      p.89-101  6.  General Purpose I/O (GPIO)
@@ -15,6 +15,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgPudPin.h"
 
@@ -39,6 +40,12 @@ rgPudPin::rgPudPin(
     rgAddrMap		*xx
 )
 {
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2837) ) {
+	std::ostringstream	css;
+	css << "rgPudPin:  require RPi3 (soc_BCM2837) or earlier";
+	throw std::domain_error ( css.str() );
+    }
+
     GpioBase     = xx->get_mem_block( FeatureAddr );
 
     PudProgMode.init_addr(   GpioBase + (0x94 /4) );

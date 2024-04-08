@@ -6,7 +6,7 @@
 
 =head1		NAME
 
-rgPudPin  class -- IO Pin Pull Up/Down
+rgPudPin  class -- IO Pin Pull Up/Down (RPi3 and earlier)
 
 =head1		SYNOPSIS
 
@@ -235,6 +235,7 @@ object methods.
 
 =head1		EXCEPTIONS
 
+ std::domain_error	constructor requires RPi3 and earlier
  std::logic_error
  std::range_error
 
@@ -280,6 +281,7 @@ In the librgpio/ source tree:
 =head1		SEE ALSO
 
  rgPudPin(7)	hardware register description
+ rgPullPin(3)	Pull Up/Down for RPi4
  rgAddrMap(3)
  rgpio-pud(1)
  rgIoPins(3)
