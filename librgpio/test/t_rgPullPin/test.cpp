@@ -17,6 +17,7 @@
 
 #include "utLib1.h"		// unit test library
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgPullPin.h"
 
@@ -30,6 +31,8 @@ int main()
 //--------------------------------------------------------------------------
 //## Shared object
 //--------------------------------------------------------------------------
+
+rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );	// RPi4
 
 rgAddrMap		Bx;
 
@@ -52,6 +55,45 @@ rgPullPin		Tx   ( &Bx );		// test object
     try {
 	rgPullPin	tx  ( &Bx );
 	PASS( "constructor" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10b", "rgPullPin domain_error RPi0" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2835 );
+	rgPullPin	tx  ( &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgPullPin:  require RPi4 (soc_BCM2711)", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10c", "rgPullPin domain_error RPi3" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2837 );
+	rgPullPin	tx  ( &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgPullPin:  require RPi4 (soc_BCM2711)", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10d", "rgPullPin domain_error RPi5" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	rgPullPin	tx  ( &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgPullPin:  require RPi4 (soc_BCM2711)", e.what() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

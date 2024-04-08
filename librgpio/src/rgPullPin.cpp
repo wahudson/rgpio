@@ -16,6 +16,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgIoPins.h"	// class rgReg_rw
 #include "rgPullPin.h"
@@ -37,6 +38,12 @@ rgPullPin::rgPullPin(
     rgAddrMap		*xx
 )
 {
+    if ( !(rgRpiRev::Global.SocEnum.find() == rgRpiRev::soc_BCM2711) ) {
+	std::ostringstream	css;
+	css << "rgPullPin:  require RPi4 (soc_BCM2711)";
+	throw std::domain_error ( css.str() );
+    }
+
     GpioBase     = xx->get_mem_block( FeatureAddr );
 
     PullSel0.init_addr( GpioBase + (0xe4 /4) );
