@@ -361,6 +361,9 @@ main( int	argc,
 
 	return  retv;
     }
+    catch ( std::domain_error& e ) {
+	Error::msg( "RPi platform:  " ) << e.what() <<endl;
+    }
     catch ( std::exception& e ) {
 	Error::msg( "exception caught:  " ) << e.what() <<endl;
     }

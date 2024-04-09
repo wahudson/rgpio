@@ -42,8 +42,8 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## pud basic options --help
 #---------------------------------------------------------------------------
 
-run_test( "11", "pud no args",
-    "rgpio --dev=f  pud",
+run_test( "10", "pud no args",
+    "rgpio --dev=f --rpi3  pud",
     0,
     Stderr => q(),
     Stdout => q(
@@ -54,14 +54,24 @@ run_test( "11", "pud no args",
     ),
 );
 
+run_test( "11a", "Error on RPi5",
+    "rgpio --dev=f --rpi5  pud",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgPudPin:  require RPi3 (soc_BCM2837) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "12", "pud help",
-    "rgpio --dev=f  pud --help",
+    "rgpio --dev=f --rpi3  pud --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  pud --dev=xx",
+    "rgpio --dev=f --rpi3  pud --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -72,7 +82,7 @@ run_test( "13", "unknown option",
 
 #---------------------------------------
 run_test( "14a", "error multiple modes",
-    "rgpio --dev=f  pud --up --down 21",
+    "rgpio --dev=f --rpi3  pud --up --down 21",
     1,
     Stderr => q(
 	Error:  require only one of:  --up --down --off
@@ -81,7 +91,7 @@ run_test( "14a", "error multiple modes",
 );
 
 run_test( "14b", "error multiple modes",
-    "rgpio --dev=f  pud --up --off 21",
+    "rgpio --dev=f --rpi3  pud --up --off 21",
     1,
     Stderr => q(
 	Error:  require only one of:  --up --down --off
@@ -90,7 +100,7 @@ run_test( "14b", "error multiple modes",
 );
 
 run_test( "14c", "error multiple modes",
-    "rgpio --dev=f  pud --off --down 21",
+    "rgpio --dev=f --rpi3  pud --off --down 21",
     1,
     Stderr => q(
 	Error:  require only one of:  --up --down --off
@@ -100,7 +110,7 @@ run_test( "14c", "error multiple modes",
 
 #---------------------------------------
 run_test( "15a", "error missing mode",
-    "rgpio --dev=f  pud  7",
+    "rgpio --dev=f --rpi3  pud  7",
     1,
     Stderr => q(
 	Error:  program requires one of:  --up --down --off
@@ -109,7 +119,7 @@ run_test( "15a", "error missing mode",
 );
 
 run_test( "15b", "error missing mode",
-    "rgpio --dev=f  pud --w0=0x00000000",
+    "rgpio --dev=f --rpi3  pud --w0=0x00000000",
     1,
     Stderr => q(
 	Error:  program requires one of:  --up --down --off
@@ -118,7 +128,7 @@ run_test( "15b", "error missing mode",
 );
 
 run_test( "15c", "error missing mode",
-    "rgpio --dev=f  pud --w1=0x00000000",
+    "rgpio --dev=f --rpi3  pud --w1=0x00000000",
     1,
     Stderr => q(
 	Error:  program requires one of:  --up --down --off
@@ -128,7 +138,7 @@ run_test( "15c", "error missing mode",
 
 #---------------------------------------
 run_test( "16a", "error missing bits",
-    "rgpio --dev=f  pud --up",
+    "rgpio --dev=f --rpi3  pud --up",
     1,
     Stderr => q(
 	Error:  program requires bit arguments or:  --w0=V --w1=V
@@ -137,7 +147,7 @@ run_test( "16a", "error missing bits",
 );
 
 run_test( "16b", "error missing bits",
-    "rgpio --dev=f  pud --down",
+    "rgpio --dev=f --rpi3  pud --down",
     1,
     Stderr => q(
 	Error:  program requires bit arguments or:  --w0=V --w1=V
@@ -146,7 +156,7 @@ run_test( "16b", "error missing bits",
 );
 
 run_test( "16c", "error missing bits",
-    "rgpio --dev=f  pud --off",
+    "rgpio --dev=f --rpi3  pud --off",
     1,
     Stderr => q(
 	Error:  program requires bit arguments or:  --w0=V --w1=V
@@ -159,7 +169,7 @@ run_test( "16c", "error missing bits",
 #---------------------------------------------------------------------------
 
 run_test( "20", "good bit numbers, duplicate",
-    "rgpio --dev=f  pud --up  31 0 53 0",
+    "rgpio --dev=f --rpi3  pud --up  31 0 53 0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -172,7 +182,7 @@ run_test( "20", "good bit numbers, duplicate",
 );
 
 run_test( "21", "error bit too large",
-    "rgpio --dev=f  pud --up  31 2 54 7",
+    "rgpio --dev=f --rpi3  pud --up  31 2 54 7",
     1,
     Stderr => q(
 	Error:  bit arg out-of-range:  54
@@ -181,7 +191,7 @@ run_test( "21", "error bit too large",
 );
 
 run_test( "22", "error too many bits",
-    "rgpio --dev=f  pud --up 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4",
+    "rgpio --dev=f --rpi3  pud --up 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4",
     1,
     Stderr => q(
 	Error:  max bit args:  64
@@ -190,7 +200,7 @@ run_test( "22", "error too many bits",
 );
 
 run_test( "23", "bad bit numbers",		#!! strtol() not detected
-    "rgpio --dev=f  pud --up  7 a12 2two",
+    "rgpio --dev=f --rpi3  pud --up  7 a12 2two",
     0,
     Stderr => q(),
     Stdout => q(
@@ -206,7 +216,7 @@ run_test( "23", "bad bit numbers",		#!! strtol() not detected
 #---------------------------------------------------------------------------
 
 run_test( "30", "good --w0",
-    "rgpio --dev=f  pud --up  --w0=0xffffffff",
+    "rgpio --dev=f --rpi3  pud --up  --w0=0xffffffff",
     0,
     Stderr => q(),
     Stdout => q(
@@ -216,7 +226,7 @@ run_test( "30", "good --w0",
 );
 
 run_test( "31", "good --w0 --w1",
-    "rgpio --dev=f  pud --down  --w0=0xff223344 --w1=0xabbafedc",
+    "rgpio --dev=f --rpi3  pud --down  --w0=0xff223344 --w1=0xabbafedc",
     0,
     Stderr => q(),
     Stdout => q(
@@ -231,7 +241,7 @@ run_test( "31", "good --w0 --w1",
 #---------------------------------------------------------------------------
 
 run_test( "40", "view registers",
-    "rgpio --dev=f  pud -v",
+    "rgpio --dev=f --rpi3  pud -v",
     0,
     Stderr => q(),
     Stdout => q(
@@ -244,7 +254,7 @@ run_test( "40", "view registers",
 );
 
 run_test( "41", "modify registers",
-    "rgpio --dev=f  pud -v --PudProgMode=0xffffffff --PudProgClk_w0=0xfeedabba",
+    "rgpio --dev=f --rpi3  pud -v --PudProgMode=0xffffffff --PudProgClk_w0=0xfeedabba",
     0,
     Stderr => q(),
     Stdout => q(

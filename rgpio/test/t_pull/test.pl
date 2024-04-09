@@ -42,8 +42,8 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## pull basic options --help
 #---------------------------------------------------------------------------
 
-run_test( "11", "pull no args",
-    "rgpio --dev=f  pull",
+run_test( "10", "pull no args",
+    "rgpio --dev=f --rpi4  pull",
     0,
     Stderr => q(),
     Stdout => q(
@@ -57,14 +57,32 @@ run_test( "11", "pull no args",
     ),
 );
 
+run_test( "11a", "Error on RPi5",
+    "rgpio --dev=f --rpi5  pull",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgPullPin:  require RPi4 (soc_BCM2711)
+    ),
+    Stdout => q(),
+);
+
+run_test( "11b", "Error on RPi3",
+    "rgpio --dev=f --rpi3  pull",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgPullPin:  require RPi4 (soc_BCM2711)
+    ),
+    Stdout => q(),
+);
+
 run_test( "12", "pull help",
-    "rgpio --dev=f  pull --PullSel0=0xaaaa5555 --help",
+    "rgpio --dev=f --rpi4  pull --PullSel0=0xaaaa5555 --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  pull --dev=xx",
+    "rgpio --dev=f --rpi4  pull --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -74,7 +92,7 @@ run_test( "13", "unknown option",
 
 #---------------------------------------
 run_test( "14a", "error multiple directions",
-    "rgpio --dev=f  pull --up --down 21",
+    "rgpio --dev=f --rpi4  pull --up --down 21",
     1,
     Stderr => q(
 	Error:  require only one of:  --up --down --off
@@ -83,7 +101,7 @@ run_test( "14a", "error multiple directions",
 );
 
 run_test( "14b", "error multiple directions",
-    "rgpio --dev=f  pull --up --off 21",
+    "rgpio --dev=f --rpi4  pull --up --off 21",
     1,
     Stderr => q(
 	Error:  require only one of:  --up --down --off
@@ -92,7 +110,7 @@ run_test( "14b", "error multiple directions",
 );
 
 run_test( "14c", "error multiple directions",
-    "rgpio --dev=f  pull --off --down 21",
+    "rgpio --dev=f --rpi4  pull --off --down 21",
     1,
     Stderr => q(
 	Error:  require only one of:  --up --down --off
@@ -102,7 +120,7 @@ run_test( "14c", "error multiple directions",
 
 #---------------------------------------
 run_test( "15a", "error missing direction",
-    "rgpio --dev=f  pull  7",
+    "rgpio --dev=f --rpi4  pull  7",
     1,
     Stderr => q(
 	Error:  modify requires one of:  --up --down --off
@@ -111,7 +129,7 @@ run_test( "15a", "error missing direction",
 );
 
 run_test( "15b", "error missing direction",
-    "rgpio --dev=f  pull --w0=0x00000000",
+    "rgpio --dev=f --rpi4  pull --w0=0x00000000",
     1,
     Stderr => q(
 	Error:  modify requires one of:  --up --down --off
@@ -120,7 +138,7 @@ run_test( "15b", "error missing direction",
 );
 
 run_test( "15c", "error missing direction",
-    "rgpio --dev=f  pull --w1=0x00000000",
+    "rgpio --dev=f --rpi4  pull --w1=0x00000000",
     1,
     Stderr => q(
 	Error:  modify requires one of:  --up --down --off
@@ -130,7 +148,7 @@ run_test( "15c", "error missing direction",
 
 #---------------------------------------
 run_test( "16a", "error missing bits",
-    "rgpio --dev=f  pull --up",
+    "rgpio --dev=f --rpi4  pull --up",
     1,
     Stderr => q(
 	Error:  modify requires bit arguments or:  --w0=V --w1=V
@@ -139,7 +157,7 @@ run_test( "16a", "error missing bits",
 );
 
 run_test( "16b", "error missing bits",
-    "rgpio --dev=f  pull --down",
+    "rgpio --dev=f --rpi4  pull --down",
     1,
     Stderr => q(
 	Error:  modify requires bit arguments or:  --w0=V --w1=V
@@ -148,7 +166,7 @@ run_test( "16b", "error missing bits",
 );
 
 run_test( "16c", "error missing bits",
-    "rgpio --dev=f  pull --off",
+    "rgpio --dev=f --rpi4  pull --off",
     1,
     Stderr => q(
 	Error:  modify requires bit arguments or:  --w0=V --w1=V
@@ -161,7 +179,7 @@ run_test( "16c", "error missing bits",
 #---------------------------------------------------------------------------
 
 run_test( "21", "error bit too large",
-    "rgpio --dev=f  pull --up  31 2 58 7",
+    "rgpio --dev=f --rpi4  pull --up  31 2 58 7",
     1,
     Stderr => q(
 	Error:  bit arg out-of-range:  58
@@ -170,7 +188,7 @@ run_test( "21", "error bit too large",
 );
 
 run_test( "22", "error too many bits",
-    "rgpio --dev=f  pull --up 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4",
+    "rgpio --dev=f --rpi4  pull --up 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4",
     1,
     Stderr => q(
 	Error:  max bit args:  64
@@ -179,7 +197,7 @@ run_test( "22", "error too many bits",
 );
 
 run_test( "23", "good bit numbers, duplicate",
-    "rgpio --dev=f  pull -v --up  31 0 57 0 32 12 24 5 6 7",
+    "rgpio --dev=f --rpi4  pull -v --up  31 0 57 0 32 12 24 5 6 7",
     0,
     Stderr => q(),
 );
@@ -189,13 +207,13 @@ run_test( "23", "good bit numbers, duplicate",
 #---------------------------------------------------------------------------
 
 run_test( "31", "modify w0",
-    "rgpio --dev=f  pull -v --down --w0=0xffff0307 --w1=0xffff0000",
+    "rgpio --dev=f --rpi4  pull -v --down --w0=0xffff0307 --w1=0xffff0000",
     0,
     Stderr => q(),
 );
 
 run_test( "32", "modify registers",
-    "rgpio --dev=f  pull -v --PullSel0=0x55aa00ff --PullSel1=0x5a0f5a0f --PullSel2=0xaaaa5555 --PullSel3=0x5555aaaa",
+    "rgpio --dev=f --rpi4  pull -v --PullSel0=0x55aa00ff --PullSel1=0x5a0f5a0f --PullSel2=0xaaaa5555 --PullSel3=0x5555aaaa",
     0,
     Stderr => q(),
 );
@@ -205,7 +223,7 @@ run_test( "32", "modify registers",
 #---------------------------------------------------------------------------
 
 run_test( "41", "pull word0",
-    "rgpio --dev=f  pull -0",
+    "rgpio --dev=f --rpi4  pull -0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -219,7 +237,7 @@ run_test( "41", "pull word0",
 );
 
 run_test( "42", "pull -v word1",
-    "rgpio --dev=f  pull -v -1",
+    "rgpio --dev=f --rpi4  pull -v -1",
     0,
     Stderr => q(),
     Stdout => q(

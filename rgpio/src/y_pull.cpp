@@ -273,7 +273,7 @@ int
 y_pull::doit()
 {
 
-    try {
+    {
 	pull_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -418,12 +418,6 @@ y_pull::doit()
 	  Opx.out_reg( "w1_Off",     Gpx.read_Pull_w1( rgPullPin::pd_Off    ));
 	  Opx.out_reg( "w1_Unknown", Gpx.read_Pull_w1( rgPullPin::pd_Unknown));
 	}
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

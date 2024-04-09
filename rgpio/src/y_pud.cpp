@@ -265,7 +265,7 @@ int
 y_pud::doit()
 {
 
-    try {
+    {
 	pud_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -379,12 +379,6 @@ y_pud::doit()
 	    Opx.out_reg( "PudProgClk_w1",  Gpx.PudProgClk_w1.read()  );
 	}
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );
