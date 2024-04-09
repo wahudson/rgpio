@@ -94,6 +94,31 @@ run_test( "14", "error option combination",
     Stdout => q(),
 );
 
+run_test( "15", "RPi4 info simulate",
+    "rgpio --dev=f --rpi4  info",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	                    bit:      28   24   20   16   12    8    4    0
+	  RevCode   = 0x00000000    0000 0000 0000 0000 0000 0000 0000 0000
+	    OverVoltageDis_1 = 0
+	    OtpWriteDis_1    = 0
+	    OtpReadDis_1     = 0
+	    WarrantyVoid_1   = 0
+	    NewStyle_1       = 0
+	    MemSize_3        = 0
+	    MfgNumber_4      = 0
+	    ChipNumber_4     = 0
+	    BoardType_8      = 0
+	    BoardRev_4       = 0
+	  SocEnum   = soc_BCM2711
+	  BaseAddr  = 0x00000000
+	  InFile    = /proc/cpuinfo
+	NOT on RPi
+    ),
+    #!! address is not simulated?  Flag non-RPI.
+);
+
 #---------------------------------------------------------------------------
 # info --code=
 #---------------------------------------------------------------------------
@@ -144,6 +169,29 @@ run_test( "21", "info --code bad Soc_enum",
     ),
 );
 
+run_test( "22", "info --code RPi5",
+    "rgpio --dev=f  info --code=0xffff4fff",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	                    bit:      28   24   20   16   12    8    4    0
+	  RevCode   = 0xffff4fff    1111 1111 1111 1111 0100 1111 1111 1111
+	    OverVoltageDis_1 = 1
+	    OtpWriteDis_1    = 1
+	    OtpReadDis_1     = 1
+	    WarrantyVoid_1   = 1
+	    NewStyle_1       = 1
+	    MemSize_3        = 7
+	    MfgNumber_4      = 15
+	    ChipNumber_4     = 4
+	    BoardType_8      = 255
+	    BoardRev_4       = 15
+	  SocEnum   = soc_BCM2712
+	  BaseAddr  = 0x1f00000000
+    ),
+    # note 64-bit address
+);
+
 #---------------------------------------------------------------------------
 # info --file=
 #---------------------------------------------------------------------------
@@ -181,7 +229,7 @@ run_test( "32", "info --file missing",
     Stdout => q(),
 );
 
-run_test( "33", "info --file null",
+run_test( "33", "info --file RPi3",
     "rgpio --dev=f  info --file=../ref/rpi3.in",
     0,
     Stderr => q(),
