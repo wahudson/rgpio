@@ -20,28 +20,43 @@ class rgAddrMap {
     const char		*ModeStr;	// memory mode string, NULL= unset,
 					// "/dev/mem", "/dev/gpiomem", "fake_mem"
 
-    std::map<uint32_t,void*>  BlkCache;	// cache of mapped memory blocks
+    std::map<uint64_t,void*>  BlkCache;	// cache of mapped memory blocks
 
 //  int			Prot;		// mmap() prot field
     bool		Debug;		// debug trace on stderr
 
-    static volatile uint32_t	FakeBlock[1024];	// page size 4096 byte
-    uint32_t		BaseAddr;	// real IO base address
+    static
+    const uint32_t	MaxBlock_w = 4096;  // max mapped block size, in words
+					    // RPi5 is 4 pages of 4096 bytes
+    static
+    volatile uint32_t	FakeBlock[MaxBlock_w];  // shared fake memory block
+
+    uint64_t		BaseAddr;	// real IO base address
+    uint32_t		DocBase;	// documentation base address
+    uint32_t		BlockSize;	// allocation block size, byte
 
   public:
     rgAddrMap();			// constructor
     ~rgAddrMap();			// destructor
 
-    uint32_t		bcm2rpi_addr( uint32_t  bcm_addr );
+    uint64_t		bcm2rpi_addr( uint32_t  bcm_addr );
 
+  public:	// test/debug/override
     std::string		text_debug();
 
     inline void		config_Debug(    bool v ) { Debug = v; };
     void		config_FakeNoPi( bool v );
 
-    void		config_BaseAddr( uint32_t v );
-    uint32_t		config_BaseAddr()		{ return  BaseAddr; }
+    void		config_BaseAddr( uint64_t v );
+    uint64_t		config_BaseAddr()		{ return  BaseAddr; }
 
+    void		config_DocBase(   uint32_t v )	{ DocBase = v; }
+    uint32_t		config_DocBase()		{ return  DocBase; }
+
+    void		config_BlockSize( uint32_t v )	{ BlockSize = v; }
+    uint32_t		config_BlockSize()		{ return  BlockSize; }
+
+  public:
     void		open_dev_file(
 	const char*		file,
 	bool			drop_cap = 1
@@ -74,7 +89,7 @@ class rgAddrMap {
 	return FakeMem;
     };
 
-				// Test and Debug (private)
+  public:			// Test and Debug (private)
     inline int		size_BlkCache() {
 	return  BlkCache.size();
     };

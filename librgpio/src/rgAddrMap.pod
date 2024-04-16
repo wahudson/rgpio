@@ -30,8 +30,8 @@ rgAddrMap class -- GPIO Address Map
     void                open_fake_mem();
 
     void                open_dev_file(
-        const char*             file,
-        bool                    drop_cap = 1
+	const char*             file,
+	bool                    drop_cap = 1
     );
 
     void                close_dev();
@@ -62,13 +62,13 @@ if it has already been mapped.
 
 =head2			IO Base Address Derivation
 
-Global data B<rgRpiRev::find_BaseAddr>() is used to derive the
-IO base address corresponding to BCM doc address 0x7e000000 on the
-running RPi platform.
+Global data B<rgRpiRev::Global.BaseAddr.find>() is used to derive the
+IO base address corresponding to the datasheet doc address (e.g. 0x7e000000
+on RPi4 or earlier) on the running RPi platform.
 It is called by the constructor to initialize the default B<BaseAddr>.
 
 If override is needed, it should be applied to the global data object
-B<rgRpiRev::Config> before B<rgAddrMap> is constructed.
+B<rgRpiRev::Global> before B<rgAddrMap> is constructed.
 See rgRpiRev(3).
 
 =head2			Privilege Capabilities
@@ -94,17 +94,26 @@ open device file function.
 =head2			Constructor and Configuration
 
 The constructor takes no arguments.  It creates an object with no device
-file open and attributes initialized to:
+file open and attributes initialized as follows:
 
-    Debug    = 0,  off
-    FakeNoPi = 1,  fall-back to fake memory
-    BaseAddr = value for the running RPi, i.e.
-	 0x20000000  RPi0,1
-	 0x3f000000  RPi2,3
-	 0xfe000000  RPi4
+    Debug     = 0,  off
+    FakeNoPi  = 1,  fall-back to fake memory
+    BaseAddr  = real IO base address
+    DocBase   = documentation base address
+    BlockSize = size of mapped block in bytes
 
-The config_*() functions are intended to be called once before the device
-file is opened:
+    BaseAddr      DocBase     BlockSize  Platform
+    ------------  ----------  ---------  --------
+    0x20000000    0x7e000000  0x1000     RPi0 (BCM2835)
+    0x3f000000    0x7e000000  0x1000     RPi3 (BCM2837), RPi2 (BCM2836)
+    0xfe000000    0x7e000000  0x1000     RPi4 (BCM2711)
+    0x1f00000000  0x40000000  0x4000     RPi5 (BCM2712) 64-bit address
+
+    Configuration is derived from the B<rgRpiRev> class global data,
+    which is accessed only at construction.
+
+If needed, the following config_*() functions are intended to be called once
+before the device file is opened:
 
 =over
 
@@ -178,26 +187,33 @@ function is not required.
 
 =head2			Address Mapping
 
+These functions map an IO address block into the process address space
+returning a pointer corresponding to the given documentation address.
+The argument "bcm_addr" is the full 32-bit address given in the BCM doc
+(for RPi4 and earlier) or in the Raspberry Pi RP1 doc (for RPi5).
+
 =over
 
 =item get_mem_block()
 
-Get pointer to a peripheral memory page - page aligned.
-Argument 'bcm_addr' is the peripheral address as in the BCM datasheet, page
-aligned.
+Get pointer to a peripheral memory block.
+The argument is the datasheet address, block aligned.
+The returned address points to the beginning of the block, word aligned.
+
+Note the underlying real IO memory block is block aligned, but the resulting
+mapped virtual address region is only word aligned.
+Thus offsets should be computed by addition, not bit masking.
 
 If the address has already been mapped, that block is returned.  Otherwise,
-if the device file is still open, the address is mapped into a new page with
+if the device file is still open, the address is mapped into a new block with
 the mmap(2) system call.
-
-The returned address is page aligned, or word aligned if fake memory is used.
-Page size is 4096 bytes.
 
 =item get_mem_addr()
 
-Get pointer to a peripheral memory page - word aligned.
-Same as B<get_mem_block>() above, but the address is word aligned in both the
-argument and return value.
+Get pointer to a peripheral memory block - word address.
+The memory block is the same as in B<get_mem_block>() above, but the returned
+address has the same word offset within the block (region) as the argument.
+Primarily for RPi4.
 
 =item is_fake_mem()
 
@@ -205,16 +221,18 @@ Return TRUE if using fake memory.
 
 =item bcm2rpi_addr()
 
-Convert address in "BCM2835 ARM Peripherals" datasheet to Raspberry Pi real
-address.
+Convert datasheet documentation address to a Raspberry Pi real address.
+See also BCM doc or RP1 doc below.
+Mostly for internal use.
 
 =back
 
 =head1		EXCEPTIONS
 
+ std::domain_error
+ std::logic_error
  std::range_error
  std::runtime_error
-
 
 =head1		RETURN VALUE
 
@@ -227,7 +245,7 @@ where error conditions can be detected.
 This is the full sequence of operations.
 
  // Configure rgRpiRev only if overrides are needed.
-    rgRpiRev::Config.BaseAddr.put( 0x3f000000 );
+    rgRpiRev::Global.BaseAddr.override( 0x3f000000 );
 
  // Construct object.
     rgAddrMap		amx;		// address map object
@@ -259,6 +277,9 @@ none
 
 =head1		FILES
 
+ /dev/mem
+ /dev/gpiomem
+
 In the librgpio/ source tree:
 
  src/rgAddrMap.h
@@ -274,6 +295,9 @@ In the librgpio/ source tree:
 
  BCM doc:  BCM2711 ARM Peripherals (2020-10-16)
     http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
+
+ RP1 doc:  Raspberry Pi RP1 Peripherals (2023-11-07 Draft)
+    https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
 
  https://elinux.org/BCM2835_datasheet_errata
 

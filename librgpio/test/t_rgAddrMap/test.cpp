@@ -33,8 +33,9 @@ int main()
 //## Setup
 //--------------------------------------------------------------------------
 
-uint32_t	TEST_BaseAddr = rgRpiRev::find_BaseAddr();
+uint64_t	TEST_BaseAddr = rgRpiRev::find_BaseAddr();
 
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );	// RPi4
 rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 
 //--------------------------------------------------------------------------
@@ -47,6 +48,9 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	std::string		ss;
 	ss = bx.text_debug();
 	CHECK( "ModeStr= NULL  Dev_fd= -1  FakeMem= 0", ss.c_str() );
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECKX( 0x7e000000, bx.config_DocBase() );
+	CHECKX( 0x00001000, bx.config_BlockSize() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -88,44 +92,78 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "12c", "config_BaseAddr() 64-bit" );
+    try {
+	rgAddrMap		bx;
+	CHECKX( 0x00000000,   bx.config_BaseAddr() );	// default
+	CHECK(  0,            bx.is_fake_mem() );
+	bx.config_BaseAddr( 0x1f00000000 );
+	CHECKX( 0x1f00000000, bx.config_BaseAddr() );
+	CHECK(  0,            bx.is_fake_mem() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
+
+  CASE( "13", "constructor RPi5" );
+    try {
+	rgAddrMap		bx;
+	std::string		ss;
+	ss = bx.text_debug();
+	CHECK( "ModeStr= NULL  Dev_fd= -1  FakeMem= 0", ss.c_str() );
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECKX( 0x40000000, bx.config_DocBase() );
+	CHECKX( 0x00004000, bx.config_BlockSize() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
 //## bcm2rpi_addr() address conversion
 //--------------------------------------------------------------------------
 
-  CASE( "15a", "bcm2rpi_addr()" );
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
+
+  CASE( "15a", "bcm2rpi_addr() RPi3" );
     try {
 	rgAddrMap		bx;
 	bx.config_BaseAddr( 0x3f000000 );
-	uint32_t		radd = bx.bcm2rpi_addr( 0x7e200000 );
+	CHECKX( 0x3f000000, bx.config_BaseAddr() );
+	CHECKX( 0x7e000000, bx.config_DocBase() );
+	CHECKX( 0x00001000, bx.config_BlockSize() );
+	uint64_t		radd = bx.bcm2rpi_addr( 0x7e200000 );
 	CHECKX( 0x3f200000, radd );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "15b", "bcm2rpi_addr()" );
+  CASE( "15b", "bcm2rpi_addr() minimum" );
     try {
 	rgAddrMap		bx;
 	bx.config_BaseAddr( 0x3f000000 );
-	uint32_t		radd = bx.bcm2rpi_addr( 0x7e000000 );
+	uint64_t		radd = bx.bcm2rpi_addr( 0x7e000000 );
 	CHECKX( 0x3f000000, radd );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "15c", "bcm2rpi_addr()" );
+  CASE( "15c", "bcm2rpi_addr() maximum" );
     try {
 	rgAddrMap		bx;
 	bx.config_BaseAddr( 0x3f000000 );
-	uint32_t		radd = bx.bcm2rpi_addr( 0x7effffff );
+	uint64_t		radd = bx.bcm2rpi_addr( 0x7effffff );
 	CHECKX( 0x3fffffff, radd );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "15d", "bcm2rpi_addr()" );
+  CASE( "15d", "bcm2rpi_addr() bad max" );
     try {
 	rgAddrMap		bx;
 	bx.config_BaseAddr( 0x3f000000 );
@@ -142,15 +180,15 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "15e", "bcm2rpi_addr()" );
+  CASE( "15e", "bcm2rpi_addr() bad min" );
     try {
 	rgAddrMap		bx;
 	bx.config_BaseAddr( 0x3f000000 );
-	bx.bcm2rpi_addr(    0x7dfff000 );
+	bx.bcm2rpi_addr(    0x7dffffff );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-	CHECK( "rgAddrMap:: address range check:  0x7dfff000\n"
+	CHECK( "rgAddrMap:: address range check:  0x7dffffff\n"
 	       "    not in 'BCM2835 ARM Peripherals' IO space",
 	    e.what()
 	);
@@ -160,7 +198,7 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
     }
 
 //--------------------------------------
-  CASE( "18a", "bcm2rpi_addr()" );
+  CASE( "16a", "bcm2rpi_addr()" );
     try {
 	rgAddrMap		bx;
 	bx.config_BaseAddr( 0x00000000 );
@@ -172,9 +210,11 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "18b", "bcm2rpi_addr() as not on RPi" );
+  CASE( "16b", "bcm2rpi_addr() as not on RPi" );
     try {
 	rgAddrMap		bx;
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
 	CHECKX( 0x00200000, bx.bcm2rpi_addr( 0x7e200000 ) );
 	FAIL( "no throw" );
     }
@@ -187,9 +227,84 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
+//--------------------------------------
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
+
+  CASE( "17a", "bcm2rpi_addr() RPi5" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	CHECKX( 0x1f00000000, bx.config_BaseAddr() );
+	CHECKX( 0x40000000,   bx.config_DocBase() );
+	CHECKX( 0x00004000,   bx.config_BlockSize() );
+	uint64_t		radd = bx.bcm2rpi_addr( 0x400d0004 );
+	CHECKX( 0x1f000d0004, radd );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "17b", "bcm2rpi_addr() minimum" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	uint64_t		radd = bx.bcm2rpi_addr( 0x40000000 );
+	CHECKX( 0x1f00000000, radd );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "17c", "bcm2rpi_addr() maximum" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	uint64_t		radd = bx.bcm2rpi_addr( 0x40fffffc );
+	CHECKX( 0x1f00fffffc, radd );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "17d", "bcm2rpi_addr(), bad max" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	bx.bcm2rpi_addr(      0x41000000 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgAddrMap:: address range check:  0x41000000\n"
+	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "17e", "bcm2rpi_addr(), bad min" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	bx.bcm2rpi_addr(      0x3ffffffc );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgAddrMap:: address range check:  0x3ffffffc\n"
+	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
 //## open_dev_file() - fake memory
 //--------------------------------------------------------------------------
+
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 
 //----------------------------------------
   CASE( "20a", "open_dev_file() fake_mem" );
@@ -305,7 +420,9 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
   CASE( "31", "open_fake_mem() NoPi, no throw" );
     try {
 	rgAddrMap		bx;
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.open_fake_mem();
+	CHECK(  1,          bx.is_fake_mem() );
 	std::string		ss;
 	ss = bx.text_debug();
 	CHECK( "ModeStr= fake_mem  Dev_fd= -1  FakeMem= 1", ss.c_str() );
@@ -317,7 +434,9 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
   CASE( "31b", "open_fake_mem() already" );
     try {
 	rgAddrMap		bx;
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.open_fake_mem();
+	CHECK(  1,          bx.is_fake_mem() );
 	bx.open_fake_mem();
 	FAIL( "no throw" );
     }
@@ -333,6 +452,7 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
   CASE( "32", "is_fake_mem()" );
     try {
 	rgAddrMap		bx;
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.open_fake_mem();
 	CHECK(  1,          bx.is_fake_mem() );
     }
@@ -345,6 +465,7 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
     try {
 	rgAddrMap		bx;
 	bx.config_FakeNoPi( 0 );	// throw
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.open_dev_gpiomem();
 	FAIL( "no throw" );
     }
@@ -362,6 +483,7 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
     try {
 	rgAddrMap		bx;
 	bx.config_FakeNoPi( 0 );	// throw
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.open_dev_mem();
 	FAIL( "no throw" );
     }
@@ -378,10 +500,15 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 //## get_mem_block() - fake memory
 //--------------------------------------------------------------------------
 
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
+
   CASE( "40a", "get_mem_block() no device open" );
     try {
 	rgAddrMap		bx;
 	bx.config_BaseAddr( 0x3f000000 );
+	CHECKX( 0x3f000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
+	CHECK( -1,          bx.get_DevFD() );
 	bx.get_mem_block(   0x7e200000 );
 	FAIL( "no throw" );
     }
@@ -397,6 +524,9 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
   CASE( "40b", "get_mem_block() no device open, BaseAddr=0" );
     try {
 	rgAddrMap		bx;
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
+	CHECK( -1,          bx.get_DevFD() );
 	bx.get_mem_block(   0x7e200000 );
 	FAIL( "no throw" );
     }
@@ -409,11 +539,16 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "41", "get_mem_block() good" );
+  CASE( "41", "get_mem_block() good RPi3" );
     try {
 	rgAddrMap		bx;
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
+	CHECK( -1,          bx.get_DevFD() );
 	bx.open_fake_mem();
-	bx.get_mem_block( 0x7e200000 );
+	CHECK(  1,          bx.is_fake_mem() );
+	CHECK( -1,          bx.get_DevFD() );
+	bx.get_mem_block( 0x7e201000 );
 	PASS( "ok" );
     }
     catch (...) {
@@ -424,11 +559,11 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
-	bx.get_mem_block( 0x7f200004 );
+	bx.get_mem_block( 0x7f200ffc );
 	FAIL( "no throw" );
     }
     catch ( range_error& e ) {
-	CHECK( "get_mem_block() address not aligned:  0x7f200004",
+	CHECK( "get_mem_block() address not aligned:  0x7f200ffc",
 	    e.what()
 	);
     }
@@ -504,16 +639,101 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
+//----------------------------------------
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
+
+  CASE( "47", "get_mem_block() good RPi5" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	CHECKX( 0x1f00000000, bx.config_BaseAddr() );
+	CHECKX( 0x40000000,   bx.config_DocBase() );
+	CHECKX( 0x00004000,   bx.config_BlockSize() );
+	CHECK(  0,            bx.is_fake_mem() );
+	bx.open_fake_mem();
+	CHECK(  1,            bx.is_fake_mem() );
+	bx.get_mem_block( 0x40204000 );
+	PASS( "ok" );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "47b", "get_mem_block() bad block align RPi5" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	CHECKX( 0x00004000,   bx.config_BlockSize() );
+	CHECK(  0,            bx.is_fake_mem() );
+	bx.open_fake_mem();
+	CHECK(  1,            bx.is_fake_mem() );
+	bx.get_mem_block( 0x40202000 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "get_mem_block() address not aligned:  0x40202000",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "48a", "get_mem_block() bad range RPi5" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	CHECKX( 0x40000000,   bx.config_DocBase() );
+	CHECK(  0,            bx.is_fake_mem() );
+	bx.open_fake_mem();
+	CHECK(  1,            bx.is_fake_mem() );
+	bx.get_mem_block(   0x3fff0000 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgAddrMap:: address range check:  0x3fff0000\n"
+	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "48b", "get_mem_block() bad range RPi5" );
+    try {
+	rgAddrMap		bx;
+	bx.config_BaseAddr( 0x1f00000000 );
+	CHECKX( 0x40000000,   bx.config_DocBase() );
+	CHECK(  0,            bx.is_fake_mem() );
+	bx.open_fake_mem();
+	CHECK(  1,            bx.is_fake_mem() );
+	bx.get_mem_block(   0x41000000 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "rgAddrMap:: address range check:  0x41000000\n"
+	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------------------------------------------
 //## get_mem_addr() - fake memory
 //--------------------------------------------------------------------------
 
-  CASE( "51", "get_mem_addr() good word offset" );
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
+
+  CASE( "51", "get_mem_addr() good word offset RPi3" );
     try {
 	rgAddrMap		bx;
 	volatile uint32_t*	v1;
 	volatile uint32_t*	v2;
 	bx.open_fake_mem();
+	CHECKX( 0x00001000,   bx.config_BlockSize() );
 	v1 = bx.get_mem_addr(  0x7e20044c );
 	v2 = bx.get_mem_block( 0x7e200000 );
 	CHECKX( 0x00000113, (v1 - v2)   );	// word offset
@@ -523,7 +743,7 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "52", "get_mem_addr() word alignment" );
+  CASE( "52", "get_mem_addr() bad word alignment" );
     try {
 	rgAddrMap		bx;
 	bx.open_fake_mem();
@@ -532,6 +752,41 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
     }
     catch ( range_error& e ) {
 	CHECK( "get_mem_addr() address not word aligned:  0x7e200002",
+	    e.what()
+	);
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//----------------------------------------
+rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
+
+  CASE( "55", "get_mem_addr() good word offset RPi5" );
+    try {
+	rgAddrMap		bx;
+	volatile uint32_t*	v1;
+	volatile uint32_t*	v2;
+	bx.open_fake_mem();
+	CHECKX( 0x00004000,   bx.config_BlockSize() );
+	v1 = bx.get_mem_addr(  0x400c1884 );
+	v2 = bx.get_mem_block( 0x400c0000 );
+	CHECKX( 0x00000621, (v1 - v2)   );	// word offset
+	CHECKX( 0x00001884, (v1 - v2)*4 );	// byte offset
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "56", "get_mem_addr() bad word alignment RPi5" );
+    try {
+	rgAddrMap		bx;
+	bx.open_fake_mem();
+	bx.get_mem_addr( 0x40200003 );
+	FAIL( "no throw" );
+    }
+    catch ( range_error& e ) {
+	CHECK( "get_mem_addr() address not word aligned:  0x40200003",
 	    e.what()
 	);
     }

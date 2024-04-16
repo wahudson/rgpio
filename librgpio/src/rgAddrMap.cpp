@@ -26,25 +26,23 @@ using namespace std;
 #include "rgAddrMap.h"
 
 
-#define BLOCK_SIZE	(4*1024)
-
-		// IO address space conversion:
-#define BCM2835_IO_PERI		0x7e000000	// BCM2835 ARM Peripherals
+#define PAGE_SIZE	(4*1024)	// in bytes
 
 
 /*
-* Convert address in "BCM2835 ARM Peripherals" datasheet to RPi.
+* Convert documentation address to physical RPi address.
+*    i.e. "BCM2835 ARM Peripherals" datasheet.
 *    Range check for added safety.
 *    Uses object BaseAddr, expected to be correct for the running RPi.
 */
-uint32_t
+uint64_t
 rgAddrMap::bcm2rpi_addr(
     uint32_t		bcm_addr	// "BCM2835 ARM Peripherals" address
 )
 {
-    // Check address is in BCM2835 ARM Peripherals IO space.
-    if ( (bcm_addr <   BCM2835_IO_PERI) ||
-	 (bcm_addr >= (BCM2835_IO_PERI + 0x01000000)) )
+    // Check address is in the peripherals IO space.
+    if ( (bcm_addr <   DocBase) ||
+	 (bcm_addr >= (DocBase + 0x01000000)) )
     {
 	std::ostringstream	css;
 	css << "rgAddrMap:: address range check:  0x"
@@ -59,41 +57,72 @@ rgAddrMap::bcm2rpi_addr(
 	throw std::runtime_error ( css.str() );
     }
 
-    return  (bcm_addr - BCM2835_IO_PERI + BaseAddr);
+    return  (bcm_addr - DocBase + BaseAddr);
 }
 
 
 /*
 * Fake memory block - Class Data.
-*    Is one page (4096 byte) in size, but need not be page aligned.
+*    Size:  Was one page (4096 byte) on RPi4 and earlier;  Now is 4 pages
+*        (4 * 4096 byte) on RPi5 to accommodate "Atomic register access".
+*    Alignment:  Is word aligned, NOT page aligned.
 *    Address pointers are byte addresses, word aligned.
-*    Array index is by word (uint32_t), but not used that way.
 *    A static array is guaranteed to start off zero, providing reproducible
 *    results.
 */
-volatile uint32_t    rgAddrMap::FakeBlock[1024];
+volatile uint32_t    rgAddrMap::FakeBlock[MaxBlock_w];
 
 
 /*
 * Constructor.
-*    Bare uninitialized object.
+*    Construction is initialization.
+*    Intend that rgRpiRev is accessed only in the constructor.
+* exceptions:
+*    std::domain_error
+*    std::logic_error
 */
 rgAddrMap::rgAddrMap()
 {
+    rgRpiRev::Soc_enum		soc;
+
     Dev_fd  = -1;		// not open
-    FakeMem = 0;		// using real memory
     FakeNoPi = 1;		// 1= fake mem, 0= throw error, when not on RPi
     ModeStr = NULL;
-//  Prot    = PROT_READ | PROT_WRITE;
     Debug   = 0;
-    BaseAddr = rgRpiRev::find_BaseAddr();
+    DocBase   = 0x7e000000;	// RPi4 or earlier
+    BlockSize = PAGE_SIZE;
+
+    BaseAddr  = rgRpiRev::Global.BaseAddr.find();
+    FakeMem   = rgRpiRev::Global.RevCode.find_realpi();
+    soc       = rgRpiRev::Global.SocEnum.find();
+
+    if      ( soc == rgRpiRev::soc_BCM2712 ) {		// RPi5
+	DocBase   = 0x40000000;
+	BlockSize = 4 * PAGE_SIZE;
+    }
+    else if ( soc >  rgRpiRev::soc_BCM2712 ) {
+	throw std::domain_error (
+	    "rgAddrMap:  require RPi5 (soc_BCM2712) or earlier"
+	);
+    }
+
+    if ( BlockSize > (4 * MaxBlock_w) ) {	// should never happen
+	throw std::logic_error (
+	    "rgAddrMap:  internal bad BlockSize > (4*MaxBlock_w)"
+	);
+    }
 }
 
 
 /*
 * Destructor.
 *    File descriptors are a global process resource, and must be released
-*    when the object is destroyed.  They are aquired in open_dev_file().
+*    when the object is destroyed.  They are acquired in open_dev_file().
+* Address Maps from mmap(2) are not released:  #!!
+*    This allows addresses extracted from Feature register classes to remain
+*    valid, but is a potential resource leak.
+*    It is intended that one rgAddrMap object be created and last the life of
+*    the process.
 */
 rgAddrMap::~rgAddrMap()
 {
@@ -133,7 +162,7 @@ rgAddrMap::text_debug()
 *    config_BaseAddr( 0x20000000 )
 */
 void
-rgAddrMap::config_BaseAddr( uint32_t  addr )
+rgAddrMap::config_BaseAddr( uint64_t  addr )
 {
     if ( ! addr ) {
 	FakeMem = 1;
@@ -281,7 +310,7 @@ rgAddrMap::close_dev()
 
 	if ( -1 == close( Dev_fd ) ) {
 	    int		errv = errno;
-	    std::string	ss ( "close_dev() failed:  " );
+	    std::string	ss ( "rgAddrMap::close_dev() failed:  " );
 	    ss += strerror( errv );
 	    throw std::runtime_error ( ss );
 	}
@@ -295,21 +324,30 @@ rgAddrMap::close_dev()
 * call:
 *    get_mem_block( bcm_addr )
 *    bcm_addr = peripheral address as in BCM datasheet, block aligned.
-*		e.g. 0x7e200000 is GPIO pins
+*        e.g. 0x7e200000 is GPIO pins on RPi4
 * return:
-*    ()  = virtual address of 4096 byte IO memory block, page aligned.
-*		Fake memory is word aligned.
+*    ()  = virtual address of IO memory block, word aligned.
+*    Size is 1024 words for RPi4 and earlier;  4096 words RPi5.
+*    Only word alignment is guaranteed.
+*
+*    The underlying real IO memory block is block aligned, but the resulting
+*    mapped virtual address might be page aligned at best.  See mmap(2).
+*    Fake memory is definitely only word aligned.
+*    Thus offsets should be computed by addition, not bit masking.
+* exceptions:
+*    std::range_error
+*    std::runtime_error
 */
 volatile uint32_t*
 rgAddrMap::get_mem_block(
     uint32_t		bcm_addr
 )
 {
-    uint32_t		r_addr;		// RPi real addr
+    uint64_t		r_addr;		// RPi real addr
     void*		mem_block;
 
-    // Check page alignment.
-    if ( (bcm_addr & 0x0fff) != 0 ) {
+    // Check block alignment.
+    if ( (bcm_addr & (BlockSize - 1)) != 0 ) {
 	std::ostringstream	css;
 	css << "get_mem_block() address not aligned:  0x"
 	    <<hex << bcm_addr;
@@ -338,8 +376,8 @@ rgAddrMap::get_mem_block(
 
     // map GPIO into our memory
     mem_block = mmap(
-	NULL,			// Any adddress in our space will do
-	BLOCK_SIZE,		// Map length
+	NULL,			// Any address in our space will do
+	BlockSize,		// Map length
 	PROT_READ|PROT_WRITE,	// Enable reading & writing to mapped memory
 	MAP_SHARED,		// Shared with other processes
 	Dev_fd,			// File descriptor to map
@@ -364,24 +402,25 @@ rgAddrMap::get_mem_block(
 
 /*
 * Get peripheral memory block address - word aligned.
-*    Calls get_mem_block() and returns address within that page.
+*    Calls get_mem_block() and returns the address within that block.
 *    The given address need be only word aligned.  For use with new RPi4
 *    register groups.
 * Note:  Register pointers (uint32_t*) are byte addresses, word aligned.
-*    This makes correct offset calculations a bit tricky.
+*    Word pointers add word offset, not byte offset.
+*    Fake memory is word aligned, NOT block (or page) aligned.
 * call:
 *    get_mem_addr( bcm_addr )
 *    bcm_addr = peripheral address as in BCM datasheet, word aligned.
-*		e.g. 0x7e205a80 is iic3 register group
+*        e.g. 0x7e205a80 is iic3 register group
 * return:
-*    ()  = virtual address of 4096 byte IO memory block, word aligned.
+*    ()  = virtual address in IO memory block, word aligned.
 */
 volatile uint32_t*
 rgAddrMap::get_mem_addr(
     uint32_t		bcm_addr
 )
 {
-    uint32_t		offset;		// word offset within 4096 byte page
+    uint32_t		offset;		// word offset within block
     volatile uint32_t*	addr;		// return address
 
     // Check word alignment.
@@ -392,8 +431,10 @@ rgAddrMap::get_mem_addr(
 	throw std::range_error ( css.str() );
     }
 
-    offset =            ( bcm_addr & 0x00000fff ) >> 2;
-    addr = get_mem_block( bcm_addr & 0xfffff000 );
+    uint32_t		mask = BlockSize - 1;	// e.g. 0x00000fff
+
+    offset =            ( bcm_addr &    mask  ) >> 2;
+    addr = get_mem_block( bcm_addr & (~ mask) );
 
     addr += offset;	// word pointer calculation
 
