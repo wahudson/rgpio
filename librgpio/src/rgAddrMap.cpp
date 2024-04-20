@@ -47,8 +47,8 @@ rgAddrMap::bcm2rpi_addr(
 	std::ostringstream	css;
 	css << "rgAddrMap:: address range check:  0x"
 	    <<hex << bcm_addr <<endl
-	    << "    not in 'BCM2835 ARM Peripherals' IO space" ;
-	throw std::range_error ( css.str() );
+	    << "    not in ARM Peripherals IO space 0x" << DocBase;
+	throw std::domain_error ( css.str() );
     }
 
     if ( (BaseAddr == 0) && (! FakeMem) ) {	// using a null address
@@ -241,7 +241,7 @@ rgAddrMap::open_dev_file(
 	    return;
 	}
 	else {
-	    throw std::runtime_error ( "rgAddrMap:  not on a RaspberryPi" );
+	    throw std::domain_error ( "rgAddrMap:  not on a RaspberryPi" );
 	}
     }
 

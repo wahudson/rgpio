@@ -170,9 +170,9 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 	bx.bcm2rpi_addr(    0x7f000000 );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x7f000000\n"
-	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	       "    not in ARM Peripherals IO space 0x7e000000",
 	    e.what()
 	);
     }
@@ -187,9 +187,9 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 	bx.bcm2rpi_addr(    0x7dffffff );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x7dffffff\n"
-	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	       "    not in ARM Peripherals IO space 0x7e000000",
 	    e.what()
 	);
     }
@@ -273,9 +273,9 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
 	bx.bcm2rpi_addr(      0x41000000 );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x41000000\n"
-	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	       "    not in ARM Peripherals IO space 0x40000000",
 	    e.what()
 	);
     }
@@ -290,9 +290,9 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
 	bx.bcm2rpi_addr(      0x3ffffffc );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x3ffffffc\n"
-	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	       "    not in ARM Peripherals IO space 0x40000000",
 	    e.what()
 	);
     }
@@ -365,7 +365,7 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 	bx.open_dev_file( "/dev/gpiomem" );
 	FAIL( "no throw" );
     }
-    catch ( runtime_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:  not on a RaspberryPi",
 	    e.what()
 	);
@@ -404,7 +404,7 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 	bx.open_dev_file( "/dev/null" );
 	FAIL( "no throw" );
     }
-    catch ( runtime_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:  not on a RaspberryPi",
 	    e.what()
 	);
@@ -469,7 +469,7 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 	bx.open_dev_gpiomem();
 	FAIL( "no throw" );
     }
-    catch ( runtime_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:  not on a RaspberryPi",
 	    e.what()
 	);
@@ -487,7 +487,7 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 	bx.open_dev_mem();
 	FAIL( "no throw" );
     }
-    catch ( runtime_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:  not on a RaspberryPi",
 	    e.what()
 	);
@@ -578,9 +578,9 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
 	bx.get_mem_block( 0x7f000000 );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x7f000000\n"
-	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	       "    not in ARM Peripherals IO space 0x7e000000",
 	    e.what()
 	);
     }
@@ -690,9 +690,9 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
 	bx.get_mem_block(   0x3fff0000 );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x3fff0000\n"
-	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	       "    not in ARM Peripherals IO space 0x40000000",
 	    e.what()
 	);
     }
@@ -711,9 +711,9 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
 	bx.get_mem_block(   0x41000000 );
 	FAIL( "no throw" );
     }
-    catch ( range_error& e ) {
+    catch ( domain_error& e ) {
 	CHECK( "rgAddrMap:: address range check:  0x41000000\n"
-	       "    not in 'BCM2835 ARM Peripherals' IO space",
+	       "    not in ARM Peripherals IO space 0x40000000",
 	    e.what()
 	);
     }
