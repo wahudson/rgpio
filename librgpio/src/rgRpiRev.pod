@@ -23,46 +23,62 @@ rgRpiRev class -- Raspberry Pi Revision
     static rgRpiRev	Global;     // global config data is this class
 
   public:
-    enum Soc_enum {	// SOC chip identifiers
+    enum Soc_enum {	// SOC chip identifiers, order is relied upon
 	soc_BCM2835 = 0,	// RPi1, Zero
 	soc_BCM2836,		// RPi2
 	soc_BCM2837,		// RPi3, and later RPi2
 	soc_BCM2711,		// RPi4
-	soc_MaxEnum = soc_BCM2711	// maximum enum
+	soc_BCM2712 		// RPi5, RP1 io chip
     };
 
     rgRpiRev();			// constructor
 
-				// preferred short-hand accessors
+  public:	// class methods on Global data
+
+    static void		simulate_RevCode( uint32_t code );
+    static void		simulate_SocEnum( Soc_enum soc );
+    static void		simulate();
+
     static Soc_enum	find_SocEnum() { return Global.SocEnum.find(); }
     static uint32_t	find_BaseAddr(){ return Global.BaseAddr.find();}
 
     static const char*	cstr_SocEnum() { return Global.SocEnum.cstr(); }
 
-				// enum conversions
+		// enum conversions
     static const char*	soc_enum2cstr( Soc_enum  soc );
     static Soc_enum	int2soc_enum(  int       num );
+
+		// platform IO capability functions
+    static void		initialize_ioRPi();
+    static bool		ioRPiReal();
+    static bool		ioRPi0();
+    static bool		ioRPi3();
+    static bool		ioRPi4();
+    static bool		ioRPi5();
  };
 
 =head2		Common Functions of  RevCode, SocEnum, BaseAddr
 
-    uint32_t		find();
-
-    uint32_t		get()		    { return  WordVal; }
-    void		put( uint32_t v )   { WordVal = v; Final = 1; }
-
     bool		is_final()		{ return  Final; }
-    void		mark_final()		{ Final = 1; }
-    void		clear_final()		{ Final = 0; }
+    bool		is_unknown()		{ return  Unknown; }
+
+=head2		BaseAddr object Functions
+
+    uint64_t		find();
+    void		override( uint64_t v );
 
 =head2		SocEnum object Functions
 
-    bool		is_fail()		{ return FailDerive; }
-
+    Soc_enum		find();
     const char*		cstr()    { return  soc_enum2cstr( find() ); }
+    void		override( Soc_enum v );
+    void		defaultv( Soc_enum v );
 
 =head2		RevCode object Functions
 
+    uint32_t		find();
+    void		override( uint32_t v );
+    void		defaultv( uint32_t v );
     void		init_file( const char* v )  { InFile = v; }
     const char*		init_file()		    { return  InFile; }
 
@@ -99,39 +115,41 @@ rgRpiRev class -- Raspberry Pi Revision
     void		put_BoardRev_4( uint32_t v );
 
 
-
 =head1		DESCRIPTION
 
-This class, B<rgRpiRev>, provides global configuration for switching
-software behavior in accessing IO peripheral hardware, which has evolved
-in a mostly compatible way with each Raspberry Pi (RPi) model.
-It is intended for use in both the library and user code.
+The purpose of the B<rgRpiRev> class is to provide global identification of
+the Raspberry Pi (RPi) model.  The peripheral registers vary with each model
+and have corresponding differences in the library.
 
-For this purpose, the two primary attributes needed are B<BaseAddr> and
-B<SocEnum>, which can be derived from B<RevCode>:
+Two primary attributes needed by the library are B<BaseAddr> for mapping
+IO registers, and B<SocEnum> for switching code behavior.
+Both can be derived from B<RevCode>.  They are defined as follows:
 
 B<BaseAddr> - Base address of IO peripheral memory in the ARM physical
 address space, and corresponding to the "legacy master address" 0x7e00_0000
 specified in the BCM Doc [1][2].
-Used in rgAddrMap to map /dev/mem for each peripheral feature.
+Used in B<rgAddrMap> to map /dev/mem for each peripheral feature.
+Derived from B<SocEnum> using a hardcoded lookup table.
 
-    BaseAddr    RPi Model
-    ----------  ---------
-    0x20000000  RPi1, Zero
-    0x3f000000  RPi2,3
-    0xfe000000  RPi4
+    BaseAddr      RPi Model
+    ----------    ---------
+    0x20000000    RPi1, Zero
+    0x3f000000    RPi2,3
+    0xfe000000    RPi4
+    0x1f00000000  RPi5, 64-bit
 
-B<SocEnum> - Processor chip ID.
-Raspberry Pi is an SOC (System On a Chip).  The chip determines what
-peripheral features exist and how they behave.
+B<SocEnum> - Processor chip SOC (System On a Chip) identification.
+The chip determines what peripheral features and registers exist.
 Used by the library and user code to switch behavior as needed.
+Derived from the corresponding B<RevCode> field.
 
-    SocEnum     RPi Model [3]
-    ----------  -------------
-    0: BCM2835  RPi1, Zero
-    1: BCM2836  RPi2
-    2: BCM2837  RPi3, and later RPi2
-    3: BCM2711  RPi4
+    SocEnum         RPi Model
+    --------------  ----------
+    0: soc_BCM2835  RPi1, Zero
+    1: soc_BCM2836  RPi2
+    2: soc_BCM2837  RPi3, and later RPi2
+    3: soc_BCM2711  RPi4
+    4: soc_BCM2712  RPi5, using RP1 io chip
 
 B<RevCode> - Raspberry Pi revision code.
 This is a 32-bit word stored in the OTP (One Time Programmable) memory on
@@ -139,63 +157,52 @@ the chip, and contains fields for the various hardware attributes of the
 system (see below).
 It is typically read from the "Revision" line in the /proc/cpuinfo file [4].
 It can also be read as register 30 with the command "vcgencmd otp_dump" [5].
+Not directly used by the library, but available for user code.
+
+Here these attributes are referred to as "registers", to parallel the
+hardware registers of other peripheral Features.
+
+=head2			Derivation
 
 These three attributes are derived as follows:  (arrow to source)
 
     BaseAddr -> SocEnum -> RevCode -> /proc/cpuinfo
 
-The attributes are cached, and so each is derived only once.
-Here they are referred to as "registers", to parallel the hardware registers
-of other peripheral features.
+The derivation of values is automatic as needed by the find() functions.
+Caching prevents re-derivation, since they are not expected to change over
+the life of the program process.
 
-Each register class inherits from an rgWord class that provides the common
-caching storage.  Each class implements its own find() function, which is
-the caching accessor.
-The register classes themselves are considered mostly private.
-
-Failed derivation is indicated in each register by:
-
-    RevCode.find()    == 0
-    SocEnum.is_fail() == TRUE
-    BaseAddr.find()   == 0
-
-If running on a non-RPi machine no exceptions are thrown, but failed
-derivation conditions are set.
 Exceptions are thrown only if there is an error in derivation,
-i.e. if /proc/cpuinfo cannot be opened, or has a "Revision" line of bad
+e.g. if /proc/cpuinfo cannot be opened, or has a "Revision" line of bad
 format.  No "Revision" line implies not an RPi.
-The idea is to not make exceptions too burdensome, but have failed conditions
-that can be checked.
 
-Initial values of the global B<rgRpiRev::Global> registers are set for
-automatic derivation:
+=head2			Configuration/Override
 
-    RevCode.get()     == 0
-    SocEnum.get()     == rgRpiRev::soc_BCM2835
-    SocEnum.is_fail() == TRUE
-    BaseAddr.get()    == 0
+Simulation:  When on a non-RPi platform, the library (i.e. B<rgAddrMap>)
+falls back to a simulation mode with a block of fake IO memory.
+The user can also force the simulation mode, e.g. when on a real RPi.
 
-    RevCode.is_final()  == 0
-    SocEnum.is_final()  == 0
-    BaseAddr.is_final() == 0
+Override:  The automatic derivation may be wrong.
+Override of the three essential values is provided by the object
+override() functions.
 
-They can be individually overridden by:  e.g. for RPi4
+Default:  Default values can be specified for B<RevCode> and B<SocEnum> by
+the defaultv() functions.
+These values will be used for fallback simulation on a non-Rpi,
+and replaced by derived values on a real-RPi.
 
-    RevCode.put( 0x00a03111 );
-    SocEnum.put( rgRpiRev::soc_BCM2711 );
-    BaseAddr.put( 0xfe000000 );
+It is intended that all global configuration/override be done with the
+B<rgRpiRev> class before any B<rgAddrMap> class object is constructed.
+Non-global data, i.e. in a constructed object, can be manipulated any time.
 
 =head2			Global Data
 
 =over
 
-=item B<rgRpiRev::Global>	- Global data is this class
+=item B<rgRpiRev::Global>	- Global data object of this class.
 
-This is the intended primary use.
-
-The B<Global> member is a static member of this class, whose type is this
-class.  This definition seems a bit recursive, but not really.  Each object
-has a member B<Global> that is a reference to the same global class data.
+This global data is the intended primary use.  It is a class member (i.e.
+qualified by the class name) to avoid additional global names.
 
 =back
 
@@ -206,17 +213,26 @@ has a member B<Global> that is a reference to the same global class data.
 =item B<rgRpiRev>()	- Construct and initialize a new object.
 
 This is typically not needed, but is useful for manipulations without
-disturbing the global data object B<Global>.
+disturbing the global data object B<rgRpiRev::Global>.
 
 =back
 
-=head2			Top Level Caching find() Functions
+=head2			Top Level Class Functions
 
-These inline functions simply call the corresponding register REG.B<find>()
-function (see below).
-Note these static functions access the global data object B<Global>.
+These all access the B<rgRpiRev::Global> global data object.
 
 =over
+
+=item B<simulate_RevCode>()	- force simulation of RevCode value
+
+=item B<simulate_SocEnum>()	- force simulation of SocEnum value
+
+=item B<simulate>()		- force simulation on current RPi platform
+
+Force simulation of the given SocEnum or RevCode, essentially flagging the
+value as Final and Known.  B<BaseAddr> is not simulated and is forced zero.
+The intent is for the library to behave as if the platform was the
+specified SocEnum but not actually access any hardware registers.
 
 =item B<find_SocEnum>()		- return B<Global.SocEnum.find>()
 
@@ -224,57 +240,51 @@ Note these static functions access the global data object B<Global>.
 
 =item B<cstr_SocEnum>()		- return C-string for B<Global.SocEnum.find>()
 
+These functions provide a class-level abstraction of the corresponding register
+REG.B<find>() functions (see below).
+Recommended for user code.
+
 =back
 
 =head2			Common Functions of  RevCode, SocEnum, BaseAddr
 
-All three registers have these basic functions, although the type for the
-B<SocEnum> register is actually B<Soc_enum>.
-The primary cache operations are B<find>() and B<put>(), while the others are
-intended for testing and inspection.
+All three registers have these basic functions, although the value type may be
+different.
 
 =over
 
-=item REG.B<find>()	- Get/find the cached value.
+=item REG.B<find>()		- Get/find the cached value.
 
 This is a caching accessor to get/derive the register value.
-Normally it returns cached value, if marked final.
-If not final, then derive its value, and mark final.
-If derivation failed, then set value to zero (leave unchanged in the case of
-B<SocEnum>) and mark final.
+Normally it returns cached value, if marked Final.
+If not Final, then derive its value, and mark Final.
+If derivation failed, then leave default value and mark Unknown.
 
-=item REG.B<put>( v )	- Configure the cached value.
+=item REG.B<override>( v )	- Configure the cached value.
 
-Put the value into the word cache and mark it final.  Effectively sets the
+Put the value into the cache and mark it Final.  Effectively forces the
 value that B<find>() will return without derivation.
 
-=item REG.B<get>()
+=item REG.B<defaultv>( v )	- Configure the default value.
 
-This simple accessor returns the word value.
+This is the default value used when on a non-RPi platform.
+Not implemented for B<BaseAddr>, i.e. not needed.
 
 =item REG.B<is_final>()
 
-=item REG.B<mark_final>()
+=item REG.B<is_unknown>()
 
-=item REG.B<clear_final>()
-
-These accessors observe and modify the Final flag.
+These accessors observe the Final and Unknown flags.
 
 =back
 
 =head2			SocEnum object Functions
 
-The SocEnum object has all the common functions above, but where a B<uint32_t>
-value is passed, an B<rgRpiRev::Soc_enum> value is passed instead.
-
-In addition, it has a B<FailDerive> flag that is true if the find() function
-was unable to derive a new SocEnum value.
-
 =over
 
-=item B<is_fail>()      - return True if B<FailDerive> is true.
-
 =item B<cstr>()         - return C-string of B<SocEnum.find>() result.
+
+Return the SOC chip name string, e.g. "BCM2835".
 
 =back
 
@@ -286,8 +296,8 @@ was unable to derive a new SocEnum value.
 
 =item B<init_file>()		- return revcode file name
 
-Accessors to configure the input file name, which will be read to get the
-revision code.
+Accessors to configure the input file name that will be read to get the
+revision code.  Default is "/proc/cpuinfo".
 
 =back
 
@@ -312,6 +322,8 @@ is the field width.
     ChipNumber_4        [15:12]  PPPP      Processor chip ID number
     BoardType_8         [11:4]   TTTTTTTT  Type
     BoardRev_4          [3:0]    RRRR      Revision
+
+    Word bits:  NOQu uuWu FMMM CCCC PPPP TTTT TTTT RRRR
 
 =over
 
@@ -347,21 +359,46 @@ the B<RevCode>.
 
 =back
 
-=head2			Override Ordering
+=head2			Platform IO capability functions
 
-The derivation chain makes a difference in find() results depending on whether
-the put() override occurs before or after.  e.g. (assuming no registers
-are final)
+The idea is to have a set of global (static) flags that indicate the current
+platform.  If the flag is TRUE, then that is the running platform, else the
+platform is unknown.  Unknown is critical here, because future extension may
+add new platforms, e.g. RPi6.  Knowing that it is not RPi5 does not imply it
+must be RPi4 thru RPi1.
 
-Here BaseAddr derives from SocEnum:
+Intended as an alternative to switching on the SocEnum values directly.
+We shall see how it works out.
 
-    SocEnum.put( rgRpiRev::soc_BCM2711 );
-    addr = BaseAddr.find();		// derive from SocEnum
+The function names, e.g. ioRPi3(), indicate the IO is like RPi3 for library
+purposes.
 
-Here BaseAddr derives from ReVCode:
+=over
 
-    addr = BaseAddr.find();		// SocEnum derives from ReVCode
-    SocEnum.put( rgRpiRev::soc_BCM2711 );
+=item B<initialize_ioRPi>()	- Initialize all ioRPi flags
+
+Constructed global flag values are all false.  This function calls find() on
+each register to derive its value and throws an exception if it remains
+Unknown.  Any override() and simulate() functions should be called first.
+
+If the ioRPi() functions are not needed, then no need to call this function.
+
+=item B<ioRPiReal>()		- Running on a real RPi
+
+True only if it is a real RPi and not simulation mode.
+
+=item B<ioRPi0>()		- RPi0, 1, 2
+
+=item B<ioRPi3>()
+
+=item B<ioRPi4>()
+
+=item B<ioRPi5>()
+
+True only for the named RPi platform, regardless of simulation.
+These in-line functions simply return a global flag.
+
+=back
 
 
 =head1		EXCEPTIONS
@@ -379,63 +416,47 @@ where error conditions can be detected.
 =head1		EXAMPLES
 
  #include <stdexcept>
-    uint32_t			code, addr;
+    uint32_t			code;
+    uint64_t			addr;
     rgRpiRev::Soc_enum		soc;
-    bool			final, fail;
-
- // Query the global configuration
-    code  = rgRpiRev::Global.RevCode.get();
-    final = rgRpiRev::Global.RevCode.is_final();
-
-    soc   = rgRpiRev::Global.SocEnum.get();
-    final = rgRpiRev::Global.SocEnum.is_final();
-    fail  = rgRpiRev::Global.SocEnum.is_fail();
-
-    addr  = rgRpiRev::Global.BaseAddr.get();
-    final = rgRpiRev::Global.BaseAddr.is_final();
-
- // Configure global
-    rgRpiRev::Global.SocEnum.put( rgRpiRev::soc_BCM2711 );
 
  // Find/derive values
     code  = rgRpiRev::Global.RevCode.find();
 
     soc   = rgRpiRev::Global.SocEnum.find();
-    soc   = rgRpiRev::find_SocEnum();		// short-hand
+    soc   = rgRpiRev::find_SocEnum();		// equivalent
 
     addr  = rgRpiRev::Global.BaseAddr.find();
-    addr  = rgRpiRev::find_BaseAddr();		// short-hand
-
- // Apply to rgAddrMap
-    rgAddrMap		amx;		// address map object
-    amx.config_BaseAddr( rgRpiRev::find_BaseAddr() );
+    addr  = rgRpiRev::find_BaseAddr();		// equivalent
 
  // Switch behavior on SocEnum
     switch ( rgRpiRev::find_SocEnum() ) {
       case  rgRpiRev::soc_BCM2835:
       case  rgRpiRev::soc_BCM2836:
       case  rgRpiRev::soc_BCM2837:
-        ...
-        break;
+	...
+	break;
       case  rgRpiRev::soc_BCM2711:
-        ...
-        break;
+	...
+	break;
+    }
+
+ // Initialize the platform ioRPi*() functions
+    rgRpiRev::initialize_ioRPi();
+
+ // Switch behavior on ioRPi*() functions
+    if ( rgRpiRev::ioRPi4() ) {
+	...
+    }
+    else if ( rgRpiRev::ioRPi3() || rgRpiRev::ioRPi0() ) {
+	...
     }
 
  // Extract a RevCode field
     code = rgRpiRev::Global.RevCode.get_MemSize_3();
 
- // Ensure no later exceptions by deriving each value:
-    try {
-	rgRpiRev::find_BaseAddr();
-	rgRpiRev::find_SocEnum();
-    }
-    catch ( std::runtime_error& e ) {
-	cerr << "Error:  " << e.what() <<endl;
-    }
-
- // Construct a local object, unrelated to global rgRpiRev::Global, which
- //     has all the same functions.
+ // Construct a local object, unrelated to global rgRpiRev::Global,
+ //     but has all the same functions.
     rgRpiRev		rvx;
     addr = rvx.BaseAddr.find();
     soc  = rvx.SocEnum.find();
@@ -444,6 +465,8 @@ where error conditions can be detected.
 
 
 =head1		FILES
+
+ /proc/cpuinfo
 
 In the librgpio/ source tree:
 
@@ -454,15 +477,20 @@ In the librgpio/ source tree:
 =head1		SEE ALSO
 
  rgAddrMap(3)
+ librgpio(3)
  rgpio-info(1)
 
- BCM Doc:
- [1] https://www.raspberrypi.org/documentation/hardware/raspberrypi/bcm2835/BCM2835-ARM-Peripherals.pdf
- [2] https://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
+ [1] BCM2835 ARM Peripherals 2012-02-06  (accessed 2024-04-19)
+    https://datasheets.raspberrypi.com/bcm2835/bcm2835-peripherals.pdf
 
- [3] https://www.raspberrypi.org/documentation/hardware/raspberrypi/
- [4] https://www.raspberrypi.org/documentation/hardware/raspberrypi/revision-codes/README.md
- [5] https://www.raspberrypi.org/documentation/raspbian/applications/vcgencmd.md
+ [2] BCM2711 ARM Peripherals 2022-01-18  (accessed 2024-04-19)
+    https://datasheets.raspberrypi.com/bcm2711/bcm2711-peripherals.pdf
+
+ [4] Raspberry Pi revision codes  (accessed 2024-04-19)
+    https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#raspberry-pi-revision-codes
+
+ [5] Raspberry Pi OS - vcgencmd  (accessed 2024-04-19)
+    https://www.raspberrypi.com/documentation/computers/os.html#vcgencmd
 
 =cut
 
