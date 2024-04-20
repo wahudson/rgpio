@@ -422,7 +422,7 @@ int
 y_uspi::doit()
 {
 
-    try {
+    {
 	uspi_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -653,12 +653,6 @@ y_uspi::doit()
 	    cout <<dec;
 	}
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

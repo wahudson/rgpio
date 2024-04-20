@@ -287,7 +287,7 @@ int
 y_pads::doit()
 {
 
-    try {
+    {
 	pads_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -371,12 +371,6 @@ y_pads::doit()
 
 //	do_reg( "PadsA_27s0",  &Px.PadsA_27s0  );
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

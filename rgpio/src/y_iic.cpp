@@ -376,7 +376,7 @@ int
 y_iic::doit()
 {
 
-    try {
+    {
 	iic_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -573,12 +573,6 @@ y_iic::doit()
 
 	}
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

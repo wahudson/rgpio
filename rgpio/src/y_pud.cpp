@@ -382,6 +382,5 @@ y_pud::doit()
     }
 
     return ( Error::has_err() ? 1 : 0 );
-    //#!! return value?
 }
 

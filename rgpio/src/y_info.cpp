@@ -190,7 +190,7 @@ int
 y_info::doit()
 {
 
-    try {
+    {
 	info_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -265,12 +265,6 @@ y_info::doit()
 	    cout << "NOT on RPi" <<endl;
 	}
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

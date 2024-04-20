@@ -250,7 +250,7 @@ int
 y_timer::doit()
 {
 
-    try {
+    {
 	timer_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -333,12 +333,6 @@ y_timer::doit()
 		;
 	}
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

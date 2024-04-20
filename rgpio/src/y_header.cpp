@@ -257,7 +257,7 @@ int
 y_header::doit()
 {
 
-    try {
+    {
 	header_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -468,12 +468,6 @@ y_header::doit()
 		 <<endl;
 	}
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

@@ -547,7 +547,7 @@ int
 y_io::doit()
 {
 
-    try {
+    {
 	io_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -681,12 +681,6 @@ y_io::doit()
 	APPLY( Fsel4,              "Fsel4"              )
 	APPLY( Fsel5,              "Fsel5"              )
 
-    }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
     }
 
     return ( Error::has_err() ? 1 : 0 );

@@ -378,7 +378,7 @@ int
 y_pwm::doit()
 {
 
-    try {
+    {
 	pwm_yOptLong		Opx  ( MainOpx );	// constructor
 
 	Opx.parse_options();
@@ -561,14 +561,7 @@ y_pwm::doit()
 	}
 
     }
-    catch ( std::exception& e ) {
-	Error::msg( "exception caught:  " ) << e.what() <<endl;
-    }
-    catch (...) {
-	Error::msg( "unexpected exception\n" );
-    }
 
     return ( Error::has_err() ? 1 : 0 );
-    //#!! return value?
 }
 
