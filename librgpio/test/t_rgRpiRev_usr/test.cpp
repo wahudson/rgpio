@@ -3,7 +3,7 @@
 // Testing:  rgRpiRev class - Main user interface, only Global.
 //    10-19  Global constructed state
 //    20-29  RevCode.defaultv(), SocEnum.defaultv()
-//    30-39  default_RevCode(), default_SocEnum()
+//    30-39  .
 //    40-49  simulate_RevCode(), simulate_SocEnum(), simulate()
 //    50-59  Register override(), Low-level
 //    60-68  .
@@ -258,43 +258,6 @@ int main()
 	CHECK(  1,                    rgRpiRev::ioRPi3() );
 	CHECK(  0,                    rgRpiRev::ioRPi4() );
 	CHECK(  0,                    rgRpiRev::ioRPi5() );
-    }
-    catch (...) {
-	FAIL( "unexpected exception" );
-    }
-
-//--------------------------------------------------------------------------
-//## default_RevCode(), default_SocEnum()
-//--------------------------------------------------------------------------
-
-  CASE( "30", "default_RevCode(), default_SocEnum() win over override()" );
-    try {
-	Reset_Global();
-	rgRpiRev::Global.RevCode.init_file( "ref/rpi0.in" );
-	rgRpiRev::Global.RevCode.override( 0xffffffff );
-	rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2836 );
-	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
-	CHECKX( 0xffffffff,           rgRpiRev::Global.RevCode.get() );
-	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
-	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
-	rgRpiRev::Global.default_RevCode( 0x00803000 );
-	rgRpiRev::Global.default_SocEnum( rgRpiRev::soc_BCM2837 );
-	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
-	CHECKX( 0x00803000,           rgRpiRev::Global.RevCode.get() );
-	CHECK(  1,                    rgRpiRev::Global.RevCode.is_unknown() );
-	CHECK(  0,                    rgRpiRev::Global.RevCode.is_final() );
-	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );

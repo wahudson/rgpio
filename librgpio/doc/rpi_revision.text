@@ -1575,6 +1575,17 @@ Class vs Object methods:
     The implementation can choose either (A) or (B) as needed for reliability
     or testing.  (2024-03-29)
 
+ >  After Implementation and Man page rgRpiRev(3):  (2024-04-20)
+    It seems (A) Class methods on Global data was the simplest and cleanest
+    explanation.  In particular, the simulate() functions operated on multiple
+    registers and therefor needed to be top-level functions with no register
+    level counterpart.
+    Explaining the prefix "rgRpiRev::Global." seemed like too much complexity.
+    Minimizing the set of Class Methods to just simulate_REG() and find_REG()
+    seemed like the best compromise.  The Override and Default functions are
+    not expected to be used, and so were relegated to being only register
+    methods.  The above aspects remain valid.
+
     A user alias can be made by constructing a pointer to rgRpiRev::Global,
     e.g.
 	rgRpiRev		*Rvx = &rgRpiRev::Global;

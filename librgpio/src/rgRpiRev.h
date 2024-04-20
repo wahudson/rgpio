@@ -192,15 +192,15 @@ class rgRpiRev {
 
     rgRpiRev();		// constructor
 
-  public:
+  public:	// class methods on Global data
     static void		simulate_RevCode( uint32_t code );
     static void		simulate_SocEnum( Soc_enum soc );
     static void		simulate();
 
-    void		default_RevCode( uint32_t code ) {
-					RevCode.defaultv( code ); }
-    void		default_SocEnum( Soc_enum soc )  {
-					SocEnum.defaultv( soc ); }
+    static Soc_enum	find_SocEnum()	{ return  Global.SocEnum.find();  }
+    static uint64_t	find_BaseAddr()	{ return  Global.BaseAddr.find(); }
+
+    static const char*	cstr_SocEnum()	{ return  Global.SocEnum.cstr();  }
 
   private:	// True is IO platform, False is Unknown
     bool		IoRPi0 = 0;
@@ -215,12 +215,6 @@ class rgRpiRev {
     static bool		ioRPi3()        { return  Global.IoRPi3; }
     static bool		ioRPi4()        { return  Global.IoRPi4; }
     static bool		ioRPi5()        { return  Global.IoRPi5; }
-
-  public:	// preferred user level short-hand accessors
-    static Soc_enum	find_SocEnum()	{ return  Global.SocEnum.find();  }
-    static uint64_t	find_BaseAddr()	{ return  Global.BaseAddr.find(); }
-
-    static const char*	cstr_SocEnum()	{ return  Global.SocEnum.cstr();  }
 
   public:	// enum conversions
     static const char*	soc_enum2cstr( Soc_enum  soc );
