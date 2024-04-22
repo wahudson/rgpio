@@ -27,6 +27,7 @@ INCS       = \
 	rgSpi0.h \
 	rgSysTimer.h \
 	rgUniSpi.h \
+	rgsFuncName.h \
 	rgVersion.h
 
 		# objects not including main(), not rgVersion.o
@@ -46,7 +47,8 @@ OBJS       = \
 	$(OJ)/rgRpiRev.o \
 	$(OJ)/rgSpi0.o \
 	$(OJ)/rgSysTimer.o \
-	$(OJ)/rgUniSpi.o
+	$(OJ)/rgUniSpi.o \
+	$(OJ)/rgsFuncName.o
 
 		# link libraries, required by rgAddrMap
 LIBFLAGS   = -lcap
@@ -162,6 +164,10 @@ $(OJ)/rgUniSpi.o:	rgUniSpi.cpp  rgUniSpi.h  rgAddrMap.h  rgRegister.h
 
 $(OJ)/rgVersion.o:	rgVersion.cpp  rgVersion.h  version.inc
 	g++ $(CXXFLAGS) -o $@  -c rgVersion.cpp
+
+$(OJ)/rgsFuncName.o:	rgsFuncName.cpp  rgsFuncName.h \
+			rgAddrMap.h  rgIoPins.h  rgFselPin.h  rgRpiRev.h
+	g++ $(CXXFLAGS) -o $@  -c rgsFuncName.cpp
 
 
 $(MAN)/man3/rgAddrMap.3:	rgAddrMap.pod
