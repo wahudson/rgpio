@@ -26,6 +26,7 @@ test:
 	cd t_rgSpi0           && make test
 	cd t_rgSysTimer       && make test
 	cd t_rgUniSpi         && make test
+	cd t_rgsRegAtom       && make test
 #	cd t_utLib1           && make test
 
 # on Rpi only - need sudo, test.init, and hardware jumpers
@@ -57,6 +58,7 @@ clean:
 	cd t_rgSpi0           && make clean
 	cd t_rgSysTimer       && make clean
 	cd t_rgUniSpi         && make clean
+	cd t_rgsRegAtom       && make clean
 #	cd t_utLib1           && make clean
 	cd v_rgIic_a          && make clean
 	cd v_rgPudPin_prog    && make clean
