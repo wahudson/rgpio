@@ -1,0 +1,253 @@
+2024-05-03  William A. Hudson
+
+		RPi5 Pads Control - Design
+		--------------------------
+
+References:
+-----------
+
+RP1 Peripherals
+    https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
+    Draft version  2023-11-07.
+
+See also:
+    extend_rpi5.text	general extension for RPi5
+    pads_design.text	for RPi4 and earlier
+
+----------------------------------------------------------------------------
+## Discussion - RP1 Pads Control
+----------------------------------------------------------------------------
+
+    This class controls the IO pad driver/receiver properties:  drive strength,
+    pull up/down, input slew rate and hysteresis, and input/output enable
+    override.  It also has an IO Voltage level selection for each bank.
+
+    There is one register for each Gpio bit.  The hardware groups them into
+    three Banks.
+
+Pads Feature:  In three IO Banks
+
+    Doc base
+    address     RPi name     Contents
+    ----------  -----------  ----------------
+    0x400f0000  pads_bank0:  Pads, Interrupts	28 bits
+    0x400f4000  pads_bank1:  Pads, Interrupts	?? bits
+    0x400f8000  pads_bank2:  Pads, Interrupts	?? bits
+
+    Each Bank is treated as a separate Feature, but grouped in one object class.
+    Interrupts are split out in a separate class.
+
+Feature Class Name:
+  > rgsIoPads
+
+Register Class Names:  (see extend_rpi5.text)
+  > rgsIo_Pad     pad controls
+  > rgsIo_Volt    IO bank voltage select
+
+    The shorter common prefix "rgsIo_" helps unify all the registers of the
+    IO interface Features.
+
+History:
+    This is the first class to be designed of the 5 similar IO bank classes:
+	rgsIoCntl, rgsIoStat, rgsIoPads, rgsIoIntr, rgsRio
+
+----------------------------------------------------------------------------
+## Class Design - RP1 Pads Control
+----------------------------------------------------------------------------
+
+Possible Register Names:
+
+    Gpio(27)		like RP1 doc
+
+    IoPads(27)
+    RegPads(27)
+    PadsReg(27)
+    PadsBit(27)
+    Pads(27)
+
+  > IoPad(27)
+    RegPad(27)
+    PadReg(27)
+    PadBit(27)
+    Pad(27)		seems too short
+
+    The RP1 doc names the control registers according to the Gpio bit, with
+    one register per bit:  GPIO0 .. GPIO27  - total 28 registers.
+    This seems like overuse of the term GPIO.
+
+    Each bank will be a separate Feature object, so the register names will
+    be the same for all banks, although the quantity may vary. 
+    Only Bank0 is documented.
+
+    The register array will be indexed by an accessor function, which will
+    be the visible register name.  e.g. Pads(27)
+
+    The plural Pads is misleading since it is a name of one register.
+    But is makes 4 characters long, which fits nicely with the other
+    IO control registers.
+
+    At the call point the register name appears as a member of the object
+    name, which may not provide much contextual meaning.
+	e.g.  xx.Pad(3).grab()
+	      xx.IoPad(3).grab()
+
+    The bit index hints at an array of registers.
+    Adding "Bit" or "Reg" to the name is less essential.  
+    In general member objects are almost always registers.
+
+    Single word names are not as unique.
+    There are Cntl registers in many existing Features.
+    Adding prefix "Io" qualifies the register name and helps grouping.
+
+    Register names in context of other IO control registers:
+
+  >	IoStat(27)
+  >	IoCntl(27)
+  >	IoPad(27)
+  >	IoIntr(27)
+
+	Stat(27)
+	Cntl(27)
+	Pad(27)
+	Intr(27)
+
+Field Names:  (of IoPad register)
+
+    Reg.Field		Bits     Doc      possible alternatives
+    ---.----------	-------  -------  ---------------------
+    REG.OutDisable_1	[7]      OD       OutDisable_1  OutDis_1
+    REG.InEnable_1	[6]      IE       InEnable_1    InEnab_1  InEn_1
+    REG.DriveStr_2	[5:4]    DRIVE    DriveStrength_2  Drive_2  DriveStren_2
+    REG.PullUpEn_1	[3]      PUE      PullUpEnable_1
+    REG.PullDnEn_1	[2]      PDE      PullDnEnable_1
+    REG.HystEn_1	[1]      SCHMITT  SchmittEn_1  Hysteresis_1
+    REG.SlewFast_1	[0]      SLEWFAST SlewMax_1
+
+    Abbreviations appropriate for this context are:
+	Dis	Disable
+	En	Enable
+	Str	Strength
+	Hyst	Hysteresis
+	Dn	Down
+	Enab	Enable
+
+Field Naming:
+
+    Choose names that are somewhat descriptive and meaningful at the call
+    point in user code.
+    Try to limit name length to 15 characters or less, including the "_1"
+    field width numeral.
+
+    Single-bit fields should name the thing that the '1' level does.
+    Note a name like SlewRate_1 does not help to know that 1 means not slew
+    rate limited.  In the end you still have to look up the meaning.
+
+    OutDisable_1 - Output Disable
+	1= output disabled
+	0= not
+
+    DriveStr_2 - Drive Strength
+	0= 2 mA
+	1= 4 mA
+	2= 8 mA
+	3= 12 mA
+
+    HystEn_1 -
+	1= hysteresis enabled
+	0= not
+
+	Name same as in rgPads.  Hysteresis is more meaningful than the
+	specialized term Schmitt Trigger.
+
+    SlewFast_1 -
+	1= fast, maximum slew rate
+	0= slow, slew rate limited
+
+	Better than SlewMax_1 used in rgPads.
+
+    Spelling out InEnable_1 and OutDisable_1 seems clearer than making
+    up more Enable aliases.
+
+IO Voltage Selection:
+    This register has a single field to select the IO Voltage level.
+
+    Register name:
+	IoVolt
+  >	IoVoltage
+	Voltage
+
+    Field name:
+	VoltageSelect_1
+	LowVoltage_1
+  >	LowVolt_1
+
+    LowVoltage_1 - IO Voltage selection
+	1= 1.8 V
+	0= 3.3 V
+
+Function Names:  (methods of each register class)
+
+    All register and field accessor functions are methods of each register
+    object.  For RPi5 they derive from the Atomic register base class
+    rgsRegAtom, which in turn derives from the regular rgRegister base class.
+
+    rgRegister::
+
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
+
+    rgsRegAtom::  adds these methods
+
+	addr_flip()
+	addr_set()
+	addr_clr()
+
+	read_peek()
+	read_set()	normal read
+	read_clr()	normal read
+
+	write_flip(V)
+	write_set(V)
+	write_clr(V)
+
+	grab_peek()
+	grab_set()	normal grab
+	grab_clr()	normal grab
+
+	push_flip()
+	push_set()
+	push_clr()
+
+	These functions parallel the rgRegister functions, but act on the
+	corresponding byte address offset.
+	See Doc "2.4. Atomic register access".
+
+			Byte
+	Write	Read	Offset	Operation
+	-----	-----	------	-------------------------------------------
+	_flip	_peek	0x1000	Write atomic XOR;  Read has no side-effects
+	_set	_set	0x2000	Write atomic bitmask set;    Read normal
+	_clr	_clr	0x3000	Write atomic bitmask clear;  Read normal
+
+	The read functions for _set() and _clr() are normal reads to the
+	same address as the corresponding write functions.
+	i.e. read_set() is a normal read to the same address as write_set().
+	Should these functions be eliminated?
+	Should the names be different somehow?
+	They are likely unused, except in exploring the hardware.
+	I am favoring "let it ride" for now (2024-05-05).
+
+    Field accessor functions are defined in each register derived class.
+    These are named like:  (same as rgUniSpi)
+
+	get_FIELD_N()	get object FIELD value of width N
+	put_FIELD_N(V)	set object FIELD value of width N
+

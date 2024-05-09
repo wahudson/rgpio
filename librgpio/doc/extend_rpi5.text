@@ -259,7 +259,8 @@ Register Base Class:  rgRegAtomic
 	rgAtReg
 
 	rgsRegister	new 'rgs' prefix
- >	rgsRegAtomic
+	rgsRegAtomic
+ >	rgsRegAtom
 
 	rgRegisterAt	group nicely with existing rgRegister
 	rgRegAt
@@ -270,9 +271,9 @@ Register Base Class:  rgRegAtomic
 
     New methods for the Atomic register operations.
 
-	peak()		read without side effects (read XOR) address
+	peek()		read without side effects (read XOR) address
 
-	grab_peak()	read without side effects (read XOR) address
+	grab_peek()	read without side effects (read XOR) address
 	grab_set()	(read OR)  address
 	grab_clr()	(read AND) address
 
@@ -320,7 +321,7 @@ Gpio Configuration:  Function Select, Pad Drive, Status
 	Proc0 and Proc1 (the RP1 processors) and PCIe
 	Interrupt enable, force and status.
 
-    RIO:  (gpio bits packed in registers)
+    RIO:  (parallel data gpio bits packed in registers)
 	Output drive level
 	Output drive enable
 	Input direct read
@@ -341,6 +342,13 @@ Gpio Configuration:  Function Select, Pad Drive, Status
 	0x400f4000  pads_bank1:  Pads, Interrupts
 	0x400f8000  pads_bank2:  Pads, Interrupts
 
+    Note that RIO is only the parallel data registers.  The other 4 groups
+    seem to be general driver/receiver capabilities that apply to all Features
+    (SPI, IIC, UART, etc), not just the parallel RIO.
+
+    Ctrl Name:  The RP1 doc uses "Ctrl".  Here we replace it with "Cntl" to
+    match previous use in this library and doc.
+
 Gpio Classes:
 
     Object classes could group these registers in most any way.
@@ -359,21 +367,15 @@ Gpio Classes:
     and style helps to manage them.
     Each group could have 3 Banks, but start with only Bank0 for now.
 
-    Class Names:
-	rgsRio
-	rgsRioCntl
-	rgsRioStat
-	rgsRioPads
-	rgsRioIntr
-
-    Register Banks:
-	Registers having a group (bank) of Gpio bits do need to be
-	identified by bank.
-
-	Registers that are per Gpio bit really do not care what bank they
-	belong to.  They can be more simply named by Gpio bit.
-
-	See also:  doc/pads_design.text
+    Class Names:  (possibilities)
+	rgsRio      rgsRio      rgsRio
+	rgsIoCntl   rgsRioCntl  rgsGioCntl  rgsGpCntl  rgsGpioCntl
+	rgsIoStat   rgsRioStat  rgsGioStat
+	rgsIoPads   rgsRioPads  rgsGioPads
+	rgsIoIntr   rgsRioIntr  rgsGioIntr
+	^^^^^^^^^
+	Seems like 'Rio' should be used for the parallel data RIO registers.
+	Group the other 4 classes with 'Io'.
 
 Gpio Banks:
 
@@ -452,7 +454,8 @@ Gpio Bank Classes:
     Make a class describing Bank0.  Allow the constructor to take a bank
     number, to create objects for all 3 banks.
     They could all have the same number of Gpio bits, since addresses
-    for them exist even if not implemented in hardware.
+    for them exist even if not implemented in hardware (not true for Bank0,
+    where interrupt registers follow Gpio[27]).
     Possibly define 32 bits in each bank, which would allow exploring (probing)
     unimplemented registers.
 
@@ -505,7 +508,7 @@ Register Object per Gpio Bit:
     A compile time error would be best.
 
     Accessor functions, or iterators, are the best way check array bounds
-    and producing a meaningful message.
+    and produce a meaningful message.
 
     One solution is to declare scalar elements for literal access, and
     construct an array of pointers for array index access.  Provide array
@@ -513,10 +516,186 @@ Register Object per Gpio Bit:
     This still seems like the best approach.
     [It seems I did this once before.]
 
+ >  Another solution is an accessor function that returns a reference to
+    the indexed register.  It could be named by the register it accesses,
+    and the register array itself would be private.
+    e.g. usage might look like:  (approximate syntax)
+	rgsIo		Rx  ( 0 );	// construct Bank0
+	Rx.IoCntl(27).grab_peek();	// read Gpio27 register
+	Rx.IoCntl(27).get_FuncSel_5();	// get the function select field
+
+	rgsIoCntl&	rcntl = Rx.IoCntl(27);	// intermediate reference
+
+	This looks really clean.  The bit index appears as the argument
+	to the register accessor function, i.e. () instead of [].
+
 ----------------------------------------------------------------------------
-## rgsPads Class
+## Class Design Evolution  (2024-05-03)
 ----------------------------------------------------------------------------
-    Example design.  The other Gpio groups would follow.
+
+New ideas about common aspects of the Feature classes.
+
+FeatureAddr:  The documentation base address of the Feature.
+
+    This is still a great idea.  Each Feature should define the documentation
+    address, and each object should have a copy of that address for reference.
+
+    In the past, FeatureAddr was a private static constant of the class,
+    defined in the .h file.  Its accessor was get_bcm_address(), which
+    simply returned the private value.  It was mostly only used for
+    construction and testing.
+
+    In the case of the IO banks, each bank is essentially a separate
+    Feature, and should have its own doc base address.
+    The bank is computed, so it would be changed at construction.
+
+    The accessor name  get_bcm_address()  now seems inappropriate, since
+    the RP1 chip is Raspberry Pi and not Broadcom.
+    Maybe  get_doc_base() would be better.
+
+FeatureAddr name possibilities:
+
+    FeatureAddr
+    DocAddr
+    DocAddress
+    DocBase
+    DocBaseAddr
+
+Code debt:
+    The user interface should be uniform across Features.
+    The private parts should at least have common names.
+    Weigh the costs of evolution.  Is it really better?
+
+Address Map object:
+    Pass by pointer, or pass by reference?
+
+    The rgAddrMap object is passed to each Feature object constructor,
+    and is used (and modified) to map a block of IO space.
+    In this case pass by non-const pointer makes the possibility of
+    modification clear.  It also suggests that the pointer could be saved
+    for future use, e.g. by a destructor to release the mapped areas.
+  > Thus we continue to use pass by pointer.
+
+----------------------------------------------------------------------------
+## IO Bits Class Design - Parallel Gpio pads
+----------------------------------------------------------------------------
+
+    This is the parallel Gpio bits used by all the peripheral Features,
+    consisting of the five Gpio configuration elements (Stat, Cntrl, Pads,
+    Intr, and Rio) described above.
+
+    Design for one Bank.  Each Feature constructor takes a Bank number.
+
+Class Organization:
+
+    A) Five Feature classes.
+	rgsIoStat  0x400d0000	rgsIo_Stat   Stat()
+	rgsIoCntl  0x400d0000	rgsIo_Cntl   Cntl()
+	rgsIoPads  0x400f0000	rgsIo_Pads   Pads()
+	rgsIoIntr  0x400f0000	rgsRegAtom   register
+	rgsRio     0x400e0000	rgsRegAtom   register
+
+	++ Each behaves as a top-level feature.
+	+ Construct only what you need.
+	- More fragmented.
+	- More smaller files.
+	++ Better focus on what each does.
+	- Frequently need 2 or 3 together.
+	- Connection between them is lost.
+	- Replicates common Feature code, or use a base class.
+	+ Independence aids initial implementation.
+
+    B) One overarching class.
+	rgsIo
+
+	Has all the registers and register array accessors.
+	Has three FeatureAddr values.
+
+	+ One container, less fragmentation.
+	- Three FeatureAddr values.
+	-- Stamp coupled.
+	++ Synergy seeing similar things together.
+	++ One place for all IO bit related things.
+	- Has multiple FeatureAddr/GpioBase values.
+
+    C) Two top classes:  Hybrid.
+	rgsIoCon  has four elements
+	rgsRio    the Register IO Feature
+
+	+ Parallel to the documentation.
+	- Two FeatureAddr values.
+	- Stamp coupled.
+	+ Keeps Rio as a proper top-level feature.
+
+    D) Sub-classes under rgsIo ?
+
+ >  E) Four top classes:
+	rgsIoCon   has Stat and Cntl
+	rgsIoPads
+	rgsIoIntr
+	rgsRio     the Register IO Feature
+
+    The register classes remain the same.  Main difference is how many
+    are pulled in together under which top-level classes.
+
+    The top-level Feature class is the context for what the content is about.
+    After some prototyping the stamp coupling disadvantages of (B) are
+    quite apparent, so I favor separate classes.
+
+Register Class Names:
+    Registers with bit fields are a derived class with field accessors.
+    These have been named with the Feature Class as the base name and a
+    register identifier appended.  e.g. Feature rgPwm had:
+	rgPwm_Cntl
+	rgPwm_Stat
+	rgPwm_Ch1Range
+	...
+
+    Here only the Cntl, Stat, and Pads Features have register fields, the
+    others are Gpio bit per register bit.
+    The four register classes could be named:
+
+  > A) Common prefix:  e.g. rgsIo
+	rgsIo_Cntl
+	rgsIo_Stat
+	rgsIo_Pad
+	rgsIo_Volt
+
+	+ Nice and short names
+	+ Groups them together with common prefix.
+	- No indication in which header file they can be found.
+	+ Common prefix naming lets them be applied anywhere.
+
+    B) Prefix the Feature class name:
+	rgsIoCntl_Cntl
+	rgsIoStat_Stat
+	rgsIoPads_Pad
+	rgsIoPads_Volt
+
+	+ Parallel style of previous Features.
+	+ Prefix identifies Feature they belong to.
+	- Register name feels a bit repetitive to Feature name.
+	- Need to rename if Features are partitioned differently, e.g. rgsIoCon
+	+ The longer name fits with little use outside the class.
+
+    C) With Cntl and Stat under Feature class rgsIoCon:
+	rgsIoCon_Cntl
+	rgsIoCon_Stat
+	rgsIoPads_Pad
+	rgsIoPads_Volt
+
+	+ Same as (B) but consolidate Cntl and Stat.
+
+    D) Common prefix:  e.g. rgsIoReg
+	rgsIoReg_Cntl
+	rgsIoReg_Stat
+	rgsIoReg_Pad
+	rgsIoReg_Volt
+
+	+ Same as (A) with a longer prefix.
+
+    In this case, I favor (A) as helping to support a more unified view of
+    the IO interface.
 
 ----------------------------------------------------------------------------
 ## rgpio Command
@@ -648,6 +827,8 @@ rgpio cntl usage:
       modify fields:
 	--OutOver_2=0
 	--Fsel_5=3
+
+    Note "rgpio fsel" already takes a list of arbitrary bit numbers.
 
 ----------------------------------------------------------------------------
 ## Example user code:
