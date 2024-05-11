@@ -18,8 +18,8 @@ class rgsIo_Pad : public rgsRegAtom {
     uint32_t	get_InEnable_1()	{ return  get_field(  6, 0x1    ); }
     void	put_InEnable_1(    uint32_t v ) { put_field(  6, 0x1, v ); }
 
-    uint32_t	get_DriveStr_2()	{ return  get_field(  5, 0x3    ); }
-    void	put_DriveStr_2(    uint32_t v ) { put_field(  5, 0x3, v ); }
+    uint32_t	get_DriveStr_2()	{ return  get_field(  4, 0x3    ); }
+    void	put_DriveStr_2(    uint32_t v ) { put_field(  4, 0x3, v ); }
 
     uint32_t	get_PullUpEn_1()	{ return  get_field(  3, 0x1    ); }
     void	put_PullUpEn_1(    uint32_t v ) { put_field(  3, 0x1, v ); }

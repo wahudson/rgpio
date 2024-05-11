@@ -484,7 +484,7 @@ rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );    // RPi4
 	CHECKX(              0xffffffff, Tx.IoPad(3).get() );
 	CHECKX(                       3, Tx.IoPad(3).get_DriveStr_2() );
 	Tx.IoPad(3).put_DriveStr_2(   0 );
-	CHECKX(              0xffffff9f, Tx.IoPad(3).get() );
+	CHECKX(              0xffffffcf, Tx.IoPad(3).get() );
 	CHECKX(                       0, Tx.IoPad(3).get_DriveStr_2() );
     }
     catch (...) {
