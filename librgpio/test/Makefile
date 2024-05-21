@@ -26,6 +26,7 @@ test:
 	cd t_rgSpi0           && make test
 	cd t_rgSysTimer       && make test
 	cd t_rgUniSpi         && make test
+	cd t_rgsIoCon         && make test
 	cd t_rgsIoPads        && make test
 	cd t_rgsRegAtom       && make test
 #	cd t_utLib1           && make test
@@ -59,6 +60,7 @@ clean:
 	cd t_rgSpi0           && make clean
 	cd t_rgSysTimer       && make clean
 	cd t_rgUniSpi         && make clean
+	cd t_rgsIoCon         && make clean
 	cd t_rgsIoPads        && make clean
 	cd t_rgsRegAtom       && make clean
 #	cd t_utLib1           && make clean
