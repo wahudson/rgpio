@@ -1,0 +1,337 @@
+2024-05-11  William A. Hudson
+
+		RPi5 Io Control/Status - Design
+		-------------------------------
+
+References:
+-----------
+
+RP1 Peripherals
+    https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
+    Draft version  2023-11-07.
+    Ch 3.1 GPIO p.14-34
+
+See also:
+    extend_rpi5.text	general extension for RPi5
+
+----------------------------------------------------------------------------
+## Discussion - RP1 Io Control/Status
+----------------------------------------------------------------------------
+
+    This class operates the features of the IO Control/Status registers.
+
+    Cntl:  (register per gpio bit)
+        IRQ overrides and masks
+        Input invert, force 1/0
+        Output enables
+        Output invert, force drive 1/0
+        Filter/debounce time constant
+        Function select
+
+    Stat:  (register per gpio bit)
+        Interrupt status
+        Input level, debounce/filter result
+        Event/edge detect
+        Input/Output signal values before and after overrides.
+
+    There is one register for each Gpio bit.  The hardware groups them into
+    three Banks.
+
+Three IO Banks:
+
+    Doc base
+    address     RPi name   Contents
+    ----------  ---------  ----------
+    0x400d0000  io_bank0:  Cntl, Stat	28 bits
+    0x400d4000  io_bank1:  Cntl, Stat	?? bits
+    0x400d8000  io_bank2:  Cntl, Stat	?? bits
+
+    Each Bank is treated as a separate Feature, but grouped in one object class.
+    Interrupts are split out in a separate class.
+
+Feature Class Name:
+  > rgsIoCon
+
+Register Class Names:  (see extend_rpi5.text)
+  > rgsIo_Cntl    IO Control
+  > rgsIo_Stat    IO Status
+
+    The shorter common prefix "rgsIo_" helps unify all the registers of the
+    IO interface Features.
+
+----------------------------------------------------------------------------
+## Class Design - RP1 Io Control/Status
+----------------------------------------------------------------------------
+
+Possible Register Names:  (shown as array accessor functions)
+
+    GpioStatus(27)		like RP1 doc
+    GpioCntl(27)		like RP1 doc
+
+  > IoCntl(27)
+    RegCntl(27)
+    CntlReg(27)
+    CntlBit(27)
+    Cntl(27)		seems too short
+
+  > IoStat(27)
+
+    Each bank will be a separate Feature object, so the register names will
+    be the same for all banks, although the quantity may vary. 
+    Only Bank0 is documented in the RP1 doc.
+
+    The register array will be indexed by an accessor function, which will
+    be the visible register name.  e.g. IoCntl(27)
+
+    At the call point the register name appears as a member of the object
+    name, which may not provide much contextual meaning.
+	e.g.  xx.Cntl(3).grab()
+	>     xx.IoCntl(3).grab()
+
+    The bit index hints at an array of registers.
+    Adding "Bit" or "Reg" to the name is less essential.  
+    In general member objects are almost always registers.
+
+    Single word names are not as unique.
+    There are Cntl registers in many existing Features.
+    Adding prefix "Io" qualifies the register name and helps grouping.
+
+    Register names in context of other IO control registers:
+
+  >	IoStat(27)
+  >	IoCntl(27)
+  >	IoPad(27)
+  >	IoIntr(27)
+
+	Stat(27)
+	Cntl(27)
+	Pad(27)
+	Intr(27)
+
+Field Names:
+    Want unified names for IoCntl, IoStat fields.
+
+    There are 4 input modes:
+	Level           High or Low
+	Debounced Level High or Low
+	Edge            Rise or Fall
+	Filtered Edge   Rise or Fall
+
+	These are not explained or defined, except a short English sentence.
+	Here I try to intuit some possible meanings.
+
+    Filtering:  What is it?
+	Assume they mean a low-pass filter, followed by a schmitt trigger.
+	This produces a time delay to the edge transition.
+	It would also ignore a sufficiently short pulse.
+
+    Debounce:  What is it?
+	Bouncing is when a signal toggles one or more times in transitions to
+	a new level.  Debouncing attempts to ignore this toggling and keep
+	only the level after the toggling.
+
+	Typically assume bouncing (toggling) is caused by a level transition.
+	Assume each level is held much longer than the bouncing.
+	Assume some time constant that defines the toggling to be removed.
+
+	Is a short pulse ignored, or stretched?
+
+    The RP1 doc seems to apply "filtering" to edge detection, and "debounce"
+    to level detection.
+
+    Possibly they are both the same signal processing as there is only one
+    parameter "F_M" for a "Filter/debounce time constant M" of 7-bits (128
+    values).  This seems very likely.
+    It is likely a digital low-pass filter.
+
+    If they are both the same, then we can use the same name for both.
+    That would reduce the number of abbreviations.
+    Some possible terms to describe this:
+
+ >	Filter     Filt
+	Debounce   Db
+	Delay
+	Condition  Cond
+	Qualify    Qual
+
+    Some ideas for the IRQ Mask fields of IoCntl:
+
+	REG.IrqmFiltEdgeL_1 [24]     IRQMASK_EDGE_LOW
+	REG.IrMkFiltEdgeL_1 [24]     IRQMASK_EDGE_LOW
+	REG.ImskFiltEdgeL_1 [24]     IRQMASK_EDGE_LOW
+	REG.IrqMaskLevH_1   [23]     IRQMASK_LEVEL_HIGH
+	REG.IrqMaskLevL_1   [22]     IRQMASK_LEVEL_LOW
+	REG.IrqMaskEdgeH_1  [21]     IRQMASK_EDGE_HIGH
+	REG.IrqMaskEdgeL_1  [20]     IRQMASK_EDGE_LOW
+
+	Seems like IrqMask is just too long, use Imask instead.
+
+Field Names:  IoCntl, IoStat
+
+       Reg.Field           Bits     Doc       possible alternatives
+    ------.----------      -------  -------   ---------------------
+    IoCntl.IrqOver_2       [31:30]  IRQOVER
+
+    IoCntl.EdgeReset_1     [28]     IRQRESET  IrqResetEdge_1  IrqEdgeReset_1
+
+    IoCntl.ImaskFiltHigh_1 [27]     IRQMASK_DB_LEVEL_HIGH ImaskFilLevH_1
+    IoCntl.ImaskFiltLow_1  [26]     IRQMASK_DB_LEVEL_LOW  ImaskFilLevL_1
+
+    IoCntl.ImaskFiltRise_1 [25]     IRQMASK_F_EDGE_HIGH   ImaskFilEdgeH_1
+    IoCntl.ImaskFiltFall_1 [24]     IRQMASK_F_EDGE_LOW    ImaskFilEdgeL_1
+
+    IoCntl.ImaskHigh_1     [23]     IRQMASK_LEVEL_HIGH    IrqMaskLevH_1
+    IoCntl.ImaskLow_1      [22]     IRQMASK_LEVEL_LOW     IrqMaskLevL_1
+
+    IoCntl.ImaskRise_1     [21]     IRQMASK_EDGE_HIGH     IrqMaskEdgeH_1
+    IoCntl.ImaskFall_1     [20]     IRQMASK_EDGE_LOW      IrqMaskEdgeL_1
+
+    IoCntl.InOver_2        [17:16]  INOVER
+    IoCntl.OutEnOver_2     [15:14]  OEOVER
+    IoCntl.OutOver_2       [13:12]  OUTOVER
+    IoCntl.FilterM_7       [11:5]   F_M        FilterTC_7
+    IoCntl.FuncSel_5       [4:0]    FUNCSEL    Fsel_5
+
+       Reg.Field           Bits     Doc       possible alternatives
+    ------.----------      -------  -------   ---------------------
+    IoStat.IrqToProc_1     [29]     IRQTOPROC             IrqMaskOver_1
+    IoStat.IrqMasked_1     [28]     IRQCOMBINED           IrqMask_1
+
+    IoStat.InFiltHigh_1    [27]     EVENT_DB_LEVEL_HIGH   InDbHigh_1
+    IoStat.InFiltLow_1     [26]     EVENT_DB_LEVEL_LOW    InDbLow_1
+
+    IoStat.InFiltRise_1    [25]     EVENT_F_EDGE_HIGH
+    IoStat.InFiltFall_1    [24]     EVENT_F_EDGE_LOW
+
+    IoStat.InHigh_1        [23]     EVENT_LEVEL_HIGH
+    IoStat.InLow_1         [22]     EVENT_LEVEL_LOW
+
+    IoStat.InRise_1        [21]     EVENT_EDGE_HIGH
+    IoStat.InFall_1        [20]     EVENT_EDGE_LOW
+
+    IoStat.InToPeri_1      [19]     INTOPERI
+    IoStat.InFiltered_1    [18]     INFILTERED
+    IoStat.InOfPad_1       [17]     INFROMPAD             InFromPad_1
+
+    IoStat.InIsDirect_1    [16]     INISDIRECT - is this RW control or RO?
+
+    IoStat.OutEnToPad_1    [13]     OETOPAD
+    IoStat.OutEnOfPeri_1   [12]     OEFROMPERI            OutEnFromPeri_1
+
+    IoStat.OutToPad_1      [9]      OUTTOPAD
+    IoStat.OutOfPeri_1     [8]      OUTFROMPERI           OutFromPeri_1
+
+    Abbreviations appropriate for this context are:
+	Irq	Interrupt Request
+    	Imask	Interrupt request Mask
+	In	Input
+	Out	Output
+	En	Enable
+	Over	Override
+	Func	Function
+	Sel	Select
+	Filt	Filter
+	Lev	Level
+	Peri	Peripheral
+
+Field Naming:
+
+    Choose names that are somewhat descriptive and meaningful at the call
+    point in user code.
+    Try to limit name length to 15 characters or less, including the "_1"
+    field width numeral.
+
+    Single-bit fields should name the thing that the '1' level does.
+    Note a name like SlewRate_1 does not help to know that 1 means not slew
+    rate limited.  In the end you still have to look up the meaning.
+
+  IoCntl:
+
+    EdgeReset_1 - Reset the edge detector.
+	1= reset the edge detector
+	0= do nothing
+	Applies to the IoStat event edge detectors, which also seem to feed
+	the interrupt edge sources masked in the IoCntl register.
+	The "IRQ" in the doc name seems misleading.
+
+  IoStat:
+
+    IrqToProc_1 - IRQTOPROC
+	"interrupt to processors, after mask and override is applied"
+	This seems like the final interrupt result (for the Gpio bit).
+
+    IrqMasked_1 - IRQCOMBINED  
+	"interrupt to processors, after masking"
+	This seems like an intermediate result from only masking.
+	The word "combined" seems too final and does not relate to masking.
+
+    OutToPad_1  - output signal to pad
+    OutOfPeri_1 - output from selected peripheral before override
+	The To/Of words seem to work well, are symmetric and short.
+
+Function Names:  (methods of each register class)
+
+    All register and field accessor functions are methods of each register
+    object.  For RPi5 they derive from the Atomic register base class
+    rgsRegAtom, which in turn derives from the regular rgRegister base class.
+
+    rgRegister::
+
+	addr()		return address of hardware register
+
+	read()		direct read  of hardware register
+	write(V)	direct write of hardware register
+
+	get()		get object register value
+	put(V)		put value into object register
+
+	grab()		copy hardware register into object
+	push()		copy object into hardware register
+
+    rgsRegAtom::  adds these methods
+
+	addr_flip()
+	addr_set()
+	addr_clr()
+
+	read_peek()
+	read_set()	normal read
+	read_clr()	normal read
+
+	write_flip(V)
+	write_set(V)
+	write_clr(V)
+
+	grab_peek()
+	grab_set()	normal grab
+	grab_clr()	normal grab
+
+	push_flip()
+	push_set()
+	push_clr()
+
+	These functions parallel the rgRegister functions, but act on the
+	corresponding byte address offset.
+	See Doc "2.4. Atomic register access".
+
+			Byte
+	Write	Read	Offset	Operation
+	-----	-----	------	-------------------------------------------
+	_flip	_peek	0x1000	Write atomic XOR;  Read has no side-effects
+	_set	_set	0x2000	Write atomic bitmask set;    Read normal
+	_clr	_clr	0x3000	Write atomic bitmask clear;  Read normal
+
+	The read functions for _set() and _clr() are normal reads to the
+	same address as the corresponding write functions.
+	i.e. read_set() is a normal read to the same address as write_set().
+	Should these functions be eliminated?
+	Should the names be different somehow?
+	They are likely unused, except in exploring the hardware.
+	I am favoring "let it ride" for now (2024-05-05).
+
+    Field accessor functions are defined in each register derived class.
+    These are named like:  (same as rgUniSpi)
+
+	get_FIELD_N()	get object FIELD value of width N
+	put_FIELD_N(V)	set object FIELD value of width N
+

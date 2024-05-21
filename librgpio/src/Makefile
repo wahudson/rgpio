@@ -28,6 +28,8 @@ INCS       = \
 	rgSysTimer.h \
 	rgUniSpi.h \
 	rgsFuncName.h \
+	rgsIoBank.h \
+	rgsIoCon.h \
 	rgsIoPads.h \
 	rgsRegAtom.h \
 	rgVersion.h
@@ -51,6 +53,7 @@ OBJS       = \
 	$(OJ)/rgSysTimer.o \
 	$(OJ)/rgUniSpi.o \
 	$(OJ)/rgsFuncName.o \
+	$(OJ)/rgsIoCon.o \
 	$(OJ)/rgsIoPads.o
 
 		# link libraries, required by rgAddrMap
@@ -170,6 +173,10 @@ $(OJ)/rgVersion.o:	rgVersion.cpp  rgVersion.h  version.inc
 
 $(OJ)/rgsFuncName.o:	rgsFuncName.cpp  rgsFuncName.h
 	g++ $(CXXFLAGS) -o $@  -c rgsFuncName.cpp
+
+$(OJ)/rgsIoCon.o:	rgsIoCon.cpp  rgsIoCon.h rgsIoBank.h \
+			rgAddrMap.h  rgsRegAtom.h  rgRegister.h
+	g++ $(CXXFLAGS) -o $@  -c rgsIoCon.cpp
 
 $(OJ)/rgsIoPads.o:	rgsIoPads.cpp  rgsIoPads.h \
 			rgAddrMap.h  rgsRegAtom.h  rgRegister.h
