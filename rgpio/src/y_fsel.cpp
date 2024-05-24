@@ -126,6 +126,12 @@ fsel_yOptLong::parse_options()
 	}
     }
 
+    if ( rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712 ) {	// RPi5
+	if ( !show || *mode || w0.Given || w1.Given ) {
+	    Error::msg( "RPi5 has only --show, no modify" ) <<endl;
+	}
+    }
+
     if ( *mode && (get_argc() > 0) ) {
 	ModifyBits = 1;
     }
@@ -357,39 +363,42 @@ y_fsel::doit()
     if ( Error::has_err() )  return 1;
 
 // RPi5
-    if ( Opx.show && (rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712) )
+    if ( rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712 )
     {
-	cout <<dec << "Bit ";
-	for ( int jj=0;  jj<=8;  jj++ )		// heading
+	if ( Opx.show )
 	{
-	    if ( (5 <= jj) && (jj <= 7) ) { continue; }
-	    cout << " a" << setw(10) <<left << jj;
-	}
-	cout <<endl;
-
-	for ( int ii=0;  ii<bitcnt;  ii++ )		// each bit
-	{
-	    int			bit;
-
-	    bit = bitarg[ii];
-	    if ( bit > 27 ) { continue; }		// skip higher Gpio
-
-	    cout << " "  <<setw(2) <<right << bit;
-	    cout << " ";
-	    for ( int jj=0;  jj<=8;  jj++ )		// each altnum
+	    cout <<dec << "Bit ";
+	    for ( int jj=0;  jj<=8;  jj++ )		// heading
 	    {
-		if ( (5 <= jj) && (jj <= 7) ) { continue; }	// skip 5,6,7
-		cout << " " << setw(11) <<left
-		     << rgsFuncName::cstr_altfuncAN( jj, bit );
+		if ( (5 <= jj) && (jj <= 7) ) { continue; }
+		cout << " a" << setw(10) <<left << jj;
 	    }
 	    cout <<endl;
-	}
-	return 0;
-    }
 
-// RPi4 or earlier
-    if ( rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2711 )
+	    for ( int ii=0;  ii<bitcnt;  ii++ )		// each bit
+	    {
+		int			bit;
+
+		bit = bitarg[ii];
+		if ( bit > 27 ) { continue; }		// skip higher Gpio
+
+		cout << " "  <<setw(2) <<right << bit;
+		cout << " ";
+		for ( int jj=0;  jj<=8;  jj++ )		// each altnum
+		{
+		    if ( (5 <= jj) && (jj <= 7) ) { continue; }	// skip 5,6,7
+		    cout << " " << setw(11) <<left
+			 << rgsFuncName::cstr_altfuncAN( jj, bit );
+		}
+		cout <<endl;
+	    }
+	    return 0;
+	}
+    }
+    else if ( rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2711 )
     {
+// RPi4 or earlier
+
 	rgFselPin		Fpx  ( AddrMap );	// constructor
 
 	if ( Opx.debug ) {
@@ -489,6 +498,9 @@ y_fsel::doit()
 		 <<endl;
 	}
 
+    }
+    else {
+	Error::msg( "require RPi5 (soc_BCM2712) or earlier" ) <<endl;
     }
 
     return ( Error::has_err() ? 1 : 0 );

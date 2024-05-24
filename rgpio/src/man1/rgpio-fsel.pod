@@ -56,6 +56,13 @@ mask option (e.g. --w0) is processed one Fsel register at a time.
 Note this read-modify-write sequence is not atomic.  It is left to the user
 to avoid synchronization issues.
 
+=head2			RPi5
+
+RPi5 has only B<--show>, and no modify capability.
+Only Gpio[27:0] of Bank0 are displayed.
+RPi5 has a completely different register structure that is not practical to
+combine with RPi4 and earlier.
+
 
 =head1		OPTIONS
 
