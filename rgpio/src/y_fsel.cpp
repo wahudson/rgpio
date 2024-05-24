@@ -15,10 +15,12 @@ using namespace std;
 #include "yOption.h"
 #include "yOpVal.h"
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgFselPin.h"
 
 #include "rgAltFuncName.h"
+#include "rgsFuncName.h"
 
 #include "yUtil.h"
 #include "y_fsel.h"
@@ -300,18 +302,94 @@ int
 y_fsel::doit()
 {
 
+    fsel_yOptLong	Opx  ( MainOpx );	// constructor
+
+    Opx.parse_options();
+
+    if ( Opx.TESTOP ) {
+	Opx.print_option_flags();
+	return ( Error::has_err() ? 1 : 0 );
+    }
+
+    if ( Error::has_err() )  return 1;
+
+    const int		BitLimit = 64;
+    int			bitarg[BitLimit];	// bit numbers
+    int			bitcnt = 0;
+    char		*arg;
+
+// Register groups
+
+    if ( Opx.Word0 ) {
+	for ( int k=0;  k<=31;  k++ )
+	{
+	    bitarg[bitcnt++] = k;
+	}
+    }
+
+    if ( Opx.Word1 ) {
+	for ( int k=32;  k<=53;  k++ )
+	{
+	    bitarg[bitcnt++] = k;
+	}
+    }
+
+// Argument bit list
+    while ( (arg = Opx.next_arg()) )
     {
-	fsel_yOptLong		Opx  ( MainOpx );	// constructor
+	int		n;
 
-	Opx.parse_options();
-
-	if ( Opx.TESTOP ) {
-	    Opx.print_option_flags();
-	    return ( Error::has_err() ? 1 : 0 );
+	n = strtol( arg, NULL, 0 );
+	if ( (n < 0) || (n > 53) ) {
+	    Error::msg( " bit arg out-of-range:  " ) << n <<endl;
+	    continue;
 	}
 
-	if ( Error::has_err() )  return 1;
+	bitarg[bitcnt] = n;
+	bitcnt++;
 
+	if ( bitcnt > BitLimit ) {
+	    Error::msg( "max bit args:  " ) << BitLimit <<endl;
+	    break;
+	}
+    }
+
+    if ( Error::has_err() )  return 1;
+
+// RPi5
+    if ( Opx.show && (rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712) )
+    {
+	cout <<dec << "Bit ";
+	for ( int jj=0;  jj<=8;  jj++ )		// heading
+	{
+	    if ( (5 <= jj) && (jj <= 7) ) { continue; }
+	    cout << " a" << setw(10) <<left << jj;
+	}
+	cout <<endl;
+
+	for ( int ii=0;  ii<bitcnt;  ii++ )		// each bit
+	{
+	    int			bit;
+
+	    bit = bitarg[ii];
+	    if ( bit > 27 ) { continue; }		// skip higher Gpio
+
+	    cout << " "  <<setw(2) <<right << bit;
+	    cout << " ";
+	    for ( int jj=0;  jj<=8;  jj++ )		// each altnum
+	    {
+		if ( (5 <= jj) && (jj <= 7) ) { continue; }	// skip 5,6,7
+		cout << " " << setw(11) <<left
+		     << rgsFuncName::cstr_altfuncAN( jj, bit );
+	    }
+	    cout <<endl;
+	}
+	return 0;
+    }
+
+// RPi4 or earlier
+    if ( rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2711 )
+    {
 	rgFselPin		Fpx  ( AddrMap );	// constructor
 
 	if ( Opx.debug ) {
@@ -323,49 +401,6 @@ y_fsel::doit()
 		 <<setw(8) << (void*) Fpx.get_base_addr() <<endl;
 	    cout <<dec;
 	}
-
-	const int		BitLimit = 64;
-	int			bitarg[BitLimit];	// bit numbers
-	int			bitcnt = 0;
-	char			*arg;
-
-    // Register groups
-
-	if ( Opx.Word0 ) {
-	    for ( int k=0;  k<=31;  k++ )
-	    {
-		bitarg[bitcnt++] = k;
-	    }
-	}
-
-	if ( Opx.Word1 ) {
-	    for ( int k=32;  k<=53;  k++ )
-	    {
-		bitarg[bitcnt++] = k;
-	    }
-	}
-
-    // Argument bit list
-	while ( (arg = Opx.next_arg()) )
-	{
-	    int				n;
-
-	    n = strtol( arg, NULL, 0 );
-	    if ( (n < 0) || (n > 53) ) {
-		Error::msg( " bit arg out-of-range:  " ) << n <<endl;
-		continue;
-	    }
-
-	    bitarg[bitcnt] = n;
-	    bitcnt++;
-
-	    if ( bitcnt > BitLimit ) {
-		Error::msg( "max bit args:  " ) << BitLimit <<endl;
-		break;
-	    }
-	}
-
-	if ( Error::has_err() )  return 1;
 
     // Show all alternate functions
 	if ( Opx.show ) {
