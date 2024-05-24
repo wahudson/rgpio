@@ -263,6 +263,12 @@ run_test( "32", "RPi4 fsel --show",
     Stderr => q(),
 );
 
+run_test( "33", "RPi5 fsel --show",
+    "rgpio --dev=f --rpi5  fsel --show -0 -1",
+    0,
+    Stderr => q(),
+);
+
 run_test( "35", "fsel --show invalid with --mode",
     "rgpio --dev=f  fsel --show --mode=In  4",
     1,
@@ -272,6 +278,14 @@ run_test( "35", "fsel --show invalid with --mode",
     Stdout => q(),
 );
 
+run_test( "37", "RPi5 requires --show",
+    "rgpio --dev=f --rpi5  fsel  2 3 4",
+    1,
+    Stderr => q(
+	Error:  RPi5 has only --show, no modify
+    ),
+    Stdout => q(),
+);
 
 #---------------------------------------------------------------------------
 # Check that all tests ran.
