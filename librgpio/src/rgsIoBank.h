@@ -9,7 +9,7 @@
 
 class rgsIoBank {
   protected:
-    int			BankNum    = 0;		// Bank number 0..2
+    int			BankNum    = 0;		// Bank number {0,1,2}
     volatile uint32_t	*GpioBase  = NULL;	// virtual IO base address
     uint32_t		DocAddress = 0;		// documentation base address
 
@@ -18,7 +18,7 @@ class rgsIoBank {
 
     volatile uint32_t*	get_base_addr()		{ return  GpioBase;  }
 
-    virtual uint32_t	get_bcm_address() = 0;	// FeatureAddr
+    virtual uint32_t	get_bcm_address() = 0;	// FeatureAddr, pure virtual
 
     uint32_t		get_doc_address()	{ return  DocAddress; }
 

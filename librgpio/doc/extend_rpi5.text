@@ -483,6 +483,12 @@ Gpio RIO pins:
 	#define RP1_RIO_IN                      0x08
 	Guessing RIO_SYNC_IN is 0x0c?
 
+    Register names in class rgsRio:
+	RioOut         output level
+	RioOutEn       output enable
+	RioIn          input direct from pad
+	RioInSync      input synchronized to clk_sys
+
 Gpio Function Select:
 
     The function select is a 5-bit field in each Gpio bit control (CTRL)
