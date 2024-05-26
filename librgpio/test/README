@@ -66,10 +66,11 @@ Test suites:  (2023-02-11)
  u   s  t_rgSpi0/	rgSpi0		SPI0 Master class.
  u   s  t_rgSysTimer/	rgSysTimer	System Timer class.
  u   s  t_rgUniSpi/	rgUniSpi	Universal SPI Master class.
-
+				    RPi5
  u   s  t_rgsIoCon/	rgsIoCon	IO Control/Status Interface class RPi5
  u   s  t_rgsIoPads/	rgsIoPads	IO Pads Interface class for RPi5
  u   s  t_rgsRegAtom/	rgsRegAtom	Atomic Register base class for RPi5.
+ u   s  t_rgsRio	rgsRio		Register Input/Output (RIO) class, RPi5
 
  u   s  t_utLib1/	utLib1		Unit Test Library.
 				    Live RPi tests

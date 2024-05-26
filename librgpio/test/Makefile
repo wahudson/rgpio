@@ -29,6 +29,7 @@ test:
 	cd t_rgsIoCon         && make test
 	cd t_rgsIoPads        && make test
 	cd t_rgsRegAtom       && make test
+	cd t_rgsRio           && make test
 #	cd t_utLib1           && make test
 
 # on Rpi only - need sudo, test.init, and hardware jumpers
@@ -63,6 +64,7 @@ clean:
 	cd t_rgsIoCon         && make clean
 	cd t_rgsIoPads        && make clean
 	cd t_rgsRegAtom       && make clean
+	cd t_rgsRio           && make clean
 #	cd t_utLib1           && make clean
 	cd v_rgIic_a          && make clean
 	cd v_rgPudPin_prog    && make clean
