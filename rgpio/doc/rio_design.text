@@ -1,0 +1,239 @@
+2024-05-25  William A. Hudson
+
+	    rgpio-rio  Register Input/Output (RIO) RPi5 - Design
+	    ----------------------------------------------------
+
+Reference:
+    librgpio/doc/extend_rpi5.text
+
+----------------------------------------------------------------------------
+## Overview
+----------------------------------------------------------------------------
+
+Uses librgpio Class:  rgsRio::
+    Operates the registers of the rgsRio class.
+
+Register Banks:  (names in the RP1 doc)
+    sys_rio0
+    sys_rio1
+    sys_rio2
+
+Registers:
+    RioOut     output level
+    RioOutEn   output enable
+    RioIn      input direct from pad
+    RioInSync  input synchronized to clk_sys
+
+    These registers have 28 Gpio bits in the lower 28 bits (in Bank0).
+    Other banks may be different.
+
+    Combining these with register-per-bit registers got quite complex.
+    Seems best to keep them separate.
+
+Atomic addresses:
+
+    We want to be able to read/write all 16 register addresses,
+    (4 registers * 4 addresses).
+    Some combinations may be redundant.
+
+Output order:
+
+    Output is in the same order regardless of argument list order.
+
+    Having the registers always output in the same order works out quite
+    nice, and works well with human sense of spatial location.
+    Blank lines separating register groups also helps (e.g. --all).
+
+    Make loosely similar to rgpio-io for RPi4 and earlier.
+
+----------------------------------------------------------------------------
+## rgpio-rio - Command
+----------------------------------------------------------------------------
+
+Usage possibility:
+    Initial idea, see actual implementation.
+
+    % rgpio rio --help
+	Register Input/Output (RIO), RPi5
+    usage:  rgpio rio [options..]  [reg..]
+	reg                 register name:  RioOut  RioOutEn  RioIn  RioInSync
+
+	Register Input/Output (RIO), RPi5
+    usage:  rgpio rio [options..]
+	-0, -1, -2          bank number, default -0
+      select register:  (one for write, multiple for display)
+	--RioOut            output level
+	--RioOutEn          output enable
+	--RioIn             input direct from pad
+	--RioInSync         input synchronized to clk_sys
+      modify register word:  (write address)
+	--norm=0x000000ff   write normal               (0x0000)
+	--flip=0x000000ff   write atomic bitmask XOR   (0x1000)
+	--set=0x000000ff    write atomic bitmask set   (0x2000)
+	--clr=0x000000ff    write atomic bitmask clear (0x3000)
+      read atomic register address:
+	--norm              read normal (default)     (addr+0x0000)
+	--peak              read without side-effect  (addr+0x1000)
+	--set               read atomic set   address (addr+0x2000)
+	--clr               read atomic clear address (addr+0x3000)
+      address groups:  (for display)
+	--all               read all atomic addresses
+      options:
+	--help              show this usage
+	-v, --verbose       verbose output, show registers in binary
+	--debug             debug output
+      (options with GNU= only)
+
+Register specification:
+    A) Could be in the argument list.
+
+    B) Options for register names
+
+Modification:
+    By register name.  Allow only one register at a time to avoid accidents
+    and complexity.
+
+    Options for Atomic access:  norm, flip (peek), set, clr
+
+    Atomic addresses:
+	--norm=0x000000ff
+	--flip=0x00000000
+	--set=0x00000000
+	--clr=0x00000000
+	Write the bit mask to that atomic register.
+
+Display:
+    By register groups.
+    By atomic address.
+
+    Want to be able to read all 16 addresses, even though some may be
+    redundant.
+
+    The RIO registers do not have side-effects on read.  Thus normally
+    not necessary to see read values from the other atomic addresses.
+    But do want to see them with options, i.e. exploring.
+    Let --norm be the default.
+
+Display Examples:
+    Table format showing bit values, and hex value.
+    Not too worried about bank number, since only Bank0 is documented
+    at this time.
+
+    A)
+     Bank0  Register bit:       28   24   20   16   12    8    4    0
+       RioOut     0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+    B)
+     Register bit:              28   24   20   16   12    8    4    0
+	 Bank0
+       0x00000000  RioOut     0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  RioOutEn   0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  RioIn      0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  RioInSync  0000 0000 0000 0000 0000 0000 0000 0000
+
+    C)
+     Register bit:                28   24   20   16   12    8    4    0
+       0x00000000  0.RioOut     0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  0.RioOutEn   0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  0.RioIn      0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  0.RioInSync  0000 0000 0000 0000 0000 0000 0000 0000
+
+       0x00000000  1.RioOut     0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  1.RioOutEn   0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  1.RioIn      0000 0000 0000 0000 0000 0000 0000 0000
+       0x00000000  1.RioInSync  0000 0000 0000 0000 0000 0000 0000 0000
+
+    D)
+     Bank0                        28   24   20   16   12    8    4    0
+       0.RioOut     0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       0.RioOutEn   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       0.RioIn      0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       0.RioInSync  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+    E)
+     norm   Register bit:       28   24   20   16   12    8    4    0
+       RioOut     0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+     peek   Register bit:       28   24   20   16   12    8    4    0
+       RioOut     0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+     set    Register bit:       28   24   20   16   12    8    4    0
+       RioOut     0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+     clr    Register bit:       28   24   20   16   12    8    4    0
+       RioOut     0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+    F)
+     Register bit:                   28   24   20   16   12    8    4    0
+       RioOut    read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn  read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn     read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+       RioOut    peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn  peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn     peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+    G)
+     Register bit:                   28   24   20   16   12    8    4    0
+       RioOut     read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOut     peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOut     set   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOut     clr   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+       RioOutEn   read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   set   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   clr   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+       RioIn      read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      set   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioIn      clr   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+       RioInSync  read  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  peek  0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  set   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  clr   0x00000000  0000 0000 0000 0000 0000 0000 0000 0000
+
+    H)
+     Bank0  Gpio bit:           28   24   20   16   12    8    4    0
+       RioOut     0x00000000  ---- 0000 0000 0000 0000 0000 0000 0000
+       RioOutEn   0x00000000  ---- 0000 0000 0000 0000 0000 0000 0000
+       RioIn      0x00000000  ---- 0000 0000 0000 0000 0000 0000 0000
+       RioInSync  0x00000000  ---- 0000 0000 0000 0000 0000 0000 0000
+
+    Possibly blank the reserved bits.  This helps user understanding, but
+    prevents exploring the reserved bits.
+
+ >  I)
+      Register bit:                 28   24   20   16   12    8    4    0
+    0x00000000  RioOut     norm   0000 0000 0000 0000 0000 0000 0000 0000
+    0x00000000  RioOutEn   norm   0000 0000 0000 0000 0000 0000 0000 0000
+    0x00000000  RioIn      norm   0000 0000 0000 0000 0000 0000 0000 0000
+    0x00000000  RioInSync  norm   0000 0000 0000 0000 0000 0000 0000 0000
+
+    Decided on (I) for initial implementation.  It parallels rgpio-io for
+    RPi4 and earlier.  Bank numbers not shown.
+
+    Bank number prefix 0.RioOut is quite useful when multiple banks
+    are displayed.
+
+    Register name between the hex value on left and bit pattern on right
+    looks quite good.  Easy to align both values with the name.
+
+    Register name on left seems better with different headings.
+

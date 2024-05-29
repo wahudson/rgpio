@@ -29,6 +29,8 @@ using namespace std;
 #include "y_timer.h"
 #include "y_uspi.h"
 
+#include "y_rio.h"
+
 #include "Error.h"
 #include "yOption.h"
 #include "yVersion.h"
@@ -190,7 +192,8 @@ yOptLong::print_usage()
     "    pads         Pads Control\n"
     "    pud          Pin Pull-Up/Down - RPi3 and earlier\n"
     "    pull         Pin Pull-Up/Down - RPi4 only\n"
-//  "  RPi5 only:\n"
+    "  RPi5 only:\n"
+    "    rio          Register IO\n"
     "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
     "                                          g= /dev/gpiomem, f= fake\n"
@@ -348,6 +351,11 @@ main( int	argc,
 	else if ( Opx.feature == "uspi"    ) {
 	    y_uspi		usx  ( &Opx, &Amx );	// constructor
 	    retv = usx.doit();
+	}
+	//
+	else if ( Opx.feature == "rio"     ) {
+	    y_rio		rax  ( &Opx, &Amx );	// constructor
+	    retv = rax.doit();
 	}
 	else if ( Opx.feature == ""         ) {
 	    cout << "Do nothing.  Try '" << Opx.ProgName << " --help'" << endl;
