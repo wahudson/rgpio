@@ -208,11 +208,14 @@ rgRpiRev_Code::read_rev_code(
     uint32_t		revcode = 0;	// return value if not found
     std::string		stln;
     size_t		ii;
+    int			cx;
 
     while ( ! istm->eof() )
     {
-	if ( istm->get() != 'R' ) {
-	    while ( ! istm->eof() && (istm->get() != '\n') )  {}
+	if ( (cx = istm->get()) != 'R' ) {
+	    while ( (! istm->eof()) && (cx != '\n') )  {
+		cx = istm->get();
+	    }
 	    continue;		// start of a line
 	}
 

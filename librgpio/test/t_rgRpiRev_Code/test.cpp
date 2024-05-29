@@ -200,6 +200,46 @@ rgRpiRev_Code		Tx;		// test object
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "31b", "read_rev_code() Revision on second line" );
+    try {
+	std::istringstream	iss  (
+	    "\n"
+	    "Revision  : a22082\n"	// good
+	    "hello     : foobar\n"
+	);
+	CHECKX( 0x00a22082, Tx.read_rev_code( &iss ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "31c", "read_rev_code() prior blank line" );
+    try {
+	std::istringstream	iss  (
+	    "hello     : foobar\n"
+	    "\n"
+	    "Revision  :a22082\n"
+	);
+	CHECKX( 0x00a22082, Tx.read_rev_code( &iss ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "31d", "read_rev_code() prior blank lines" );
+    try {
+	std::istringstream	iss  (
+	    "hello     : foobar\n"
+	    "\n"
+	    "\n"
+	    "Revision  :a22082\n"
+	);
+	CHECKX( 0x00a22082, Tx.read_rev_code( &iss ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
   CASE( "32", "read_rev_code() misleading revision lines" );
     try {
 	std::istringstream	iss  (
@@ -231,6 +271,18 @@ rgRpiRev_Code		Tx;		// test object
 	std::istringstream	iss  (
 	    "hello     : foobar\n"
 	    "Revision:a22082\n"
+	);
+	CHECKX( 0x00a22082, Tx.read_rev_code( &iss ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "34b", "read_rev_code() tabs" );
+    try {
+	std::istringstream	iss  (
+	    "hello	: foobar\n"
+	    "Revision	: a22082\n"
 	);
 	CHECKX( 0x00a22082, Tx.read_rev_code( &iss ) );
     }
@@ -361,6 +413,17 @@ rgRpiRev_Code		Tx;		// test object
 	uint32_t	rc;
 	rc = Tx.read_rev_code( "ref/rpi3.in" );
 	CHECKX( 0x00a22082, rc );
+	CHECK(  0,          Tx.get_realpi() );	// not set by read
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "44", "read_rev_code() RPi5" );
+    try {
+	uint32_t	rc;
+	rc = Tx.read_rev_code( "ref/rpi5.in" );
+	CHECKX( 0x00c04170, rc );
 	CHECK(  0,          Tx.get_realpi() );	// not set by read
     }
     catch (...) {
