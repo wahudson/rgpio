@@ -43,6 +43,60 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
+//--------------------------------------------------------------------------
+//## hex2char()
+//--------------------------------------------------------------------------
+// Check comparison repors integer value of character, not ideal.
+
+  CASE( "21a", "hex2char() '0'" );
+    try {
+	CHECK( '0', hex2char( 0x00 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "21b", "hex2char() '9'" );
+    try {
+	CHECK( '9', hex2char( 0x09 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "21c", "hex2char() 'a'" );
+    try {
+	CHECK( 'a', hex2char( 0x0a ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "21d", "hex2char() 'f'" );
+    try {
+	CHECK( 'f', hex2char( 0x0f ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "22a", "hex2char() mask 0xfffffff0" );
+    try {
+	CHECK( '0', hex2char( 0xfffffff0 ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "22b", "hex2char() mask 0xfffffffc" );
+    try {
+	CHECK( 'c', hex2char( 0xfffffffc ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 
   CASE( "99", "Done" );
 }

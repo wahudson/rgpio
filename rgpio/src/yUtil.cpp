@@ -43,3 +43,29 @@ cstr_bits32( uint32_t  val )
     return  bits;
 }
 
+
+/*
+* Convert least significant hex digit to an ASCII character.
+* call:
+*    hex2char( hex )
+*    hex = unsigned integer, upper hex digits are ignored (masked).
+* return:
+*    () = ascii character {'0',.. '9', 'a',.. 'f'}
+*/
+char
+hex2char( uint32_t  hex )
+{
+    char		c;
+
+    hex &= 0xf;		// keep least significant hex digit
+
+    if ( hex <= 9 ) {
+	c = '0' + hex;
+    }
+    else {
+	c = 'a' + (hex - 10);
+    }
+
+    return  c;
+}
+
