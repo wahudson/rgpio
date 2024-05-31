@@ -16,6 +16,7 @@ using namespace std;
 
 #include "y_clk.h"
 #include "y_fsel.h"
+#include "y_fsel5.h"
 #include "y_header.h"
 #include "y_iic.h"
 #include "y_info.h"
@@ -194,6 +195,7 @@ yOptLong::print_usage()
     "    pull         Pin Pull-Up/Down - RPi4 only\n"
     "  RPi5 only:\n"
     "    rio          Register IO\n"
+    "    fsel5        IO Function Select\n"
     "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
     "                                          g= /dev/gpiomem, f= fake\n"
@@ -353,6 +355,10 @@ main( int	argc,
 	    retv = usx.doit();
 	}
 	//
+	else if ( Opx.feature == "fsel5"    ) {
+	    y_fsel5		fx  ( &Opx, &Amx );	// constructor
+	    retv = fx.doit();
+	}
 	else if ( Opx.feature == "rio"     ) {
 	    y_rio		rax  ( &Opx, &Amx );	// constructor
 	    retv = rax.doit();
