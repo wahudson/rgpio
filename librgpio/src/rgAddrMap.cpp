@@ -92,9 +92,9 @@ rgAddrMap::rgAddrMap()
     DocBase   = 0x7e000000;	// RPi4 or earlier
     BlockSize = PAGE_SIZE;
 
-    BaseAddr  = rgRpiRev::Global.BaseAddr.find();
-    FakeMem   = rgRpiRev::Global.RevCode.find_realpi();
-    soc       = rgRpiRev::Global.SocEnum.find();
+    BaseAddr  =   rgRpiRev::Global.BaseAddr.find();
+    FakeMem   = ! rgRpiRev::Global.RevCode.find_realpi();
+    soc       =   rgRpiRev::Global.SocEnum.find();
 
     if      ( soc == rgRpiRev::soc_BCM2712 ) {		// RPi5
 	DocBase   = 0x40000000;
@@ -164,9 +164,7 @@ rgAddrMap::text_debug()
 void
 rgAddrMap::config_BaseAddr( uint64_t  addr )
 {
-    if ( ! addr ) {
-	FakeMem = 1;
-    }
+    FakeMem  = ( 0 == addr );
     BaseAddr = addr;
 }
 
@@ -233,8 +231,10 @@ rgAddrMap::open_dev_file(
     }
 
     // Check if on RPi, make safe on other machines.
-    if ( (BaseAddr == 0) ||
-	 (stat( "/dev/gpiomem", &statbuf ) != 0)	// not exist
+    if ( (BaseAddr == 0) || ! (
+	     (stat( "/dev/gpiomem",  &statbuf ) == 0) ||	// exist
+	     (stat( "/dev/gpiomem0", &statbuf ) == 0)		// RPi5
+	 )
     ) {
 	if ( FakeNoPi ) {
 	    this->open_dev_file( NULL );

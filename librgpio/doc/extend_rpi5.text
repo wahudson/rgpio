@@ -97,6 +97,36 @@ New RP2040 type features:
     Imagine an RP2040 integrated into RPi5 on the PCIe bus!
     This would open up huge possibilities, and risk to the OS.
 
+OS Changes:
+    Raspbian GNU/Linux 12 (bookworm)
+
+    % uname -a
+    Linux rpiFive 6.6.20+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.6.20-1+rpt1 \
+	(2024-03-07) aarch64 GNU/Linux
+
+    /dev/gpiomem  does not exist as on prior RPi.
+    Instead:
+    %  ll /dev/gpio*
+	crw-rw----+ 1 root gpio 254, 0 May 28 14:46 /dev/gpiochip0
+	crw-rw----+ 1 root gpio 254, 1 May 28 14:46 /dev/gpiochip1
+	crw-rw----+ 1 root gpio 254, 2 May 28 14:46 /dev/gpiochip2
+	crw-rw----+ 1 root gpio 254, 3 May 28 14:46 /dev/gpiochip3
+	crw-rw----+ 1 root gpio 254, 4 May 28 14:46 /dev/gpiochip4
+	crw-rw----  1 root gpio 234, 0 May 28 14:46 /dev/gpiomem0
+	crw-rw----  1 root gpio 238, 0 May 28 14:46 /dev/gpiomem1
+	crw-rw----  1 root gpio 237, 0 May 28 14:46 /dev/gpiomem2
+	crw-rw----  1 root gpio 236, 0 May 28 14:46 /dev/gpiomem3
+	crw-rw----  1 root gpio 235, 0 May 28 14:46 /dev/gpiomem4
+
+    rgAddrMap checks for existence of "/dev/gpiomem", otherwise it assumes
+    not on RPi.
+
+    Work around:  Create normal file /dev/gpiomem
+	Note the /dev directory is rebuilt on boot, changes are lost.
+
+    Fix in rgAddrMap:
+	Check existence of either /dev/gpiomem OR /dev/gpiomem0 files.
+
 ----------------------------------------------------------------------------
 ## Linux GPIO base address
 ----------------------------------------------------------------------------
