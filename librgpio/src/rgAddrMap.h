@@ -20,7 +20,7 @@ class rgAddrMap {
     const char		*ModeStr;	// memory mode string, NULL= unset,
 					// "/dev/mem", "/dev/gpiomem", "fake_mem"
 
-    std::map<uint64_t,void*>  BlkCache;	// cache of mapped memory blocks
+    std::map<uint32_t,void*>  BlkCache;	// cache of mapped memory blocks
 
 //  int			Prot;		// mmap() prot field
     bool		Debug;		// debug trace on stderr

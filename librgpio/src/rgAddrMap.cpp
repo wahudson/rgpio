@@ -358,7 +358,7 @@ rgAddrMap::get_mem_block(
     r_addr = bcm2rpi_addr( bcm_addr );
 
     // Check cache to see if it is previously mapped.
-    void*&		cache_ref = BlkCache[r_addr];
+    void*&		cache_ref = BlkCache[bcm_addr];
 
     if ( cache_ref != NULL ) {
 	return  (volatile uint32_t*)cache_ref;

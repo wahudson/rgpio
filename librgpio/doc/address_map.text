@@ -1,0 +1,245 @@
+2024-05-30  William A. Hudson
+
+		Address Map - rgAddrMap class design
+		------------------------------------
+
+See also:
+    architecture.text		original rgAddrMap development
+    extend_rpi5.text		changes needed for RPi5
+    rgAddrMap(3)  manpage
+
+This file focuses on changes needed for RPi5.  It relies on the above
+for background and original development.
+
+----------------------------------------------------------------------------
+## RPi4 and Earlier
+----------------------------------------------------------------------------
+
+Git tag:  v0.22.0  88e72823bc  2024-03-12
+
+    The rgAddrMap was one of the earliest classes created in the library.
+    It was before rgRpiRev took over the platform identification.
+    It had an override mechanism for BaseAddr.
+
+    RPi3 and earlier all Features were in a 4k Block.
+    RPi4 introduced sub-page Features.
+    RPi5 introduced a 16k Block containing 4 Atomic register addresses.
+
+----------------------------------------------------------------------------
+## Extension for RPi5
+----------------------------------------------------------------------------
+
+Major Changes include:
+
+    Documentation address has a new base address.
+
+    Real IO address is now 64-bit.
+
+    Each Feature needs a 16k block for the Atomic register access.
+
+----------------------------------------------------------------------------
+## Mapped Address Cache
+----------------------------------------------------------------------------
+
+    The rgAddrMap::get_mem_block() function does the actual mmap(2) system
+    call to map a block of real memory IO space into the users process.
+    It take an IO documentation address, which it translates into a real
+    memory address.
+
+    A key feature is that it will return the same user process (virtual)
+    address for the same IO address.  This is done using the std::map class
+    container template, which maintains an ordered list of <key,value> pairs.
+    Essentially each mapped address is stored in this container.
+
+    In the original design, it made sense to let the key be the uint32_t
+    real IO address, and the value be the user process virtual address.
+    This worked great on RPi4 and earlier, but on RPi5 a 64-bit real IO
+    address was needed.  When the key was changed to uint64_t, the compiler
+    gave a big warning on the 64-bit key in  std::map<uint64_t,void*>.
+    [At least on a 32-bit OS]  (See:  Bugs RPi5 2024-05-31 below.)
+
+    This issue can be simply side-stepped:  Use the 32-bit IO documentation
+    address as the key.
+    In some sense this is even better, because the container then holds the
+    user provided documentation address instead of the mostly hidden real
+    address.  This worked great!
+
+Change from original real address key:  (2024-06-04)
+
+<   std::map<uint64_t,void*>  BlkCache;     // cache of mapped memory blocks
+>   std::map<uint32_t,void*>  BlkCache;     // cache of mapped memory blocks
+
+<   void*&		cache_ref = BlkCache[r_addr];
+>   void*&		cache_ref = BlkCache[bcm_addr];
+
+    The real address and documentation address have a one-to-one
+    correspondence, and the 32-bit documentation address saves container
+    resources.
+
+----------------------------------------------------------------------------
+## Fake Memory flag:  rgAddrMap::FakeMem
+----------------------------------------------------------------------------
+
+    The FakeMem flag is intended to indicate that Fake Memory is being used,
+    independent of the BaseAddr value.
+	FakeMem:   1= using fake memory, 0= not.
+	BaseAddr:  0= fake memory, otherwise not.
+
+    Both these values are automatically derived by rgRpiRev.
+
+    There is no accessor to directly set FakeMem.  Instead, a null file name
+    passed to  open_dev_file()  will set FakeMem=1.
+
+    Note there are two closely related things named BaseAddr:
+	uint64_t		rgAddrMap::BaseAddr;	// real IO base address
+	rgRpiRev_Base		rgRpiRev::BaseAddr;	// derivation object
+
+Constructor:
+    BaseAddr  =   rgRpiRev::Global.BaseAddr.find();
+    FakeMem   = ! rgRpiRev::Global.RevCode.find_realpi();
+
+    Derive both from rgRpiRev global data, which also has override and
+    simulate capability.
+
+Override:
+    The  rgAddrMap  has an override function to set BaseAddr, for when
+    the user knows a better value or the  rgRpiRev  derivation is wrong:
+	config_BaseAddr( 0x20000000 )
+
+    This function should also set the corresponding value for FakeMem.
+
+RPi4 and earlier:  librgpio version v0.21.0
+
+    The rgAddrMap constructor initialized:
+	FakeMem  = 0;		// using real memory
+	BaseAddr = rgRpiRev::find_BaseAddr();
+
+    Thus the FakeMem flag only loosely followed BaseAddr.
+    Originally BaseAddr was initialized to a real address constant, so it
+    made sense to also set FakeMem=0.  With the addition of rgRpiRev deriving
+    the BaseAddr, FakeMem was somewhat overlooked.
+
+----------------------------------------------------------------------------
+## Code Learnings:
+----------------------------------------------------------------------------
+
+Accessor functions same name for get and put:  2024-06-01
+    e.g.
+	config_BaseAddr();		// get
+	config_BaseAddr( 0x3f000000 );	// put
+
+    Using the same function name for both seems like a nifty feature of C++,
+    so I tried it.  Note it still required two function declarations.
+
+    When looking at user code (e.g. t_rgAddrMap/test.cpp) it is confusing
+    trying to see the places where put vs get was done.  e.g. A simple
+    search finds both and must look closer to see the difference.
+
+    Now I think separate names would be much better:
+	get_BaseAddr();
+	put_BaseAddr( 0x3f000000 );
+
+----------------------------------------------------------------------------
+## Bugs RPi5 2024-05-31
+----------------------------------------------------------------------------
+
+First turn-on of rgpio on RPi5.
+    These are some initial problems associated with rgAddrMap.
+    Resolution details are explained elsewhere.
+
+Context:
+    RPi5, OS is 32-bit.
+
+    % uname -a
+	Linux rpiFive 6.6.20+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.6.20-1+rpt1 \
+	(2024-03-07) aarch64 GNU/Linux
+    % lsb_release -a
+	Description:    Raspbian GNU/Linux 12 (bookworm)
+
+1)
+Compiler warning on 64-bit key in  std::map<uint64_t,void*>
+
+    Giant error (warning?) message:
+
+    % make
+    g++ -Wall  -std=c++11 -o ../obj/rgAddrMap.o  -c rgAddrMap.cpp
+
+    In file included from /usr/include/c++/12/map:61,
+		     from rgAddrMap.cpp:12:
+    /usr/include/c++/12/bits/stl_map.h: In member function \
+    'std::map<_Key, _Tp, _Compare, _Alloc>::mapped_type& \
+    std::map<_Key, _Tp, _Compare, _Alloc>::operator[](const key_type&) \
+    [with _Key = long long unsigned int; \
+    _Tp = void*; \
+    _Compare = std::less<long long unsigned int>; \
+    _Alloc = std::allocator<std::pair<const long long unsigned int, void*> >]':
+    /usr/include/c++/12/bits/stl_map.h:511:44: note: parameter passing for \
+    argument of type \
+    'std::_Rb_tree<long long unsigned int, \
+	std::pair<const long long unsigned int, void*>, \
+	std::_Select1st<std::pair<const long long unsigned int, void*> >, \
+	std::less<long long unsigned int>, \
+	std::allocator<std::pair<const long long unsigned int, void*> > \
+    >::const_iterator' \
+    changed in GCC 7.1
+      511 | __i = _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+	  |       ~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      512 |                                   std::tuple<const key_type&>(__k),
+	  |                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      513 |                                   std::tuple<>());
+	  |                                   ~~~~~~~~~~~~~~~
+
+    ...  (and 2 more similar messages)
+
+    I added the "\<new-line>" to make it a little more readable.
+    Seems to still make a usable rgAddrMap.o file.
+    Not clear what "changed in GCC 7.1" really means.
+    Clearly the uint64_t (long long unsigned int) is being applied in the key.
+    Seems like some issue in the <map> library with <long long unsigned int>.
+
+    Message occurs on:
+    RPi3:
+	% uname -a
+	Linux rpiTouch 6.1.21-v7+ #1642 SMP Mon Apr  3 17:20:52 BST 2023 \
+	    armv7l GNU/Linux
+	% cat /etc/os-release
+	PRETTY_NAME="Raspbian GNU/Linux 11 (bullseye)"
+	% gcc --version
+	gcc (Raspbian 10.2.1-6+rpi1) 10.2.1 20210110
+
+    Does not occur on:
+	% uname -a
+	Linux wah-Folio9470m 4.15.0-112-generic #113-Ubuntu SMP \
+	    Thu Jul 9 23:41:39 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+	% cat /etc/os-release
+	NAME="Ubuntu"
+	VERSION="18.04.6 LTS (Bionic Beaver)"
+	% gcc --version
+	gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+
+    Fix:  Use the 32-bit IO documentation address as the key, avoiding
+	the need for a 64-bit key.
+	See:  "Mapped Address Cache" above.
+
+2)
+Device file /dev/gpiomem  does not exist.
+
+    Fix:  Test for both  /dev/gpiomem  existed on RPi4 and earlier, and
+	/dev/gpiomem0  exists on RPi5.
+
+3)
+Stuck on fake memory:  rgAddrMap::FakeMem
+
+    A bug in constructor  rgAddrMap::rgAddrMap()  accidentally set
+	FakeMem = rgRpiRev::Global.RevCode.find_realpi();
+    which is exactly inverted.
+    This broke rgpio for all version of RPi.
+
+    Fix constructor:
+	< FakeMem   =   rgRpiRev::Global.RevCode.find_realpi();
+	> FakeMem   = ! rgRpiRev::Global.RevCode.find_realpi();
+
+    Fix config_BaseAddr(v) to also clear FakeMem:
+	< if ( ! addr ) { FakeMem = 1; }
+	> FakeMem  = ( 0 == addr );
+
