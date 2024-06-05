@@ -37,6 +37,8 @@ uint64_t	TEST_BaseAddr = rgRpiRev::find_BaseAddr();
 
 rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );	// RPi4
 rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
+rgRpiRev::Global.RevCode.override_realpi( 1 );
+//#!! Needs further review.
 
 //--------------------------------------------------------------------------
 //## Constructor, is_fake_mem(), config_BaseAddr()
@@ -51,6 +53,7 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	CHECKX( 0x00000000, bx.config_BaseAddr() );
 	CHECKX( 0x7e000000, bx.config_DocBase() );
 	CHECKX( 0x00001000, bx.config_BlockSize() );
+	CHECK(  0,          bx.is_fake_mem() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -59,7 +62,7 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
   CASE( "11", "is_fake_mem()" );
     try {
 	rgAddrMap		bx;
-	CHECK( 0, bx.is_fake_mem() );
+	CHECK(  0,          bx.is_fake_mem() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -105,6 +108,21 @@ rgRpiRev::Global.BaseAddr.override( 0x00000000 );  // config as not on RPi
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "12d", "config_BaseAddr() toggle fake memory" );
+    try {
+	rgAddrMap		bx;
+	CHECK(  0,          bx.is_fake_mem() );
+	bx.config_BaseAddr( 0x00000000 );
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  1,          bx.is_fake_mem() );
+	bx.config_BaseAddr( 0x20000000 );
+	CHECKX( 0x20000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
 
   CASE( "13", "constructor RPi5" );
@@ -116,6 +134,7 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2712 );	// RPi5
 	CHECKX( 0x00000000, bx.config_BaseAddr() );
 	CHECKX( 0x40000000, bx.config_DocBase() );
 	CHECKX( 0x00004000, bx.config_BlockSize() );
+	CHECK(  0,          bx.is_fake_mem() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -348,6 +367,8 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
   CASE( "21a", "open_dev_file() NoPi fallback" );
     try {
 	rgAddrMap		bx;
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.config_FakeNoPi( 1 );
 	bx.open_dev_file( "/dev/gpiomem" );
 	std::string		ss;
@@ -361,6 +382,8 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );	// RPi3
   CASE( "21b", "open_dev_file() NoPi throw" );
     try {
 	rgAddrMap		bx;
+	CHECKX( 0x00000000, bx.config_BaseAddr() );
+	CHECK(  0,          bx.is_fake_mem() );
 	bx.config_FakeNoPi( 0 );
 	bx.open_dev_file( "/dev/gpiomem" );
 	FAIL( "no throw" );
@@ -864,6 +887,12 @@ rgRpiRev::Global.BaseAddr.override( TEST_BaseAddr );	// restore true addr
 	std::string		ss;
 	ss = bx.text_debug();
 	CHECK( "ModeStr= /dev/gpiomem  Dev_fd= 3  FakeMem= 0", ss.c_str() );
+    }
+    catch ( runtime_error& e ) {
+	CHECK( "rgAddrMap:  file not found:  /dev/gpiomem",
+	    e.what()
+	);
+	FAIL( "unexpected runtime_error" );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
