@@ -219,6 +219,13 @@ rgAddrMap::open_dev_file(
     cap_t			capx;		// capability set
     int				rv;		// return values
 
+    if ( Debug ) {
+	cerr << "rgAddrMap:  getpagesize()     = " << getpagesize()   <<endl;
+	cerr << "rgAddrMap:  sizeof( char* )   = " << sizeof( char* ) <<endl;
+	cerr << "rgAddrMap:  sizeof( off_t )   = " << sizeof( off_t ) <<endl;
+	cerr << "rgAddrMap:  sizeof( off64_t ) = " << sizeof( off64_t ) <<endl;
+    }
+
     if ( ModeStr != NULL ) {
 	throw std::runtime_error ( "rgAddrMap:  already opened" );
     }
@@ -337,13 +344,14 @@ rgAddrMap::close_dev()
 * exceptions:
 *    std::range_error
 *    std::runtime_error
+*    std::domain_error
 */
 volatile uint32_t*
 rgAddrMap::get_mem_block(
     uint32_t		bcm_addr
 )
 {
-    uint64_t		r_addr;		// RPi real addr
+    int64_t		real_addr;	// RPi real address
     void*		mem_block;
 
     // Check block alignment.
@@ -355,7 +363,7 @@ rgAddrMap::get_mem_block(
     }
 
     // Convert BCM document address to RPi address.
-    r_addr = bcm2rpi_addr( bcm_addr );
+    real_addr = bcm2rpi_addr( bcm_addr );
 
     // Check cache to see if it is previously mapped.
     void*&		cache_ref = BlkCache[bcm_addr];
@@ -374,14 +382,30 @@ rgAddrMap::get_mem_block(
 	throw std::runtime_error ( "get_mem_block() device not open" );
     }
 
+    // Check mmap() offset argument size.  Make the type match the function.
+    //    off_t		mmap()   argument type
+    //    off64_t	mmap64() argument type
+    //
+    off64_t		offset_addr;	// mmap() offset argument type
+
+    offset_addr = real_addr;		// may loose upper bits
+    if ( offset_addr != real_addr ) {
+	std::ostringstream	css;
+	css << "rgAddrMap:  require 64-bit mmap:  sizeof(off64_t)="
+	    << sizeof( off64_t )
+	    << ", real_addr=0x" <<hex << real_addr;
+	throw std::domain_error ( css.str() );
+	// This should never happen with mmap64(), except by mistake.
+    }
+
     // map GPIO into our memory
-    mem_block = mmap(
+    mem_block = mmap64(		// mmap64() has 64-bit offset_addr off64_t
 	NULL,			// Any address in our space will do
 	BlockSize,		// Map length
 	PROT_READ|PROT_WRITE,	// Enable reading & writing to mapped memory
 	MAP_SHARED,		// Shared with other processes
 	Dev_fd,			// File descriptor to map
-	r_addr			// Offset to GPIO peripheral, page aligned
+	offset_addr		// Offset to GPIO peripheral, page aligned
     );
 
     if ( mem_block == MAP_FAILED ) {
@@ -393,8 +417,6 @@ rgAddrMap::get_mem_block(
 
     // Insert memory block into cache.
     cache_ref = mem_block;
-
-//    cerr << "    mem_block= " << (uint32_t *)mem_block << endl;
 
     return (volatile uint32_t*)mem_block;
 }

@@ -38,6 +38,132 @@ Major Changes include:
     Each Feature needs a 16k block for the Atomic register access.
 
 ----------------------------------------------------------------------------
+## Memory Mapped IO - 32/64-bit Operating System (OS)
+----------------------------------------------------------------------------
+
+    The mmap(2) system call is used to map pages of /dev/mem into our
+    process virtual address space, and is the fundamental method to access
+    the Gpio peripheral registers.
+
+    Device-special file  /dev/mem  represents all of the processor real
+    (physical) memory space.
+
+    On RPi4 and earlier, the real base address (BaseAddr) of the Gpio was a
+    32-bit number.
+    On RPi5, this changed to a 37-bit number  0x1f00000000, and needs a
+    64-bit integer to hold it.
+
+    Declaration:  (from mmap(2) man page)
+
+	void  *mmap(
+	    void	*addr,	// NULL for kernel to choose the address
+	    size_t	length,	// map length
+	    int		prot,	// memory protection flags
+	    int		flags,	// mapping visibility to other processes
+	    int		fd,	// open file descriptor to map
+ >	    off_t	offset	// offset, a multiple of the page size
+	);
+
+    Our call:
+
+	int64_t		real_addr;	// RPi real address
+
+	mem_block = mmap(
+	    NULL,                  // Any address in our space will do
+	    BlockSize,             // Map length
+	    PROT_READ|PROT_WRITE,  // Enable reading & writing to mapped memory
+	    MAP_SHARED,            // Shared with other processes
+	    Dev_fd,                // File descriptor to map
+ >	    real_addr              // Offset to GPIO peripheral, page aligned
+	);
+
+Problem:
+    On RPi5 32-bit OS, the mmap() offset argument is type 'off_t', and
+	sizeof( off_t ) = 4  char (32-bits)
+    which is not big enough for the BaseAddr=0x1f00000000.
+
+    When the 64-bit real_addr is passed to the mmap() 32-bit argument offset,
+    the upper 32-bits are lost.  This is standard C-language behavior, and
+    the compiler does not issue a warning.
+    Thus we have a silent mistake on RPi5 with 32-bit OS.
+
+    There is a mmap2() system call, which would work well, but the compiler
+    reports it as not declared.
+
+Explore:  (see:  test/hand_mmap/test.cpp)
+    Run "g++ -E" to see preprocessed code.
+    Look for the mmap() declaration, hoping to also find a mmap2().
+    Discovered another mmap64() declaration.
+
+	% g++ -Wall -E test.cpp | less
+	...
+	# 57 "/usr/include/x86_64-linux-gnu/sys/mman.h" 3 4
+	extern void *mmap (void *__addr, size_t __len, int __prot,
+	     int __flags, int __fd, __off_t __offset) throw ();
+
+	# 70 "/usr/include/x86_64-linux-gnu/sys/mman.h" 3 4
+	extern void *mmap64 (void *__addr, size_t __len, int __prot,
+	       int __flags, int __fd, __off64_t __offset) throw ();
+
+    It has a man page, that comes up as mmap(2).
+    This looks like what we want, probably replaces the mmap2() system call.
+
+    Indeed, we find on a RPi4 32-bit OS:
+	+ getpagesize()     = 4096
+	+ sizeof( char* )   = 4
+	+ sizeof( off_t )   = 4
+	+ sizeof( off64_t ) = 8
+
+Solution:
+    Use mmap64(), which has a 64-bit offset argument (off64_t type) on
+    a 32-bit OS.  This allows the library to remain 32-bit, i.e. not
+    require a 64-bit OS on RPi5.
+
+    We apply an extra check on the offset argument size:
+
+	int64_t		real_addr;	// RPi real address
+	off64_t		offset_addr;	// mmap() offset argument type
+
+	offset_addr = real_addr;	// may loose upper bits
+
+	if ( offset_addr != real_addr ) {
+	    std::ostringstream	css;
+	    css << "rgAddrMap:  require 64-bit mmap:  sizeof(off64_t)="
+		<< sizeof( off64_t )
+		<< ", real_addr=0x" <<hex << real_addr;
+	    throw std::domain_error ( css.str() );
+	    // This should never happen with mmap64(), except by mistake.
+	}
+
+    The idea is to simulate the mmap64() offset argument passing with an
+    equivalent assignment statement.
+
+    The test should never fail with off64_t.
+    However it would fail if we used mmap() off_t, which changes size
+    depending on 32/64-bit OS.
+
+    Essentially we check for an unexpected condition because the consequences
+    can be extreme and hard to debug, i.e. the map is wrong and unknown parts
+    of memory could be written, corrupting user processes or the OS.
+    [We have root permission to read/write anywhere in /dev/mem.]
+
+    Note:  off64_t is a signed integer type, so we also make real_addr a
+    signed integer for the comparison.
+
+Another Check Idea:  (not used)
+
+    // Check mmap() offset argument size.
+    if ( (sizeof( off_t ) < 8) && ((real_addr >> 32) != 0) ) {
+	std::ostringstream      css;
+	css << "rgAddrMap:  require 64-bit OS:  sizeof(off_t)="
+	    << sizeof( off_t )
+	    << ", real_addr=0x" <<hex << real_addr;
+	throw std::domain_error ( css.str() );
+    }
+
+    Uses 64-bit shift operation.  May not be efficient on 32-bit hardware.
+
+----------------------------------------------------------------------------
 ## Mapped Address Cache
 ----------------------------------------------------------------------------
 
@@ -138,6 +264,25 @@ Accessor functions same name for get and put:  2024-06-01
     Now I think separate names would be much better:
 	get_BaseAddr();
 	put_BaseAddr( 0x3f000000 );
+
+----------------------------------------------------------------------------
+## Validation
+----------------------------------------------------------------------------
+
+How do we know if the mapped address is correct?
+
+    A) Read a register and compare value against another known source.
+	Use a previously validated version of rgpio.
+	Essentially run two versions of rgpio side-by-side.
+
+    B) Operate hardware and see expected behavior.
+	e.g.
+	For RPi5 RioIn and RioInSync should virtually always be the same.
+	Set Gpio input voltage and read it out.
+	Write Gpio output and see pin level change.
+
+    C) Read OTP register for revision code, and compare against /proc/cpuinfo.
+	Maybe...
 
 ----------------------------------------------------------------------------
 ## Bugs RPi5 2024-05-31

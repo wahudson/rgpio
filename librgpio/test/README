@@ -26,6 +26,8 @@ src/		test library source code
     utLib1.cpp		library code
     utLib1.h		user interface, #define
 
+hand_*/		manual tests, similar to t_*/ but for human output
+
 t_*/		Generic test suite contents
     Makefile		run/compile the test
     ref/		reference input/output of the test
@@ -89,6 +91,8 @@ v_*/	Validate RPi hardware behavior.
 	    Run on RPi only, other Linux will fail.
 	    Each test may require special hardware setup.  See test.cpp
 
+Manual Tests:
+    hand_mmap/		Explore mmap64(2) system call.  Preprocessor output.
 
 Test Setup:
 -----------
