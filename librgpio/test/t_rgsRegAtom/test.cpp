@@ -31,7 +31,7 @@ int main()
 //--------------------------------------------------------------------------
 
 rgsRegAtom		Tx;		// test object, the base class
-volatile uint32_t	MBlock[0x1000];	// fake memory block (16 kByte)
+static uint32_t		MBlock[0x1000];	// fake memory block (16 kByte)
 
 Tx.init_addr( MBlock );
 
