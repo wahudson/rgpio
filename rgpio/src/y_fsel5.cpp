@@ -483,7 +483,8 @@ y_fsel5::doit()
 		uint32_t	fsel;
 		const char	*funcname;
 
-		fsel     = Cx.IoCntl(gpio).get_FuncSel_5();
+		       Cx.IoCntl(gpio).grab();
+		fsel = Cx.IoCntl(gpio).get_FuncSel_5();
 
 		if ( fsel <= 8 ) {
 		    funcname = rgsFuncName::cstr_altfuncAN( fsel, gpio );
