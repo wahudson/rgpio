@@ -208,6 +208,9 @@ rgAddrMap::config_FakeNoPi( bool v )
 *    open_dev_file( file, drop_cap )
 *    file     = file name to open
 *    drop_cap = flag, 1= raise/drop capabilities, 0= not
+* exceptions:
+*    std::runtime_error
+*    std::domain_error
 */
 void
 rgAddrMap::open_dev_file(
@@ -237,6 +240,12 @@ rgAddrMap::open_dev_file(
 	return;
     }
 
+    if ( stat( file, &statbuf ) != 0 ) {	// not exist
+	std::string	ss ( "rgAddrMap:  file not found:  " );
+	ss += file;
+	throw std::runtime_error ( ss );
+    }
+
     // Check if on RPi, make safe on other machines.
     if ( (BaseAddr == 0) || ! (
 	     (stat( "/dev/gpiomem",  &statbuf ) == 0) ||	// exist
@@ -250,12 +259,6 @@ rgAddrMap::open_dev_file(
 	else {
 	    throw std::domain_error ( "rgAddrMap:  not on a RaspberryPi" );
 	}
-    }
-
-    if ( stat( file, &statbuf ) != 0 ) {	// not exist
-	std::string	ss ( "rgAddrMap:  file not found:  " );
-	ss += file;
-	throw std::runtime_error ( ss );
     }
 
     if ( drop_cap ) {		// raise needed capabilities
