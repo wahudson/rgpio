@@ -37,6 +37,7 @@ rgAddrMap		Bx;
   CASE( "00", "Address map object" );
     try {
 	Bx.open_fake_mem();
+	CHECKX( 0x40000000, Bx.config_DocBase() );
 	CHECKX( 0x00004000, Bx.config_BlockSize() );
     }
     catch (...) {

@@ -17,6 +17,7 @@
 
 #include "utLib1.h"		// unit test library
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgClk.h"
 
@@ -31,12 +32,14 @@ int main()
 //## Shared object
 //--------------------------------------------------------------------------
 
+rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2837 );	// RPi3
+
 rgAddrMap		Bx;
 
   CASE( "00", "AddrMap object" );
     try {
 	Bx.open_fake_mem();
-	PASS( "AddrMap object" );
+	CHECKX( 0x7e000000, Bx.config_DocBase() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
