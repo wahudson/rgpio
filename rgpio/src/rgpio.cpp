@@ -31,6 +31,7 @@ using namespace std;
 #include "y_uspi.h"
 
 #include "y_rio.h"
+#include "y_rpad.h"
 
 #include "Error.h"
 #include "yOption.h"
@@ -195,6 +196,7 @@ yOptLong::print_usage()
     "    pull         Pin Pull-Up/Down - RPi4 only\n"
     "  RPi5 only:\n"
     "    rio          Register IO\n"
+    "    rpad         IO Pad control\n"
     "    fsel5        IO Function Select\n"
     "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
@@ -358,6 +360,10 @@ main( int	argc,
 	else if ( Opx.feature == "fsel5"    ) {
 	    y_fsel5		fx  ( &Opx, &Amx );	// constructor
 	    retv = fx.doit();
+	}
+	else if ( Opx.feature == "rpad"     ) {
+	    y_rpad		rax  ( &Opx, &Amx );	// constructor
+	    retv = rax.doit();
 	}
 	else if ( Opx.feature == "rio"     ) {
 	    y_rio		rax  ( &Opx, &Amx );	// constructor

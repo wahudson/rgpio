@@ -1,0 +1,177 @@
+2024-06-12  William A. Hudson
+
+	    rgpio-rpad  Pad Control (rgsIoPads) RPi5 - Design
+	    -------------------------------------------------
+
+Reference:
+    librgpio/doc/extend_rpi5.text
+
+----------------------------------------------------------------------------
+## Overview
+----------------------------------------------------------------------------
+
+librgpio Class used:  rgsIoPads::
+
+Register Banks:  (names in the RP1 doc)
+    pads_bank0
+    pads_bank1
+    pads_bank2
+
+Registers:  (bank0)
+    IoPad(0)   pad control registers
+    IoPad(27)
+
+    Expect all 3 banks are similar, but may have a different number of
+    registers.
+
+Atomic addresses:
+
+    All IoPad registers have the 4 atomic addresses.
+    Want to be able to read/write from them all for exploration purposes.
+
+Output order:
+
+    Output is in the same order regardless of argument list order.
+
+    Having the registers always output in the same order works out quite
+    nice, and works well with human sense of spatial location.
+    Blank lines separating register groups also helps (e.g. --all).
+
+    This is the prototype for register per bit features.
+
+----------------------------------------------------------------------------
+## rgpio-rpad - Command
+----------------------------------------------------------------------------
+
+Model after original  rgpio-fsel5
+
+Usage possibility:
+    Initial idea, see actual implementation.
+
+    % rgpio rpad --help
+	Pad Control (rgsIoPads), RPi5
+    usage:  rgpio rio [options..]  [gpio..]
+	gpio                bit numbers {27..0}
+	--gpio=0x0fffffff   mask to select Gpio bits
+	-0, -1, -2          bank number, default -0
+      output format:
+	--table             table format (default)
+	--list              list by Gpio bit number
+      IoPad(gpio) field modification:
+	--OutDisable_1=0    output disable
+	--InEnable_1=0      input enable
+	--DriveStr_2=3      drive strength {0..3} = {2, 4, 8, 12 mA}
+	--PullUpEn_1=0      pull Up enable
+	--PullDnEn_1=0      pull Down enable
+	--HystEn_1=0        1= hysteresis enabled, 0= not
+	--SlewFast_1=0      1= max slew rate, 0= min
+      write value to atomic register address:  (one of)
+	--norm=0x000000ff   write normal               0x0000
+	--flip=0x000000ff   write atomic bitmask XOR   0x1000
+	--set=0x000000ff    write atomic bitmask set   0x2000
+	--clr=0x000000ff    write atomic bitmask clear 0x3000
+      read atomic register address:
+	--norm              read normal (default)      0x0000
+	--peak              read without side-effect   0x1000
+	--set               read atomic set   address  0x2000
+	--clr               read atomic clear address  0x3000
+      address groups:  (for display)
+	--all               read all atomic addresses
+      options:
+	--help              show this usage
+	-v, --verbose       verbose output, show registers in binary
+	--debug             debug output
+      (options with GNU= only)
+
+Atomic address options:
+    It is a little odd to have the same long option both as a value and
+    as a flag.  e.g. --norm=0x000000ff --norm
+    It works with the required GNU= for option values.
+    It makes sense that both refer to the same address with the value
+    applied to write, and the flag applied to read.
+
+    Try it and see what disadvantages might arise.
+
+    Note that --flip= and --peek are the same atomic address.  It is
+    most important that the option name indicate the function, and it
+    parallels the rgsIoPads class (rgsRegAtom base class).
+
+Register specification:
+    There is an array of IoPad registers indexed by gpio bit number.
+    Accessor function:  IoPad(gpio)
+
+    a) Bit numbers specified in argument list.
+
+    b) Bit selection by mask  --gpio=0x0fffffff.
+
+    These two could combine.
+    Any duplication is literally applied (not removed).
+
+Modification:
+    All registers, indexed by gpio bit number, are the same format.
+    All selected registers are modified as specified.
+    Default is to modify the --norm address.
+
+    Normally we want to specify field names to modify, e.g. --HystEn_1=0,
+    and want to read/modify/write the 'norm' atomic address.
+    Let the field modification options do this on the selected gpio registers.
+    This implies the --table read format.
+
+    For debug/explore want to be able to write any of the 4 atomic addresses.
+    This need not be easy, since it is not done much.
+    To simplify:
+	The whole register write can write to any atomic address.
+	The field modification options will write only to the --norm address.
+
+    Write atomic register address:  essentially write the whole register
+	--norm=0x000000ff
+	--flip=0x00000000
+	--set=0x00000000
+	--clr=0x00000000
+	Write the value to that atomic register.
+	Not valid with field modification options.
+	This implies the --list read format.
+
+Display:
+    Display 28 registers, all have the same format.
+
+    a) --table  By field name.  Gpio bit number across.
+
+	 IoPad(i) gpio i:            28   24   20   16   12    8    4    0
+	   OutDisable_1    [7]     ---- 0000 0000 0000 0000 0000 0000 0000
+	   InEnable_1      [6]     ---- 0000 0000 0000 0000 0000 0000 0000
+	   DriveStr_2      [5:4]   ---- 0000 0000 0000 0000 0000 0000 0000
+	   PullUpEn_1      [3]     ---- 0000 0000 0000 0000 0000 0000 0000
+	   PullDnEn_1      [2]     ---- 0000 0000 0000 0000 0000 0000 0000
+	   HystEn_1        [1]     ---- 0000 0000 0000 0000 0000 0000 0000
+	   SlewFast_1      [0]     ---- 0000 0000 0000 0000 0000 0000 0000
+
+    b) --list  By register word in hex and binary.
+	This can optionally show read from atomic addresses.
+
+	  Register bit:                 28   24   20   16   12    8    4    0
+	0x00000000  IoPad( 0)  norm   0000 0000 0000 0000 0000 0000 0000 0000
+	0x00000000  IoPad(27)  norm   0000 0000 0000 0000 0000 0000 0000 0000
+
+    These registers do not have side-effects on read.  Thus normally it's
+    not necessary to see read values from the other atomic addresses.
+    But do want to see them with options, i.e. exploring.
+    Let --norm be the default.
+
+Display Examples:
+    Table format showing bit values, and hex value.
+    Only Bank0 is documented at this time.
+
+    A)
+      Register bit:                 28   24   20   16   12    8    4    0
+    0x00000000  IoPad( 0)  norm   0000 0000 0000 0000 0000 0000 0000 0000
+    0x00000000  IoPad(27)  norm   0000 0000 0000 0000 0000 0000 0000 0000
+
+    Bank numbers not shown.
+
+    Bank number prefix 0.IoPad(27) is quite useful when multiple banks
+    are displayed.
+
+    Register name between the hex value on left and bit pattern on right
+    looks quite good.  Easy to align both values with the name.
+
