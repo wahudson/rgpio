@@ -220,6 +220,36 @@ yOptLong::print_usage()
 // Main program
 //--------------------------------------------------------------------------
 
+// Define functions for each sub-command
+
+#define DEFUNC( F, C )  int	 F( yOptLong *optx, rgAddrMap *amap ) {\
+    C		rrx  ( optx, amap );\
+    return  rrx.doit(); }
+
+	int	rf_io( yOptLong *optx, rgAddrMap *amap ) {
+	    y_io		rrx  ( optx, amap );
+	    return  rrx.doit();
+	}
+
+      //DEFUNC( rf_io,         y_io         )
+	DEFUNC( rf_fsel,       y_fsel       )
+	DEFUNC( rf_header,     y_header     )
+	DEFUNC( rf_clk,        y_clk        )
+	DEFUNC( rf_iic,        y_iic        )
+	DEFUNC( rf_info,       y_info       )
+	DEFUNC( rf_man,        y_man        )
+	DEFUNC( rf_pads,       y_pads       )
+	DEFUNC( rf_pud,        y_pud        )
+	DEFUNC( rf_pull,       y_pull       )
+	DEFUNC( rf_pwm,        y_pwm        )
+	DEFUNC( rf_spi0,       y_spi0       )
+	DEFUNC( rf_timer,      y_timer      )
+	DEFUNC( rf_uspi,       y_uspi       )
+
+	DEFUNC( rf_fsel5,      y_fsel5      )
+	DEFUNC( rf_rio,        y_rio        )
+	DEFUNC( rf_rpad,       y_rpad       )
+
 int
 main( int	argc,
       char	*argv[]
@@ -244,6 +274,60 @@ main( int	argc,
 	}
 
 	if ( Error::has_err() )  return 1;
+
+    // Table entry for each sub-command
+
+	class   entry_t {
+	  public:
+	    int		RpiNum;		// 0= prior to RPi5
+	    const char*	CmdName;
+	    int		(*Pfunc) ( yOptLong *optx, rgAddrMap *amap );
+	};
+
+	static entry_t         functab[] = {
+	    { 0, "io",       &rf_io         },
+	    { 0, "fsel",     &rf_fsel       },
+	    { 0, "header",   &rf_header     },
+	    { 0, "clk",      &rf_clk        },
+	    { 0, "iic",      &rf_iic        },
+	    { 0, "info",     &rf_info       },
+	    { 0, "man",      &rf_man        },
+	    { 0, "pads",     &rf_pads       },
+	    { 0, "pud",      &rf_pud        },
+	    { 0, "pull",     &rf_pull       },
+	    { 0, "pwm",      &rf_pwm        },
+	    { 0, "spi0",     &rf_spi0       },
+	    { 0, "timer",    &rf_timer      },
+	    { 0, "uspi",     &rf_uspi       },
+	    { 5, "fsel5",    &rf_fsel5      },
+	    { 5, "rpad",     &rf_rpad       },
+	    { 5, "rio",      &rf_rio        },
+	    { -1, NULL,      NULL           }
+	};
+
+    // Search table for sub-command
+
+	entry_t			*entry = functab;	// first table entry
+
+	if ( Opx.feature != "" ) {
+
+	    for ( ;  entry->CmdName != NULL;  entry++ )
+	    {
+		if ( Opx.feature == entry->CmdName ) { break; }
+	    }
+
+	    if ( entry->CmdName == NULL ) {
+		Error::msg( "unknown feature:  " ) << Opx.feature.c_str() <<endl;
+		return  1;
+	    }
+	} // defer handling null feature until after device file open
+
+    // Configure rgRpiRev default and simulation modes
+
+	if ( entry->RpiNum == 5 ) {
+	    rgRpiRev::Global.SocEnum.defaultv( rgRpiRev::soc_BCM2712 );
+	}
+	// else leave default for RPi3
 
 	if ( Opx.rpi3 ) {
 	    rgRpiRev::Global.simulate_SocEnum( rgRpiRev::soc_BCM2837 );
@@ -283,10 +367,6 @@ main( int	argc,
 	    Amx.open_fake_mem();
 	}
 
-	if ( Amx.is_fake_mem() && (Opx.verbose || Opx.debug) ) {
-	    cout << "Using Fake memory" <<endl;
-	}
-
 	if ( Opx.debug ) {
 	    cout.fill('0');
 	    cout << "+ AddrMap.config_BaseAddr() = 0x" <<hex <<setw(8) <<
@@ -295,89 +375,22 @@ main( int	argc,
 	    cout <<dec;
 	}
 
+	if ( Amx.is_fake_mem() && (Opx.verbose || Opx.debug) ) {
+	    cout << "Using Fake memory" <<endl;
+	}
+
 	// Note:  Device file cannot be closed until each feature has
 	// mapped its memory block.  Fine to leave it open.
 
-	int			retv = 0;	// return value
-
-	if (      Opx.feature == "io"       ) {
-	    y_io		iox  ( &Opx, &Amx );	// constructor
-	    retv = iox.doit();
-	}
-	else if ( Opx.feature == "fsel"    ) {
-	    y_fsel		fx  ( &Opx, &Amx );	// constructor
-	    retv = fx.doit();
-	}
-	else if ( Opx.feature == "header"    ) {
-	    y_header		fx  ( &Opx, &Amx );	// constructor
-	    retv = fx.doit();
-	}
-	else if ( Opx.feature == "clk"     ) {
-	    y_clk		cx  ( &Opx, &Amx );	// constructor
-	    retv = cx.doit();
-	}
-	else if ( Opx.feature == "iic"     ) {
-	    y_iic		icx  ( &Opx, &Amx );	// constructor
-	    retv = icx.doit();
-	}
-	else if ( Opx.feature == "info"     ) {
-	    y_info		inx  ( &Opx, &Amx );	// constructor
-	    retv = inx.doit();
-	}
-	else if ( Opx.feature == "man"     ) {
-	    y_man		fx  ( &Opx, &Amx );	// constructor
-	    retv = fx.doit();
-	}
-	else if ( Opx.feature == "pads"     ) {
-	    y_pads		pax  ( &Opx, &Amx );	// constructor
-	    retv = pax.doit();
-	}
-	else if ( Opx.feature == "pud"     ) {
-	    y_pud		pux  ( &Opx, &Amx );	// constructor
-	    retv = pux.doit();
-	}
-	else if ( Opx.feature == "pull"     ) {
-	    y_pull		pux  ( &Opx, &Amx );	// constructor
-	    retv = pux.doit();
-	}
-	else if ( Opx.feature == "pwm"     ) {
-	    y_pwm		pwx  ( &Opx, &Amx );	// constructor
-	    retv = pwx.doit();
-	}
-	else if ( Opx.feature == "spi0"    ) {
-	    y_spi0		usx  ( &Opx, &Amx );	// constructor
-	    retv = usx.doit();
-	}
-	else if ( Opx.feature == "timer"    ) {
-	    y_timer		usx  ( &Opx, &Amx );	// constructor
-	    retv = usx.doit();
-	}
-	else if ( Opx.feature == "uspi"    ) {
-	    y_uspi		usx  ( &Opx, &Amx );	// constructor
-	    retv = usx.doit();
-	}
-	//
-	else if ( Opx.feature == "fsel5"    ) {
-	    y_fsel5		fx  ( &Opx, &Amx );	// constructor
-	    retv = fx.doit();
-	}
-	else if ( Opx.feature == "rpad"     ) {
-	    y_rpad		rax  ( &Opx, &Amx );	// constructor
-	    retv = rax.doit();
-	}
-	else if ( Opx.feature == "rio"     ) {
-	    y_rio		rax  ( &Opx, &Amx );	// constructor
-	    retv = rax.doit();
-	}
-	else if ( Opx.feature == ""         ) {
+	if ( Opx.feature == "" ) {
 	    cout << "Do nothing.  Try '" << Opx.ProgName << " --help'" << endl;
 	    // Useful to verify device file access.
-	    retv = 0;
+	    return  0;
 	}
-	else {
-	    Error::msg( "unknown feature:  " ) << Opx.feature.c_str() <<endl;
-	    retv = 1;
-	}
+
+	int			retv = 0;	// return value
+
+	retv = (entry->Pfunc) ( &Opx, &Amx );	// call sub-command function
 
 	return  retv;
     }

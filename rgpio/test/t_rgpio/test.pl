@@ -73,9 +73,15 @@ run_test( "11c", "rgpio --debug  see rgAddrMap output only",
     Stderr => ($TEST_isRPi) ? q(
 	rgAddrMap:  raise cap:  = cap_dac_override,cap_sys_rawio+ep
 	rgAddrMap:  drop  cap:  =
-    ) : q(),
+    ) : q(
+	rgAddrMap:  getpagesize()     = 4096
+	rgAddrMap:  sizeof( char* )   = 8
+	rgAddrMap:  sizeof( off_t )   = 8
+	rgAddrMap:  sizeof( off64_t ) = 8
+    ),
     Stdout => q(),
 );
+#!! platform dependent
 
 #---------------------------------------
 run_test( "12", "rgpio help",
@@ -144,40 +150,40 @@ run_test( "20", "conflicting --rpi3 --rpi4",
 );
 
 run_test( "21", "rgpio --rpi3",
-    "rgpio --dev=f --debug --rpi3",
+    "( rgpio --dev=f --debug --rpi3 2> /dev/null )",
     0,
     Stderr => q(),
     Stdout => qq(
 	+ rgRpiRev::Global.SocEnum  = soc_BCM2837
 	+ rgRpiRev::Global.BaseAddr = $TEST_BaseAddr
-	Using Fake memory
 	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
+	Using Fake memory
 	Do nothing.  Try 'rgpio --help'
     ),
 );
 
 run_test( "22", "rgpio --rpi4",
-    "rgpio --dev=f --debug --rpi4",
+    "( rgpio --dev=f --debug --rpi4 2> /dev/null )",
     0,
     Stderr => q(),
     Stdout => qq(
 	+ rgRpiRev::Global.SocEnum  = soc_BCM2711
 	+ rgRpiRev::Global.BaseAddr = $TEST_BaseAddr
-	Using Fake memory
 	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
+	Using Fake memory
 	Do nothing.  Try 'rgpio --help'
     ),
 );
 
 run_test( "23", "rgpio --rpi5",
-    "rgpio --dev=f --debug --rpi5",
+    "( rgpio --dev=f --debug --rpi5 2> /dev/null )",
     0,
     Stderr => q(),
     Stdout => qq(
 	+ rgRpiRev::Global.SocEnum  = soc_BCM2712
 	+ rgRpiRev::Global.BaseAddr = $TEST_BaseAddr
-	Using Fake memory
 	+ AddrMap.config_BaseAddr() = $TEST_BaseAddr
+	Using Fake memory
 	Do nothing.  Try 'rgpio --help'
     ),
 );

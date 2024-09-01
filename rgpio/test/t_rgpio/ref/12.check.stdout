@@ -16,6 +16,10 @@ usage:  rgpio [main_options..]  feature  [options..]
     pads         Pads Control
     pud          Pin Pull-Up/Down - RPi3 and earlier
     pull         Pin Pull-Up/Down - RPi4 only
+  RPi5 only:
+    rio          Register IO
+    rpad         IO Pad control
+    fsel5        IO Function Select
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
