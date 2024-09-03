@@ -16,6 +16,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgIoPins.h"
 #include "rgFselPin.h"
@@ -37,6 +38,11 @@ rgFselPin::rgFselPin(
     rgAddrMap		*xx
 )
 {
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgFselPin:  require RPi4 (soc_BCM2711) or earlier" );
+    }
+
     GpioBase     = xx->get_mem_block( FeatureAddr );
 
     Fsel0.init_addr( GpioBase + (0x00 /4) );
@@ -62,6 +68,11 @@ rgFselPin::rgFselPin(
     rgIoPins		*xx
 )
 {
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgFselPin:  require RPi4 (soc_BCM2711) or earlier" );
+    }
+
     GpioBase     = xx->get_base_addr();
 
     Fsel0.init_addr( xx->Fsel0.addr() );

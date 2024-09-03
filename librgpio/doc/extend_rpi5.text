@@ -612,6 +612,52 @@ Address Map object:
     for future use, e.g. by a destructor to release the mapped areas.
   > Thus we continue to use pass by pointer.
 
+RPi Platforms:
+
+    Not all Features are valid on all platforms (SocEnum).  The Feature
+    constructor should throw an std::domain_error on invalid platforms.
+    It should accept only the currently valid platforms, and reject all
+    future platforms as unknown.
+    e.g.
+
+    if ( !(rgRpiRev::Global.SocEnum.find() == rgRpiRev::soc_BCM2712) ) {
+	throw std::domain_error ( "rgsRio:  require RPi5 (soc_BCM2712)" );
+    }
+
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2837) ) {
+	throw std::domain_error
+	    ( "rgPudPin:  require RPi3 (soc_BCM2837) or earlier" );
+    }
+
+    In general, the documentation addresses for RPi5 are different than
+    earlier RPi, and rgAddrMap::bcm2rpi_addr() will fail the address range
+    check.  It is better to have an explicit domain error than to get
+    a confusing address range check error.
+
+    Within the library code, it seems best to use the
+    rgRpiRev::Global.SocEnum.find()  function
+    over the equivalent  rgRpiRev::find_SocEnum()  function to be more clear
+    that global configuration is being used.
+
+Exception message:
+
+    Typically the exception message begins with the class name, followed
+    by the error message.
+    Class name with a single or double colon?
+    Both forms have been used so far (2024-09-01).
+
+ >  A) Single colon  rgAddrMap:
+	+ More English like.
+	- Message has a lot of name colon components.
+
+    B) Double colon  rgAddrMap::
+	+ Unique decoration for a class name.
+	- Looks odd.
+	+ Pretty clear it must be a class name.
+
+    I like the double colon idea, but somehow the single colon looks cleaner.
+    Probably not worth changing existing use, people get the right idea.
+
 ----------------------------------------------------------------------------
 ## IO Bits Class Design - Parallel Gpio pads
 ----------------------------------------------------------------------------

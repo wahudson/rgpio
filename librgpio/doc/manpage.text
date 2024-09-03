@@ -16,13 +16,13 @@ Have decided on using traditional man pages for documentation.
 
 Types of documentation:
 
-    We have 3 catagories (man sections):
+    We have 3 categories (man sections):
     (1)  'rgpio' command and sub-commands
     (3)  library 'librgpio' classes and API calls
     (7)  peripheral (Feature) hardware registers and behavior
 
     Each Feature (peripheral) tends to have documentation in all three
-    catagories.  Want to avoid overlap and duplication as much as reasonable.
+    categories.  Want to avoid overlap and duplication as much as reasonable.
     Each manpage can reference the man pages in other sections.
 
     Each feature class will have a manpage named after the class in sections
@@ -121,7 +121,7 @@ Combine manpage dirs from librgpio and rgpio with symlinks:
 
 	   rgman  -> .../rgpio-v1.1/rgpio/bin/rgman	# (D)
 
-	These commands can use "readlink -f" to find absolute cononical path
+	These commands can use "readlink -f" to find absolute canonical path
 	to the associated source directory, and thus the man pages.
 
    The rgpio/librgpio symlink is an extra indirection allowing the user
@@ -171,4 +171,54 @@ SEE ALSO:
     Sometimes more meaningful in the context earlier.
 
     "BCM doc:" references.  Follow form in librgpio(3).
+
+----------------------------------------------------------------------------
+## RPi Platform
+----------------------------------------------------------------------------
+
+    With the advent of RP5, it becomes necessary to identify which RPi
+    platforms a Feature works with.  Both in library Feature classes and
+    rgpio commands.  Ways to do this:
+
+ >  A)  Mention RPi5 in the title (but not RPi4 or RPi3)
+	+ See it first thing, strong association.
+	- Needs to be short to fit.
+	- Probably changes when RPi6 comes out.
+
+    B)  In first line of DESCRIPTION
+	- Only informal mention.
+	- No systematic heading to search for.
+
+    C)  Sub-heading under DESCRIPTION
+	+ Provides a heading to look for.
+	- Lots of sub-headings.
+	- Is a bit hidden.
+
+ >> D)  PLATFORM section - one line for "RPi4 and earlier"
+		Probably near bottom with EXCEPTIONS and RETURN VALUE.
+	+ Very systematic.
+	+ Allows easy elaboration.
+	- Another major section.
+
+ >  E)  RPi4 and earlier have no platform in title (implied).
+	+ Is the "default".
+	+ No need to update these man pages.
+	+ Natural evolution.
+
+ >  F)  EXCEPTIONS std::domain_error - constructor requires  RPi3 or earlier
+	+ Ties platform and the exception.
+	+ Minimalist solution.
+
+    The idea is to be systematic so user can find it.
+
+    Note class prefix "rgs" helps identify RPi5 classes.
+    Nothing similar for rgpio.
+
+    I favor a mixed approach as appropriate.  Probably moving toward a
+    PLATFORM section.  (2024-09-02)
+
+SEE ALSO Reference
+
+    Provide reference to the equivalent feature for other platforms.
+    Help user find it.
 

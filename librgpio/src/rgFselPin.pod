@@ -92,7 +92,7 @@ Register class inheritance is:  rgFselPin_reg -> rgReg_rw -> rgReg
 This class provides access to the Function Select hardware registers of the
 IO Pins peripheral group.
 
-Each hardware register is represented by an rgFselPin_reg object that
+Each hardware register is represented by an B<rgFselPin_reg> object that
 contains only the address of the register (no register value).
 These are public objects intended for direct access to their methods for
 manipulating the value of the hardware register.
@@ -309,6 +309,7 @@ Currently uses a linear search, good enough for the typical single lookup.
 
 =head1		EXCEPTIONS
 
+ std::domain_error	constructor requires RPi4 or earlier
  std::logic_error
  std::range_error
 
