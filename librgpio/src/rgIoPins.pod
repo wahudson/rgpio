@@ -268,6 +268,7 @@ Returns the Clear register address (e.g. PinClr_w0).
 
 =head1		EXCEPTIONS
 
+ std::domain_error	constructor requires RPi4 or earlier
  std::logic_error
  std::range_error
 
