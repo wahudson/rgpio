@@ -16,6 +16,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgPads.h"
 
@@ -33,6 +34,11 @@ rgPads::rgPads(
     rgAddrMap		*xx
 )
 {
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgPads:  require RPi4 (soc_BCM2711) or earlier" );
+    }
+
     GpioBase    = xx->get_mem_block( FeatureAddr );
 
     PadsA_27s0.init_addr(  GpioBase + (0x2c /4) );
