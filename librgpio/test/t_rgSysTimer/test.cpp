@@ -58,6 +58,19 @@ rgSysTimer		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "10b", "rgSysTimer domain_error RPi5" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	rgSysTimer	tx  ( &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgSysTimer:  require RPi4 (soc_BCM2711) or earlier", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
   CASE( "11", "get_bcm_address() Feature Address" );
     try {

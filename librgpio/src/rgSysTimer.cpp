@@ -15,6 +15,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgSysTimer.h"
 
@@ -94,6 +95,11 @@ rgSysTimer::rgSysTimer(
     rgAddrMap		*xx
 )
 {
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgSysTimer:  require RPi4 (soc_BCM2711) or earlier" );
+    }
+
     GpioBase     = xx->get_mem_block( FeatureAddr );
 
     // Real Registers
