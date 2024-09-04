@@ -98,6 +98,19 @@ rgIic			Tx1  ( &Bx, 1 );	// test object, Iic0
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "10e", "rgIic domain_error RPi5" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	rgIic       tx  ( &Bx, 0 );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgIic:  require RPi4 (soc_BCM2711) or earlier", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
 rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );	// RPi4
 

@@ -38,6 +38,11 @@ rgIic::rgIic(
 {
     uint32_t		addr;
 
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgIic:  require RPi4 (soc_BCM2711) or earlier" );
+    }
+
     switch ( iicnum ) {
     case  0:  addr = 0x7e205000;  break;
     case  1:  addr = 0x7e804000;  break;
