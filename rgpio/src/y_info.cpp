@@ -205,7 +205,8 @@ y_info::doit()
 	rgRpiRev		Rvx;	// for local config
 	rgRpiRev*		rpx;	// pointer to global or local
 	uint32_t		code;
-	rgRpiRev::Soc_enum	soc;
+	rgRpiRev::Soc_enum	soc_enum = rgRpiRev::soc_BCM2835;
+	const char*		soc_name = "unknown";
 
 	rpx = &rgRpiRev::Global;	// point at global
 
@@ -224,7 +225,8 @@ y_info::doit()
 	code = Rcx.find();		// may throw exception
 
 	try {
-	    soc = rpx->SocEnum.find();
+	    soc_enum = rpx->SocEnum.find();
+	    soc_name = rgRpiRev::soc_enum2cstr( soc_enum );
 	}
 	catch ( std::exception& e ) {
 	    Error::msg( "SocEnum exception:  " ) << e.what() <<endl;
@@ -253,7 +255,7 @@ y_info::doit()
 
 	cout.fill('0');
 	cout <<hex
-	    << "  SocEnum   = soc_" << rgRpiRev::soc_enum2cstr( soc ) <<endl
+	    << "  SocEnum   = soc_" << soc_name <<endl
 	    << "  BaseAddr  = 0x"   <<setw(8) << rpx->BaseAddr.find() <<endl
 	    ;
 

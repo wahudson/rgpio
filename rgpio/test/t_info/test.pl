@@ -145,7 +145,7 @@ run_test( "21", "info --code ok",
     ),
 );
 
-run_test( "21", "info --code bad Soc_enum",
+run_test( "22", "info --code bad Soc_enum",
     "rgpio --dev=f  info --code=0xffffcfff",
     1,
     Stderr => q(
@@ -164,12 +164,12 @@ run_test( "21", "info --code bad Soc_enum",
 	    ChipNumber_4     = 12
 	    BoardType_8      = 255
 	    BoardRev_4       = 15
-	  SocEnum   = soc_BCM2835
+	  SocEnum   = soc_unknown
 	  BaseAddr  = 0x00000000
     ),
 );
 
-run_test( "22", "info --code RPi5",
+run_test( "23", "info --code RPi5",
     "rgpio --dev=f  info --code=0xffff4fff",
     0,
     Stderr => q(),
