@@ -316,6 +316,7 @@ Throw range_error if int is invalid.
 
 =head1		EXCEPTIONS
 
+ std::domain_error	constructor requires RPi4 or earlier
  std::logic_error
  std::range_error
  std::runtime_error

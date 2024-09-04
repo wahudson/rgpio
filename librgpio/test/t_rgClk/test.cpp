@@ -99,6 +99,20 @@ rgClk			Tx2  ( &Bx, rgClk::cm_Clk2 );	// test object, Clk2
     }
 
 //--------------------------------------
+  CASE( "15", "rgClk domain_error RPi5" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	rgClk		tx  ( &Bx, rgClk::cm_Clk0 );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgClk:  require RPi4 (soc_BCM2711) or earlier", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
 // Register Class constructors - be sure they exist.
 
   CASE( "17a", "rgClk_Cntl class" );
@@ -127,6 +141,8 @@ rgClk			Tx2  ( &Bx, rgClk::cm_Clk2 );	// test object, Clk2
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+
+rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2837 );	// RPi3
 
 //--------------------------------------------------------------------------
 //## Addresses

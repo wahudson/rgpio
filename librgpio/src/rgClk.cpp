@@ -16,6 +16,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgClk.h"
 
@@ -232,6 +233,11 @@ rgClk::rgClk(
 )
 {
     uint32_t		offset;
+
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgClk:  require RPi4 (soc_BCM2711) or earlier" );
+    }
 
     ClkEnum   = clknum;
     GpioBase  = xx->get_mem_block( FeatureAddr );
