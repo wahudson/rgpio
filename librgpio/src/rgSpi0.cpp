@@ -37,6 +37,11 @@ rgSpi0::rgSpi0(
 {
     uint32_t		delta;
 
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgSpi0:  require RPi4 (soc_BCM2711) or earlier" );
+    }
+
     if ( ! ((spinum == 0) || ((3 <= spinum) && (spinum <= 6)) ) ) {
 	std::ostringstream      css;
 	css << "rgSpi0:  constructor requires spi number {0,3,4,5,6}:  "

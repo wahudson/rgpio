@@ -83,6 +83,19 @@ rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2837 );  // RPi3
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "10d", "rgSpi0 domain_error RPi5" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	rgSpi0		tx  ( &Bx );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgSpi0:  require RPi4 (soc_BCM2711) or earlier", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
 rgRpiRev::Global.SocEnum.override( rgRpiRev::soc_BCM2711 );	// RPi4
 
