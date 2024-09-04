@@ -15,6 +15,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgPwm.h"
 
@@ -32,6 +33,11 @@ rgPwm::rgPwm(
     rgAddrMap		*xx
 )
 {
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgPwm:  require RPi4 (soc_BCM2711) or earlier" );
+    }
+
     GpioBase     = xx->get_mem_block( FeatureAddr );
 
         Cntl.init_addr( GpioBase +     Cntl_offset );
