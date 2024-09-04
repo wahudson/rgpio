@@ -15,6 +15,7 @@
 
 using namespace std;
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgUniSpi.h"
 
@@ -35,6 +36,11 @@ rgUniSpi::rgUniSpi(
 )
 {
     uint32_t		delta;
+
+    if ( !(rgRpiRev::Global.SocEnum.find() <= rgRpiRev::soc_BCM2711) ) {
+	throw std::domain_error
+	    ( "rgUniSpi:  require RPi4 (soc_BCM2711) or earlier" );
+    }
 
     if ( ! ((spinum == 1) || (spinum == 2)) ) {
 	std::ostringstream	css;

@@ -270,6 +270,7 @@ For register field descriptions see rgUniSpi(7) or the BCM documentation.
 
 =head1		EXCEPTIONS
 
+ std::domain_error	constructor requires RPi4 or earlier
  std::range_error
 
 

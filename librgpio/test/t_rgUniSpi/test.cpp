@@ -69,7 +69,22 @@ rgUniSpi		Tx2  ( &Bx, 2 );	// test object, Spi2
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "10c", "rgUniSpi domain_error RPi5" );
+    try {
+	rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );
+	rgUniSpi	tx  ( &Bx, 1 );
+	FAIL( "no throw" );
+    }
+    catch ( std::domain_error& e ) {
+	CHECK( "rgUniSpi:  require RPi4 (soc_BCM2711) or earlier", e.what() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
+rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2837 );	// RPi3
+
   CASE( "11a", "constructor, bad spi number" );
     try {
 	rgUniSpi	tx  ( &Bx, 0 );
