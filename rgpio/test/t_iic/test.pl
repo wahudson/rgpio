@@ -42,20 +42,30 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## iic basic options --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  iic",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgIic:  require RPi4 (soc_BCM2711) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "11", "iic no args",
-    "rgpio --dev=f  iic",
+    "rgpio --dev=f --rpi4  iic",
     0,
     Stderr => q(),
 );
 
 run_test( "12", "iic help",
-    "rgpio --dev=f  iic -1 --IicEnable_1=1 --help",
+    "rgpio --dev=f --rpi4  iic -1 --IicEnable_1=1 --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  iic --dev=xx",
+    "rgpio --dev=f --rpi4  iic --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -65,7 +75,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "extra argument",
-    "rgpio --dev=f  iic 2",
+    "rgpio --dev=f --rpi4  iic 2",
     1,
     Stderr => q(
 	Error:  extra arguments:  2
@@ -94,7 +104,7 @@ run_test( "15b", "bad iic number options",
 
 #---------------------------------------
 run_test( "16a", "good iic numbers",
-    "rgpio --dev=f  iic -v -0 -1 -2",
+    "rgpio --dev=f --rpi3  iic -v -0 -1 -2",
     0,
     Stderr => q(),
 );
@@ -110,7 +120,7 @@ run_test( "16b", "good iic numbers",
 #---------------------------------------------------------------------------
 
 run_test( "21", "Cntl modify errors",
-    "rgpio --dev=f  iic -v -1 --IicEnable_1=2 --IrqRxHalf_1=2 --IrqTxHalf_1=2 --IrqDone_1=2 --StartTrans_1=2 --ClearFifo_2=4 --ReadPacket_1=2",
+    "rgpio --dev=f --rpi4  iic -v -1 --IicEnable_1=2 --IrqRxHalf_1=2 --IrqTxHalf_1=2 --IrqDone_1=2 --StartTrans_1=2 --ClearFifo_2=4 --ReadPacket_1=2",
     1,
     Stderr => q(
 	Error:  require --IicEnable_1={0,1}:  2
@@ -125,7 +135,7 @@ run_test( "21", "Cntl modify errors",
 );
 
 run_test( "22", "Stat modify errors",
-    "rgpio --dev=f  iic -v -1 --ClkTimeout_1=2 --AckErr_1=2 --TransDone_1=2",
+    "rgpio --dev=f --rpi4  iic -v -1 --ClkTimeout_1=2 --AckErr_1=2 --TransDone_1=2",
     1,
     Stderr => q(
 	Error:  require --ClkTimeout_1={0,1}:  2
@@ -136,7 +146,7 @@ run_test( "22", "Stat modify errors",
 );
 
 run_test( "23", "reg modify errors",
-    "rgpio --dev=f  iic -v -1 --DataLen_16=0x10000 --SlaveAddr_7=0x100 --ClkDiv_16=0x10000 --Fall2Out_16=0x10000 --Rise2In_16=0x10000 --TimeOut_16=0x10000",
+    "rgpio --dev=f --rpi4  iic -v -1 --DataLen_16=0x10000 --SlaveAddr_7=0x100 --ClkDiv_16=0x10000 --Fall2Out_16=0x10000 --Rise2In_16=0x10000 --TimeOut_16=0x10000",
     1,
     Stderr => q(
 	Error:  require --DataLen_16={0..65535}:  65536
@@ -154,7 +164,7 @@ run_test( "23", "reg modify errors",
 #---------------------------------------------------------------------------
 
 run_test( "30", "--tx needs arguments",
-    "rgpio --dev=f  iic -v -1 --rx=3 --tx",
+    "rgpio --dev=f --rpi4  iic -v -1 --rx=3 --tx",
     1,
     Stderr => q(
 	Error:  --tx requires arg values
@@ -163,7 +173,7 @@ run_test( "30", "--tx needs arguments",
 );
 
 run_test( "31", "Tx Rx",
-    "rgpio --dev=f  iic -v -1 --rx=3 --tx  0x5555abba 0x77773cc3",
+    "rgpio --dev=f --rpi4  iic -v -1 --rx=3 --tx  0x5555abba 0x77773cc3",
     0,
     Stderr => q(),
 );

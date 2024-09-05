@@ -70,13 +70,13 @@ if ( ! $TEST_isRPi ) {
 }
 
 run_test( "12", "info help",
-    "rgpio --dev=f  info --help",
+    "rgpio --dev=f --rpi3  info --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  info --dev=xx",
+    "rgpio --dev=f --rpi3  info --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -86,7 +86,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "error option combination",
-    "rgpio --dev=f  info --code=0 --file=/dev/null",
+    "rgpio --dev=f --rpi3  info --code=0 --file=/dev/null",
     1,
     Stderr => q(
 	Error:  choose only one:  --file= or --code=
@@ -124,7 +124,7 @@ run_test( "15", "RPi4 info simulate",
 #---------------------------------------------------------------------------
 
 run_test( "21", "info --code ok",
-    "rgpio --dev=f  info --code=0xffff2fff",
+    "rgpio --dev=f --rpi3  info --code=0xffff2fff",
     0,
     Stderr => q(),
     Stdout => q(
@@ -146,7 +146,7 @@ run_test( "21", "info --code ok",
 );
 
 run_test( "22", "info --code bad Soc_enum",
-    "rgpio --dev=f  info --code=0xffffcfff",
+    "rgpio --dev=f --rpi3  info --code=0xffffcfff",
     1,
     Stderr => q(
 	Error:  SocEnum exception:  rgRpiRev_Soc::find() ChipNumber has no enum:  12
@@ -170,7 +170,7 @@ run_test( "22", "info --code bad Soc_enum",
 );
 
 run_test( "23", "info --code RPi5",
-    "rgpio --dev=f  info --code=0xffff4fff",
+    "rgpio --dev=f --rpi3  info --code=0xffff4fff",
     0,
     Stderr => q(),
     Stdout => q(
@@ -197,7 +197,7 @@ run_test( "23", "info --code RPi5",
 #---------------------------------------------------------------------------
 
 run_test( "31", "info --file null",
-    "rgpio --dev=f  info --file=/dev/null",
+    "rgpio --dev=f --rpi3  info --file=/dev/null",
     0,
     Stderr => q(),
     Stdout => q(
@@ -221,7 +221,7 @@ run_test( "31", "info --file null",
 );
 
 run_test( "32", "info --file missing",
-    "rgpio --dev=f  info --file=missing",
+    "rgpio --dev=f --rpi3  info --file=missing",
     1,
     Stderr => q(
 	Error:  exception caught:  read_rev_code() cannot open file:  missing
@@ -230,7 +230,7 @@ run_test( "32", "info --file missing",
 );
 
 run_test( "33", "info --file RPi3",
-    "rgpio --dev=f  info --file=../ref/rpi3.in",
+    "rgpio --dev=f --rpi3  info --file=../ref/rpi3.in",
     0,
     Stderr => q(),
     Stdout => q(

@@ -42,8 +42,18 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## io basic options --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  io",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgIoPins:  require RPi4 (soc_BCM2711) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "11", "io no args",
-    "rgpio --dev=f  io",
+    "rgpio --dev=f --rpi4  io",
     0,
     Stderr => q(),
     Stdout => q(
@@ -60,13 +70,13 @@ run_test( "11", "io no args",
 );
 
 run_test( "12", "io help",
-    "rgpio --dev=f  io --help",
+    "rgpio --dev=f --rpi4  io --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "bad option",
-    "rgpio --dev=f  io --dev=xx",
+    "rgpio --dev=f --rpi4  io --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -81,7 +91,7 @@ run_test( "13", "bad option",
 #---------------------------------------------------------------------------
 
 run_test( "20a", "io --set",
-    "rgpio --dev=f  io -v --set=0xfff  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io -v --set=0xfff  DetectLow_w0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -92,7 +102,7 @@ run_test( "20a", "io --set",
 );
 
 run_test( "20b", "io --clr",
-    "rgpio --dev=f  io --hex --clr=0x033  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io --hex --clr=0x033  DetectLow_w0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -101,7 +111,7 @@ run_test( "20b", "io --clr",
 );
 
 run_test( "20c", "io --mask",
-    "rgpio --dev=f  io --mask=0x0000ffff --value=0xffff3cc3  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io --mask=0x0000ffff --value=0xffff3cc3  DetectLow_w0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -112,7 +122,7 @@ run_test( "20c", "io --mask",
 
 #---------------------------------------
 run_test( "21", "io --set",
-    "rgpio --dev=f  io --set=0xf --clr=0x3  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io --set=0xf --clr=0x3  DetectLow_w0",
     1,
     Stderr => q(
 	Error:  --set invalid with --clr or --mask and --value
@@ -122,7 +132,7 @@ run_test( "21", "io --set",
 );
 
 run_test( "22", "io --set",
-    "rgpio --dev=f  io --set=0xf --mask=0x3 --value=0x0  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io --set=0xf --mask=0x3 --value=0x0  DetectLow_w0",
     1,
     Stderr => q(
 	Error:  --set invalid with --clr or --mask and --value
@@ -131,7 +141,7 @@ run_test( "22", "io --set",
 );
 
 run_test( "23", "io --clr",
-    "rgpio --dev=f  io --clr=0xf --mask=0x3 --value=0x0  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io --clr=0xf --mask=0x3 --value=0x0  DetectLow_w0",
     1,
     Stderr => q(
 	Error:  --clr invalid with --set or --mask and --value
@@ -141,7 +151,7 @@ run_test( "23", "io --clr",
 
 #---------------------------------------
 run_test( "24a", "io --mask",
-    "rgpio --dev=f  io  --mask=0x3  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io  --mask=0x3  DetectLow_w0",
     1,
     Stderr => q(
 	Error:  modify requires --mask --value
@@ -150,7 +160,7 @@ run_test( "24a", "io --mask",
 );
 
 run_test( "24b", "io --value",
-    "rgpio --dev=f  io  --value=0x0  DetectLow_w0",
+    "rgpio --dev=f --rpi4  io  --value=0x0  DetectLow_w0",
     1,
     Stderr => q(
 	Error:  modify requires --mask --value
@@ -160,7 +170,7 @@ run_test( "24b", "io --value",
 
 #---------------------------------------
 run_test( "25a", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --clr=0x33 --all  PinLevel_w0",
+    "rgpio --dev=f --rpi4  io --clr=0x33 --all  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
@@ -169,7 +179,7 @@ run_test( "25a", "io modify invalid with reg groups",
 );
 
 run_test( "25b", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --clr=0x33 --all --raw  PinLevel_w0",
+    "rgpio --dev=f --rpi4  io --clr=0x33 --all --raw  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
@@ -182,7 +192,7 @@ run_test( "25b", "io modify invalid with reg groups",
 );
 
 run_test( "25c", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --set=0x33 --w0  PinLevel_w0",
+    "rgpio --dev=f --rpi4  io --set=0x33 --w0  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
@@ -192,7 +202,7 @@ run_test( "25c", "io modify invalid with reg groups",
 );
 
 run_test( "25d", "io modify invalid with reg groups",
-    "rgpio --dev=f  io --clr=0x33 --pud  PinLevel_w0",
+    "rgpio --dev=f --rpi4  io --clr=0x33 --pud  PinLevel_w0",
     1,
     Stderr => q(
 	Error:  modification invalid with --w0 --w1 --fsel --pud --all
@@ -202,7 +212,7 @@ run_test( "25d", "io modify invalid with reg groups",
 
 #---------------------------------------
 run_test( "26", "io --set requires register",	#!! error on default registers
-    "rgpio --dev=f  io --set=0x33",
+    "rgpio --dev=f --rpi4  io --set=0x33",
     1,
     Stderr => q(
 	Error:  modification requires register argument
@@ -212,7 +222,7 @@ run_test( "26", "io --set requires register",	#!! error on default registers
 );
 
 run_test( "27", "io unknown register",
-    "rgpio --dev=f  io --set=0x33  DetectLow_w0 FooFoo_w0",
+    "rgpio --dev=f --rpi4  io --set=0x33  DetectLow_w0 FooFoo_w0",
     1,
     Stderr => q(
 	Error:  unknown register:  FooFoo_w0
@@ -225,7 +235,7 @@ run_test( "27", "io unknown register",
 #---------------------------------------------------------------------------
 
 run_test( "30", "io --raw instead of virtual registers",
-    "rgpio --dev=f  io --raw --hex",
+    "rgpio --dev=f --rpi4  io --raw --hex",
     0,
     Stderr => q(),
     Stdout => q(
@@ -243,7 +253,7 @@ run_test( "30", "io --raw instead of virtual registers",
 );
 
 run_test( "31", "io -0 -1 alias",
-    "rgpio --dev=f  io -0 -1 --hex",
+    "rgpio --dev=f --rpi4  io -0 -1 --hex",
     0,
     Stderr => q(),
     Stdout => q(
@@ -268,7 +278,7 @@ run_test( "31", "io -0 -1 alias",
 );
 
 run_test( "32", "io --w1",
-    "rgpio --dev=f  io --w1 --hex",
+    "rgpio --dev=f --rpi4  io --w1 --hex",
     0,
     Stderr => q(),
     Stdout => q(
@@ -284,7 +294,7 @@ run_test( "32", "io --w1",
 );
 
 run_test( "33", "io --fsel",
-    "rgpio --dev=f  io --fsel",
+    "rgpio --dev=f --rpi4  io --fsel",
     0,
     Stderr => q(),
     Stdout => q(
@@ -332,7 +342,7 @@ run_test( "35", "io --all binary output",
 );
 
 run_test( "36", "io  register args",
-    "rgpio --dev=f  io  PinLevel_w0 DetectHigh_w1",
+    "rgpio --dev=f --rpi4  io  PinLevel_w0 DetectHigh_w1",
     0,
     Stderr => q(),
     Stdout => q(
@@ -343,7 +353,7 @@ run_test( "36", "io  register args",
 );
 
 run_test( "37", "io  register args",
-    "rgpio --dev=f  io -v --set=0x00ff5533  PinLevel_w0 DetectHigh_w1",
+    "rgpio --dev=f --rpi4  io -v --set=0x00ff5533  PinLevel_w0 DetectHigh_w1",
     0,
     Stderr => q(),
     Stdout => q(

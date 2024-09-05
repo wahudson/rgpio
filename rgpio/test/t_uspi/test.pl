@@ -42,20 +42,30 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## uspi basic options --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  uspi",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgUniSpi:  require RPi4 (soc_BCM2711) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "11", "uspi no args",
-    "rgpio --dev=f  uspi",
+    "rgpio --dev=f --rpi4  uspi",
     0,
     Stderr => q(),
 );
 
 run_test( "12", "uspi help",
-    "rgpio --dev=f  uspi --EnableSerial_1=1 --help",
+    "rgpio --dev=f --rpi4  uspi --EnableSerial_1=1 --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  uspi --dev=xx",
+    "rgpio --dev=f --rpi4  uspi --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -65,7 +75,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "extra argument",
-    "rgpio --dev=f  uspi 2",
+    "rgpio --dev=f --rpi4  uspi 2",
     1,
     Stderr => q(
 	Error:  extra arguments:  2
@@ -74,7 +84,7 @@ run_test( "14", "extra argument",
 );
 
 run_test( "15", "bad uspi number options",
-    "rgpio --dev=f  uspi -0 -3",
+    "rgpio --dev=f --rpi4  uspi -0 -3",
     1,
     Stderr => q(
 	Error:  unknown option:  -0
@@ -88,7 +98,7 @@ run_test( "15", "bad uspi number options",
 #---------------------------------------------------------------------------
 
 run_test( "21", "AuxEn modify errors",
-    "rgpio --dev=f  uspi --SpiEnable_1=2",
+    "rgpio --dev=f --rpi4  uspi --SpiEnable_1=2",
     1,
     Stderr => q(
 	Error:  require --SpiEnable_1={0,1}:  2
@@ -97,7 +107,7 @@ run_test( "21", "AuxEn modify errors",
 );
 
 run_test( "22a", "Cntl0 modify errors",
-    "rgpio --dev=f  uspi --Speed_12=0x1000 --ChipSelects_3=8 --PostInMode_1=2 --VariableCs_1=2 --VariableWidth_1=2 --DoutHoldTime_2=4 --EnableSerial_1=2",
+    "rgpio --dev=f --rpi4  uspi --Speed_12=0x1000 --ChipSelects_3=8 --PostInMode_1=2 --VariableCs_1=2 --VariableWidth_1=2 --DoutHoldTime_2=4 --EnableSerial_1=2",
     1,
     Stderr => q(
 	Error:  require --Speed_12={0..4095}:  4096
@@ -112,7 +122,7 @@ run_test( "22a", "Cntl0 modify errors",
 );
 
 run_test( "22b", "Cntl0 modify errors",
-    "rgpio --dev=f  uspi --InRising_1=2 --ClearFifos_1=2 --OutRising_1=2 --InvertClk_1=2 --OutMsbFirst_1=2 --ShiftLength_6=64",
+    "rgpio --dev=f --rpi4  uspi --InRising_1=2 --ClearFifos_1=2 --OutRising_1=2 --InvertClk_1=2 --OutMsbFirst_1=2 --ShiftLength_6=64",
     1,
     Stderr => q(
 	Error:  require --InRising_1={0,1}:  2
@@ -126,7 +136,7 @@ run_test( "22b", "Cntl0 modify errors",
 );
 
 run_test( "23", "Cntl1 modify errors",
-    "rgpio --dev=f  uspi --CsHighTime_3=8 --TxEmptyIrq_1=2 --DoneIrq_1=2 --InMsbFirst_1=2 --KeepInput_1=2",
+    "rgpio --dev=f --rpi4  uspi --CsHighTime_3=8 --TxEmptyIrq_1=2 --DoneIrq_1=2 --InMsbFirst_1=2 --KeepInput_1=2",
     1,
     Stderr => q(
 	Error:  require --CsHighTime_3={0..7}:  8
@@ -143,7 +153,7 @@ run_test( "23", "Cntl1 modify errors",
 #---------------------------------------------------------------------------
 
 run_test( "30", "--tx needs arguments",
-    "rgpio --dev=f  uspi -v --rx=3 --tx",
+    "rgpio --dev=f --rpi4  uspi -v --rx=3 --tx",
     1,
     Stderr => q(
 	Error:  --tx requires arg values
@@ -152,7 +162,7 @@ run_test( "30", "--tx needs arguments",
 );
 
 run_test( "31", "Tx Rx",
-    "rgpio --dev=f  uspi -v --rx=3 --tx  0x5555abba 0x77773cc3",
+    "rgpio --dev=f --rpi4  uspi -v --rx=3 --tx  0x5555abba 0x77773cc3",
     0,
     Stderr => q(),
 );

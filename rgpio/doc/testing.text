@@ -1,0 +1,48 @@
+2024-09-04  William A. Hudson
+
+			rgpio Testing
+			-------------
+
+Common aspects of rgpio command testing.
+
+----------------------------------------------------------------------------
+## t_*/  Code functionality, platform independent
+----------------------------------------------------------------------------
+
+    These tests are intended to exercise the essential code functionality.
+    They do NOT duplicate full coverage provided by the library class tests.
+
+Simulation Mode:
+
+    Generally all tests apply "rgpio --dev=f" (Fake memory) to be safe
+    running on any platform.  This is the fundamental simulation.
+
+    When no simulation mode is specified (no --rpi* option), it defaults
+    to the platform the program is running on, which may result in variable
+    behavior.  On a non-RPi platform, simulation defaults to --rpi3, the
+    original development platform.
+
+    Now with RPi5 all tests should explicitly specify the simulation
+    platform for best repeatability on all platforms.
+
+    In retrofitting older tests (i.e. before RPi5), we want to apply the
+    highest valid simulation mode for most test cases (e.g. --rpi4).  Not
+    trying to exhaustively exercise all valid platforms.
+    Probably exercise at least one invalid platform, e.g. --rpi5.
+    Gray-box testing.
+
+    The newer RPi5 commands should exercise --rpi5, and limited coverage
+    of --rpi4 or --rpi3 to see platform error message.
+
+    Note that some test case conditions draw another error before the
+    Feature object is constructed and the platform is validated.  These
+    cases would not depend on the platform.  It still may be best to apply
+    an explicit platform option for uniformity.
+
+    Historically the platform options did not force Fake memory (but now
+    they do), hence applying "--dev=f" may be a bit redundant, but safe.
+
+----------------------------------------------------------------------------
+## v_*/  Live Tests, real RPi
+----------------------------------------------------------------------------
+

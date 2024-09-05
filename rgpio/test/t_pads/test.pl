@@ -42,20 +42,30 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## basic options --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  pads",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgPads:  require RPi4 (soc_BCM2711) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "11", "pads no args",
-    "rgpio --dev=f  pads",
+    "rgpio --dev=f --rpi4  pads",
     0,
     Stderr => q(),
 );
 
 run_test( "12", "pads help",
-    "rgpio --dev=f  pads --DriveStr_3=5 --help",
+    "rgpio --dev=f --rpi4  pads --DriveStr_3=5 --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  pads --dev=xx",
+    "rgpio --dev=f --rpi4  pads --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -64,7 +74,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "pads one register",
-    "rgpio --dev=f  pads -v PadsA_27s0",
+    "rgpio --dev=f --rpi4  pads -v PadsA_27s0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -83,7 +93,7 @@ run_test( "14", "pads one register",
 #---------------------------------------------------------------------------
 
 run_test( "20", "error modify requires register",
-    "rgpio --dev=f  pads --DriveStr_3=7",
+    "rgpio --dev=f --rpi4  pads --DriveStr_3=7",
     1,
     Stderr => q(
 	Error:  modify requires register argument
@@ -92,7 +102,7 @@ run_test( "20", "error modify requires register",
 );
 
 run_test( "21", "error bad register",
-    "rgpio --dev=f  pads --DriveStr_3=7 PadsA_27s0  PadsC",
+    "rgpio --dev=f --rpi4  pads --DriveStr_3=7 PadsA_27s0  PadsC",
     1,
     Stderr => q(
 	Error:  unknown register:  PadsC
@@ -101,7 +111,7 @@ run_test( "21", "error bad register",
 );
 
 run_test( "22", "error field size",
-    "rgpio --dev=f  pads --Passwd_8=0x100 --SlewMax_1=2 --HystEn_1=2 --DriveStr_3=8",
+    "rgpio --dev=f --rpi4  pads --Passwd_8=0x100 --SlewMax_1=2 --HystEn_1=2 --DriveStr_3=8",
     1,
     Stderr => q(
 	Error:  require --Passwd_8<=0xff:  0x100
@@ -118,7 +128,7 @@ run_test( "22", "error field size",
 #---------------------------------------------------------------------------
 
 run_test( "30", "modify, default Passwd",
-    "rgpio --dev=f  pads -v --DriveStr_3=6  PadsA_27s0",
+    "rgpio --dev=f --rpi4  pads -v --DriveStr_3=6  PadsA_27s0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -135,7 +145,7 @@ run_test( "30", "modify, default Passwd",
 );
 
 run_test( "31", "modify word value",
-    "rgpio --dev=f  pads -v --value=0xcc3333ff --DriveStr_3=2  PadsA_27s0",
+    "rgpio --dev=f --rpi4  pads -v --value=0xcc3333ff --DriveStr_3=2  PadsA_27s0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -152,7 +162,7 @@ run_test( "31", "modify word value",
 );
 
 run_test( "32", "modify fields, explicit Passwd",
-    "rgpio --dev=f  pads --Passwd_8=0x33 --SlewMax_1=1 --HystEn_1=1 --DriveStr_3=3  PadsA_27s0",
+    "rgpio --dev=f --rpi4  pads --Passwd_8=0x33 --SlewMax_1=1 --HystEn_1=1 --DriveStr_3=3  PadsA_27s0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -166,7 +176,7 @@ run_test( "32", "modify fields, explicit Passwd",
 );
 
 run_test( "33", "modify all registers",
-    "rgpio --dev=f  pads -v --DriveStr_3=3  PadsA_27s0  PadsB_45s28  PadsC_53s46",
+    "rgpio --dev=f --rpi4  pads -v --DriveStr_3=3  PadsA_27s0  PadsB_45s28  PadsC_53s46",
     0,
     Stderr => q(),
 );

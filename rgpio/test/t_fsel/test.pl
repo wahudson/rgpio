@@ -42,8 +42,18 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## fsel basic options --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  fsel",
+    1,
+    Stderr => q(
+	Error:  RPi5 has only --show, no modify
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "11", "fsel no args",
-    "rgpio --dev=f  fsel",
+    "rgpio --dev=f --rpi4  fsel",
     0,
     Stderr => q(),
     Stdout => q(
@@ -84,13 +94,13 @@ run_test( "11", "fsel no args",
 );
 
 run_test( "12", "fsel help",
-    "rgpio --dev=f  fsel --help",
+    "rgpio --dev=f --rpi4  fsel --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "bad option",
-    "rgpio --dev=f  fsel --dev=xx",
+    "rgpio --dev=f --rpi4  fsel --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -100,7 +110,7 @@ run_test( "13", "bad option",
 );
 
 run_test( "14", "fsel bit 53",
-    "rgpio --dev=f  fsel 53",
+    "rgpio --dev=f --rpi4  fsel 53",
     0,
     Stderr => q(),
     Stdout => q(
@@ -110,7 +120,7 @@ run_test( "14", "fsel bit 53",
 );
 
 run_test( "15", "fsel bit too large",
-    "rgpio --dev=f  fsel 54",
+    "rgpio --dev=f --rpi4  fsel 54",
     1,
     Stderr => q(
 	Error:   bit arg out-of-range:  54
@@ -119,7 +129,7 @@ run_test( "15", "fsel bit too large",
 );
 
 run_test( "16", "fsel verbose",
-    "rgpio --dev=f  fsel -v 0",
+    "rgpio --dev=f --rpi4  fsel -v 0",
     0,
     Stderr => q(),
     Stdout => q(
@@ -134,7 +144,7 @@ run_test( "16", "fsel verbose",
 #---------------------------------------------------------------------------
 
 run_test( "20", "fsel --mode=Out no default",
-    "rgpio --dev=f  fsel --mode=Out",
+    "rgpio --dev=f --rpi4  fsel --mode=Out",
     1,
     Stderr => q(
 	Error:  --mode requires --w0, --w1, or bit numbers
@@ -143,7 +153,7 @@ run_test( "20", "fsel --mode=Out no default",
 );
 
 run_test( "21", "fsel --mode=Out  4",
-    "rgpio --dev=f  fsel --mode=Out  4",
+    "rgpio --dev=f --rpi4  fsel --mode=Out  4",
     0,
     Stderr => q(),
     Stdout => q(
@@ -153,7 +163,7 @@ run_test( "21", "fsel --mode=Out  4",
 );
 
 run_test( "22", "fsel --mode=Alt5 bits",
-    "rgpio --dev=f  fsel -v --mode=Alt5  14 15 16 17",
+    "rgpio --dev=f --rpi4  fsel -v --mode=Alt5  14 15 16 17",
     0,
     Stderr => q(),
     Stdout => q(
@@ -167,7 +177,7 @@ run_test( "22", "fsel --mode=Alt5 bits",
 );
 
 run_test( "23", "disallow modifying -0,-1",
-    "rgpio --dev=f  fsel --mode=In -0 -1",
+    "rgpio --dev=f --rpi4  fsel --mode=In -0 -1",
     1,
     Stderr => q(
 	Error:  disallow -0, -1 to modify full words
@@ -177,7 +187,7 @@ run_test( "23", "disallow modifying -0,-1",
 );
 
 run_test( "24", "fsel --mode=Baad",
-    "rgpio --dev=f  fsel --mode=Baad  4",
+    "rgpio --dev=f --rpi4  fsel --mode=Baad  4",
     1,
     Stderr => q(
 	Error:  unknown Fsel mode:  --mode=Baad
@@ -187,7 +197,7 @@ run_test( "24", "fsel --mode=Baad",
 );
 
 run_test( "25", "fsel modify mask",
-    "rgpio --dev=f  fsel --mode=In --w0=0xffffffff --w1=0xffffffff",
+    "rgpio --dev=f --rpi4  fsel --mode=In --w0=0xffffffff --w1=0xffffffff",
     0,
     Stderr => q(),
     Stdout => q(
@@ -198,7 +208,7 @@ run_test( "25", "fsel modify mask",
 );
 
 run_test( "26", "fsel modify mask",
-    "rgpio --dev=f  fsel -v --mode=Out --w0=0xfccc3333",
+    "rgpio --dev=f --rpi4  fsel -v --mode=Out --w0=0xfccc3333",
     0,
     Stderr => q(),
     Stdout => q(
@@ -209,7 +219,7 @@ run_test( "26", "fsel modify mask",
 );
 
 run_test( "27", "error --w0 with bit number list",
-    "rgpio --dev=f  fsel --mode=In --w0=0xf  8 9",
+    "rgpio --dev=f --rpi4  fsel --mode=In --w0=0xf  8 9",
     1,
     Stderr => q(
 	Error:  disallow --w0, --w1 with bit number list
@@ -218,7 +228,7 @@ run_test( "27", "error --w0 with bit number list",
 );
 
 run_test( "28", "error -1 with bit number list",
-    "rgpio --dev=f  fsel -1  8 9",
+    "rgpio --dev=f --rpi4  fsel -1  8 9",
     1,
     Stderr => q(
 	Error:  disallow -0, -1 with bit number list
@@ -227,7 +237,7 @@ run_test( "28", "error -1 with bit number list",
 );
 
 run_test( "29", "error",
-    "rgpio --dev=f  fsel --w0=0xf",
+    "rgpio --dev=f --rpi4  fsel --w0=0xf",
     1,
     Stderr => q(
 	Error:  --w0, --w1 requires --mode
@@ -270,7 +280,7 @@ run_test( "33", "RPi5 fsel --show",
 );
 
 run_test( "35", "fsel --show invalid with --mode",
-    "rgpio --dev=f  fsel --show --mode=In  4",
+    "rgpio --dev=f --rpi4  fsel --show --mode=In  4",
     1,
     Stderr => q(
 	Error:  --mode not valid with --show

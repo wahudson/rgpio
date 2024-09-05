@@ -42,20 +42,30 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## spi0 basic options --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  spi0",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgSpi0:  require RPi4 (soc_BCM2711) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "11", "spi0 no args",
-    "rgpio --dev=f  spi0",
+    "rgpio --dev=f --rpi4  spi0",
     0,
     Stderr => q(),
 );
 
 run_test( "12", "spi0 help",
-    "rgpio --dev=f  spi0 --RunActive_1=1 --help",
+    "rgpio --dev=f --rpi4  spi0 --RunActive_1=1 --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  spi0 --dev=xx",
+    "rgpio --dev=f --rpi4  spi0 --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -65,7 +75,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "extra argument",
-    "rgpio --dev=f  spi0 2",
+    "rgpio --dev=f --rpi4  spi0 2",
     1,
     Stderr => q(
 	Error:  extra arguments:  2
@@ -75,7 +85,7 @@ run_test( "14", "extra argument",
 
 #---------------------------------------
 run_test( "15a", "bad spi0 number options",
-    "rgpio --dev=f  spi0 -1 -2 -7",
+    "rgpio --dev=f --rpi4  spi0 -1 -2 -7",
     1,
     Stderr => q(
 	Error:  unknown option:  -1
@@ -106,7 +116,7 @@ run_test( "16", "RPi4 all spi0 options",
 #---------------------------------------------------------------------------
 
 run_test( "21", "CntlStat modify errors",
-    "rgpio --dev=f  spi0 --LossiWord_1=2 --LossiDmaEn_1=2 --CsPolarity_3=8 --LossiEnable_1=2 --ReadEnable_1=2 --DmaEndCs_1=2 --IrqRxHalf_1=2 --IrqTxEmpty_1=2",
+    "rgpio --dev=f --rpi4  spi0 --LossiWord_1=2 --LossiDmaEn_1=2 --CsPolarity_3=8 --LossiEnable_1=2 --ReadEnable_1=2 --DmaEndCs_1=2 --IrqRxHalf_1=2 --IrqTxEmpty_1=2",
     1,
     Stderr => q(
 	Error:  require --LossiWord_1={0,1}:  2
@@ -122,7 +132,7 @@ run_test( "21", "CntlStat modify errors",
 );
 
 run_test( "22", "CntlStat modify errors",
-    "rgpio --dev=f  spi0 --DmaEnable_1=2 --RunActive_1=2 --CsPolarity_1=2 --ClearRxTxFifo_2=4 --ClockPolarity_1=2 --ClockPhase_1=2 --ChipSelectN_2=2",
+    "rgpio --dev=f --rpi4  spi0 --DmaEnable_1=2 --RunActive_1=2 --CsPolarity_1=2 --ClearRxTxFifo_2=4 --ClockPolarity_1=2 --ClockPhase_1=2 --ChipSelectN_2=2",
     1,
     Stderr => q(
 	Error:  require --DmaEnable_1={0,1}:  2
@@ -136,7 +146,7 @@ run_test( "22", "CntlStat modify errors",
 );
 
 run_test( "23", "register bit field modify errors",
-    "rgpio --dev=f  spi0 --ClockDiv_16=0x10000 --DmaDataLen_16=0x10000 --LossiHoldDly_4=0x10",
+    "rgpio --dev=f --rpi4  spi0 --ClockDiv_16=0x10000 --DmaDataLen_16=0x10000 --LossiHoldDly_4=0x10",
     1,
     Stderr => q(
 	Error:  require --ClockDiv_16 <= 0xffff:  65536
@@ -147,7 +157,7 @@ run_test( "23", "register bit field modify errors",
 );
 
 run_test( "24", "DmaReq modify errors",
-    "rgpio --dev=f  spi0 --DmaRxPanicLev_8=0x100 --DmaRxReqLev_8=0x100 --DmaTxPanicLev_8=0x100 --DmaTxReqLev_8=0x100",
+    "rgpio --dev=f --rpi4  spi0 --DmaRxPanicLev_8=0x100 --DmaRxReqLev_8=0x100 --DmaTxPanicLev_8=0x100 --DmaTxReqLev_8=0x100",
     1,
     Stderr => q(
 	Error:  require --DmaRxPanicLev_8 <= 0xff:  256
@@ -163,7 +173,7 @@ run_test( "24", "DmaReq modify errors",
 #---------------------------------------------------------------------------
 
 run_test( "30", "--tx needs arguments",
-    "rgpio --dev=f  spi0 -v --rx=3 --tx",
+    "rgpio --dev=f --rpi4  spi0 -v --rx=3 --tx",
     1,
     Stderr => q(
 	Error:  --tx requires arg values
@@ -172,7 +182,7 @@ run_test( "30", "--tx needs arguments",
 );
 
 run_test( "31", "Tx Rx",
-    "rgpio --dev=f  spi0 -v --rx=3 --tx  0x5555abba 0x77773cc3",
+    "rgpio --dev=f --rpi4  spi0 -v --rx=3 --tx  0x5555abba 0x77773cc3",
     0,
     Stderr => q(),
 );

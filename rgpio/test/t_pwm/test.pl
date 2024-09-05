@@ -42,20 +42,31 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## pwm basic options --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  pwm",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgPwm:  require RPi4 (soc_BCM2711) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
+
 run_test( "11", "pwm no args",
-    "rgpio --dev=f  pwm",
+    "rgpio --dev=f --rpi4  pwm",
     0,
     Stderr => q(),
 );
 
 run_test( "12", "pwm help",
-    "rgpio --dev=f  pwm --help",
+    "rgpio --dev=f --rpi4  pwm --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "unknown option",
-    "rgpio --dev=f  pwm --dev=xx",
+    "rgpio --dev=f --rpi4  pwm --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -65,7 +76,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "extra argument",
-    "rgpio --dev=f  pwm 2",
+    "rgpio --dev=f --rpi4  pwm 2",
     1,
     Stderr => q(
 	Error:  extra arguments:  2
@@ -74,7 +85,7 @@ run_test( "14", "extra argument",
 );
 
 run_test( "15", "bad option",
-    "rgpio --dev=f  pwm -0",
+    "rgpio --dev=f --rpi4  pwm -0",
     1,
     Stderr => q(
 	Error:  unknown option:  -0
@@ -83,7 +94,7 @@ run_test( "15", "bad option",
 );
 
 run_test( "16", "--Busy_1 not an option",
-    "rgpio --dev=f  pwm --Busy_1=0",
+    "rgpio --dev=f --rpi4  pwm --Busy_1=0",
     1,
     Stderr => q(
 	Error:  unknown option:  --Busy_1=0
@@ -96,7 +107,7 @@ run_test( "16", "--Busy_1 not an option",
 #---------------------------------------------------------------------------
 
 run_test( "20", "no --Fifo option",
-    "rgpio --dev=f  pwm --Fifo=99",
+    "rgpio --dev=f --rpi4  pwm --Fifo=99",
     1,
     Stderr => q(
 	Error:  unknown option:  --Fifo=99
@@ -105,7 +116,7 @@ run_test( "20", "no --Fifo option",
 );
 
 run_test( "21", "modify registers",
-    "rgpio --dev=f  pwm --Cntl=0xffffffff --Stat=0xffffffff --DmaConf=0xffffffff" .
+    "rgpio --dev=f --rpi4  pwm --Cntl=0xffffffff --Stat=0xffffffff --DmaConf=0xffffffff" .
     " --Ch2Range=0xffffffff --Ch2Data=0xffffffff" .
     " --Ch1Range=0xffffffff --Ch1Data=0xffffffff",
     0,
@@ -113,7 +124,7 @@ run_test( "21", "modify registers",
 );
 
 run_test( "22", "modify registers",
-    "rgpio --dev=f  pwm --Cntl=0x11111111 --Stat=0x22222222 --DmaConf=0x33333333" .
+    "rgpio --dev=f --rpi4  pwm --Cntl=0x11111111 --Stat=0x22222222 --DmaConf=0x33333333" .
     " --Ch2Range=0x44444444 --Ch2Data=0x55555555" .
     " --Ch1Range=0x66666666 --Ch1Data=0x77777777",
     0,
@@ -125,19 +136,19 @@ run_test( "22", "modify registers",
 #---------------------------------------------------------------------------
 
 run_test( "30", "modify field",
-    "rgpio --dev=f  pwm -v --ClearFifo_1=1 --Ch2_GapErr_1=1 --DmaEnable_1=1",
+    "rgpio --dev=f --rpi4  pwm -v --ClearFifo_1=1 --Ch2_GapErr_1=1 --DmaEnable_1=1",
     0,
     Stderr => q(),
 );
 
 run_test( "31", "apply reg then field",
-    "rgpio --dev=f  pwm -v --Cntl=0xffffffff --ClearFifo_1=0 --Stat=0xffffffff --Ch1_GapErr_1=0",
+    "rgpio --dev=f --rpi4  pwm -v --Cntl=0xffffffff --ClearFifo_1=0 --Stat=0xffffffff --Ch1_GapErr_1=0",
     0,
     Stderr => q(),
 );
 
 run_test( "32", "bad option range",
-    "rgpio --dev=f  pwm --Ch2_MsEnable_1=2 --DmaPanicLev_8=0x100",
+    "rgpio --dev=f --rpi4  pwm --Ch2_MsEnable_1=2 --DmaPanicLev_8=0x100",
     1,
     Stderr => q(
 	Error:  require --Ch2_MsEnable_1={0,1}:  2
@@ -151,7 +162,7 @@ run_test( "32", "bad option range",
 #---------------------------------------------------------------------------
 
 run_test( "40", "write fifo",
-    "rgpio --dev=f  pwm -v --Cntl=0xffffffff --Ch2_MsEnable_1=0 --tx 0x111 0x222 0x333",
+    "rgpio --dev=f --rpi4  pwm -v --Cntl=0xffffffff --Ch2_MsEnable_1=0 --tx 0x111 0x222 0x333",
     0,
     Stderr => q(),
 );

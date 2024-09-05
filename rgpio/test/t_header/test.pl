@@ -42,8 +42,18 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## header basic options, --help
 #---------------------------------------------------------------------------
 
+run_test( "10", "bad platform RPi5",
+    "rgpio --dev=f --rpi5  header",
+    1,
+    Stderr => q(
+	Error:  RPi platform:  rgFselPin:  require RPi4 (soc_BCM2711) or earlier
+    ),
+    Stdout => q(
+    ),
+);
+
 run_test( "11", "header no args",
-    "rgpio --dev=f  header",
+    "rgpio --dev=f --rpi4  header",
     0,
     Stderr => q(),
     Stdout => q(
@@ -92,13 +102,13 @@ run_test( "11", "header no args",
 );
 
 run_test( "12", "header help",
-    "rgpio --dev=f  header --help",
+    "rgpio --dev=f --rpi4  header --help",
     0,
     Stderr => q(),
 );
 
 run_test( "13", "bad option",
-    "rgpio --dev=f  header --dev=xx",
+    "rgpio --dev=f --rpi4  header --dev=xx",
     1,
     Stderr => q(
 	Error:  unknown option:  --dev=xx
@@ -108,7 +118,7 @@ run_test( "13", "bad option",
 );
 
 run_test( "14", "valid header pins",
-    "rgpio --dev=f  header 1 40",
+    "rgpio --dev=f --rpi4  header 1 40",
     0,
     Stderr => q(),
     Stdout => q(
@@ -119,7 +129,7 @@ run_test( "14", "valid header pins",
 );
 
 run_test( "15", "invalid header pins",
-    "rgpio --dev=f  header 41 0",
+    "rgpio --dev=f --rpi4  header 41 0",
     1,
     Stderr => q(
 	Error:  pin arg out-of-range {1..40}:  41
@@ -133,7 +143,7 @@ run_test( "15", "invalid header pins",
 #---------------------------------------------------------------------------
 
 run_test( "21", "pins by row",
-    "rgpio --dev=f  header --row",
+    "rgpio --dev=f --rpi4  header --row",
     0,
     Stderr => q(),
     Stdout => q(
@@ -182,7 +192,7 @@ run_test( "21", "pins by row",
 );
 
 run_test( "22", "power pins",
-    "rgpio --dev=f  header --power",
+    "rgpio --dev=f --rpi4  header --power",
     0,
     Stderr => q(),
     Stdout => q(
@@ -203,7 +213,7 @@ run_test( "22", "power pins",
 );
 
 run_test( "23", "gpio pins",
-    "rgpio --dev=f  header --signal",
+    "rgpio --dev=f --rpi4  header --signal",
     0,
     Stderr => q(),
     Stdout => q(
@@ -241,7 +251,7 @@ run_test( "23", "gpio pins",
 
 #!!
 run_test( "24", "invalid --row combination",
-    "rgpio --dev=f  header --signal --row",
+    "rgpio --dev=f --rpi4  header --signal --row",
     1,
     Stderr => q(
 	Error:  --row not valid with --signal --power
@@ -250,7 +260,7 @@ run_test( "24", "invalid --row combination",
 );
 
 run_test( "25", "invalid --row combination",
-    "rgpio --dev=f  header --row --power",
+    "rgpio --dev=f --rpi4  header --row --power",
     1,
     Stderr => q(
 	Error:  --row not valid with --signal --power
@@ -260,7 +270,7 @@ run_test( "25", "invalid --row combination",
 
 #---------------------------------------
 run_test( "28a", "invalid --row with pin list",
-    "rgpio --dev=f  header --row 7",
+    "rgpio --dev=f --rpi4  header --row 7",
     1,
     Stderr => q(
 	Error:  argv not valid with --signal --power --row
@@ -269,7 +279,7 @@ run_test( "28a", "invalid --row with pin list",
 );
 
 run_test( "28b", "invalid --signal with pin list",
-    "rgpio --dev=f  header --signal 7",
+    "rgpio --dev=f --rpi4  header --signal 7",
     1,
     Stderr => q(
 	Error:  argv not valid with --signal --power --row
@@ -278,7 +288,7 @@ run_test( "28b", "invalid --signal with pin list",
 );
 
 run_test( "28c", "invalid --power with pin list",
-    "rgpio --dev=f  header --power 7",
+    "rgpio --dev=f --rpi4  header --power 7",
     1,
     Stderr => q(
 	Error:  argv not valid with --signal --power --row
@@ -291,13 +301,13 @@ run_test( "28c", "invalid --power with pin list",
 #---------------------------------------------------------------------------
 
 run_test( "30", "modify all pins",
-    "rgpio --dev=f  header --mode=Alt0",
+    "rgpio --dev=f --rpi4  header --mode=Alt0",
     0,
     Stderr => q(),
 );
 
 run_test( "31", "modify pin list",
-    "rgpio --dev=f  header --mode=Out  5 6 7",
+    "rgpio --dev=f --rpi4  header --mode=Out  5 6 7",
     0,
     Stderr => q(),
     Stdout => q(
@@ -309,7 +319,7 @@ run_test( "31", "modify pin list",
 );
 
 run_test( "32", "verbose modify pin list",
-    "rgpio --dev=f  header -v --mode=Alt4  10 11 12",
+    "rgpio --dev=f --rpi3  header -v --mode=Alt4  10 11 12",
     0,
     Stderr => q(),
     Stdout => q(
@@ -322,7 +332,7 @@ run_test( "32", "verbose modify pin list",
 );
 
 run_test( "34", "bad mode name",
-    "rgpio --dev=f  header --mode=alt0  4",
+    "rgpio --dev=f --rpi4  header --mode=alt0  4",
     1,
     Stderr => q(
 	Error:  unknown pin function select:  --mode=alt0
@@ -332,7 +342,7 @@ run_test( "34", "bad mode name",
 );
 
 run_test( "37", "invalid --mode combination",
-    "rgpio --dev=f  header --mode=In --row --power --show",
+    "rgpio --dev=f --rpi4  header --mode=In --row --power --show",
     1,
     Stderr => q(
 	Error:  --row not valid with --signal --power
@@ -343,13 +353,13 @@ run_test( "37", "invalid --mode combination",
 );
 
 run_test( "38", "valid --mode with --signal",
-    "rgpio --dev=f  header -v --mode=Alt4 --signal",
+    "rgpio --dev=f --rpi3  header -v --mode=Alt4 --signal",
     0,
     Stderr => q(),
 );
 
 run_test( "39", "valid --mode with --gpio",
-    "rgpio --dev=f  header --mode=Alt4 --gpio",
+    "rgpio --dev=f --rpi3  header --mode=Alt4 --gpio",
     0,
     Stderr => q(),
 );
@@ -359,7 +369,7 @@ run_test( "39", "valid --mode with --gpio",
 #---------------------------------------------------------------------------
 
 run_test( "40", "show pin list",
-    "rgpio --dev=f  header --show  7",
+    "rgpio --dev=f --rpi3  header --show  7",
     0,
     Stderr => q(),
     Stdout => q(
@@ -382,7 +392,7 @@ run_test( "42", "RPi4 show pins",
 );
 
 run_test( "43", "header --show invalid with --mode",
-    "rgpio --dev=f  header --show --mode=In  7",
+    "rgpio --dev=f --rpi4  header --show --mode=In  7",
     1,
     Stderr => q(
 	Error:  --mode not valid with --show
@@ -391,7 +401,7 @@ run_test( "43", "header --show invalid with --mode",
 );
 
 run_test( "44", "show gpio bits",
-    "rgpio --dev=f  header --show --gpio  8 4",
+    "rgpio --dev=f --rpi3  header --show --gpio  8 4",
     0,
     Stderr => q(),
     Stdout => q(
@@ -407,7 +417,7 @@ run_test( "44", "show gpio bits",
 #---------------------------------------------------------------------------
 
 run_test( "50", "gpio default",
-    "rgpio --dev=f  header --gpio",
+    "rgpio --dev=f --rpi4  header --gpio",
     0,
     Stderr => q(),
     Stdout => q(
@@ -444,7 +454,7 @@ run_test( "50", "gpio default",
 );
 
 run_test( "51", "gpio bits",
-    "rgpio --dev=f  header --gpio  8 2 7",
+    "rgpio --dev=f --rpi4  header --gpio  8 2 7",
     0,
     Stderr => q(),
     Stdout => q(
@@ -456,13 +466,13 @@ run_test( "51", "gpio bits",
 );
 
 run_test( "52", "valid --gpio with --power",
-    "rgpio --dev=f  header --gpio --power",
+    "rgpio --dev=f --rpi4  header --gpio --power",
     0,
     Stderr => q(),
 );
 
 run_test( "53", "invalid --gpio combination",
-    "rgpio --dev=f  header --gpio --row --signal",
+    "rgpio --dev=f --rpi4  header --gpio --row --signal",
     1,
     Stderr => q(
 	Error:  --gpio not valid with --signal --row
