@@ -380,16 +380,16 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "44", "simulate_SocEnum( BCM2711 ), real-RPi" );
+  CASE( "44", "simulate_SocEnum( BCM2712 ), real-RPi" );
     try {
 	Reset_Global();
 	rgRpiRev::Global.RevCode.init_file( "ref/rpi3.in" );
-	rgRpiRev::Global.simulate_SocEnum( rgRpiRev::soc_BCM2711 );
+	rgRpiRev::Global.simulate_SocEnum( rgRpiRev::soc_BCM2712 );
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
 	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
-	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
+	CHECK( rgRpiRev::soc_BCM2712, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
@@ -400,17 +400,17 @@ int main()
 	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
 	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
-	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
+	CHECK( rgRpiRev::soc_BCM2712, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0xfe000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECKX( 0x1f00000000,         rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
-	CHECK(  1,                    rgRpiRev::ioRPi4() );
-	CHECK(  0,                    rgRpiRev::ioRPi5() );
+	CHECK(  0,                    rgRpiRev::ioRPi4() );
+	CHECK(  1,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -452,7 +452,7 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "46", "all simulate_*(), real-RPi, wins over override" );
+  CASE( "46", "all simulate_*() wins over override, real-RPi" );
     try {
 	Reset_Global();
 	rgRpiRev::Global.RevCode.init_file( "ref/rpi0.in" );
