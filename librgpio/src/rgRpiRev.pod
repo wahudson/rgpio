@@ -230,7 +230,7 @@ These all access the B<rgRpiRev::Global> global data object.
 =item B<simulate>()		- force simulation on current RPi platform
 
 Force simulation of the given SocEnum or RevCode, essentially flagging the
-value as Final and Known.  B<BaseAddr> is not simulated and is forced zero.
+value as Final and Known.  B<BaseAddr> is derived as usual.
 The intent is for the library to behave as if the platform was the
 specified SocEnum but not actually access any hardware registers.
 

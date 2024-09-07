@@ -1294,6 +1294,30 @@ BaseAddr and Fake Memory:
     real RPi flag.  When zero becomes a valid BaseAddr in a future RPi
     platform, then refactor.
 
+BaseAddr and Simulation:  (2024-09-05)
+
+    See:
+	rgRpiRev::simulate_SocEnum()
+	rgRpiRev::simulate_RevCode()
+
+    Forcing BaseAddr=0 in simulation mode for extra safety was explored.
+    This resulted in reporting  BaseAddr = 0x00000000  for all simulation
+    modes on all platforms and also for rgpio-info -- not very useful.
+    It would be good to see what the actual BaseAddr would have been.
+
+    Previously (in rgpio version v0.22.0) the BaseAddr was always reported
+    as the real platform value regardless of --rpi3 or --rpi4, which was
+    not quite right either.
+
+    Class rgAddrMap has a FakeMem flag and a BaseAddr value, both derived
+    from class rgRpiRev.  Primarily FakeMem indicates simulation using
+    fake memory, and BaseAddr=0 is a secondary check to use fake memory.
+    It looks secure to rely on FakeMem even when BaseAddr is a real value
+    in simulation mode.  Thus rgAddrMap need not change.
+
+ >  Decided to not force BaseAddr=0 so it can be derived in simulation mode.
+    This looks a lot better.
+
 Structure ideas:
 
     To determine if platform is a real RPi.
@@ -1506,14 +1530,14 @@ Default non-RPi:
     result to zero.  It must leave the default unchanged.  [Unless we store
     the default somewhere and use it to force the result.]
 
-    A) Low-level register default() method.
+ >  A) Low-level register defaultv() method.
 	+ Parallels the low-level override() methods.
 	+ Fewer top-level methods.
 	+ Closer to the data.
 	- Exposes deeper implementation.
 	+ These are object methods.
 
- >  B) Top-level default_SocEnum() and default_RevCode() methods.
+    B) Top-level default_SocEnum() and default_RevCode() methods.
 	+ Parallels the top-level simulate_*().
 	+ Benefits of a top-level abstraction.
 	- These are class methods, operate only on static (Global) data.
@@ -1521,12 +1545,14 @@ Default non-RPi:
     The top-level abstraction seems most useful for the published interface.
     The low-level implementation could still be in each register.
     Operation is almost trivial.
+    Ultimately settled on (A) as cleanest method.  2024-09-04
 
     No default() method for BaseAddr.  Not needed for typical user code
     application.
 
     Keyword "default" is reserved.  Need another name.
-    defautlv()  deefault()  deFault()  ddfault()  ddefault()  efault()
+    deefault()  deFault()  ddfault()  ddefault()  efault()
+ >  defautlv()
 
 Class vs Object methods:
 

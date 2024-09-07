@@ -112,7 +112,7 @@ run_test( "15", "RPi4 info simulate",
 	    BoardType_8      = 0
 	    BoardRev_4       = 0
 	  SocEnum   = soc_BCM2711
-	  BaseAddr  = 0x00000000
+	  BaseAddr  = 0xfe000000
 	  InFile    = /proc/cpuinfo
 	NOT on RPi
     ),

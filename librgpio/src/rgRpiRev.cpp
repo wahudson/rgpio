@@ -446,7 +446,7 @@ rgRpiRev::rgRpiRev_Base::find()
 * Force simulation of given SocEnum or RevCode.
 *    Force SocEnum to be Final and not Unknown.
 *    Force RevCode and RealPi to be Final and not Unknown.
-*    Force BaseAddr zero to signal fake memory simulation.
+*    BaseAddr is not forced zero, so it can be derived in simulation.
 *    All override() or defaultv() functions should be called first.
 * call:
 *    simulate_SocEnum( rgRpiRev::soc_BCM2837 );
@@ -458,8 +458,6 @@ rgRpiRev::simulate_SocEnum( Soc_enum soc )
 {
     Global.SocEnum.override( soc );
     Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
-    Global.BaseAddr.override( 0 );		// extra safety
-    Global.BaseAddr.putFU( 1, 1 );
 }
 
 void
@@ -467,16 +465,12 @@ rgRpiRev::simulate_RevCode( uint32_t code )
 {
     Global.RevCode.override( code );
     Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
-    Global.BaseAddr.override( 0 );		// extra safety
-    Global.BaseAddr.putFU( 1, 1 );
 }
 
 void
 rgRpiRev::simulate()
 {
     Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
-    Global.BaseAddr.override( 0 );		// extra safety
-    Global.BaseAddr.putFU( 1, 1 );
 }
 
 //--------------------------------------------------------------------------

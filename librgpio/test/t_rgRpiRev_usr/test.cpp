@@ -10,6 +10,9 @@
 //    70-78  initialize_ioRPi() All flags
 //    80-89  initialize_ioRPi() Exceptions
 //    90-99  .
+//
+// Note:  initialize_ioRPi() calls find() on RevCode, SocEnum, BaseAddr.  It
+//    is used to derive values in the various override/simulate conditions.
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -282,7 +285,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
 	rgRpiRev::initialize_ioRPi();
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x33333333,           rgRpiRev::Global.RevCode.get() );
@@ -291,8 +294,8 @@ int main()
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECKX( 0x3f000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
@@ -319,7 +322,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
 	rgRpiRev::initialize_ioRPi();
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x33333333,           rgRpiRev::Global.RevCode.get() );
@@ -328,8 +331,8 @@ int main()
 	CHECK( rgRpiRev::soc_BCM2836, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECKX( 0x3f000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
@@ -355,7 +358,7 @@ int main()
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
 	rgRpiRev::initialize_ioRPi();
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
@@ -364,8 +367,8 @@ int main()
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECKX( 0x20000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
 	CHECK(  1,                    rgRpiRev::ioRPi0() );
@@ -391,7 +394,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
 	rgRpiRev::initialize_ioRPi();
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
@@ -400,8 +403,8 @@ int main()
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECKX( 0xfe000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
@@ -427,7 +430,7 @@ int main()
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
 	rgRpiRev::initialize_ioRPi();
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x00803000,           rgRpiRev::Global.RevCode.get() );
@@ -436,8 +439,8 @@ int main()
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECKX( 0xfe000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
@@ -466,7 +469,7 @@ int main()
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
 	rgRpiRev::initialize_ioRPi();
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x00803000,           rgRpiRev::Global.RevCode.get() );
@@ -475,8 +478,8 @@ int main()
 	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
 	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
-	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
-	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECKX( 0xfe000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
 	CHECK(  0,                    rgRpiRev::ioRPiReal() );
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
