@@ -68,20 +68,20 @@ run_test( "11b", "rgpio --verbose",
 );
 
 run_test( "11c", "rgpio --debug  see rgAddrMap output only",
-    "( rgpio --debug > /dev/null )",
+    "rgpio --dev=f --rpi3 --debug --TESTMODE",
     0,
     Stderr => ($TEST_isRPi) ? q(
 	rgAddrMap:  raise cap:  = cap_dac_override,cap_sys_rawio+ep
 	rgAddrMap:  drop  cap:  =
-    ) : q(
-	rgAddrMap:  getpagesize()     = 4096
-	rgAddrMap:  sizeof( char* )   = 8
-	rgAddrMap:  sizeof( off_t )   = 8
-	rgAddrMap:  sizeof( off64_t ) = 8
+    ) : q(),
+    Stdout => q(
+	+ rgRpiRev::Global.SocEnum  = soc_BCM2837
+	+ rgRpiRev::Global.BaseAddr = 0x3f000000
+	+ AddrMap.config_BaseAddr() = 0x3f000000
+	Using Fake memory
+	Do nothing.  Try 'rgpio --help'
     ),
-    Stdout => q(),
 );
-#!! platform dependent
 
 #---------------------------------------
 run_test( "12", "rgpio help",
@@ -127,7 +127,7 @@ run_test( "16", "rgpio fake memory",
 );
 
 run_test( "17", "rgpio bad subcommand",
-    "rgpio foo",
+    "rgpio --dev=f  foo",
     1,
     Stderr => q(
 	Error:  unknown feature:  foo
@@ -141,7 +141,7 @@ run_test( "17", "rgpio bad subcommand",
 #---------------------------------------------------------------------------
 
 run_test( "20", "conflicting --rpi3 --rpi4",
-    "rgpio --dev=f --debug --rpi3 --rpi4",
+    "rgpio --dev=f --rpi3 --rpi4",
     1,
     Stderr => q(
 	Error:  require only one:  --rpi3 --rpi4 --rpi5
@@ -150,7 +150,7 @@ run_test( "20", "conflicting --rpi3 --rpi4",
 );
 
 run_test( "21", "rgpio --rpi3",
-    "( rgpio --dev=f --debug --rpi3 2> /dev/null )",
+    "rgpio --dev=f --rpi3 --debug --TESTMODE",
     0,
     Stderr => q(),
     Stdout => qq(
@@ -163,7 +163,7 @@ run_test( "21", "rgpio --rpi3",
 );
 
 run_test( "22", "rgpio --rpi4",
-    "( rgpio --dev=f --debug --rpi4 2> /dev/null )",
+    "rgpio --dev=f --rpi4 --debug --TESTMODE",
     0,
     Stderr => q(),
     Stdout => qq(
@@ -176,7 +176,7 @@ run_test( "22", "rgpio --rpi4",
 );
 
 run_test( "23", "rgpio --rpi5",
-    "( rgpio --dev=f --debug --rpi5 2> /dev/null )",
+    "rgpio --dev=f --rpi5 --debug --TESTMODE",
     0,
     Stderr => q(),
     Stdout => qq(

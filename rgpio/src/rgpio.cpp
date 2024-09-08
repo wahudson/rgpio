@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <string>
 #include <stdlib.h>
+#include <unistd.h>	// getpagesize()
 
 using namespace std;
 
@@ -65,6 +66,7 @@ class yOptLong : public yOption {
     bool		verbose;
     bool		debug;
     bool		TESTOP;
+    bool		TESTMODE;
 
   public:	// data values
 
@@ -100,6 +102,7 @@ yOptLong::yOptLong( int argc,  char* argv[] )
     verbose     = 0;
     debug       = 0;
     TESTOP      = 0;
+    TESTMODE    = 0;
 
     feature     = "";
 }
@@ -124,6 +127,7 @@ yOptLong::parse_options()
 	else if ( is( "-v"           )) { verbose    = 1; }
 	else if ( is( "--debug"      )) { debug      = 1; }
 	else if ( is( "--TESTOP"     )) { TESTOP     = 1; }
+	else if ( is( "--TESTMODE"   )) { TESTMODE   = 1; }
 	else if ( is( "--help"       )) { this->print_usage();  exit( 0 ); }
 	else if ( is( "-"            )) {                break; }
 	else if ( is( "--"           )) { this->next();  break; }
@@ -213,6 +217,7 @@ yOptLong::print_usage()
 
 // Hidden options:
 //       --TESTOP       test mode show all options
+//       --TESTMODE     test mode
 }
 
 
@@ -354,6 +359,14 @@ main( int	argc,
 		;
 	    cout.fill(' ');
 	    cout <<dec;
+	}
+
+	// Debug output for mmap() system call, is OS dependent.
+	if ( Opx.debug && ! Opx.TESTMODE ) {
+	    cout << "+ getpagesize()     = " << getpagesize()   <<endl;
+	    cout << "+ sizeof( char* )   = " << sizeof( char* ) <<endl;
+	    cout << "+ sizeof( off_t )   = " << sizeof( off_t ) <<endl;
+	    cout << "+ sizeof( off64_t ) = " << sizeof( off64_t ) <<endl;
 	}
 
 	//#!! --ro
