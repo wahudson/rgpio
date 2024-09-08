@@ -222,13 +222,6 @@ rgAddrMap::open_dev_file(
     cap_t			capx;		// capability set
     int				rv;		// return values
 
-    if ( Debug ) {
-	cerr << "rgAddrMap:  getpagesize()     = " << getpagesize()   <<endl;
-	cerr << "rgAddrMap:  sizeof( char* )   = " << sizeof( char* ) <<endl;
-	cerr << "rgAddrMap:  sizeof( off_t )   = " << sizeof( off_t ) <<endl;
-	cerr << "rgAddrMap:  sizeof( off64_t ) = " << sizeof( off64_t ) <<endl;
-    }
-
     if ( ModeStr != NULL ) {
 	throw std::runtime_error ( "rgAddrMap:  already opened" );
     }
