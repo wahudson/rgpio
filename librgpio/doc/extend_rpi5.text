@@ -127,6 +127,12 @@ OS Changes:
     Fix in rgAddrMap:
 	Check existence of either /dev/gpiomem OR /dev/gpiomem0 files.
 
+Use of /dev/gpiomem0:
+    Is not documented.
+    In an early experiment mmap() failed with "Invalid argument" error:
+    Error:  exception caught:  get_mem_block() MAP_FAILED:  Invalid argument
+    It does not seem to map as expected.
+
 ----------------------------------------------------------------------------
 ## Linux GPIO base address
 ----------------------------------------------------------------------------

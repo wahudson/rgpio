@@ -893,6 +893,8 @@ rgRpiRev::Global.RevCode.override_realpi( 1 );
 	FAIL( "unexpected exception" );
     }
 
+if ( TEST_SocEnum <= rgRpiRev::soc_BCM2711 ) {	// RPi4 or earlier
+
   CASE( "73", "open_dev_gpiomem()" );
     try {
 	rgAddrMap		bx;
@@ -911,6 +913,7 @@ rgRpiRev::Global.RevCode.override_realpi( 1 );
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+}
 
   CASE( "74", "open_dev_mem() no permission" );
     try {
@@ -931,6 +934,8 @@ rgRpiRev::Global.RevCode.override_realpi( 1 );
 //--------------------------------------------------------------------------
 //## get_mem_block() - real memory, cache
 //--------------------------------------------------------------------------
+
+if ( TEST_SocEnum <= rgRpiRev::soc_BCM2711 ) {	// RPi4 or earlier
 
   CASE( "81a", "get_mem_block() same addr" );
     try {
@@ -966,6 +971,8 @@ rgRpiRev::Global.RevCode.override_realpi( 1 );
     catch (...) {
 	FAIL( "unexpected exception" );
     }
+
+}
 
 //--------------------------------------------------------------------------
 //## Destructor - device file descriptor get_DevFD()
