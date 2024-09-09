@@ -67,21 +67,16 @@ run_test( "11b", "rgpio --verbose",
     ),
 );
 
-run_test( "11c", "rgpio --debug  see rgAddrMap output only",
-    "rgpio --dev=f --rpi3 --debug --TESTMODE",
+run_test( "11c", "rgpio --debug  rgAddrMap raise/drop cap",
+    "( rgpio --debug > /dev/null )",
     0,
     Stderr => ($TEST_isRPi) ? q(
-	rgAddrMap:  raise cap:  = cap_dac_override,cap_sys_rawio+ep
+	rgAddrMap:  raise cap:  cap_dac_override,cap_sys_rawio=ep
 	rgAddrMap:  drop  cap:  =
     ) : q(),
-    Stdout => q(
-	+ rgRpiRev::Global.SocEnum  = soc_BCM2837
-	+ rgRpiRev::Global.BaseAddr = 0x3f000000
-	+ AddrMap.config_BaseAddr() = 0x3f000000
-	Using Fake memory
-	Do nothing.  Try 'rgpio --help'
-    ),
+    Stdout => q(),
 );
+#!! capability output may vary with OS version
 
 #---------------------------------------
 run_test( "12", "rgpio help",
@@ -116,6 +111,7 @@ run_test( "15", "rgpio /dev/gpiomem",
 	Do nothing.  Try 'rgpio --help'
     ),
 );
+#!! RPi5 /dev/gpiomem does not exist.
 
 run_test( "16", "rgpio fake memory",
     "rgpio --dev=f",
