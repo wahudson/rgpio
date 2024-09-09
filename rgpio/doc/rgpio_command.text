@@ -38,7 +38,7 @@ usage:  rgpio [main_options..]  feature  [options..]
     --rpi3              simulate RPi3 or earlier
     --rpi4              simulate RPi4
     --rpi5              simulate RPi5
-    --sim		simulate current platform (dry run)
+    -n, --sim		simulate current platform (dry run)
     --help              show this usage
     -v, --verbose       verbose output, show if fake memory
     --debug             debug output
@@ -58,6 +58,47 @@ usage:  rgpio [main_options..]  feature  [options..]
 ## Common Feature Behavior
 ----------------------------------------------------------------------------
 
+RPi Platform:
+
+    Command validity on the platform is checked by the Feature constructor,
+    i.e. throw std:domain_error, not by the rgpio top-level program.  The
+    resulting error message makes it clear it is a platform error.
+    This helps demonstrate library behavior.
+
+----------------------------------------------------------------------------
+## Anti-Bugging
+----------------------------------------------------------------------------
+
+cout Manipulators:
+
+    Using <<left with <<setw(8) will left-justify the value and fill on the
+    right with the fill character.  If cout.fill('0') it will fill with
+    zero, changing the apparent value.
+    e.g.
+	cout.fill('0');
+	cout << "0x" <<hex <<left <<setw(8) << 0x33
+    would produce  0x33000000
+
+    Stream cout is global and cout.fill('0') is sticky.
+    Manipulator <<setw() is not sticky.
+
+    Manipulators <<left, <<right, <<hex, <<dec are sticky and easy to get
+    an unexpected setting.  Especially when embedded in a subroutine.
+    Anti-bugging could include:
+
+    A) Always specify sticky manipulators in a new block.
+	Especially if <<setw() is used.
+
+    B) Restore default sticky manipulators when exiting a block.
+	cout.fill(' ');
+	cout <<dec <<right
+
+using namespace std:
+
+    Beware namespace clash with 'cout <<hex' io manipulator.
+    A local variable declared 'int hex;' will be output instead.
+    No compiler warning.  Same for other manipulators.
+    Use 'cout <<std::hex' to be explicit when needed.
 
 ----------------------------------------------------------------------------
 ## Essential Process

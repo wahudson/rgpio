@@ -267,14 +267,14 @@ void
 rpad_yOptLong::print_usage()
 {
     cout <<
-    "    IO Control interface RPi5\n"
+    "    IO Pads interface RPi5\n"
     "usage:  " << ProgName << " rpad [options..]  [gpio..]\n"
     "    gpio                bit numbers {27..0}\n"
     "    --gpio=0x0fffffff   mask to select Gpio[27:0] bits\n"
 //  "    -0, -1, -2          bank number, default -0\n"
     "  output format:\n"
-    "    --table             table format (default)\n"
-    "    --list              list by Gpio bit number\n"
+    "    --table             field names in table format (default)\n"
+    "    --list              list IoPad registers by Gpio bit number\n"
     "  IoPad(gpio) field modification:\n"
     "    --OutDisable_1=0    output disable\n"
     "    --InEnable_1=0      input enable\n"
@@ -290,7 +290,7 @@ rpad_yOptLong::print_usage()
     "    --clr=0x000000ff    write atomic bitmask clear 0x3000\n"
     "  read atomic register address:\n"
     "    --norm              read normal (default)      0x0000\n"
-    "    --peak              read without side-effect   0x1000\n"
+    "    --peek              read without side-effect   0x1000\n"
     "    --set               read atomic set   address  0x2000\n"
     "    --clr               read atomic clear address  0x3000\n"
     "    --all               all above\n"
@@ -299,7 +299,6 @@ rpad_yOptLong::print_usage()
     "    -v, --verbose       verbose output\n"
 //  "    --debug             debug output\n"
     "  (options with GNU= only)\n"
-//  "    \n"
     ;
 
 // Hidden options:
@@ -331,14 +330,14 @@ void
 rpad_yOptLong::out_regindex( const char* name, int index, uint32_t vv )
 {
     cout.fill('0');
-    cout << "   0x" <<std::hex <<setw(8)  << vv;
+    cout << "   0x" <<hex <<right <<setw(8)  << vv;
 
     cout.fill(' ');
     cout << "  " <<left            << name
 	 << "("  <<dec  <<setw(2)  <<right << index << ")"
 	 << "  "                   << cstr_bits32( vv ) <<endl;
 
-    cout <<std::dec <<right;	// restore defaults
+    cout <<dec <<right;		// restore defaults
 }
 
 void
@@ -346,6 +345,7 @@ rpad_yOptLong::head_reg( const char* title )
 {
     cout <<setw(29) <<left << title
 	 << "    28   24   20   16   12    8    4    0" <<endl;
+    cout <<right;		// restore defaults
 }
 
 
@@ -365,7 +365,7 @@ rpad_yOptLong::out_IoPads( rgsIoPads& px )
 
 	preg.grab();
 
-	ww[6][jj] = '0' + preg.get_OutDisable_1();
+	ww[6][jj] = '0' + preg.get_OutDisable_1();	// binary to ASCII
 	ww[5][jj] = '0' + preg.get_InEnable_1();
 	ww[4][jj] = '0' + preg.get_DriveStr_2();
 	ww[3][jj] = '0' + preg.get_PullUpEn_1();
@@ -374,7 +374,7 @@ rpad_yOptLong::out_IoPads( rgsIoPads& px )
 	ww[0][jj] = '0' + preg.get_SlewFast_1();
 	jj++;
 
-	if ( (ii & 0x3) == 0 ) {
+	if ( (ii & 0x3) == 0 ) {		// space between nibbles
 	    for ( int k=kMax;  k>=0;  k-- ) {
 		ww[k][jj] = ' ';
 	    }
@@ -383,11 +383,11 @@ rpad_yOptLong::out_IoPads( rgsIoPads& px )
     }
     jj--;
 
-    for ( int k=kMax;  k>=0;  k-- ) {
+    for ( int k=kMax;  k>=0;  k-- ) {		// terminate char strings
 	ww[k][jj] = 0;
     }
 
-    cout << " IoPad(i) gpio i:            28   24   20   16   12    8    4    0"
+    cout << " IoPad(i).norm      gpio i:  28   24   20   16   12    8    4    0"
 	 <<endl;
     cout << "   OutDisable_1    [7]     ---- " << ww[6] <<endl;
     cout << "   InEnable_1      [6]     ---- " << ww[5] <<endl;
