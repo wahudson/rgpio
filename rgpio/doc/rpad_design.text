@@ -72,7 +72,7 @@ Usage possibility:
 	--clr=0x000000ff    write atomic bitmask clear 0x3000
       read atomic register address:
 	--norm              read normal (default)      0x0000
-	--peak              read without side-effect   0x1000
+	--peek              read without side-effect   0x1000
 	--set               read atomic set   address  0x2000
 	--clr               read atomic clear address  0x3000
       address groups:  (for display)
@@ -174,4 +174,79 @@ Display Examples:
 
     Register name between the hex value on left and bit pattern on right
     looks quite good.  Easy to align both values with the name.
+
+Output format combinations:
+
+    Abstract names for register groups:
+	Field  = --OutDisable_1, .. --SlewFast_1   modify register field
+	Reg    = --norm=, --flip=, .. --clr=       modify whole register
+	Out    = --norm,  --peak,  .. --clr        display atomic type
+        Gpios  = gpio bit numbers in arg list (or --gpio=)
+	--gpio=     gpio bit number mask, alternative to Gpios
+
+    Output format:
+	--table     field names in table format (default)
+	--list      list IoPad registers by Gpio bit number
+
+    Want --table to see the individual field settings.  Full overview of
+    all Gpio.
+
+    Want --list  to see full register value (hex and binary), mostly when
+    doing full register modification.
+
+    Pretty much want both --table and --list, except that --list is very
+    long for all Gpio.
+
+    Default to --table, as that gives most useful overview.
+
+    Scenario:  Modifying select Gpio fields.  Most common.
+	View --table to see existing values.
+	Modify Field with Gpios.  Want to see --table result.
+
+	Generally want to see --table with Gpios, even though it is not
+	affected by the Gpio bit numbers selected.
+	i.e. Don't want to modify the Gpio spec for reading vs modify.
+
+	Maybe output could add arrows on the Gpio bits?
+	This would help see what bits will be modified.
+	Cool, but non-trivial, paralleling out_IoPads().
+
+	Generally do not want to see --list.  But allow user to add --list.
+
+	Thus Gpios cannot force --list.
+
+    Scenario:  Exploring Atomic addresses.
+	Writing is only by Reg options (with Gpios).
+	Reading is only by Out options (i.e. list format).
+	Want --list option to view before and after register result.
+	Want --table (norm read) to see field decoding.
+
+	Generally want both --list and --table.
+	Want Out to add --list.
+
+	Generally want --flip= to add the corresponding Out mode.
+
+    A) --table and --list force that mode ON; default --table.
+	An annoying scenario:
+	    See default --table.  Add --list and get only --list.  Add both.
+
+    B) What if --table was always on:  (no --table option)
+	User can add --list.
+	Gpios could imply --list.
+	Maybe --table is replaced by --notable.
+
+    C) Cross effect of --table and --list:
+	What if --list  is 'list-only',  i.e. forces --table OFF.
+	What if --table is 'table-only', i.e. forces --list  OFF.
+	Both can force both ON.
+
+ >  D) What if --list  is 'list-only',  i.e. forces --table OFF.
+	Let --table be always ON, except with --list.
+	Let Reg and Out add --list to --table.
+	No need for --table option.
+	List output can be added with --norm (or any atomic register).
+
+ >  This (D) seems to work well.  Table format is always output by default.
+    List output is added with the atomic flags.  The --list option
+    essentially forces only List output.
 

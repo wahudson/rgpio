@@ -47,7 +47,9 @@ class rpad_yOptLong : public yOption {
     bool		Bank1    = 0;
     bool		Bank2    = 0;
 
-    bool		table    = 0;
+    bool		tableF   = 1;	// output control
+    bool		listF    = 0;
+
     bool		list     = 0;
 
     bool		all      = 0;
@@ -136,7 +138,6 @@ rpad_yOptLong::parse_options()
 	else if ( is( "--set"        )) { o_set      = 1; }
 	else if ( is( "--clr"        )) { o_clr      = 1; }
 
-	else if ( is( "--table"      )) { table      = 1; }
 	else if ( is( "--list"       )) { list       = 1; }
 	else if ( is( "--all"        )) { all        = 1; }
 
@@ -157,12 +158,16 @@ rpad_yOptLong::parse_options()
     }
 
     if ( Mr || o_norm || o_peek || o_set || o_clr ) {
-	list  = 1;
-	table = 1;
+	listF  = 1;
+	tableF = 1;
     }
 
-    if ( !(table || list) ) {
-	table = 1;
+    if ( list ) {	// turn OFF table output
+	listF  = 1;
+	tableF = 0;
+    }
+    else {
+	tableF = 1;
     }
 
     check_f1( "OutDisable_1",  OutDisable_1.Val   );
@@ -175,6 +180,10 @@ rpad_yOptLong::parse_options()
     if (                       DriveStr_2.Val > 0x3   ) {
 	Error::msg( "require --DriveStr_2={0..3}:  "  ) <<
 			       DriveStr_2.Val <<endl;
+    }
+
+    if ( gpio.Val > 0x0fffffff ) {
+	Error::msg( "require --gpio=mask <= 0x0fffffff" ) <<endl;
     }
 
     int		atomic_cnt = norm.Given + flip.Given + set.Given + clr.Given;
@@ -198,6 +207,7 @@ rpad_yOptLong::parse_options()
 	o_peek = 1;
 	o_set  = 1;
 	o_clr  = 1;
+	listF  = 1;
     }
 
     if ( gpio.Given && (get_argc() > 0) ) {
@@ -209,7 +219,7 @@ rpad_yOptLong::parse_options()
     }
 
     if ( Md && (atomic_cnt > 0) ) {
-	Error::msg( "field modification not valid with atomic address" ) <<endl;
+	Error::msg( "field modification not valid with write atomic" ) <<endl;
     }
 
     if ( Bank1 || Bank2 ) {
@@ -272,9 +282,6 @@ rpad_yOptLong::print_usage()
     "    gpio                bit numbers {27..0}\n"
     "    --gpio=0x0fffffff   mask to select Gpio[27:0] bits\n"
 //  "    -0, -1, -2          bank number, default -0\n"
-    "  output format:\n"
-    "    --table             field names in table format (default)\n"
-    "    --list              list IoPad registers by Gpio bit number\n"
     "  IoPad(gpio) field modification:\n"
     "    --OutDisable_1=0    output disable\n"
     "    --InEnable_1=0      input enable\n"
@@ -295,6 +302,7 @@ rpad_yOptLong::print_usage()
     "    --clr               read atomic clear address  0x3000\n"
     "    --all               all above\n"
     "  options:\n"
+    "    --list              list only atomic registers (no field table)\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output\n"
 //  "    --debug             debug output\n"
@@ -528,13 +536,13 @@ y_rpad::doit()
 	}
 
     // Output Table
-	if ( Opx.table )
+	if ( Opx.tableF )
 	{
 	    Opx.out_IoPads( Px );
 	}
 
     // Output List
-	if ( Opx.list )
+	if ( Opx.listF )
 	{
 	    Opx.head_reg( " Atomic register bit:  " );
 

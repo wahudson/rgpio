@@ -1,0 +1,28 @@
+    IO Pads interface RPi5
+usage:  rgpio rpad [options..]  [gpio..]
+    gpio                bit numbers {27..0}
+    --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+  IoPad(gpio) field modification:
+    --OutDisable_1=0    output disable
+    --InEnable_1=0      input enable
+    --DriveStr_2=3      drive strength {0..3} = {2, 4, 8, 12 mA}
+    --PullUpEn_1=0      pull Up enable
+    --PullDnEn_1=0      pull Down enable
+    --HystEn_1=0        1= hysteresis enabled, 0= not
+    --SlewFast_1=0      1= max slew rate, 0= min
+  write atomic register address:  (one of)
+    --norm=0x000000ff   write normal               0x0000
+    --flip=0x000000ff   write atomic bitmask XOR   0x1000
+    --set=0x000000ff    write atomic bitmask set   0x2000
+    --clr=0x000000ff    write atomic bitmask clear 0x3000
+  read atomic register address:
+    --norm              read normal (default)      0x0000
+    --peek              read without side-effect   0x1000
+    --set               read atomic set   address  0x2000
+    --clr               read atomic clear address  0x3000
+    --all               all above
+  options:
+    --list              list only atomic registers (no field table)
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
