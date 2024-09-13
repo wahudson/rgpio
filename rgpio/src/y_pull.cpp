@@ -304,8 +304,15 @@ y_pull::doit()
 	while ( (arg = Opx.next_arg()) )
 	{
 	    int				n;
+	    char			*endptr;
 
-	    n = strtol( arg, NULL, 0 );
+	    n = strtol( arg, &endptr, 10 );
+
+	    if ( *endptr != '\0' ) {
+		Error::msg( "bit arg non-numeric:  " ) << arg <<endl;
+		break;
+	    }
+
 	    if ( (n < 0) || (n > 57) ) {
 		Error::msg( "bit arg out-of-range:  " ) << n <<endl;
 		continue;

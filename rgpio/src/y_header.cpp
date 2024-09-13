@@ -339,10 +339,16 @@ y_header::doit()
 	while ( (arg = Opx.next_arg()) )
 	{
 	    int				n;
+	    char		*endptr;
 
-	    n = strtol( arg, NULL, 0 );
+	    n = strtol( arg, &endptr, 10 );
 
 	    if ( Opx.gpio ) {
+		if ( *endptr != '\0' ) {
+		    Error::msg( "bit arg non-numeric:  " ) << arg <<endl;
+		    break;
+		}
+
 		if ( (n < 0) || (n > 27) ) {
 		    Error::msg( "bit arg out-of-range {0..27}:  " ) << n <<endl;
 		    continue;
@@ -350,6 +356,11 @@ y_header::doit()
 		pinlist[pincnt++] = rgHeaderPin::gpio2pin_int( n );
 	    }
 	    else {
+		if ( *endptr != '\0' ) {
+		    Error::msg( "pin arg non-numeric:  " ) << arg <<endl;
+		    break;
+		}
+
 		if ( (n < 1) || (n > 40) ) {
 		    Error::msg( "pin arg out-of-range {1..40}:  " ) << n <<endl;
 		    continue;

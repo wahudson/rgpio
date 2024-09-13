@@ -199,16 +199,13 @@ run_test( "22", "error too many bits",
     Stdout => q(),
 );
 
-run_test( "23", "bad bit numbers",		#!! strtol() not detected
+run_test( "23", "error non-numeric Gpio bit number",
     "rgpio --dev=f --rpi3  pud --up  7 a12 2two",
-    0,
-    Stderr => q(),
-    Stdout => q(
-	 program bits:  Up
-	    7  OK
-	    0  OK
-	    2  OK
+    1,
+    Stderr => q(
+	Error:  bit arg non-numeric:  a12
     ),
+    Stdout => q(),
 );
 
 #---------------------------------------------------------------------------

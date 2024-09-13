@@ -138,6 +138,15 @@ run_test( "15", "invalid header pins",
     Stdout => q(),
 );
 
+run_test( "16", "error non-numeric header pin number",
+    "rgpio --dev=f --rpi4  header 3 7h",
+    1,
+    Stderr => q(
+	Error:  pin arg non-numeric:  7h
+    ),
+    Stdout => q(),
+);
+
 #---------------------------------------------------------------------------
 ## --row, --signal, --power
 #---------------------------------------------------------------------------
@@ -477,6 +486,15 @@ run_test( "53", "invalid --gpio combination",
     Stderr => q(
 	Error:  --gpio not valid with --signal --row
 	Error:  --row not valid with --signal --power
+    ),
+    Stdout => q(),
+);
+
+run_test( "54", "error non-numeric Gpio bit number",
+    "rgpio --dev=f --rpi4  header --gpio 5 7c",
+    1,
+    Stderr => q(
+	Error:  bit arg non-numeric:  7c
     ),
     Stdout => q(),
 );

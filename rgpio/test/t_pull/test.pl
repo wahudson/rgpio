@@ -202,6 +202,16 @@ run_test( "23", "good bit numbers, duplicate",
     Stderr => q(),
 );
 
+
+run_test( "24", "error non-numeric Gpio bit number",
+    "rgpio --dev=f --rpi4  pull --up  1 2 3cpo 7",
+    1,
+    Stderr => q(
+	Error:  bit arg non-numeric:  3cpo
+    ),
+    Stdout => q(),
+);
+
 #---------------------------------------------------------------------------
 ## Modify Words
 #---------------------------------------------------------------------------

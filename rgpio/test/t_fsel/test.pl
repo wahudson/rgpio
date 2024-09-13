@@ -123,7 +123,7 @@ run_test( "15", "fsel bit too large",
     "rgpio --dev=f --rpi4  fsel 54",
     1,
     Stderr => q(
-	Error:   bit arg out-of-range:  54
+	Error:  bit arg out-of-range:  54
     ),
     Stdout => q(),
 );
@@ -138,6 +138,14 @@ run_test( "16", "fsel verbose",
     ),
 );
 
+run_test( "17", "error non-numeric Gpio bit number",
+    "rgpio --dev=f --rpi4  fsel 2 3cpo 4",
+    1,
+    Stderr => q(
+	Error:  bit arg non-numeric:  3cpo
+    ),
+    Stdout => q(),
+);
 
 #---------------------------------------------------------------------------
 ## --mode

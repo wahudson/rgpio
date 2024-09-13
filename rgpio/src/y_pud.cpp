@@ -297,7 +297,15 @@ y_pud::doit()
 	{
 	    int				n;
 
-	    n = strtol( arg, NULL, 0 );
+	    char		*endptr;
+
+	    n = strtol( arg, &endptr, 10 );
+
+	    if ( *endptr != '\0' ) {
+		Error::msg( "bit arg non-numeric:  " ) << arg <<endl;
+		break;
+	    }
+
 	    if ( (n < 0) || (n > 53) ) {
 		Error::msg( "bit arg out-of-range:  " ) << n <<endl;
 		continue;

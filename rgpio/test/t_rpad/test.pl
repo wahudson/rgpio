@@ -153,6 +153,15 @@ run_test( "25", "error --gpio= range",
     Stdout => q(),
 );
 
+run_test( "26", "error non-numeric Gpio bit number",
+    "rgpio --dev=f --rpi5  rpad  --norm=0x77  2 3cpo 4",
+    1,
+    Stderr => q(
+	Error:  bit arg non-numeric:  3cpo
+    ),
+    Stdout => q(),
+);
+
 run_test( "29", "error bad Gpio bit number",
     "rgpio --dev=f --rpi5  rpad  28",
     1,

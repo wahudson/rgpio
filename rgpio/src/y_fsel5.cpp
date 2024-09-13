@@ -392,8 +392,15 @@ y_fsel5::doit()
 	    while ( (arg = Opx.next_arg()) )
 	    {
 		int		n;
+		char		*endptr;
 
-		n = strtol( arg, NULL, 0 );
+		n = strtol( arg, &endptr, 10 );
+
+		if ( *endptr != '\0' ) {
+		    Error::msg( "bit arg non-numeric:  " ) << arg <<endl;
+		    break;
+		}
+
 		if ( (n < 0) || (n > 27) ) {
 		    Error::msg( "bit arg out-of-range:  " ) << n <<endl;
 		    continue;
@@ -408,6 +415,8 @@ y_fsel5::doit()
 		}
 	    }
 	}
+
+    if ( Error::has_err() )  return 1;
 
     // Show all alternate functions
 	if ( Opx.show ) {
