@@ -167,6 +167,22 @@ run_test( "40", "write fifo",
     Stderr => q(),
 );
 
+run_test( "41", "error --tx is non-numeric",
+    "rgpio --dev=f --rpi4  pwm -v --Ch2_MsEnable_1=1 --tx  0x111 077 0bad",
+    1,
+    Stderr => q(
+	Error:  --tx value is non-numeric:  0bad
+    ),
+    Stdout => q(
+	PWM:
+	+ Grab regs
+	+ Modify regs
+	+ Write Fifo
+	   write Fifo:  0x00000111
+	   write Fifo:  0x0000003f
+    ),
+);
+
 #---------------------------------------------------------------------------
 # Check that all tests ran.
 #---------------------------------------------------------------------------

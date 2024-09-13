@@ -493,7 +493,16 @@ y_iic::doit()
 		Opx.trace_msg( "Write Tx Fifo" );
 		while ( (cp = Opx.next_arg()) )
 		{
-		    vv = strtoul( cp, NULL, 0 );
+		    char	*endptr;
+
+		    vv = strtoul( cp, &endptr, 0 );
+
+		    if ( *endptr != '\0' ) {
+			Error::msg( "--tx value is non-numeric:  " ) << cp <<endl;
+			return  1;
+			//#!! partial progress on error
+		    }
+
 		    cout.fill('0');
 		    cout << ns << ".write_Fifo:  0x" <<hex <<setw(8) << vv << endl;
 		    icx->Fifo.write( vv );

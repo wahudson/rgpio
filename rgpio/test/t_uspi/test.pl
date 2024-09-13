@@ -167,6 +167,21 @@ run_test( "31", "Tx Rx",
     Stderr => q(),
 );
 
+run_test( "32", "error --tx is non-numeric",
+    "rgpio --dev=f --rpi4  uspi -v --tx  0x111 077 0bad",
+    1,
+    Stderr => q(
+	Error:  --tx value is non-numeric:  0bad
+    ),
+    Stdout => q(
+	Spi1:
+	+ Grab regs
+	+ Write Tx Fifo
+	   1.write_Fifo:  0x00000111
+	   1.write_Fifo:  0x0000003f
+    ),
+);
+
 #---------------------------------------------------------------------------
 # Check that all tests ran.
 #---------------------------------------------------------------------------
