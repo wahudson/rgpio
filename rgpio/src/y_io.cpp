@@ -192,6 +192,8 @@ io_yOptLong::io_yOptLong( yOption  *opx )
 void
 io_yOptLong::parse_options()
 {
+    char		*endptr;
+
     while ( this->next() )
     {
 	     if ( is( "--bin"        )) { bin        = 1; }
@@ -235,19 +237,31 @@ io_yOptLong::parse_options()
     }
 
     if ( *set ) {
-	mask_n = strtoul( set, NULL, 0 );
+	mask_n = strtoul( set, &endptr, 0 );
+	if ( *endptr != '\0' ) {
+	    Error::msg( "--set non-numeric value:  " ) << set <<endl;
+	}
     }
 
     if ( *clr ) {
-	mask_n = strtoul( clr, NULL, 0 );
+	mask_n = strtoul( clr, &endptr, 0 );
+	if ( *endptr != '\0' ) {
+	    Error::msg( "--clr non-numeric value:  " ) << clr <<endl;
+	}
     }
 
     if ( *mask ) {
-	mask_n = strtoul( mask, NULL, 0 );
+	mask_n = strtoul( mask, &endptr, 0 );
+	if ( *endptr != '\0' ) {
+	    Error::msg( "--mask non-numeric value:  " ) << mask <<endl;
+	}
     }
 
     if ( *value ) {
-	value_n = strtoul( value, NULL, 0 );
+	value_n = strtoul( value, &endptr, 0 );
+	if ( *endptr != '\0' ) {
+	    Error::msg( "--value non-numeric value:  " ) << value <<endl;
+	}
     }
 
     if ( *mask || *value ) {

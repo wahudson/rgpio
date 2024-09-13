@@ -230,6 +230,29 @@ run_test( "27", "io unknown register",
     Stdout => q(),
 );
 
+#---------------------------------------
+run_test( "28a", "io --set",
+    "rgpio --dev=f --rpi4  io --hex --set=zz --clr=3cpo  DetectLow_w0",
+    1,
+    Stderr => q(
+	Error:  --set non-numeric value:  zz
+	Error:  --clr non-numeric value:  3cpo
+	Error:  --set invalid with --clr or --mask and --value
+	Error:  --clr invalid with --set or --mask and --value
+    ),
+    Stdout => q(),
+);
+
+run_test( "28b", "io non-numeric error",
+    "rgpio --dev=f --rpi4  io --mask=0x3zz --value=3ff  DetectLow_w0",
+    1,
+    Stderr => q(
+	Error:  --mask non-numeric value:  0x3zz
+	Error:  --value non-numeric value:  3ff
+    ),
+    Stdout => q(),
+);
+
 #---------------------------------------------------------------------------
 ## Outputs
 #---------------------------------------------------------------------------
