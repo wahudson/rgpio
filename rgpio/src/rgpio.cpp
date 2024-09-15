@@ -410,6 +410,10 @@ main( int	argc,
     catch ( std::domain_error& e ) {
 	Error::msg( "RPi platform:  " ) << e.what() <<endl;
     }
+    catch ( std::invalid_argument& e ) {
+	Error::msg( "invalid argument:  " ) << e.what() <<endl;
+	// non-numeric option value error
+    }
     catch ( std::exception& e ) {
 	Error::msg( "exception caught:  " ) << e.what() <<endl;
     }

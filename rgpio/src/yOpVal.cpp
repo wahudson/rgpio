@@ -5,6 +5,8 @@
 //--------------------------------------------------------------------------
 
 #include <stdlib.h>	// strtoul()
+#include <sstream>	// std::ostringstream
+#include <stdexcept>
 
 #include "yOpVal.h"
 
@@ -20,15 +22,35 @@ yOpVal::yOpVal()
 
 
 /*
-* Set argument value.
-*    Return true if error messages have been sent.
+* Set object value (uint32_t Val) from a string.
+*    Mark Given=1.
+*    The char string is converted to uint32_t.
+*    Throw exception if string is non-numeric.
 * call:
-*    set( "--enable=1" )
+*    Object.set( arg )
+* exceptions:
+*    std::invalid_argument  - option value is non-numeric
+*    Typically arrange the catch to prepend the text:
+*        "Error:  invalid argument:  "
+*
+* Note:  An alternative is to call Error::msg() and then return zero, which
+*    would allow continued option processing until errors are checked.
+*    The disadvantages are continued processing with a bad value and
+*    testing is more complex with a global error state.
+* Unfortunately the option name is not available for the error message.
 */
 void
 yOpVal::set( const char*  arg )
 {
+    char	*endptr;
+
     Given = 1;
-    Val   = strtoul( arg, NULL, 0 );
+    Val   = strtoul( arg, &endptr, 0 );
+
+    if ( *endptr != '\0' ) {
+	std::ostringstream	css;
+	css << "non-numeric option value:  " << arg;
+	throw std::invalid_argument ( css.str() );
+    }
 }
 
