@@ -176,6 +176,10 @@ rio_yOptLong::parse_options()
 	}
     }
 
+    if ( get_argc() > 0 ) {
+	Error::msg( "extra arguments:  " ) << next_arg() << endl;
+    }
+
     if ( Bank1 || Bank2 ) {
 	Error::msg( "only Bank0 is supported" ) << endl;
     }
@@ -228,7 +232,7 @@ rio_yOptLong::print_usage()
     "    --clr=0x000000ff    write atomic bitmask clear 0x3000\n"
     "  read atomic register address:\n"
     "    --norm              read normal (default)      0x0000\n"
-    "    --peak              read without side-effect   0x1000\n"
+    "    --peek              read without side-effect   0x1000\n"
     "    --set               read atomic set   address  0x2000\n"
     "    --clr               read atomic clear address  0x3000\n"
     "    --all               all above\n"
@@ -269,7 +273,7 @@ void
 rio_yOptLong::out_reg( const char* name,  uint32_t vv )
 {
     cout.fill('0');
-    cout << "0x" <<std::hex <<setw(8)  << vv;
+    cout << "0x" <<hex <<right <<setw(8) << vv;
 
     cout.fill(' ');
     if ( this->BinOut ) {
@@ -280,7 +284,7 @@ rio_yOptLong::out_reg( const char* name,  uint32_t vv )
 	cout << "  "                   << name <<endl;
     }
 
-    cout <<std::dec <<right;	// restore defaults
+    cout <<dec <<right;		// restore defaults
 }
 
 void
@@ -290,6 +294,7 @@ rio_yOptLong::head_reg( const char* title )
 	cout <<setw(28) <<left << title
 	     << "    28   24   20   16   12    8    4    0" <<endl;
     }
+    cout <<right;		// restore defaults
 }
 
 

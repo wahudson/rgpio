@@ -1,0 +1,23 @@
+    Register Input/Output (RIO), RPi5
+usage:  rgpio rio [options..]
+  select register:  (one for write, multiple for display)
+    --RioOut            output level
+    --RioOutEn          output enable
+    --RioIn             input direct from pad
+    --RioInSync         input synchronized to clk_sys
+  write atomic register address:
+    --norm=0x000000ff   write normal               0x0000
+    --flip=0x000000ff   write atomic bitmask XOR   0x1000
+    --set=0x000000ff    write atomic bitmask set   0x2000
+    --clr=0x000000ff    write atomic bitmask clear 0x3000
+  read atomic register address:
+    --norm              read normal (default)      0x0000
+    --peek              read without side-effect   0x1000
+    --set               read atomic set   address  0x2000
+    --clr               read atomic clear address  0x3000
+    --all               all above
+  options:
+    --hex               turn-off binary output
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
