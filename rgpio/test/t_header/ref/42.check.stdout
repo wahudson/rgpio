@@ -1,4 +1,4 @@
- Pin  Gpio    Alt0       Alt1       Alt2       Alt3       Alt4       Alt5      
+ Pin  Gpio    Alt0       Alt1       Alt2       Alt3       Alt4       Alt5
   1   +3.3V   --         --         --         --         --         --        
     2 +5V     --         --         --         --         --         --        
   3   Gpio2   iic1_SDA   sm_A3      dpi_VSYNC  spi3_MOSI  u2_CTS     iic3_SDA  

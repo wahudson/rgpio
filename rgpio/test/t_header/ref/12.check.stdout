@@ -6,8 +6,10 @@ usage:  rgpio header [options..]  [N..]
     --signal            signal header pins
     --power             power  header pins
     --row               header pins by row, odd first then even
-  modify:
+  modify:  (RPi4 or earlier)
     --mode=In           set function mode {In, Out, Alt0, .. Alt5}
+  modify:  (RPi5)
+    --func=N            set FuncSel_5 field value {0..31}
   options:
     --show              show all alternate functions
     --help              show this usage

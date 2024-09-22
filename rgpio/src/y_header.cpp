@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <sstream>	// std::ostringstream
 #include <string>
 #include <stdlib.h>
 #include <stdexcept>	// std::stdexcept
@@ -15,11 +16,14 @@ using namespace std;
 #include "yOption.h"
 #include "yOpVal.h"
 
+#include "rgRpiRev.h"
 #include "rgAddrMap.h"
 #include "rgFselPin.h"
+#include "rgsIoCon.h"
 
 #include "rgHeaderPin.h"
 #include "rgAltFuncName.h"
+#include "rgsFuncName.h"
 
 #include "yUtil.h"
 #include "y_header.h"
@@ -48,6 +52,7 @@ class header_yOptLong : public yOption {
     bool		row   = 0;
 
     const char*		mode;
+    yOpVal		func;
 
     bool		show  = 0;
 
@@ -106,6 +111,7 @@ header_yOptLong::parse_options()
 	else if ( is( "--row"        )) { row        = 1; }
 
 	else if ( is( "--mode="      )) { mode       = this->val(); }
+	else if ( is( "--func="      )) { func.set(    this->val() ); }
 
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
@@ -116,6 +122,17 @@ header_yOptLong::parse_options()
 	else if ( is( "--"           )) { this->next();  break; }
 	else {
 	    Error::msg( "unknown option:  " ) << this->current_option() <<endl;
+	}
+    }
+
+    if ( rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712 ) {	// RPi5
+	if ( *mode ) {
+	    Error::msg( "--mode not valid on RPi5" ) <<endl;
+	}
+    }
+    else {
+	if ( func.Given ) {
+	    Error::msg( "--func is valid only on RPi5" ) <<endl;
 	}
     }
 
@@ -156,6 +173,21 @@ header_yOptLong::parse_options()
 	    Error::msg( "--mode not valid with --show" ) <<endl;
 	}
     }
+
+    if ( func.Given ) {
+	ModifyBits = 1;
+	if ( (func.Val < 0) || (func.Val > 31) ) {
+	    Error::msg( "require --func={0..31}:  " ) << func.Val <<endl;
+	}
+
+	if ( power ) {
+	    Error::msg( "--func not valid with --power" ) <<endl;
+	}
+
+	if ( show ) {
+	    Error::msg( "--func not valid with --show" ) <<endl;
+	}
+    }
 }
 
 
@@ -173,6 +205,7 @@ header_yOptLong::print_option_flags()
     cout << "--row         = " << row          << endl;
 
     cout << "--mode        = " << mode         << endl;
+    cout << "--func        = " << func.Val     << endl;
     cout << "--show        = " << show         << endl;
 
     cout << "--verbose     = " << verbose      << endl;
@@ -204,8 +237,10 @@ header_yOptLong::print_usage()
     "    --signal            signal header pins\n"
     "    --power             power  header pins\n"
     "    --row               header pins by row, odd first then even\n"
-    "  modify:\n"
+    "  modify:  (RPi4 or earlier)\n"
     "    --mode=In           set function mode {In, Out, Alt0, .. Alt5}\n"
+    "  modify:  (RPi5)\n"
+    "    --func=N            set FuncSel_5 field value {0..31}\n"
     "  options:\n"
     "    --show              show all alternate functions\n"
     "    --help              show this usage\n"
@@ -235,6 +270,125 @@ header_yOptLong::trace_msg( const char* text )
     }
 }
 
+
+//--------------------------------------------------------------------------
+// Function Select Handler Class
+//--------------------------------------------------------------------------
+// A class to provide equivalent text across RPi5 thru RPi4 and earlier.
+
+class yFsel {
+
+  public:
+    rgFselPin		*Fselp;
+    rgsIoCon		*Fconp;
+
+  public:
+    yFsel( rgAddrMap *amx );		// constructor
+    ~yFsel();
+
+    string		show_alts_heading();
+    string		show_alts_gpio( int gpio );
+
+    static const rgFselPin::rgFsel_enum		ModeTable[];
+};
+
+/*
+* Lookup table for rgFsel_enum by Alt integer {0..5}.  RPi4 and earlier.
+*/
+const rgFselPin::rgFsel_enum	yFsel::ModeTable[] = {
+    rgFselPin::f_Alt0,
+    rgFselPin::f_Alt1,
+    rgFselPin::f_Alt2,
+    rgFselPin::f_Alt3,
+    rgFselPin::f_Alt4,
+    rgFselPin::f_Alt5,
+};
+
+/*
+* Constructor
+* Note:  Operator 'new' throws exception 'bad_alloc' on failure.
+*/
+yFsel::yFsel( rgAddrMap *amx )
+{
+    rgRpiRev::initialize_ioRPi();
+
+    if (      rgRpiRev::find_SocEnum() <= rgRpiRev::soc_BCM2711 ) {	// RPi4
+	Fconp = NULL;
+	Fselp = new rgFselPin ( amx );
+    }
+    else if ( rgRpiRev::find_SocEnum() == rgRpiRev::soc_BCM2712 ) {	// RPi5
+	Fselp = NULL;
+	Fconp = new rgsIoCon ( amx );
+    }
+    else {
+	throw std::domain_error ( "require RPi5 (or earlier)" );
+    }
+}
+
+/*
+* Destructor
+*/
+yFsel::~yFsel()
+{
+    delete  Fselp;
+//  delete  Fconp;	//#!! non-virtual destructor
+    // warning: deleting object of polymorphic class type 'rgsIoCon' which
+    // has non-virtual destructor might cause undefined behavior
+    // [-Wdelete-non-virtual-dtor]
+}
+
+/*
+* Heading for --show
+*/
+string
+yFsel::show_alts_heading()
+{
+    std::ostringstream		css;
+
+    if ( rgRpiRev::ioRPi5() ) {
+	//     " a5= sRIO[], a6= pRIO[], a7= PIO[]"
+	css << " a0         a1         a2         a3         a4         a8";
+    }
+    else {
+	css << " Alt0       Alt1       Alt2       Alt3       Alt4       Alt5";
+    }
+
+    return  css.str();
+}
+
+/*
+* All alternate functions for one gpio.
+*/
+string
+yFsel::show_alts_gpio( int gpio )
+{
+    std::ostringstream		css;
+
+    if ( rgRpiRev::ioRPi5() ) {
+
+	for ( int jj=0;  jj<=8;  jj++ )         // each altnum
+	{
+	    if ( (5 <= jj) && (jj <= 7) ) { continue; } // skip 5,6,7
+	    css << " " << setw(10) <<left
+		<< (( gpio < 0 ) ? "--" :
+				rgsFuncName::cstr_altfuncAN( jj, gpio ));
+	}
+    }
+    else {
+	rgFselPin::rgFsel_enum	mode;
+
+	for ( int jj=0;  jj<=5;  jj++ )         // each alt mode
+	{
+	    mode = ModeTable[jj];
+	    css << " " << setw(10) <<left
+		<< (( gpio < 0 ) ? "--" :
+				rgAltFuncName::cstr_altfunc_bit( mode, gpio ));
+	}
+    }
+    // remove trailing <space> chars?
+
+    return  css.str();
+}
 
 //--------------------------------------------------------------------------
 // Constructor
@@ -269,15 +423,19 @@ y_header::doit()
 
 	if ( Error::has_err() )  return 1;
 
-	rgFselPin		Fpx  ( AddrMap );	// constructor
+	yFsel			Gpx  ( AddrMap );	// constructor
 
 	if ( Opx.debug ) {
 	    cout.fill('0');
 	    cout <<hex;
-	    cout << "+ FeatureAddr  = 0x"
-		 <<setw(8) << Fpx.get_bcm_address() <<endl;
-	    cout << "+ GpioBase     = "
-		 <<setw(8) << (void*) Fpx.get_base_addr() <<endl;
+	    if ( rgRpiRev::ioRPi5() ) {
+		cout << "+ FeatureAddr  = 0x" <<setw(8)
+		     << Gpx.Fconp->get_bcm_address() <<endl;
+	    }
+	    else {
+		cout << "+ FeatureAddr  = 0x" <<setw(8)
+		     << Gpx.Fselp->get_bcm_address() <<endl;
+	    }
 	    cout <<dec;
 	}
 
@@ -378,29 +536,17 @@ y_header::doit()
 
     // Show all alternate functions
 	if ( Opx.show ) {
-
-	    const rgFselPin::rgFsel_enum	mode_tab[] = {
-		rgFselPin::f_Alt0,
-		rgFselPin::f_Alt1,
-		rgFselPin::f_Alt2,
-		rgFselPin::f_Alt3,
-		rgFselPin::f_Alt4,
-		rgFselPin::f_Alt5,
-	    };
-
-	    cout <<dec << " Pin  Gpio   ";
-	    for ( int jj=0;  jj<=5;  jj++ )		// heading
-	    {
-		cout << " " << setw(10) <<left
-		     << Fpx.rgFsel_enum2cstr( mode_tab[jj] );
+							// headings
+	    if ( rgRpiRev::ioRPi5() ) {
+		cout << "              a5= sRIO[], a6= pRIO[], a7= PIO[]" <<endl;
 	    }
-	    cout <<endl;
+	    cout <<dec << " Pin  Gpio   ";
+	    cout << Gpx.show_alts_heading() <<endl;
 
 	    for ( int ii=0;  ii<pincnt;  ii++ )		// each pin
 	    {
 		int			pin;
 		int			bit;
-		rgFselPin::rgFsel_enum	mode;
 		const char*		gpio_str;
 
 		pin = pinlist[ii];
@@ -412,15 +558,8 @@ y_header::doit()
 
 		cout << " "  <<setw(pw) <<right << pin <<setw(4 - pw) << "";
 		cout << " "  <<setw(7)  <<left  << gpio_str;
-		for ( int jj=0;  jj<=5;  jj++ )		// each alt mode
-		{
-		    mode = mode_tab[jj];
-		    cout << " " << setw(10) <<left
-			 << (( bit < 0 ) ? "--" :
-				rgAltFuncName::cstr_altfunc_bit( mode, bit ));
-		}
+		cout << Gpx.show_alts_gpio( bit );
 		cout <<endl;
-		// remove trailing <space> chars?
 	    }
 
 	    return 0;
@@ -434,8 +573,16 @@ y_header::doit()
 	    for ( int ii=0;  ii<pincnt;  ii++ )
 	    {
 		bit = rgHeaderPin::pin2gpio_int( pinlist[ii] );
-		if ( bit >= 0 ) {
-		    Fpx.modify_Fsel_bit( bit, Opx.mode_e );
+		if ( bit >= 0 ) {	// is a Gpio
+		    if ( rgRpiRev::ioRPi5() ) {
+			rgsIo_Cntl&	iocon = Gpx.Fconp->IoCntl(bit);
+			iocon.grab();
+			iocon.put_FuncSel_5( Opx.func.Val );
+			iocon.push();
+		    }
+		    else {
+			Gpx.Fselp->modify_Fsel_bit( bit, Opx.mode_e );
+		    }
 		}
 	    }
 	}
@@ -450,6 +597,7 @@ y_header::doit()
 	    int				pin;
 	    int				bit;
 	    rgFselPin::rgFsel_enum	mode;
+	    uint32_t			func;
 	    const char*			gpio_str;
 	    const char*			mode_str;
 	    const char*			func_str;
@@ -458,10 +606,22 @@ y_header::doit()
 	    bit  = rgHeaderPin::pin2gpio_int( pin );
 
 	    if ( bit >= 0 ) {
-		mode = Fpx.read_Fsel_bit( bit );
-		gpio_str = rgHeaderPin::pin2name_cstr( pin );
-		mode_str = Fpx.rgFsel_enum2cstr( mode );
-		func_str = rgAltFuncName::cstr_altfunc_bit( mode, bit );
+		if ( rgRpiRev::ioRPi5() ) {
+		    char		funcstr[5];
+		    rgsIo_Cntl&		iocon = Gpx.Fconp->IoCntl(bit);
+		           iocon.grab();
+		    func = iocon.get_FuncSel_5();
+		    sprintf( funcstr, "a%d", func );
+		    gpio_str = rgHeaderPin::pin2name_cstr( pin );
+		    mode_str = funcstr;
+		    func_str = rgsFuncName::cstr_altfuncAN( func, bit );
+		}
+		else {
+		    mode = Gpx.Fselp->read_Fsel_bit( bit );
+		    gpio_str = rgHeaderPin::pin2name_cstr( pin );
+		    mode_str = Gpx.Fselp->rgFsel_enum2cstr( mode );
+		    func_str = rgAltFuncName::cstr_altfunc_bit( mode, bit );
+		}
 	    } else {
 		gpio_str = "--";
 		mode_str = "--";

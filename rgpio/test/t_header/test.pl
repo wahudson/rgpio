@@ -42,14 +42,10 @@ chdir( "tmp" ) || die_Error( "cannot chdir ./tmp\n" );
 ## header basic options, --help
 #---------------------------------------------------------------------------
 
-run_test( "10", "bad platform RPi5",
+run_test( "10", "header no args RPi5",
     "rgpio --dev=f --rpi5  header",
-    1,
-    Stderr => q(
-	Error:  RPi platform:  rgFselPin:  require RPi4 (soc_BCM2711) or earlier
-    ),
-    Stdout => q(
-    ),
+    0,
+    Stderr => q(),
 );
 
 run_test( "11", "header no args",
@@ -382,7 +378,7 @@ run_test( "40", "show pin list",
     0,
     Stderr => q(),
     Stdout => q(
- Pin  Gpio    Alt0       Alt1       Alt2       Alt3       Alt4       Alt5      
+ Pin  Gpio    Alt0       Alt1       Alt2       Alt3       Alt4       Alt5
   7   Gpio4   gp_CLK0    sm_A1      dpi_D0     **         **         arm_TDI   
     ),
     # trailing space
@@ -414,7 +410,7 @@ run_test( "44", "show gpio bits",
     0,
     Stderr => q(),
     Stdout => q(
- Pin  Gpio    Alt0       Alt1       Alt2       Alt3       Alt4       Alt5      
+ Pin  Gpio    Alt0       Alt1       Alt2       Alt3       Alt4       Alt5
    24 Gpio8   spi0_CE0_n sm_D0      dpi_D4     **         **         **        
   7   Gpio4   gp_CLK0    sm_A1      dpi_D0     **         **         arm_TDI   
     ),

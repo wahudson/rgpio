@@ -55,6 +55,68 @@ usage:  rgpio [main_options..]  feature  [options..]
     like a dry run.
 
 ----------------------------------------------------------------------------
+## RPi5 vs RPi4 IO Configuration
+----------------------------------------------------------------------------
+
+    See also:  librgpio/doc/extend_rpi5.text
+
+    The RPi5 Features are sufficiently different that it can be complex
+    and confusing to provide both in the same sub-command.  Separate commands
+    make a clean distinction.
+
+    Thinking only about IO configuration, and not the device units like
+    iic, spi, clk, pwm, etc.
+
+Header and Fsel:
+
+    The rgpio-header command focuses on the RPi header pins.
+    The rgpio-fsel   command focuses on the Gpio alternate functions.
+    These have much in common between RPi5 and RPi4 (and earlier), so it
+    would be good to have just these two focused commands and not make
+    additional commands for RPi5.
+
+    The rgpio-header command has only one option for modifying the function
+    select (--mode=In).  We could cleanly add a new option for RPi5, and
+    perhaps do the same for rgpio-fsel.
+
+Function Select option names:
+
+    modify:  (RPi4 and earlier)
+	--mode=In       set function mode {In, Out, Alt0, .. Alt5}
+    modify:  (RPi5)
+	--func=N        {0..31} FuncSel_5 field value
+
+    Possible alternative option names:
+    A) --mode=N
+	Too confusing to switch the meaning.  Especially between enum and int.
+
+    B) --fsel=N
+	The word 'fsel' is already strongly associated with the RPi4
+	alternate function enums.
+
+ >  C) --func=N
+	This seems pretty good.
+	It is a word fragment, but could always be qualified with '--'.
+
+    D) Other names
+	--function=N
+	--funcsel=N	seems a bit long
+	--funcn=N
+	--fun=N
+
+    The idea is to use the same option --func=N in sub-commands that set the
+    RPi5 FuncSel_5 field.  e.g. rgpio-header, fsel, rcon
+
+RPi4 Commands:  io, pud, pull, pads, fsel
+
+    These command names made sense in the original RPi3 context.
+
+RPi5 Commands:
+
+    There is a lot more IO control functionality and complexity in RPi5.
+
+
+----------------------------------------------------------------------------
 ## Common Feature Behavior
 ----------------------------------------------------------------------------
 
