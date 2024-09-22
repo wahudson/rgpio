@@ -3,8 +3,6 @@
 #ifndef rgsFuncName_P
 #define rgsFuncName_P
 
-#include "rgsFuncName.h"
-
 //--------------------------------------------------------------------------
 // rgsFuncName  Alternate Function Names for RPi5
 //--------------------------------------------------------------------------

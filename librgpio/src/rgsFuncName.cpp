@@ -82,9 +82,10 @@ const char*		rgsFuncName::FuncName[][9] = {
 * Lookup Alternate Function name string - RPi5.
 *    Intended for human use.  Names may change.
 *    Bank0 only.  Future extension with a Bank number.
+*    Provides RPi5 names, but does not require any specific platform.
 * call:  (class or object)
 *    cstr_altfuncAN( altnum, bit )
-*    altnum = alternate function number 0..8
+*    altnum = alternate function number 0..31
 *    bit    = bit number 0..27
 * return:
 *    () = string identifying the alternate function.
@@ -98,7 +99,7 @@ rgsFuncName::cstr_altfuncAN(
     int			bit
 )
 {
-    if ( (altnum < 0) || (altnum > 8) ) {
+    if ( (altnum < 0) || (altnum > 31) ) {
 	std::ostringstream      css;
 	css << "cstr_altfuncAN():  altnum out-of-range:  " << altnum;
 	throw std::range_error ( css.str() );
@@ -110,6 +111,15 @@ rgsFuncName::cstr_altfuncAN(
 	throw std::range_error ( css.str() );
     }
 
-    return  FuncName[bit][altnum];
+    if ( altnum <= 8 ) {
+	return  FuncName[bit][altnum];
+    }
+    else if ( altnum == 31 ) {
+	return  "null";
+	    // Lower case to match signals, avoid blending with power names.
+    }
+    else {
+	return  "--";		// reserved
+    }
 }
 
