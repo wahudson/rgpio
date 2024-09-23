@@ -4,9 +4,10 @@
 # Testing:  rgpio-header  subcommand.
 #    10-19  header basic options, --help
 #    20-29  --row, --signal, --power
-#    30-39  --mode
+#    30-39  --mode RPi4
 #    40-49  --show
 #    50-59  --gpio
+#    60-69  --func RPi5
 
 # usage:  ./test.pl
 # files:
@@ -302,7 +303,7 @@ run_test( "28c", "invalid --power with pin list",
 );
 
 #---------------------------------------------------------------------------
-## --mode
+## --mode RPi4
 #---------------------------------------------------------------------------
 
 run_test( "30", "modify all pins",
@@ -384,6 +385,7 @@ run_test( "40", "show pin list",
     # trailing space
 );
 
+#---------------------------------------
 run_test( "41", "RPi3 show pins",
     "rgpio --dev=f --rpi3  header --show",
     0,
@@ -396,7 +398,14 @@ run_test( "42", "RPi4 show pins",
     Stderr => q(),
 );
 
-run_test( "43", "header --show invalid with --mode",
+run_test( "43", "RPi5 show pins",
+    "rgpio --dev=f --rpi5  header --show",
+    0,
+    Stderr => q(),
+);
+
+#---------------------------------------
+run_test( "45", "header --show invalid with --mode",
     "rgpio --dev=f --rpi4  header --show --mode=In  7",
     1,
     Stderr => q(
@@ -405,7 +414,7 @@ run_test( "43", "header --show invalid with --mode",
     Stdout => q(),
 );
 
-run_test( "44", "show gpio bits",
+run_test( "46", "show gpio bits",
     "rgpio --dev=f --rpi3  header --show --gpio  8 4",
     0,
     Stderr => q(),
@@ -491,6 +500,102 @@ run_test( "54", "error non-numeric Gpio bit number",
     1,
     Stderr => q(
 	Error:  bit arg non-numeric:  7c
+    ),
+    Stdout => q(),
+);
+
+run_test( "55", "invalid gpio bit number",
+    "rgpio --dev=f --rpi4  header --gpio 0 28",
+    1,
+    Stderr => q(
+	Error:  bit arg out-of-range {0..27}:  28
+    ),
+    Stdout => q(),
+);
+
+#---------------------------------------------------------------------------
+## --func RPi5
+#---------------------------------------------------------------------------
+
+run_test( "60a", "modify all pins - a0",
+    "rgpio --dev=f --rpi5  header --func=0",
+    0,
+    Stderr => q(),
+);
+
+run_test( "60b", "modify all pins - a5",
+    "rgpio --dev=f --rpi5  header --func=5",
+    0,
+    Stderr => q(),
+);
+
+run_test( "60c", "modify all pins - a5",
+    "rgpio --dev=f --rpi5  header --func=5 --gpio",
+    0,
+    Stderr => q(),
+);
+
+#---------------------------------------
+run_test( "61", "modify gpio list - a8",
+    "rgpio --dev=f --rpi5  header -v --func=8 --gpio  7 8 9",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	+ Modify pins
+	 Pin   Gpio    Mode  Function
+	   26  Gpio7   a8    spi3_SCLK
+	   24  Gpio8   a8    spi4_CSn0
+	 21    Gpio9   a8    spi4_SIO0
+    ),
+);
+
+run_test( "62", "modify pin list - a31",
+    "rgpio --dev=f --rpi5  header -v --func=31  7 8 9",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	+ Modify pins
+	 Pin   Gpio    Mode  Function
+	  7    Gpio4   a31   null
+	    8  Gpio14  a31   null
+	  9    --      --    GND
+    ),
+);
+
+run_test( "64", "bad --func",
+    "rgpio --dev=f --rpi5  header --func=32",
+    1,
+    Stderr => q(
+	Error:  require --func={0..31}:  32
+    ),
+    Stdout => q(),
+);
+
+run_test( "65", "invalid --func combination",
+    "rgpio --dev=f --rpi5  header --func=0 --power --show",
+    1,
+    Stderr => q(
+	Error:  --func not valid with --power
+	Error:  --func not valid with --show
+    ),
+    Stdout => q(),
+);
+
+#---------------------------------------
+run_test( "66a", "invalid --mode RPi5",
+    "rgpio --dev=f --rpi5  header --func=0 --mode=Alt0",
+    1,
+    Stderr => q(
+	Error:  --mode not valid on RPi5
+    ),
+    Stdout => q(),
+);
+
+run_test( "66b", "invalid --func RPi4",
+    "rgpio --dev=f --rpi4  header --func=0 --mode=Alt0",
+    1,
+    Stderr => q(
+	Error:  --func is valid only on RPi5
     ),
     Stdout => q(),
 );
