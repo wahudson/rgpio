@@ -17,8 +17,10 @@ rgpio-header -- Header Pin Functions, by pin number on 40-pin header
     --signal            signal header pins
     --power             power  header pins
     --row               header pins by row, odd first then even
-  modify:
+  modify:  (RPi4 or earlier)
     --mode=In           set function mode {In, Out, Alt0, .. Alt5}
+  modify:  (RPi5)
+    --func=N            set FuncSel_5 field value {0..31}
   options:
     --show              show all alternate functions
     --help              show this usage
@@ -73,9 +75,15 @@ peripheral they belong to.  Special names indicate:
 Note:  RPi4 (BCM2711) introduced additional instances of IIC, SPI and UART,
 and moved the Slave I2C bsc_* alternate functions.
 
+RPi5:  The alternate functions have been rearranged and have a different
+selection mechanism.
+The 'In' and 'Out' modes have been replaced by the Register IO (RIO)
+Feature identified as a5=sRIO[] in the output table (i.e. --func=5).
+
 =head2			Modification
 
-If modification is requested with B<--mode>, the process for each bit is:
+If modification is specified with B<--mode> or B<--func>, the process for
+each bit is:
 
     1) Read current hardware register value.
     2) Modify the mode field for that bit.
@@ -135,8 +143,16 @@ Be aware of pin connections when changing mode to avoid potential drive fights.
 
 =item B<--mode=>In          - Set function mode {In, Out, Alt0, .. Alt5}.
 
+RPi4 or earlier.
 Set the mode for the specified pin list.
 The default at power-on reset is "--mode=In".
+Not valid with --power or --show.
+
+=item B<--func=>N           - Set FuncSel_5 field value {0..31}.
+
+RPi5 only.
+Set the mode for the specified pin list.
+The default at power-on reset is "--func=31", shown as "null".
 Not valid with --power or --show.
 
 =back
@@ -147,8 +163,14 @@ Not valid with --power or --show.
 
 =item B<--show>             - Show all alternate functions.
 
-Output a table of all alternate functions {Alt0..Alt5} for the specified
-pin list.  No pins are modified.
+Output a table of all alternate functions for the specified pin list.
+No pins are modified.
+
+RPi4 and earlier:  Column headings are {Alt0..Alt5}.
+
+RPi5:  Column headings are {a0..a8}.
+Function headings a5= sRIO[], a6= pRIO[], a7= PIO[] are skipped as their
+function names are simply indexed by Gpio bit number.
 
 =item B<-v, --verbose>      - Verbose output.
 
@@ -181,8 +203,9 @@ Shows actions taken as the command executes.
  % rgpio header --mode=Alt5 --gpio  14 15 16 17
 
  Show all alternate functions for all pins.  No pins are modified.
- % rgpio        header --show
+ % rgpio --rpi3 header --show
  % rgpio --rpi4 header --show
+ % rgpio --rpi5 header --show
 
  Reset all header pins to Input.
  % rgpio header --mode=In
@@ -200,6 +223,8 @@ In the source directory tree:
  librgpio/src/rgHeaderPin.h
  librgpio/src/rgFselPin.h
  librgpio/src/rgAltFuncName.h
+ librgpio/src/rgsFuncName.h.h
+ librgpio/src/rgsIoCon.h.h
 
 
 =head1		SEE ALSO
@@ -210,6 +235,8 @@ B<rgpio-fsel>(1)
 B<rgAltFuncName>(3)
 B<rgFselPin>(3)
 B<rgHeaderPin>(3)
+B<rgsFuncName>(3)
+B<rgsIoCon>(3)
 
  Raspberry Pi hardware - GPIO and the 40-pin Header
     https://www.raspberrypi.com/documentation/computers/raspberry-pi.html
@@ -224,6 +251,9 @@ B<rgHeaderPin>(3)
  BCM doc:  BCM2711 ARM Peripherals (18 Jan 2022)
     p.77-81  ch 5.3  Alternative Function Assignments
     http://datasheets.raspberrypi.org/bcm2711/bcm2711-peripherals.pdf
+
+ RPi5:  Raspberry Pi RP1 Peripherals (2023-11-07)
+    https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
 
 =cut
 
