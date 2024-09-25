@@ -48,6 +48,9 @@ class fsel5_yOptLong : public yOption {
     bool		Bank1    = 0;
     bool		Bank2    = 0;
 
+    bool		tableF   = 1;	// output control
+    bool		listF    = 1;
+
     bool		table    = 0;
     bool		list     = 0;
     bool		show     = 0;
@@ -108,7 +111,7 @@ fsel5_yOptLong::parse_options()
 	else if ( is( "--OutOver_2="     )) { OutOver_2.set(     val() ); Md=1;}
 	else if ( is( "--FilterM_7="     )) { FilterM_7.set(     val() ); Md=1;}
 	else if ( is( "--FuncSel_5="     )) { FuncSel_5.set(     val() ); Md=1;}
-	else if ( is( "--fsel="          )) { FuncSel_5.set(     val() ); Md=1;}
+	else if ( is( "--func="          )) { FuncSel_5.set(     val() ); Md=1;}
 
 	else if ( is( "--table"      )) { table      = 1; }
 	else if ( is( "--list"       )) { list       = 1; }
@@ -130,9 +133,19 @@ fsel5_yOptLong::parse_options()
 	}
     }
 
-    if ( !(table || list) || (get_argc() > 0) || gpio.Given ) {
-	list = 1;
-    }		// include list when Gpio bit numbers are given
+    if ( table && list ) {
+	tableF = 1;
+	listF  = 1;
+    }
+    else if ( table ) {		// table only
+	tableF = 1;
+	listF  = 0;
+    }
+    else if ( list  ) {		// list only
+	tableF = 0;
+	listF  = 1;
+    }
+    // default is both table and list
 
     if ( Md && show ) {
 	Error::msg( "modification not valid with --show" ) <<endl;
@@ -143,7 +156,7 @@ fsel5_yOptLong::parse_options()
     check_f2( "OutOver_2",     OutOver_2.Val     );
 
     if (                       FilterM_7.Val > 0x7f  ) {
-	Error::msg( "require --FilterM_7<=0x7f:  " ) <<
+	Error::msg( "require --FilterM_7 <= 127:  " ) <<
 			       FilterM_7.Val <<endl;
     }
 
@@ -194,7 +207,7 @@ fsel5_yOptLong::check_f2(
 )
 {
     if ( v > 0x3 ) {
-	Error::msg( "require --" ) << p << " <= 0x3:  " << v << endl;
+	Error::msg( "require --" ) << p << " <= 3:  " << v << endl;
     }
 }
 
@@ -236,15 +249,15 @@ fsel5_yOptLong::print_usage()
     "    --gpio=0x0fffffff   mask to select Gpio[27:0] bits\n"
 //  "    -0, -1, -2          bank number, default -0\n"
     "  output format:\n"
-    "    --table             table format (default)\n"
-    "    --list              list by Gpio bit number\n"
+    "    --table             table only, fields for each Gpio\n"
+    "    --list              list only, function name for each Gpio\n"
     "  IoCntl(gpio) field modification:\n"
-    "    --InOver_2          input override 0=norm, 1=invert, 2=low, 3=high\n"
-    "    --OutEnOver_2       output enable override\n"
-    "    --OutOver_2         output override\n"
-    "    --FilterM_7         filter time constant M\n"
-    "    --FuncSel_5=31      function select {0.31}\n"
-    "    --fsel=31           alias for --FuncSel_5\n"
+    "    --InOver_2=0        input override 0=norm, 1=invert, 2=low, 3=high\n"
+    "    --OutEnOver_2=0     output enable override ..\n"
+    "    --OutOver_2=0       output override ..\n"
+    "    --FilterM_7=4       filter time constant M {0..127}\n"
+    "    --FuncSel_5=31      function select {0..31}\n"
+    "    --func=31           alias for --FuncSel_5\n"
     "  options:\n"
     "    --show              show all alternate functions\n"
     "    --help              show this usage\n"
@@ -317,7 +330,7 @@ fsel5_yOptLong::out_IoCntl( rgsIoCon& cx )
 	ww[k][jj] = 0;
     }
 
-    cout << " IoCntl(i) gpio i:           28   24   20   16   12    8    4    0"
+    cout << " IoCntl(i).norm     gpio i:  28   24   20   16   12    8    4    0"
 	 <<endl;
     cout << "   InOver_2        [17:16] ---- " << ww[ 6] <<endl;
     cout << "   OutEnOver_2     [15:14] ---- " << ww[ 5] <<endl;
@@ -425,23 +438,21 @@ y_fsel5::doit()
 	    cout << "     a5= sRIO[], a6= pRIO[], a7= PIO[]" <<endl;
 
 	    cout <<dec << "Gpio";
-	    for ( int jj=0;  jj<=8;  jj++ )         // heading
+	    for ( int jj=0;  jj<=8;  jj++ )		// heading
 	    {
 		if ( (5 <= jj) && (jj <= 7) ) { continue; }
 		cout << " a" << setw(10) <<left << jj;
 	    }
 	    cout <<endl;
 
-	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
+	    for ( int ii=0;  ii<bitcnt;  ii++ )		// each bit
 	    {
 		int		gpio = bitarg[ii];
-
-		if ( gpio > 27 ) { continue; }
 
 		cout << " "  <<setw(2) <<right << gpio;
 		cout << " ";
 
-		for ( int jj=0;  jj<=8;  jj++ )	// each FuncSel_5 entry
+		for ( int jj=0;  jj<=8;  jj++ )		// each altnum
 		{
 		    if ( (5 <= jj) && (jj <= 7) ) { continue; }	// skip 5,6,7
 		    cout << " " << setw(11) <<left
@@ -461,51 +472,51 @@ y_fsel5::doit()
 
 	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
 	    {
-		int		gpio = bitarg[ii];
+		int		gpio  = bitarg[ii];
+		rgsIo_Cntl&	iocon = Cx.IoCntl(gpio);
 
-		Cx.IoCntl(gpio).grab();
+		iocon.grab();
 
-		APPLY( InOver_2,     Cx.IoCntl(gpio).put_InOver_2    )
-		APPLY( OutEnOver_2,  Cx.IoCntl(gpio).put_OutEnOver_2 )
-		APPLY( OutOver_2,    Cx.IoCntl(gpio).put_OutOver_2   )
-		APPLY( FilterM_7,    Cx.IoCntl(gpio).put_FilterM_7   )
-		APPLY( FuncSel_5,    Cx.IoCntl(gpio).put_FuncSel_5   )
+		APPLY( InOver_2,     iocon.put_InOver_2    )
+		APPLY( OutEnOver_2,  iocon.put_OutEnOver_2 )
+		APPLY( OutOver_2,    iocon.put_OutOver_2   )
+		APPLY( FilterM_7,    iocon.put_FilterM_7   )
+		APPLY( FuncSel_5,    iocon.put_FuncSel_5   )
 
-		Cx.IoCntl(gpio).push();
+		iocon.push();
 	    }
 	}
 
     // Output Table
-	if ( Opx.table )
+	if ( Opx.tableF )
 	{
 	    Opx.out_IoCntl( Cx );
 	}
 
     // Output List
-	if ( Opx.list )
+	if ( Opx.listF )
 	{
-	    cout << " Gpio  fsel  Function" <<endl;
+	    cout << " Gpio  Mode  Function" <<endl;
 
-	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
+	    for ( int ii=0;  ii<bitcnt;  ii++ )		// each bit arg
 	    {
 		int		gpio = bitarg[ii];
-		uint32_t	fsel;
-		const char	*funcname;
+		uint32_t	func;
+		char		mode_str[5];
+		const char*	funcname;
+		rgsIo_Cntl&	iocon = Cx.IoCntl(gpio);
 
-		       Cx.IoCntl(gpio).grab();
-		fsel = Cx.IoCntl(gpio).get_FuncSel_5();
+		       iocon.grab();
+		func = iocon.get_FuncSel_5();
 
-		if ( fsel <= 8 ) {
-		    funcname = rgsFuncName::cstr_altfuncAN( fsel, gpio );
-		}
-		else {
-		    funcname = "--";
-		}
+		sprintf( mode_str, "a%d", func );
+
+		funcname = rgsFuncName::cstr_altfuncAN( func, gpio );
 
 		cout.fill(' ');
 		cout <<dec;
 		cout << "  " <<setw(3) <<right << gpio
-		     << "  " <<setw(4) <<right << fsel
+		     << "  " <<setw(4) <<right << mode_str
 		     << "  "                   << funcname
 		     <<endl;
 	    }

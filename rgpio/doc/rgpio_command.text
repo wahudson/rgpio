@@ -8,16 +8,18 @@ See also:  architecture.text
 ----------------------------------------------------------------------------
 ## Command
 ----------------------------------------------------------------------------
+Proposed usage:
 
 % rgpio --help
     Raspberry Pi GPIO utility
 usage:  rgpio [main_options..]  feature  [options..]
   common:
     info         RPi Revision Information
-    man          man pager
-    fsel         Pin Function Select, by Gpio bit number
+    man          man pages documentation
     header       Pin Function, by pin number on 40-pin header
+?   func         Pin Function logical connectivity, by Gpio bit number
   RPi4 and earlier:
+    fsel         IO Function Select
     io           General Purpose IO pins
     clk          Clock generator
     iic          I2C Master
@@ -29,9 +31,12 @@ usage:  rgpio [main_options..]  feature  [options..]
     pud          Pin Pull-Up/Down - RPi3 and earlier
     pull         Pin Pull-Up/Down - RPi4 only
   RPi5 only:
+    fsel5        IO Function Select - RPi5
     rio          Register IO
-    rfunc        IO Function Select
-    rpad         IO Pad control
+.   rcon         IO control, function select    [IoStat() also?]
+    rpad         IO pad control
+.   rstat        IO event/edge detect
+.   rintr        IO interrupt control
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
@@ -42,7 +47,19 @@ usage:  rgpio [main_options..]  feature  [options..]
     --help              show this usage
     -v, --verbose       verbose output, show if fake memory
     --debug             debug output
+    --version           show version info
   (options with GNU= only)
+
+Command Names:
+
+    RPi5-only commands are grouped separately.
+    The RPi5 IO command names begin with 'r' as a grouping mechanism,
+    keying off of the 'rio' Register IO command name.
+
+    fsel, fsel5:
+    Decided to keep fsel5 as a separate command for RPi5 (2024-09-24).
+    They have similar purpose, hence similar names.
+    Try the suffix '5' and see how it goes.
 
 ----------------------------------------------------------------------------
 ## Simulate RPi Options
@@ -79,7 +96,20 @@ Header and Fsel:
     select (--mode=In).  We could cleanly add a new option for RPi5, and
     perhaps do the same for rgpio-fsel.
 
-Function Select option names:
+ >  (2024-09-22)  rgpio-header  Added --func=N for RPi5.
+    This resulted in switching on platform in 7 places (option, constructor,
+    --show heading, --show body, --debug, modify, and output).  Quite a lot
+    of switching for minimal feature addition, but it does re-use quite a bit
+    of code.
+    It seems worth while, since the header pins are a common interface on
+    all RPi.
+
+ >  It seems too messy to replicate for rgpio-fsel, since it has around
+    5 options that are RPi4 specific.  Better to let it be just RPi4 and
+    earlier.  [It does have --show for RPi5, which is fairly clean.]
+    The Gpio numbering and word groupings do not match at all with RPi5.
+
+Function Select option names:  (e.g. rgpio-header)
 
     modify:  (RPi4 and earlier)
 	--mode=In       set function mode {In, Out, Alt0, .. Alt5}
@@ -107,14 +137,42 @@ Function Select option names:
     The idea is to use the same option --func=N in sub-commands that set the
     RPi5 FuncSel_5 field.  e.g. rgpio-header, fsel, rcon
 
-RPi4 Commands:  io, pud, pull, pads, fsel
+RPi4 Commands:  fsel, io, pud, pull, pads
 
     These command names made sense in the original RPi3 context.
 
-RPi5 Commands:
+RPi5 Commands:  fsel5, rio, rcon, rpad, rstat
 
     There is a lot more IO control functionality and complexity in RPi5.
 
+rgpio-func:  (proposed command)
+
+    Logical connectivity of Features to Gpio pins.
+
+    A new command to focus on the alternate functions and logical connectivity
+    of Gpio0..Gpio27 for both RPi5 and RPi4.
+    Focus is on this commonly needed functionality.
+    NOT all Gpios.
+    NOT Atomic register addresses of RPi5.
+    NOT pad pull up/down, drive strength, hysteresis, etc.
+    IS function select of RPi4 and RPi5 like rgpio-header.
+    IS one place to see the logical connectivity of RPi5.
+    IS a compliment to rgpio-header, which focuses on the Header pins.
+    Duplicates select functionality of other commands.
+
+    RPi5 has about 6 fields in rgsIoCon and rgsIoPads that affect the logical
+    connectivity of Features:  input enable, output disable, input override,
+    output override, output enable override, and function select.
+    It would be nice to group just these together in a common command.
+    Utilize only Bank0.
+
+    RPi4 has only the Fsel registers of rgFselPin.
+    Utilize only Gpio0..27.
+
+    Leave rgpio-fsel as-is for the full range of Gpio0..Gpio53 on RPi4.
+    Let rgpio-rcon and rgpio-rpad handle the full capability of RPi5.
+
+    An idea for now, we shall see.  (2024-09-22)
 
 ----------------------------------------------------------------------------
 ## Common Feature Behavior
