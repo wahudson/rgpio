@@ -1,0 +1,19 @@
+    IO Function Select, RPi5
+usage:  rgpio fsel5 [options..]  [gpio..]
+    gpio                bit numbers {27..0}
+    --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+  output format:
+    --table             table only, fields for each Gpio
+    --list              list only, function name for each Gpio
+  IoCntl(gpio) field modification:
+    --InOver_2=0        input override 0=norm, 1=invert, 2=low, 3=high
+    --OutEnOver_2=0     output enable override ..
+    --OutOver_2=0       output override ..
+    --FilterM_7=4       filter time constant M {0..127}
+    --FuncSel_5=31      function select {0..31}
+    --func=31           alias for --FuncSel_5
+  options:
+    --show              show all alternate functions
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)

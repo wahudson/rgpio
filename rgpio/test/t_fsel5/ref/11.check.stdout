@@ -1,0 +1,37 @@
+ IoCntl(i).norm     gpio i:  28   24   20   16   12    8    4    0
+   InOver_2        [17:16] ---- 0000 0000 0000 0000 0000 0000 0000
+   OutEnOver_2     [15:14] ---- 0000 0000 0000 0000 0000 0000 0000
+   OutOver_2       [13:12] ---- 0000 0000 0000 0000 0000 0000 0000
+   FilterM_7       [11:9]  ---- 0000 0000 0000 0000 0000 0000 0000
+   FilterM_7       [ 8:5]  ---- 0000 0000 0000 0000 0000 0000 0000
+   FuncSel_5       [4]     ---- 0000 0000 0000 0000 0000 0000 0000
+   FuncSel_5       [3:0]   ---- 0000 0000 0000 0000 0000 0000 0000
+ Gpio  Mode  Function
+    0    a0  spi0_SIO3
+    1    a0  spi0_SIO2
+    2    a0  spi0_CSn3
+    3    a0  spi0_CSn2
+    4    a0  gp_CLK0
+    5    a0  gp_CLK1
+    6    a0  gp_CLK2
+    7    a0  spi0_CSn1
+    8    a0  spi0_CSn0
+    9    a0  spi0_SIO1
+   10    a0  spi0_SIO0
+   11    a0  spi0_SCLK
+   12    a0  pwm0_CH0
+   13    a0  pwm0_CH1
+   14    a0  pwm0_CH2
+   15    a0  pwm0_CH3
+   16    a0  spi1_CSn2
+   17    a0  spi1_CSn1
+   18    a0  spi1_CSn0
+   19    a0  spi1_SIO1
+   20    a0  spi1_SIO0
+   21    a0  spi1_SCLK
+   22    a0  sd0_CLK
+   23    a0  sd0_CMD
+   24    a0  sd0_DAT0
+   25    a0  sd0_DAT1
+   26    a0  sd0_DAT2
+   27    a0  sd0_DAT3

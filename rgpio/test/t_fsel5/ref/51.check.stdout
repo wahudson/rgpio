@@ -1,0 +1,5 @@
+     a5= sRIO[], a6= pRIO[], a7= PIO[]
+Gpio a0          a1          a2          a3          a4          a8         
+  7  spi0_CSn1   dpi_D3      u2_RTS      iic3_SCL    u0_DSR      spi3_SCLK  
+  4  gp_CLK0     dpi_D0      u2_TX       iic2_SDA    u0_RI       spi3_CSn0  
+  0  spi0_SIO3   dpi_PCLK    u1_TX       iic0_SDA    --          spi2_CSn0  
