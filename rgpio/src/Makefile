@@ -92,6 +92,7 @@ man:	$(MAN)/man1 \
 	$(MAN)/man1/rgpio.1 \
 	$(MAN)/man1/rgpio-clk.1 \
 	$(MAN)/man1/rgpio-fsel.1 \
+	$(MAN)/man1/rgpio-fsel5.1 \
 	$(MAN)/man1/rgpio-header.1 \
 	$(MAN)/man1/rgpio-io.1 \
 	$(MAN)/man1/rgpio-pads.1
@@ -133,7 +134,7 @@ $(OJ)/y_clk.o:		y_clk.cpp  y_clk.h  $(INCS)
 $(OJ)/y_fsel.o:		y_fsel.cpp  y_fsel.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_fsel.cpp
 
-$(OJ)/y_fsel5.o:		y_fsel5.cpp  y_fsel5.h  $(INCS)
+$(OJ)/y_fsel5.o:	y_fsel5.cpp  y_fsel5.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_fsel5.cpp
 
 $(OJ)/y_header.o:	y_header.cpp  y_header.h  $(INCS)
@@ -202,6 +203,10 @@ $(MAN)/man1/rgpio-clk.1:	man1/rgpio-clk.pod
 $(MAN)/man1/rgpio-fsel.1:	man1/rgpio-fsel.pod
 	pod2man -s 1 -n rgpio-fsel --center='Raspberry Pi GPIO' \
 		   man1/rgpio-fsel.pod  $@
+
+$(MAN)/man1/rgpio-fsel5.1:	man1/rgpio-fsel5.pod
+	pod2man -s 1 -n rgpio-fsel5 --center='Raspberry Pi GPIO' \
+		   man1/rgpio-fsel5.pod  $@
 
 $(MAN)/man1/rgpio-header.1:	man1/rgpio-header.pod
 	pod2man -s 1 -n rgpio-header --center='Raspberry Pi GPIO' \

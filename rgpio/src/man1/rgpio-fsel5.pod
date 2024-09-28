@@ -1,0 +1,214 @@
+# 2024-09-25  William A. Hudson
+
+# rgpio-fsel5 -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio-fsel -- IO Function Select, RPi5
+
+=head1		SYNOPSIS
+
+usage:  rgpio fsel5 [options..]  [gpio..]
+    gpio                bit numbers {27..0}
+    --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+  output format:
+    --table             table only, fields for each Gpio
+    --list              list only, function name for each Gpio
+  IoCntl(gpio) field modification:
+    --InOver_2=0        input override 0=norm, 1=invert, 2=low, 3=high
+    --OutEnOver_2=0     output enable override ..
+    --OutOver_2=0       output override ..
+    --FilterM_7=4       filter time constant M {0..127}
+    --FuncSel_5=31      function select {0..31}
+    --func=31           alias for --FuncSel_5
+  options:
+    --show              show all alternate functions
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
+
+
+=head1		DESCRIPTION
+
+This command displays the Function Select mode of each Gpio pin specified.
+In addition, it shows the logical control fields that affect the IO path
+to the selected peripheral device.
+Here "pin" or "bit" refers to the Gpio bit number, not the Raspberry Pi
+header pin number.
+
+The output shows the alternate function {a0, a1, .. a31}, along with the
+peripheral function signal name.
+The signal names generally have a prefix indicating the peripheral they
+belong to.  The name '--' indicates a reserved function mode.
+
+If modification is specified, the process for each Gpio bit is:
+
+    1) Read current hardware register value.
+    2) Modify the mode bits.
+    3) Write modified value back to hardware register.
+
+After all Gpios are modified, each hardware register is re-read and the
+values displayed.
+
+Note this read-modify-write sequence is not atomic.  It is left to the user
+to avoid synchronization issues.
+
+RPi5 has 4 Atomic Addresses (norm, flip, set, clr) for each register.
+This command uses only the 'norm' address.  See B<rgpio-rcon>(1) for access
+by all 4 addresses.
+
+
+=head1		OPTIONS
+
+=head2			Register Banks
+
+There are 3 register banks.  Only Bank0, the Gpios on the 40-pin header,
+is supported here.
+
+=head2			Gpio Bits
+
+Gpio bits (integers) may be enumerated on the command line, and are processed
+for modification or display in the order specified.  See EXAMPLES.
+
+=over
+
+=item B<--gpio>=0x0fffffff  - Mask to select Gpio[27:0] bits.
+
+This is a bit mask, where 1= a Gpio bit to be operated on.
+Note bits [31:28] are ignored.
+
+=back
+
+=head2			Output Format
+
+=over
+
+=item B<--table>            - Table only, show fields for each Gpio.
+
+Show only the table of field names and values for each Gpio bit.
+Note argument bits, or --gpio, has no effect on the table output.
+
+=item B<--list>             - List only, show function name for each Gpio.
+
+Show only the list of Gpio bits with the mode value and function name.
+
+=back
+
+=head2			Field Modification
+
+These options specify the field names and value to be set and are applied
+to all Gpios specified.
+
+=over
+
+=item B<--InOver_2>=0       - Input override.
+
+Specify the input signal treatment from the pin to the peripheral device.
+
+    0= Normal
+    1= Invert the input
+    2= Low  - force input to logic 0
+    3= High - force input to logic 1
+
+=item B<--OutOver_2>=0      - Output override.
+
+Specify the output signal treatment from the peripheral device to the pin.
+Only the device selected by B<FuncSel_5> is routed to the pin.
+
+    0= Normal
+    1= Invert the output
+    2= Low  - force output to logic 0
+    3= High - force output to logic 1
+
+=item B<--OutEnOver_2>=0    - Output Enable override.
+
+Specify the output enable signal treatment from the peripheral device to the
+pad driver.
+Only the device selected by B<FuncSel_5> is routed to the pin.
+
+    0= Normal
+    1= Invert the enable signal
+    2= Low  - disable output
+    3= High - enable output
+
+=item B<--FuncSel_5>=0      - Function select {0..31}.
+
+Select which peripheral device is connected to the pin.  Device output (and
+enable) is connected to the pad driver.  The pad receiver is likely buffered
+to all device inputs for that Gpio regardless of function select.
+
+ Values {0..8} typically have peripherals.
+ Values {9..30} are all reserved.
+ Value  {31} is "null", no device, is the power-on condition.
+
+=item B<--func>=0           - Alias for --FuncSel_5 above.
+
+=back
+
+=head2			Options
+
+=over
+
+=item B<--show>             - Show all alternate functions.
+
+Output a table of all alternate functions {a0..a8} for the specified Gpio
+pins.  No Gpios are modified.
+
+=item B<-v, --verbose>      - Verbose output.
+
+Show actions taken as the command executes, on stdout.
+
+=back
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ Show Gpio0..27 by default.
+ % rgpio fsel5
+
+ Show selected Gpio
+ % rgpio fsel5  7 6 5 4
+ % rgpio fsel5  --gpio=0x000000f0
+
+ Show only table or list portion of output
+ % rgpio fsel5  --table
+ % rgpio fsel5  --list   0 1 2
+
+ Set Gpio pins to function select mode 'a5' sRIO[] (system Register IO).
+ % rgpio fsel5 --func=5  4 5
+
+ Configure Gpios for normal input/output operation.
+ % rgpio fsel5 --InOver_2=0 --OutEnOver_2=0 --OutOver_2=0  4 5
+
+ Show all alternate functions.
+ % rgpio fsel5 --show
+
+ Reset RPi header pins Gpio[27:0] to the power-on 'null' mode.
+ % rgpio fsel5 --func=31 --gpio=0x0fffffff
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		SEE ALSO
+
+B<rgpio>(1)
+B<rgpio-header>(1)
+B<rgpio-rio>(1)
+B<rgpio-rcon>(1)
+B<rgpio-fsel>(1)
+B<librgpio>(3)
+
+ RPi5:  Raspberry Pi RP1 Peripherals (2023-11-07)
+     https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
+
+=cut
+
