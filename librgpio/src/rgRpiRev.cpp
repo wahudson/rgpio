@@ -443,15 +443,20 @@ rgRpiRev::rgRpiRev_Base::find()
 //--------------------------------------------------------------------------
 
 /*
-* Force simulation of given SocEnum or RevCode.
-*    Force SocEnum to be Final and not Unknown.
-*    Force RevCode and RealPi to be Final and not Unknown.
+* Force simulation of SocEnum or RevCode.
+*    Force values to be Final and not Unknown.
+*    Force simulation by marking RealPi=0.
+*    The default argument is the current value.
 *    BaseAddr is not forced zero, so it can be derived in simulation.
 *    All override() or defaultv() functions should be called first.
 * call:
 *    simulate_SocEnum( rgRpiRev::soc_BCM2837 );
+*    simulate_SocEnum();
 *    simulate_RevCode( 0x00a22082 );
-*    simulate();		// simulate existing default values
+*    simulate_RevCode();
+* Note:
+*    #!! Simulate SocEnum will not allow RevCode to derive because it shares
+*    the same Final and Unknown flags as RealPi.
 */
 void
 rgRpiRev::simulate_SocEnum( Soc_enum soc )
@@ -464,12 +469,6 @@ void
 rgRpiRev::simulate_RevCode( uint32_t code )
 {
     Global.RevCode.override( code );
-    Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
-}
-
-void
-rgRpiRev::simulate()
-{
     Global.RevCode.override_realpi( 0 );	// 0= simulation or non-RPi
 }
 

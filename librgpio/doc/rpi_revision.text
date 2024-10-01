@@ -1404,6 +1404,7 @@ Identify Real RPi:
 	+ Very unlikely another machine would claim that hardware.
 	+ Is already read for the "Revision" line.
 	- There could be other Arm machines using the same chip.
+	-- Note RPi5 did not have the "Hardware" entry. (2024-06-06)
 
     C) File  /sys/firmware/devicetree/base/model  exists on RPi and
 	contains the text model identification.  e.g.
@@ -1563,7 +1564,7 @@ Class vs Object methods:
     operate only on objects.
     e.g.  The simulate() function applied to Global data:
 
-    A) Class methods
+ >  A) Class methods
 	static void	rgRpiRev::simulate();		// declaration
 	rgRpiRev::simulate();				// use
 	rgRpiRev::Global.simulate();			// use option
@@ -1575,7 +1576,7 @@ Class vs Object methods:
 	+ Parallels isRPi5() use.
 	- Less obvious it is global (static).
 
- >  B) Object methods
+    B) Object methods
 	void		rgRpiRev::simulate();		// declaration
 	rgRpiRev::Global.simulate();			// use
 

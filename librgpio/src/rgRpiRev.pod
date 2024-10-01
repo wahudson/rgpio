@@ -36,8 +36,9 @@ rgRpiRev class -- Raspberry Pi Revision
   public:	// class methods on Global data
 
     static void		simulate_RevCode( uint32_t code );
+    static void		simulate_RevCode();
     static void		simulate_SocEnum( Soc_enum soc );
-    static void		simulate();
+    static void		simulate_SocEnum();
 
     static Soc_enum	find_SocEnum() { return Global.SocEnum.find(); }
     static uint32_t	find_BaseAddr(){ return Global.BaseAddr.find();}
@@ -223,16 +224,24 @@ These all access the B<rgRpiRev::Global> global data object.
 
 =over
 
-=item B<simulate_RevCode>()	- force simulation of RevCode value
+=item B<simulate_RevCode>( v )	- force simulation of given RevCode
 
-=item B<simulate_SocEnum>()	- force simulation of SocEnum value
+=item B<simulate_RevCode>()
 
-=item B<simulate>()		- force simulation on current RPi platform
+=item B<simulate_SocEnum>( v )	- force simulation of given SocEnum
 
-Force simulation of the given SocEnum or RevCode, essentially flagging the
-value as Final and Known.  B<BaseAddr> is derived as usual.
+=item B<simulate_SocEnum>()
+
+Force simulation of SocEnum or RevCode, essentially flagging the
+value as Final and Known to prevent further derivation.
+B<BaseAddr> is derived as usual.
+With no argument they force simulation of the current value set by
+defaultv() or override().
+
+Simulation is accomplished by marking the platform as not a real RPi (see
+ioRPiReal() below).
 The intent is for the library to behave as if the platform was the
-specified SocEnum but not actually access any hardware registers.
+specified type but not actually access any hardware registers.
 
 =item B<find_SocEnum>()		- return B<Global.SocEnum.find>()
 

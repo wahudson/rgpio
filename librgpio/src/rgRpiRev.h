@@ -193,9 +193,8 @@ class rgRpiRev {
     rgRpiRev();		// constructor
 
   public:	// class methods on Global data
-    static void		simulate_RevCode( uint32_t code );
-    static void		simulate_SocEnum( Soc_enum soc );
-    static void		simulate();
+    static void		simulate_RevCode( uint32_t v = Global.RevCode.get() );
+    static void		simulate_SocEnum( Soc_enum v = Global.SocEnum.get() );
 
     static Soc_enum	find_SocEnum()	{ return  Global.SocEnum.find();  }
     static uint64_t	find_BaseAddr()	{ return  Global.BaseAddr.find(); }

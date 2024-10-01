@@ -4,7 +4,7 @@
 //    10-19  Global constructed state
 //    20-29  RevCode.defaultv(), SocEnum.defaultv()
 //    30-39  .
-//    40-49  simulate_RevCode(), simulate_SocEnum(), simulate()
+//    40-49  simulate_RevCode(), simulate_SocEnum()
 //    50-59  Register override(), Low-level
 //    60-68  .
 //    70-78  initialize_ioRPi() All flags
@@ -267,7 +267,7 @@ int main()
     }
 
 //--------------------------------------------------------------------------
-//## simulate_RevCode(), simulate_SocEnum(), simulate()
+//## simulate_RevCode(), simulate_SocEnum()
 //--------------------------------------------------------------------------
 
   CASE( "41", "all simulate_*(), non-RPi" );
@@ -344,18 +344,18 @@ int main()
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "43", "simulate() constructor default, real-RPi" );
+  CASE( "43", "simulate_SocEnum() constructor default, real-RPi" );
     try {
 	Reset_Global();
 	rgRpiRev::Global.RevCode.init_file( "ref/rpi3.in" );
-	rgRpiRev::Global.simulate();
+	rgRpiRev::Global.simulate_SocEnum();
 	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
 	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
 	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
 	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
-	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
-	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
 	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
 	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
 	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
@@ -485,6 +485,105 @@ int main()
 	CHECK(  0,                    rgRpiRev::ioRPi0() );
 	CHECK(  0,                    rgRpiRev::ioRPi3() );
 	CHECK(  1,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "47", "simulate_SocEnum(), existing value" );
+    //#!! Note RevCode is forced Final, cannot derive.
+    try {
+	Reset_Global();
+	rgRpiRev::Global.RevCode.init_file( "ref/rpi3.in" );
+	rgRpiRev::Global.RevCode.override_realpi( 1 );
+	rgRpiRev::Global.RevCode.putFU( 0, 1 );
+	rgRpiRev::Global.SocEnum.defaultv( rgRpiRev::soc_BCM2711 );	// RPi4
+	CHECK(  1,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
+	rgRpiRev::Global.simulate_SocEnum();
+	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
+	rgRpiRev::initialize_ioRPi();
+	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECKX( 0x00000000,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2711, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0xfe000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::ioRPiReal() );
+	CHECK(  0,                    rgRpiRev::ioRPi0() );
+	CHECK(  0,                    rgRpiRev::ioRPi3() );
+	CHECK(  1,                    rgRpiRev::ioRPi4() );
+	CHECK(  0,                    rgRpiRev::ioRPi5() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "48", "simulate_RevCode(), existing value, derive SocEnum" );
+    try {
+	Reset_Global();
+	rgRpiRev::Global.RevCode.init_file( "ref/rpi0.in" );
+	rgRpiRev::Global.RevCode.override_realpi( 1 );
+	rgRpiRev::Global.RevCode.putFU( 0, 1 );
+	rgRpiRev::Global.RevCode.defaultv( 0x00a22082 );	// RPi3
+	CHECK(  1,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECKX( 0x00a22082,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
+	rgRpiRev::Global.simulate_RevCode();
+	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECKX( 0x00a22082,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2835, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x00000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_final() );
+	rgRpiRev::initialize_ioRPi();
+	CHECK(  0,                    rgRpiRev::Global.RevCode.get_realpi() );
+	CHECKX( 0x00a22082,           rgRpiRev::Global.RevCode.get() );
+	CHECK(  0,                    rgRpiRev::Global.RevCode.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.RevCode.is_final() );
+	CHECK( rgRpiRev::soc_BCM2837, rgRpiRev::Global.SocEnum.get() );
+	CHECK(  0,                    rgRpiRev::Global.SocEnum.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.SocEnum.is_final() );
+	CHECKX( 0x3f000000,           rgRpiRev::Global.BaseAddr.get() );
+	CHECK(  0,                    rgRpiRev::Global.BaseAddr.is_unknown() );
+	CHECK(  1,                    rgRpiRev::Global.BaseAddr.is_final() );
+	CHECK(  0,                    rgRpiRev::ioRPiReal() );
+	CHECK(  0,                    rgRpiRev::ioRPi0() );
+	CHECK(  1,                    rgRpiRev::ioRPi3() );
+	CHECK(  0,                    rgRpiRev::ioRPi4() );
 	CHECK(  0,                    rgRpiRev::ioRPi5() );
     }
     catch (...) {
