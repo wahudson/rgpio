@@ -13,10 +13,10 @@ rgpio -- Raspberry Pi GPIO utility
  usage:  rgpio [main_options..]  feature  [options..]
   common:
     info         RPi Revision Information
-    man          man pager
-    fsel         Pin Function Select, by Gpio bit number
+    man          reference manuals
     header       Pin Function, by pin number on 40-pin header
   RPi4 and earlier:
+    fsel         IO Function Select
     io           General Purpose IO pins
     clk          Clock generator
     iic          I2C Master
@@ -27,41 +27,62 @@ rgpio -- Raspberry Pi GPIO utility
     pads         Pads Control
     pud          Pin Pull-Up/Down - RPi3 and earlier
     pull         Pin Pull-Up/Down - RPi4 only
+  RPi5 only:
+    fsel5        IO Function Select
+    rio          Register IO
+    rpad         IO Pad control
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
-    --rpi3              act like RPi3 or earlier
-    --rpi4              act like RPi4 or earlier
-    --rpi5              act like RPi5
+    --rpi3              simulate RPi3 or earlier
+    --rpi4              simulate RPi4
+    --rpi5              simulate RPi5
+    -n, --sim           simulate appropriate platform (dry run)
     --help              show this usage
     -v, --verbose       verbose output, show if fake memory
     --debug             debug output
+    --version           show version info
   (options with GNU= only)
 
 
 =head1		DESCRIPTION
 
 This is a low-level utility program for inspecting and modifying the
-BCM2835 ARM Peripheral registers on the Raspberry Pi (RPi).
+GPIO Peripheral registers on the Raspberry Pi (RPi).
 It uses the B<librgpio> library and naming conventions.
 It is intended to be very close to the hardware interface and not intended to
 provide a high-level abstraction.
 
 It is a cockpit command, with sub-commands for each peripheral feature.
 
-Note options --help and --debug are different when applied to the main
-command or the sub-command.
-
 =head2			Essential Operation
 
-The main program opens the device file and then calls the specified
-sub-command (feature).
+The main program opens the device file /dev/mem and then calls the specified
+sub-command (Feature) which then calls mmap(2) to map a portion of the real
+IO memory space into the virtual memory space of the running process.
+The result is any loads and stores to this virtual space go to the actual
+hardware registers.
 
-Options after the sub-command are processed by the sub-command.
+Modification of an IO register is typically by a read/modify/write process,
+so that only the bits being modified are changed.  This process is NOT
+atomic.  It is left to the user to manage any synchronization problems that
+may arise from parallel asynchronous processes.
+
+=head2			Simulation, Fake Memory
+
+In simulation, the block of IO memory is replaced by a block of normal program
+memory (referred to as "fake memory") in B<rgAddrMap>.  In this way all the
+sub-commands can operate as before, but not actually affect any hardware.
+The hardware behavior is NOT simulated, so whatever is written to a register
+is read back unmodified.  e.g. A hardware register that clears bits when
+written with 1, will instead read back as 1, not 0.
+
+These simulated registers are not persistent between command invocations.
+Each run of the command starts with fake memory initialized to zero.
 
 =head2			Privilege Capabilities
 
-The librgpio library applies the "capabilities" system to provide access
+The B<librgpio> library applies the "capabilities" system to provide access
 to /dev/mem for normal users without using 'sudo' or applying "setuid root"
 to the executable.  See capabilities(7).
 
@@ -71,7 +92,7 @@ executable file.  When the file is executed, the program raises those two
 capabilities into the process "Effective" set, opens /dev/mem, and then
 drops all capabilities.  In this way the executing process has no special
 capability before or after the code section doing the raise/open/drop
-operation (i.e. outside of the librgpio rgAddrMap::open_dev_file() function).
+operation (i.e. outside of the B<librgpio> rgAddrMap::open_dev_file() function).
 
 =head2			Raspberry Pi Versions
 
@@ -94,6 +115,9 @@ everything - both the register structure and the documentation addresses.
 
 =head1		OPTIONS
 
+The B<rgpio> program has the following options.
+Any options after the sub-command are processed by the sub-command.
+
 =over
 
 =item B<--dev=m|g|f>        - Device file type.
@@ -102,15 +126,22 @@ m= /dev/mem (default), g= /dev/gpiomem, f= fake memory.
 This is the device special file used to map blocks of IO memory into the
 process.
 
-=item B<--rpi3>             - Act like RPi3 or earlier.
+=item B<--rpi3>             - Simulate RPi3 or earlier.
 
-=item B<--rpi4>             - Act like RPi4 or earlier.
+=item B<--rpi4>             - Simulate RPi4.
 
-=item B<--rpi5>             - Act like RPi5.
+=item B<--rpi5>             - Simulate RPi5.
 
 These options force simulation (fake memory) of the specified RPi platform.
 They override the SocEnum chip identification to allow exploring features of
 other Raspberry Pi versions.
+
+=item B<-n>, B<--sim>       - Simulate appropriate platform (dry run).
+
+Simulate the platform appropriate for the given sub-command, essentially
+making like a dry run.  This allows exploring commands for any of the RPi
+platforms.
+On a non-RPi the default platform is RPi0 (BCM2835).
 
 =item B<--debug>            - Debug output.
 
@@ -119,11 +150,14 @@ Show the RPi B<SocEnum> and B<BaseAddr> - see rgRpiRev(3).
 
 =item B<--help>             - Show main program help.
 
-=item B<-v, --verbose>      - Verbose output.
-
 Show fall-back to fake memory.
 
+=item B<--version>          - Show version information.
+
 =back
+
+Note options --help and --debug are different when applied to the main
+command or the sub-command.
 
 
 =head1		COMMANDS
@@ -136,16 +170,19 @@ B<librgpio> class.
  Command  Manpage      Class        Description
  ------- ----------    ---------    -------------------------------
  clk     rgpio-clk     rgClk        Clock generators
- fsel    rgpio-fsel    rgFselPin    Pin Function Select
+ fsel    rgpio-fsel    rgFselPin    IO Function Select
+ fsel5   rgpio-fsel5   rgsIoCon     IO Function Select - RPi5
  header  rgpio-header  rgHeaderPin  Pin Function on 40-pin header
  iic     rgpio-iic     rgIic        I2C Master
  info    rgpio-info    rgRpiRev     RPi Revision Information
  io      rgpio-io      rgIoPins     General Purpose IO pins
- man     rgpio-man     --           manual pager
+ man     rgpio-man     --           reference manuals
  pads    rgpio-pads    rgPads       Pads Control
  pud     rgpio-pud     rgPudPin     Pin Pull-Up/Down - RPi3 and earlier
  pull    rgpio-pull    rgPullPin    Pin Pull-Up/Down - RPi4
  pwm     rgpio-pwm     rgPwm        PWM Pulse Width Modulator
+ rio     rgpio-rio     rgsRio       Register IO - RPi5
+ rpad    rgpio-rpad    rgsIoPads    IO Pad control - RPi5
  spi0    rgpio-spi0    rgSpi0       SPI0 Master
  timer   rgpio-timer   rgSysTimer   System Timer
  uspi    rgpio-uspi    rgUniSpi     Universal SPI Master SPI1, SPI2
@@ -186,6 +223,7 @@ class used by that command.  Section (7) describes the hardware operation.
 
  Force fake memory, to explore without touching hardware.
  % rgpio --dev=f -v  io
+ % rgpio --sim   -v  io
 
  Only open the device file, no sub-command.
  % rgpio --dev=g --debug
@@ -226,11 +264,14 @@ none
  /dev/gpiomem	Kernel memory map for parallel GPIO pins.
     Allows access for normal users belonging to group 'gpio'.
 
+ /proc/cpuinfo	Read for RPi "Revision" code.
+
 
 =head1		SEE ALSO
 
 B<librgpio>(3)
 B<rgRpiRev>(3)
+B<rgAddrMap>(3)
 B<capabilities>(7)
 B<setcap>(8)
 

@@ -2,10 +2,10 @@
 usage:  rgpio [main_options..]  feature  [options..]
   common:
     info         RPi Revision Information
-    man          man pager
-    fsel         Pin Function Select, by Gpio bit number
+    man          reference manuals
     header       Pin Function, by pin number on 40-pin header
   RPi4 and earlier:
+    fsel         IO Function Select
     io           General Purpose IO pins
     clk          Clock generator
     iic          I2C Master
@@ -17,16 +17,18 @@ usage:  rgpio [main_options..]  feature  [options..]
     pud          Pin Pull-Up/Down - RPi3 and earlier
     pull         Pin Pull-Up/Down - RPi4 only
   RPi5 only:
+    fsel5        IO Function Select
     rio          Register IO
     rpad         IO Pad control
-    fsel5        IO Function Select
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
                                           g= /dev/gpiomem, f= fake
-    --rpi3              act like RPi3 or earlier
-    --rpi4              act like RPi4 or earlier
-    --rpi5              act like RPi5
+    --rpi3              simulate RPi3 or earlier
+    --rpi4              simulate RPi4
+    --rpi5              simulate RPi5
+    -n, --sim           simulate appropriate platform (dry run)
     --help              show this usage
     -v, --verbose       verbose output, show if fake memory
     --debug             debug output
+    --version           show version info
   (options with GNU= only)

@@ -116,7 +116,30 @@ run_test( "15", "RPi4 info simulate",
 	  InFile    = /proc/cpuinfo
 	NOT on RPi
     ),
-    #!! address is not simulated?  Flag non-RPI.
+);
+
+run_test( "16", "info simulate default SocEnum",
+    "rgpio --dev=f --sim  info",
+    0,
+    Stderr => q(),
+    Stdout => q(
+	                    bit:      28   24   20   16   12    8    4    0
+	  RevCode   = 0x00000000    0000 0000 0000 0000 0000 0000 0000 0000
+	    OverVoltageDis_1 = 0
+	    OtpWriteDis_1    = 0
+	    OtpReadDis_1     = 0
+	    WarrantyVoid_1   = 0
+	    NewStyle_1       = 0
+	    MemSize_3        = 0
+	    MfgNumber_4      = 0
+	    ChipNumber_4     = 0
+	    BoardType_8      = 0
+	    BoardRev_4       = 0
+	  SocEnum   = soc_BCM2835
+	  BaseAddr  = 0x20000000
+	  InFile    = /proc/cpuinfo
+	NOT on RPi
+    ),
 );
 
 #---------------------------------------------------------------------------

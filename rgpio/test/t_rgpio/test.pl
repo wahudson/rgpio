@@ -4,7 +4,7 @@
 # Testing:  rgpio main program.
 #    10-19  rgpio basic options --help
 #    20-29  Override --rpi3 --rpi4 --rpi5
-#    30-39  .
+#    30-39  Simulation --sim
 #    40-49  .
 #    50-59  .
 
@@ -179,6 +179,50 @@ run_test( "23", "rgpio --rpi5",
 	+ rgRpiRev::Global.SocEnum  = soc_BCM2712
 	+ rgRpiRev::Global.BaseAddr = 0x1f00000000
 	+ AddrMap.config_BaseAddr() = 0x1f00000000
+	Using Fake memory
+	Do nothing.  Try 'rgpio --help'
+    ),
+);
+
+#---------------------------------------------------------------------------
+# Simulation --sim
+#---------------------------------------------------------------------------
+
+run_test( "30", "rgpio fake memory",
+    "rgpio --dev=f --TESTMODE --debug",
+    0,
+    Stderr => q(),
+    Stdout => qq(
+	+ rgRpiRev::Global.SocEnum  = soc_BCM2835
+	+ rgRpiRev::Global.BaseAddr = 0x00000000
+	+ AddrMap.config_BaseAddr() = 0x00000000
+	Using Fake memory
+	Do nothing.  Try 'rgpio --help'
+    ),
+    # Note BaseAddr=0 suggesting it is unknown.
+);
+
+run_test( "31", "rgpio --sim",
+    "rgpio --dev=f --TESTMODE --debug --sim",
+    0,
+    Stderr => q(),
+    Stdout => qq(
+	+ rgRpiRev::Global.SocEnum  = soc_BCM2835
+	+ rgRpiRev::Global.BaseAddr = 0x20000000
+	+ AddrMap.config_BaseAddr() = 0x20000000
+	Using Fake memory
+	Do nothing.  Try 'rgpio --help'
+    ),
+);
+
+run_test( "32", "rgpio -n",
+    "rgpio --dev=f --TESTMODE --debug -n",
+    0,
+    Stderr => q(),
+    Stdout => qq(
+	+ rgRpiRev::Global.SocEnum  = soc_BCM2835
+	+ rgRpiRev::Global.BaseAddr = 0x20000000
+	+ AddrMap.config_BaseAddr() = 0x20000000
 	Using Fake memory
 	Do nothing.  Try 'rgpio --help'
     ),

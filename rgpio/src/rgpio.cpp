@@ -57,10 +57,10 @@ class yOptLong : public yOption {
   public:	// option values
 
     const char*		dev;
-    bool		ro;
     bool		rpi3;
     bool		rpi4;
     bool		rpi5;
+    bool		sim;
 
     bool		version;
     bool		verbose;
@@ -93,10 +93,10 @@ yOptLong::yOptLong( int argc,  char* argv[] )
     : yOption( argc, argv )
 {
     dev         = "m";
-    ro          = 0;
     rpi3        = 0;
     rpi4        = 0;
     rpi5        = 0;
+    sim         = 0;
 
     version     = 0;
     verbose     = 0;
@@ -117,10 +117,11 @@ yOptLong::parse_options()
     while ( this->next() )
     {
 	if      ( is( "--dev="       )) { dev        = this->val(); }
-	else if ( is( "--ro"         )) { ro         = 1; }
 	else if ( is( "--rpi3"       )) { rpi3       = 1; }
 	else if ( is( "--rpi4"       )) { rpi4       = 1; }
 	else if ( is( "--rpi5"       )) { rpi5       = 1; }
+	else if ( is( "--sim"        )) { sim        = 1; }
+	else if ( is( "-n"           )) { sim        = 1; }
 
 	else if ( is( "--version"    )) { version    = 1; }
 	else if ( is( "--verbose"    )) { verbose    = 1; }
@@ -159,7 +160,7 @@ yOptLong::print_option_flags()
 {
 
     cout << "--dev         = " << dev          << endl;
-    cout << "--ro          = " << ro           << endl;
+    cout << "--sim         = " << sim          << endl;
     cout << "--verbose     = " << verbose      << endl;
     cout << "--debug       = " << debug        << endl;
     cout << "feature       = " << feature      << endl;
@@ -184,10 +185,10 @@ yOptLong::print_usage()
     "usage:  " << ProgName << " [main_options..]  feature  [options..]\n"
     "  common:\n"
     "    info         RPi Revision Information\n"
-    "    man          man pager\n"
-    "    fsel         Pin Function Select, by Gpio bit number\n"
+    "    man          reference manuals\n"
     "    header       Pin Function, by pin number on 40-pin header\n"
     "  RPi4 and earlier:\n"
+    "    fsel         IO Function Select\n"
     "    io           General Purpose IO pins\n"
     "    clk          Clock generator\n"
     "    iic          I2C Master\n"
@@ -199,19 +200,20 @@ yOptLong::print_usage()
     "    pud          Pin Pull-Up/Down - RPi3 and earlier\n"
     "    pull         Pin Pull-Up/Down - RPi4 only\n"
     "  RPi5 only:\n"
+    "    fsel5        IO Function Select\n"
     "    rio          Register IO\n"
     "    rpad         IO Pad control\n"
-    "    fsel5        IO Function Select\n"
     "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
     "                                          g= /dev/gpiomem, f= fake\n"
-//  "  # --ro                read only\n"
-    "    --rpi3              act like RPi3 or earlier\n"
-    "    --rpi4              act like RPi4 or earlier\n"
-    "    --rpi5              act like RPi5\n"
+    "    --rpi3              simulate RPi3 or earlier\n"
+    "    --rpi4              simulate RPi4\n"
+    "    --rpi5              simulate RPi5\n"
+    "    -n, --sim           simulate appropriate platform (dry run)\n"
     "    --help              show this usage\n"
     "    -v, --verbose       verbose output, show if fake memory\n"
     "    --debug             debug output\n"
+    "    --version           show version info\n"
     "  (options with GNU= only)\n"
     ;
 
@@ -344,6 +346,16 @@ main( int	argc,
 	    rgRpiRev::Global.simulate_SocEnum( rgRpiRev::soc_BCM2712 );
 	}
 
+	if ( Opx.sim ) {
+	    rgRpiRev::Global.simulate_RevCode( 0 );
+	    // force zero to indicate simulation (same as constructor)
+
+	    rgRpiRev::Global.simulate_SocEnum();
+	    // force simulation of current SocEnum, RevCode not affected
+
+	    // BaseAddr derives from SocEnum.
+	}
+
 	rgAddrMap		Amx;	// constructor
 
 	Amx.config_FakeNoPi( 1 );	// when not on RPi
@@ -369,7 +381,6 @@ main( int	argc,
 	    cout << "+ sizeof( off64_t ) = " << sizeof( off64_t ) <<endl;
 	}
 
-	//#!! --ro
 	if (      *Opx.dev == 'g' ) {
 	    Amx.open_dev_gpiomem();
 	}
