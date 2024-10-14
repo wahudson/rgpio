@@ -32,6 +32,7 @@ using namespace std;
 #include "y_uspi.h"
 
 #include "y_rio.h"
+#include "y_rcon.h"
 #include "y_rpad.h"
 
 #include "Error.h"
@@ -202,6 +203,7 @@ yOptLong::print_usage()
     "  RPi5 only:\n"
     "    fsel5        IO Function Select\n"
     "    rio          Register IO\n"
+    "    rcon         IO Control/Status\n"
     "    rpad         IO Pad control\n"
     "  main options:\n"
     "    --dev=m|g|f         device file type, m= /dev/mem (default),\n"
@@ -255,6 +257,7 @@ yOptLong::print_usage()
 
 	DEFUNC( rf_fsel5,      y_fsel5      )
 	DEFUNC( rf_rio,        y_rio        )
+	DEFUNC( rf_rcon,       y_rcon       )
 	DEFUNC( rf_rpad,       y_rpad       )
 
 int
@@ -307,8 +310,9 @@ main( int	argc,
 	    { 0, "timer",    &rf_timer      },
 	    { 0, "uspi",     &rf_uspi       },
 	    { 5, "fsel5",    &rf_fsel5      },
-	    { 5, "rpad",     &rf_rpad       },
 	    { 5, "rio",      &rf_rio        },
+	    { 5, "rcon",     &rf_rcon       },
+	    { 5, "rpad",     &rf_rpad       },
 	    { -1, NULL,      NULL           }
 	};
 
