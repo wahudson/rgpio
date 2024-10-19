@@ -318,7 +318,7 @@ void
 rcon_yOptLong::print_usage()
 {
     cout <<
-    "    IO Control interface RPi5\n"
+    "    IO Control interface (IoCntl) - RPi5\n"
     "usage:  " << ProgName << " rcon [options..]  [gpio..]\n"
     "    gpio                bit numbers {27..0}\n"
     "    --gpio=0x0fffffff   mask to select Gpio[27:0] bits\n"
@@ -344,7 +344,7 @@ rcon_yOptLong::print_usage()
     "    --flip=0x000000ff   write atomic bitmask XOR   0x1000\n"
     "    --set=0x000000ff    write atomic bitmask set   0x2000\n"
     "    --clr=0x000000ff    write atomic bitmask clear 0x3000\n"
-    "  read atomic register address:\n"
+    "  read atomic address:  (show register list)\n"
     "    --norm              read normal (default)      0x0000\n"
     "    --peek              read without side-effect   0x1000\n"
     "    --set               read atomic set   address  0x2000\n"
@@ -461,16 +461,16 @@ rcon_yOptLong::out_IoCntl( rgsIoCon& cx )
     cout << " IoCntl(i).norm     gpio i:  28   24   20   16   12    8    4    0"
 	 <<endl;
 
-    cout << "   IrqOver_2       [31:30] ---- " << ww[14] <<endl;
-    cout << "   EdgeReset_1     [28]    ---- " << ww[13] <<endl;
-    cout << "   ImaskFiltHigh_1 [27]    ---- " << ww[12] <<endl;
-    cout << "   ImaskFiltLow_1  [26]    ---- " << ww[11] <<endl;
-    cout << "   ImaskFiltRise_1 [25]    ---- " << ww[10] <<endl;
-    cout << "   ImaskFiltFall_1 [24]    ---- " << ww[ 9] <<endl;
-    cout << "   ImaskHigh_1     [23]    ---- " << ww[ 8] <<endl;
-    cout << "   ImaskLow_1      [22]    ---- " << ww[ 7] <<endl;
-    cout << "   ImaskRise_1     [21]    ---- " << ww[6] <<endl;
-    cout << "   ImaskFall_1     [20]    ---- " << ww[6] <<endl;
+    cout << "   IrqOver_2       [31:30] ---- " << ww[16] <<endl;
+    cout << "   EdgeReset_1     [28]    ---- " << ww[15] <<endl;
+    cout << "   ImaskFiltHigh_1 [27]    ---- " << ww[14] <<endl;
+    cout << "   ImaskFiltLow_1  [26]    ---- " << ww[13] <<endl;
+    cout << "   ImaskFiltRise_1 [25]    ---- " << ww[12] <<endl;
+    cout << "   ImaskFiltFall_1 [24]    ---- " << ww[11] <<endl;
+    cout << "   ImaskHigh_1     [23]    ---- " << ww[10] <<endl;
+    cout << "   ImaskLow_1      [22]    ---- " << ww[ 9] <<endl;
+    cout << "   ImaskRise_1     [21]    ---- " << ww[ 8] <<endl;
+    cout << "   ImaskFall_1     [20]    ---- " << ww[ 7] <<endl;
     cout << "   InOver_2        [17:16] ---- " << ww[ 6] <<endl;
     cout << "   OutEnOver_2     [15:14] ---- " << ww[ 5] <<endl;
     cout << "   OutOver_2       [13:12] ---- " << ww[ 4] <<endl;
@@ -586,19 +586,20 @@ y_rcon::doit()
 
 	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
 	    {
-		int		gpio = bitarg[ii];
+		int		gpio   = bitarg[ii];
+		rgsIo_Cntl&	iocntl = Cx.IoCntl(gpio);
 
 		if ( Opx.norm.Given ) {
-		    Cx.IoCntl(gpio).write(      Opx.norm.Val ); }
+		    iocntl.write(      Opx.norm.Val ); }
 
 		if ( Opx.flip.Given ) {
-		    Cx.IoCntl(gpio).write_flip( Opx.flip.Val ); }
+		    iocntl.write_flip( Opx.flip.Val ); }
 
 		if ( Opx.set.Given ) {
-		    Cx.IoCntl(gpio).write_set(  Opx.set.Val  ); }
+		    iocntl.write_set(  Opx.set.Val  ); }
 
 		if ( Opx.clr.Given ) {
-		    Cx.IoCntl(gpio).write_clr(  Opx.clr.Val  ); }
+		    iocntl.write_clr(  Opx.clr.Val  ); }
 	    }
 	}
 
@@ -643,7 +644,7 @@ y_rcon::doit()
 	if ( Opx.listF )
 	{
 	    Opx.trace_msg( "Read registers" );
-	    Opx.head_reg( " Atomic register bit:  " );
+	    Opx.head_reg( " Read Atomic register bit:  " );
 
 	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
 	    {
