@@ -1,0 +1,284 @@
+2024-10-14  William A. Hudson
+
+	    rgpio-rcon  IO Control (rgsIoCon) RPi5 - Design
+	    -----------------------------------------------
+
+See also:
+    librgpio/doc/extend_rpi5.text
+    rgpio/doc/rpad_design.text		initial ideas, output format
+
+----------------------------------------------------------------------------
+## Overview
+----------------------------------------------------------------------------
+
+librgpio Class used:  rgsIoCon
+
+Register Banks:  (names in the RP1 doc)
+    io_bank0
+    io_bank1
+    io_bank2
+
+Registers:  (Bank0)
+    IoCntl(0) .. IoCntl(27)   control registers (read/write)
+    IoStat(0) .. IoStat(27)   status  registers (read only)
+
+    Expect all 3 banks are similar, but may have a different number of
+    registers.
+
+Atomic addresses:
+
+    All IoCntl and IoStat registers have the 4 atomic addresses.
+    Want to be able to read/write from them all for exploration purposes.
+
+Field values:
+
+    Are set by a read/modify/write method to each register.  The atomic
+    addresses are not used.
+
+    Future enhancement might apply the set/clr atomic addresses to manipulate
+    individual field values.
+
+Field Output order:
+
+    Output is in the same order regardless of argument list order.
+
+    Having the registers always output in the same order works out quite
+    nice, and works well with human sense of spatial location.
+    Blank lines separating register groups also helps (e.g. --all).
+
+Commands:
+
+    Command       Register   Class
+    -----------   --------   ---------
+    rgpio-rpad    IoPad()    rgsIoPads
+    rgpio-rcon    IoCntl()   rgsIoCon
+    rgpio-rstat   IoStat()   rgsIoCon
+
+    Make these commands very parallel in style and usage.
+    They all have one register for each Gpio bit.
+
+    The notation "IoPad(i)" is an accessor function in the library class that
+    returns a reference for Gpio register i.  The idea is to parallel the
+    library notation.
+
+----------------------------------------------------------------------------
+## Discussion - Separate/Combined IoCntl and IoStat
+----------------------------------------------------------------------------
+
+Should IoCntl and IoStat registers be combined in one command, or separate
+commands?  Mostly from a user viewpoint.
+
+    A) Single rgpio-rcon command has IoCntl and IoStat:
+	+ See both IoCntl and IoStat together in the same command output.
+	+ One command, less command clutter in rgpio.
+	+ Less duplication of code in similar commands.
+	- More complex options to manage two register sets.
+	- More complexity in testing, more combinations.
+	- Extra options to select IoCntl or IoStat.
+	- Less similarity between rgpio-rpad and -rcon.
+	- Double output length for two register sets.
+	+ Models the hardware which has both registers in the same IoBank.
+	+ Register select can give same effect as separate commands.
+	- More confusion with two tables of register fields.  Loose focus.
+
+ >  B) Separate commands rgpio-rcon and rgpio-rstat:
+	+ Focus on just one register set.
+	+ Same command structure and options across rgpio-rpad -rcon -rstat.
+	- Similar commands have replicated (similar) code.
+	- Run two commands to see both IoCntl and IoStat together.
+	+ No extra options to select IoCntl or IoStat.
+	+ The rgpio command selects the register set to display.
+	- More rgpio commands, clutter in rgpio.
+	- Two man pages, two test sets, more overhead.
+	+ Less complex, easier to explain.
+	+ Quick to make two similar commands by copy and modify.
+	- More work maintaining/comparing commonality of two similar commands.
+	+ Easier to get it right.
+	+ Less output clutter with focus on a single register set.
+
+    I like (B) for over all simplicity in implementation and documentation
+    explanation, but dread the extra man pages and test sets.
+    Thus we explore (A) for initial implementation.
+
+    Either is practical to implement.  What works best for the user?
+    How important is it to see IoStat with IoCntl?  What if they are in
+    separate commands?
+
+    After exploring an initial implementation of (A), the complexity
+    disadvantages became more obvious, especially adding the register
+    select options crossing with modification.  [However it was interesting to
+    work on.]  Writing tests began to reveal the complexity.
+
+ >  Now favor two separate commands (B).  In actual use, focusing on the
+    separate register sets seems a lot better.
+
+Example combined IoCntl and IoStat:
+
+% rgpio rcon
+ IoCntl(i).norm     gpio i:  28   24   20   16   12    8    4    0
+   IrqOver_2       [31:30] ---- 0000 0000 0000 0000 0000 0000 0000
+   EdgeReset_1     [28]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskFiltHigh_1 [27]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskFiltLow_1  [26]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskFiltRise_1 [25]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskFiltFall_1 [24]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskHigh_1     [23]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskLow_1      [22]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskRise_1     [21]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ImaskFall_1     [20]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InOver_2        [17:16] ---- 0000 0000 0000 0000 0000 0000 0000
+   OutEnOver_2     [15:14] ---- 0000 0000 0000 0000 0000 0000 0000
+   OutOver_2       [13:12] ---- 0000 0000 0000 0000 0000 0000 0000
+   FilterM_7      [11:9]   ---- 0000 0000 0000 0000 0000 0000 0000
+   FilterM_7       [8:5]   ---- 0000 0000 0000 0000 0000 0000 0000
+   FuncSel_5      [4]      ---- 0000 0000 0000 0000 0000 0000 0000
+   FuncSel_5       [3:0]   ---- 0000 0000 0000 0000 0000 0000 0000
+ IoStat(i).norm     gpio i:  28   24   20   16   12    8    4    0
+   IrqToProc_1     [29]    ---- 0000 0000 0000 0000 0000 0000 0000
+   IrqMasked_1     [28]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InFiltHigh_1    [27]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InFiltLow_1     [26]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InFiltRise_1    [25]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InFiltFall_1    [24]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InHigh_1        [23]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InLow_1         [22]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InRise_1        [21]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InFall_1        [20]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InToPeri_1      [19]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InFiltered_1    [18]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InOfPad_1       [17]    ---- 0000 0000 0000 0000 0000 0000 0000
+   InIsDirect_1    [16]    ---- 0000 0000 0000 0000 0000 0000 0000
+   OutEnToPad_1    [13]    ---- 0000 0000 0000 0000 0000 0000 0000
+   OutEnOfPeri_1   [12]    ---- 0000 0000 0000 0000 0000 0000 0000
+   OutToPad_1       [9]    ---- 0000 0000 0000 0000 0000 0000 0000
+   OutOfPeri_1      [8]    ---- 0000 0000 0000 0000 0000 0000 0000
+ Atomic register bit:             28   24   20   16   12    8    4    0
+   0x00000000  norm IoCntl( 0)  0000 0000 0000 0000 0000 0000 0000 0000
+   0x00000000  norm IoCntl(27)  0000 0000 0000 0000 0000 0000 0000 0000
+ Atomic register bit:             28   24   20   16   12    8    4    0
+   0x00000000  norm IoStat( 0)  0000 0000 0000 0000 0000 0000 0000 0000
+   0x00000000  norm IoStat(27)  0000 0000 0000 0000 0000 0000 0000 0000
+
+    The field tables get a little long (37 lines), but similar in length to
+    other rgpio commands:  rgpio-iic (38 lines), rgpio-pwm (38 lines).
+
+    The register output list can get really long, 29 lines for each register
+    set, 58 lines for two sets (of a single atomic address).
+    All 4 atomic addresses is 28 gpio * 4 atomic * 2 registers = 224 lines.
+    The full output is a bit overwhelming.
+
+    The field table is the most useful as it identifies both values and bit
+    positions in the register.
+
+    The register list is mostly to explore the read/write of atomic addresses.
+    Reading is less important because there are no read side-effects where
+    "peek" would be useful.
+
+    Generally want to see the field table as a decoder for the register list.
+    The register list alone is useful for comparing the different atomic
+    addresses (--norm --peek --set --clr).
+
+See:  rpad_design.text  for more discussion.
+
+ >  Decide to make separate commands for each register group:  2024-10-18
+	Similar commands with a clean focus on each register group is much
+	easier to use and explain.
+
+------------------------------------------------------------------------
+## rgpio-rcon   Command (combined IoCntl and IoStat) - Not Used
+----------------------------------------------------------------------------
+
+Prototype code:  src/Unused/y_rconstat.cpp	(not used)
+
+ rgpio  rcon --help
+    IO Control interface RPi5
+usage:  rgpio rcon [options..]  [gpio..]
+    gpio                bit numbers {27..0}
+    --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+  IoCntl(gpio) field modification:
+    --IrqOver_2=0       interrupt override ..
+    --EdgeReset_1=0     edge detector 1=reset
+    --ImaskFiltHigh_1=0 mask debounced high level
+    --ImaskFiltLow_1=0  mask debounced low level
+    --ImaskFiltRise_1=0 mask filtered rising edge
+    --ImaskFiltFall_1=0 mask filtered falling edge
+    --ImaskHigh_1=0     mask high level
+    --ImaskLow_1=0      mask low level
+    --ImaskRise_1=0     mask rising edge
+    --ImaskFall_1=0     mask falling edge
+    --InOver_2=0        input override 0=norm, 1=invert, 2=low, 3=high
+    --OutEnOver_2=0     output enable override ..
+    --OutOver_2=0       output override ..
+    --FilterM_7=4       filter time constant M {0..127}
+    --FuncSel_5=31      function select {0..31}
+  write atomic register address:  (one of)
+    --norm=0x000000ff   write normal               0x0000
+    --flip=0x000000ff   write atomic bitmask XOR   0x1000
+    --set=0x000000ff    write atomic bitmask set   0x2000
+    --clr=0x000000ff    write atomic bitmask clear 0x3000
+  read atomic address:  (show register list)
+    --norm              read normal (default)      0x0000
+    --peek              read without side-effect   0x1000
+    --set               read atomic set   address  0x2000
+    --clr               read atomic clear address  0x3000
+    --all               all above
+  register display/write selection:
+    -c, --IoCntl        show IoCntl
+    -s, --IoStat        show IoStat
+    --list              list only atomic registers (no field table)
+  options:
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
+
+
+    Really only added the register select options -c -s.
+    The --list option works the same as rgpio-rpad.
+    The register list is enabled by the --norm --peek --set --clr options.
+
+    There is no method to apply atomic addresses in setting field values.
+
+Output display combinations:
+
+    -c		show only IoCntl field table
+    -s		show only IoStat field table
+
+    -c --peek	show IoCntl field table and register list
+    -s --peek	show IoStat field table and register list
+
+    -c --peek --list	show only IoCntl register list
+    -s --peek --list	show only IoStat register list
+
+    Default combinations are somewhat less important:
+
+    <none>	show IoCntl and IoStat field tables
+    -c -s	show IoCntl and IoStat field tables
+
+    --norm	show IoCntl field table and register list (default IoCntl)
+
+    --list	show only IoCntl register list (default norm, IoCntl)
+
+    -c --list	show only IoCntl register list (default norm)
+    -s --list	show only IoStat register list (default norm)
+
+Alternative register select options:  (not used)
+
+      register display/write selection:
+	-c                  show IoCntl field table only
+	-s                  show IoStat field table only
+	-C                  show IoCntl register list only
+	-S                  show IoStat register list only
+	(No --list option)
+
+    The uppercase options -C -S seems more confusing.
+    For each register there are three useful combinations:
+
+	-c                  show IoCntl field table
+	-s                  show IoStat field table
+
+	-c --norm           show IoCntl field and register list
+	-s --norm           show IoStat field and register list
+
+	-C --norm           show IoCntl register list only
+	-S --norm           show IoStat register list only
+

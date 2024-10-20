@@ -32,9 +32,9 @@ usage:  rgpio [main_options..]  feature  [options..]
   RPi5 only:
     fsel5        IO Function Select - RPi5
     rio          Register IO
-.   rcon         IO control, function select    [IoStat() also?]
-    rpad         IO pad control
-.   rstat        IO event/edge detect
+    rcon         IO Control (IoCntl)
+    rstat        IO Status (IoStat) event/edge detect
+    rpad         IO Pad control (IoPad)
 .   rintr        IO interrupt control
   main options:
     --dev=m|g|f         device file type, m= /dev/mem (default),
