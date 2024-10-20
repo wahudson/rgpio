@@ -41,6 +41,7 @@ YINCS       = \
 	y_rcon.h \
 	y_rio.h \
 	y_rpad.h \
+	y_rstat.h \
 	y_spi0.h \
 	y_timer.h \
 	y_uspi.h \
@@ -65,6 +66,7 @@ OBJS       = \
 	$(OJ)/y_rcon.o \
 	$(OJ)/y_rio.o \
 	$(OJ)/y_rpad.o \
+	$(OJ)/y_rstat.o \
 	$(OJ)/y_spi0.o \
 	$(OJ)/y_timer.o \
 	$(OJ)/y_uspi.o \
@@ -174,6 +176,9 @@ $(OJ)/y_rio.o:		y_rio.cpp  y_rio.h  $(INCS)
 
 $(OJ)/y_rpad.o:		y_rpad.cpp  y_rpad.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_rpad.cpp
+
+$(OJ)/y_rstat.o:	y_rstat.cpp  y_rstat.h  $(INCS)
+	g++ $(CXXFLAGS) -o $@  -c y_rstat.cpp
 
 $(OJ)/y_spi0.o:		y_spi0.cpp  y_spi0.h  $(INCS)
 	g++ $(CXXFLAGS) -o $@  -c y_spi0.cpp
