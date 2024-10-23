@@ -20,6 +20,7 @@ test:
 	cd t_pud              && make test
 	cd t_pull             && make test
 	cd t_pwm              && make test
+	cd t_rcon             && make test
 	cd t_rgpio            && make test
 	cd t_rio              && make test
 	cd t_rpad             && make test
@@ -41,6 +42,7 @@ clean:
 	cd t_pud              && make clean
 	cd t_pull             && make clean
 	cd t_pwm              && make clean
+	cd t_rcon             && make clean
 	cd t_rgpio            && make clean
 	cd t_rio              && make clean
 	cd t_rpad             && make clean

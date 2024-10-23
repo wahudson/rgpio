@@ -52,7 +52,7 @@ run_test( "10", "rpad bad platform RPi4",
 );
 
 run_test( "11", "rpad no args, default Table format",
-    "rgpio --dev=f --rpi5  rpad",
+    "rgpio --dev=f --rpi5  rpad  6 7",		# Gpio bits have no effect (OK)
     0,
     Stderr => q(),
     Stdout => q(
@@ -83,7 +83,7 @@ run_test( "13", "unknown option",
 );
 
 run_test( "14", "rpad list format bit numbers",
-    "rgpio --dev=f --rpi5  rpad --list 8 9 4 5",
+    "rgpio --dev=f --rpi5  rpad --debug --list 8 9 4 5",
     0,
     Stderr => q(),
     Stdout => q(
@@ -328,10 +328,11 @@ run_test( "44", "modify with --gpio=mask",
 );
 
 run_test( "45", "modify field, show atomic with --norm",
-    "rgpio --dev=f --rpi5  rpad --DriveStr_2=3 --norm  2 3 24 25",
+    "rgpio --dev=f --rpi5  rpad -v --DriveStr_2=3 --norm  2 3 24 25",
     0,
     Stderr => q(),
     Stdout => q(
+	+ Modify bit field
 	 IoPad(i).norm      gpio i:  28   24   20   16   12    8    4    0
 	   OutDisable_1    [7]     ---- 0000 0000 0000 0000 0000 0000 0000
 	   InEnable_1      [6]     ---- 0000 0000 0000 0000 0000 0000 0000
@@ -396,10 +397,11 @@ run_test( "53", "set reg, view additional reg",
 );
 
 run_test( "54", "clear reg, view all reg",
-    "rgpio --dev=f --rpi5  rpad --list --clr=0xf0000037 --all  21",
+    "rgpio --dev=f --rpi5  rpad -v --list --clr=0xf0000037 --all  21",
     0,
     Stderr => q(),
     Stdout => q(
+	+ Write atomic register
 	 Atomic register bit:            28   24   20   16   12    8    4    0
 	   0x00000000  norm IoPad(21)  0000 0000 0000 0000 0000 0000 0000 0000
 	   0x00000000  peek IoPad(21)  0000 0000 0000 0000 0000 0000 0000 0000

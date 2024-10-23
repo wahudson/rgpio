@@ -61,6 +61,7 @@ Test suites:  (2024-09-24)
  pbl    t_pud/		rgpio-pud	subcommand
  pbl    t_pull/		rgpio-pull	subcommand
  pbl    t_pwm/		rgpio-pwm	subcommand
+ pbl    t_rcon/		rgpio-rcon	subcommand RPi5
  pbl    t_rgpio/	rgpio		rgpio main program.
  pbl    t_rio/		rgpio-rio	subcommand RPi5
  pbl    t_rpad/		rgpio-rpad	subcommand RPi5

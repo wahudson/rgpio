@@ -1,0 +1,36 @@
+    IO Control interface (IoCntl) - RPi5
+usage:  rgpio rcon [options..]  [gpio..]
+    gpio                bit numbers {27..0}
+    --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+  IoCntl(gpio) field modification:
+    --IrqOver_2=0       interrupt override ..
+    --EdgeReset_1=0     edge detector 1=reset
+    --ImaskFiltHigh_1=0 mask debounced high level
+    --ImaskFiltLow_1=0  mask debounced low level
+    --ImaskFiltRise_1=0 mask filtered rising edge
+    --ImaskFiltFall_1=0 mask filtered falling edge
+    --ImaskHigh_1=0     mask high level
+    --ImaskLow_1=0      mask low level
+    --ImaskRise_1=0     mask rising edge
+    --ImaskFall_1=0     mask falling edge
+    --InOver_2=0        input override 0=norm, 1=invert, 2=low, 3=high
+    --OutEnOver_2=0     output enable override ..
+    --OutOver_2=0       output override ..
+    --FilterM_7=4       filter time constant M {0..127}
+    --FuncSel_5=31      function select {0..31}
+  write atomic register address:  (one of)
+    --norm=0x000000ff   write normal               0x0000
+    --flip=0x000000ff   write atomic bitmask XOR   0x1000
+    --set=0x000000ff    write atomic bitmask set   0x2000
+    --clr=0x000000ff    write atomic bitmask clear 0x3000
+  read atomic address:  (show register list)
+    --norm              read normal (default)      0x0000
+    --peek              read without side-effect   0x1000
+    --set               read atomic set   address  0x2000
+    --clr               read atomic clear address  0x3000
+    --all               all above
+  options:
+    --list              list only atomic registers (no field table)
+    --help              show this usage
+    -v, --verbose       verbose output
+  (options with GNU= only)
