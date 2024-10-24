@@ -43,9 +43,7 @@ class rcon_yOptLong : public yOption {
 
     yOpVal		gpio;		// mask Gpio bit select
 
-    bool		Bank0    = 0;
-    bool		Bank1    = 0;
-    bool		Bank2    = 0;
+    int			BankN    = 0;
 
     bool		tableF   = 1;	// output control
     bool		listF    = 0;
@@ -98,7 +96,11 @@ class rcon_yOptLong : public yOption {
     void		print_option_flags();
     void		print_usage();
     void		trace_msg( const char* text );
-    void		out_regindex( const char* name, int index, uint32_t vv );
+    void		out_regindex(
+				const char*	atom,
+				const char*	name,
+				int		index,
+				uint32_t	vv );
     void		head_reg( const char* title );
     void		out_IoCntl( rgsIoCon& cx );
 };
@@ -143,9 +145,9 @@ rcon_yOptLong::parse_options()
 	else if ( is( "--list"       )) { list       = 1; }
 	else if ( is( "--all"        )) { all        = 1; }
 
-	else if ( is( "-0"           )) { Bank0      = 1; }
-	else if ( is( "-1"           )) { Bank1      = 1; }
-	else if ( is( "-2"           )) { Bank2      = 1; }
+	else if ( is( "-0"           )) { BankN      = 0; }
+	else if ( is( "-1"           )) { BankN      = 1; }
+	else if ( is( "-2"           )) { BankN      = 2; }
 
 	else if ( is( "--IrqOver_2="     )) { IrqOver_2.set( val()     ); Md=1;}
 	else if ( is( "--EdgeReset_1="   )) { EdgeReset_1.set( val()   ); Md=1;}
@@ -251,10 +253,6 @@ rcon_yOptLong::parse_options()
     if ( Md && (atomic_cnt > 0) ) {
 	Error::msg( "field modification not valid with write atomic" ) <<endl;
     }
-
-    if ( Bank1 || Bank2 ) {
-	Error::msg( "only Bank0 is supported" ) <<endl;
-    }
 }
 
 
@@ -322,7 +320,7 @@ rcon_yOptLong::print_usage()
     "usage:  " << ProgName << " rcon [options..]  [gpio..]\n"
     "    gpio                bit numbers {27..0}\n"
     "    --gpio=0x0fffffff   mask to select Gpio[27:0] bits\n"
-//  "    -0, -1, -2          bank number, default -0\n"
+    "    -0, -1, -2          bank number, default -0\n"
     "  IoCntl(gpio) field modification:\n"
     "    --IrqOver_2=0       interrupt override ..\n"
     "    --EdgeReset_1=0     edge detector 1=reset\n"
@@ -382,15 +380,23 @@ rcon_yOptLong::trace_msg( const char* text )
 
 /*
 * Output register index value in hex and binary.
+* output e.g.:
+* | Read Atomic register bit:           28   24   20   16   12    8    4    0
+* |   0x00000000  norm  2.IoCntl( 0)  0000 0000 0000 0000 0000 0000 0000 0000
 */
 void
-rcon_yOptLong::out_regindex( const char* name, int index, uint32_t vv )
+rcon_yOptLong::out_regindex(
+    const char*		atom,
+    const char*		name,
+    int			index,
+    uint32_t		vv )
 {
     cout.fill('0');
     cout << "   0x" <<hex <<right <<setw(8)  << vv;
 
     cout.fill(' ');
-    cout << "  " <<left            << name
+    cout << "  " <<left            << atom
+	 << "  " <<left            << name
 	 << "("  <<dec  <<setw(2)  <<right << index << ")"
 	 << "  "                   << cstr_bits32( vv ) <<endl;
 
@@ -400,7 +406,7 @@ rcon_yOptLong::out_regindex( const char* name, int index, uint32_t vv )
 void
 rcon_yOptLong::head_reg( const char* title )
 {
-    cout <<setw(30) <<left << title
+    cout <<setw(33) <<left << title
 	 << "    28   24   20   16   12    8    4    0" <<endl;
     cout <<right;		// restore defaults
 }
@@ -412,6 +418,8 @@ rcon_yOptLong::head_reg( const char* title )
 void
 rcon_yOptLong::out_IoCntl( rgsIoCon& cx )
 {
+    int		bN = cx.get_bank_num();		// bank number {0,1,2}
+
     const int	kMax = 16;
     char	ww[kMax+1][50];
     uint32_t	vv;
@@ -458,26 +466,26 @@ rcon_yOptLong::out_IoCntl( rgsIoCon& cx )
 	ww[k][jj] = 0;
     }
 
-    cout << " IoCntl(i).norm     gpio i:  28   24   20   16   12    8    4    0"
+    cout << " IoCntl(i).norm       gpio i:  28   24   20   16   12    8    4    0"
 	 <<endl;
 
-    cout << "   IrqOver_2       [31:30] ---- " << ww[16] <<endl;
-    cout << "   EdgeReset_1     [28]    ---- " << ww[15] <<endl;
-    cout << "   ImaskFiltHigh_1 [27]    ---- " << ww[14] <<endl;
-    cout << "   ImaskFiltLow_1  [26]    ---- " << ww[13] <<endl;
-    cout << "   ImaskFiltRise_1 [25]    ---- " << ww[12] <<endl;
-    cout << "   ImaskFiltFall_1 [24]    ---- " << ww[11] <<endl;
-    cout << "   ImaskHigh_1     [23]    ---- " << ww[10] <<endl;
-    cout << "   ImaskLow_1      [22]    ---- " << ww[ 9] <<endl;
-    cout << "   ImaskRise_1     [21]    ---- " << ww[ 8] <<endl;
-    cout << "   ImaskFall_1     [20]    ---- " << ww[ 7] <<endl;
-    cout << "   InOver_2        [17:16] ---- " << ww[ 6] <<endl;
-    cout << "   OutEnOver_2     [15:14] ---- " << ww[ 5] <<endl;
-    cout << "   OutOver_2       [13:12] ---- " << ww[ 4] <<endl;
-    cout << "   FilterM_7      [11:9]   ---- " << ww[ 3] <<endl;
-    cout << "   FilterM_7       [8:5]   ---- " << ww[ 2] <<endl;
-    cout << "   FuncSel_5      [4]      ---- " << ww[ 1] <<endl;
-    cout << "   FuncSel_5       [3:0]   ---- " << ww[ 0] <<endl;
+    cout << "   " << bN << ".IrqOver_2       [31:30] ---- " << ww[16] <<endl;
+    cout << "   " << bN << ".EdgeReset_1     [28]    ---- " << ww[15] <<endl;
+    cout << "   " << bN << ".ImaskFiltHigh_1 [27]    ---- " << ww[14] <<endl;
+    cout << "   " << bN << ".ImaskFiltLow_1  [26]    ---- " << ww[13] <<endl;
+    cout << "   " << bN << ".ImaskFiltRise_1 [25]    ---- " << ww[12] <<endl;
+    cout << "   " << bN << ".ImaskFiltFall_1 [24]    ---- " << ww[11] <<endl;
+    cout << "   " << bN << ".ImaskHigh_1     [23]    ---- " << ww[10] <<endl;
+    cout << "   " << bN << ".ImaskLow_1      [22]    ---- " << ww[ 9] <<endl;
+    cout << "   " << bN << ".ImaskRise_1     [21]    ---- " << ww[ 8] <<endl;
+    cout << "   " << bN << ".ImaskFall_1     [20]    ---- " << ww[ 7] <<endl;
+    cout << "   " << bN << ".InOver_2        [17:16] ---- " << ww[ 6] <<endl;
+    cout << "   " << bN << ".OutEnOver_2     [15:14] ---- " << ww[ 5] <<endl;
+    cout << "   " << bN << ".OutOver_2       [13:12] ---- " << ww[ 4] <<endl;
+    cout << "   " << bN << ".FilterM_7      [11:9]   ---- " << ww[ 3] <<endl;
+    cout << "   " << bN << ".FilterM_7       [8:5]   ---- " << ww[ 2] <<endl;
+    cout << "   " << bN << ".FuncSel_5      [4]      ---- " << ww[ 1] <<endl;
+    cout << "   " << bN << ".FuncSel_5       [3:0]   ---- " << ww[ 0] <<endl;
 }
 
 
@@ -514,7 +522,7 @@ y_rcon::doit()
 
 	if ( Error::has_err() )  return 1;
 
-	rgsIoCon	Cx  ( AddrMap );	// constructor, Bank0
+	rgsIoCon	Cx  ( AddrMap, Opx.BankN );	// constructor
 
 	if ( Opx.debug ) {
 	    cout.fill('0');
@@ -643,6 +651,11 @@ y_rcon::doit()
     // Output List
 	if ( Opx.listF )
 	{
+	    int		bN      = Cx.get_bank_num();	// bank number {0,1,2}
+	    char	rname[] = "0.IoCntl";
+
+	    rname[0] = '0' + bN;	// replace bank number char
+
 	    Opx.trace_msg( "Read registers" );
 	    Opx.head_reg( " Read Atomic register bit:  " );
 
@@ -651,17 +664,21 @@ y_rcon::doit()
 		int		gpio  = bitarg[ii];
 		rgsIo_Cntl&	iocon = Cx.IoCntl(gpio);
 
-		if ( Opx.o_norm ) { Opx.out_regindex(
-			    "norm IoCntl", gpio, iocon.read()      ); }
+		if ( Opx.o_norm ) {
+		    Opx.out_regindex( "norm", rname, gpio, iocon.read()      );
+		}
 
-		if ( Opx.o_peek ) { Opx.out_regindex(
-			    "peek IoCntl", gpio, iocon.read_peek() ); }
+		if ( Opx.o_peek ) {
+		    Opx.out_regindex( "peek", rname, gpio, iocon.read_peek() );
+		}
 
-		if ( Opx.o_set ) { Opx.out_regindex(
-			    "set  IoCntl", gpio, iocon.read_set()  ); }
+		if ( Opx.o_set )  {
+		    Opx.out_regindex( "set ", rname, gpio, iocon.read_set()  );
+		}
 
-		if ( Opx.o_clr ) { Opx.out_regindex(
-			    "clr  IoCntl", gpio, iocon.read_clr()  ); }
+		if ( Opx.o_clr )  {
+		    Opx.out_regindex( "clr ", rname, gpio, iocon.read_clr()  );
+		}
 	    }
 	}
 

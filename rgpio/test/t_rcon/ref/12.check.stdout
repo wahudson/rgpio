@@ -2,6 +2,7 @@
 usage:  rgpio rcon [options..]  [gpio..]
     gpio                bit numbers {27..0}
     --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+    -0, -1, -2          bank number, default -0
   IoCntl(gpio) field modification:
     --IrqOver_2=0       interrupt override ..
     --EdgeReset_1=0     edge detector 1=reset

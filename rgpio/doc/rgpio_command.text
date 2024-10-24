@@ -257,6 +257,82 @@ RPi Platform:
     resulting error message makes it clear it is a platform error.
     This helps demonstrate library behavior.
 
+Bank/Unit output display:
+
+    Many Features have multiple units, like clk, iic, spi0, uspi, etc.
+    In the output display, the unit number is typically shown as a prefix
+    on the field name or on the register name.  This reminder indentifies
+    the unit, especially where field names of multiple units might be
+    concatenated together.
+
+    Essentially whenever a value appears with a field/register name, then
+    the name should be prefixed with the unit/bank number.
+
+    A register name without a value (used as heading in the output) does not
+    get a prefix.  This keeps focus on the register name (heading) and the
+    prefix on the field names provide the unit number.
+
+    e.g.  % rgpio iic	(edited for fewer lines)
+
+	Iic0:
+	   0.Cntl    = 0x00000000	# registers with value
+	   0.Stat    = 0x00000000
+	   0.DatLen  = 0x00000000
+	   ...
+	 Cntl				# register as heading
+	   0.IicEnable_1   = 0
+	   0.IrqRxHalf_1   = 0
+	   0.IrqTxHalf_1   = 0
+	   0.IrqDone_1     = 0
+	   ...
+	 Stat
+	   0.ClkTimeout_1  = 0		# fields with value
+	   0.AckErr_1      = 0
+	   0.RxFull_1      = 0
+	   0.TxEmpty_1     = 0
+	   ...
+	 DatLen
+	   0.DataLen_16    = 0
+	 Addr
+	   0.SlaveAddr_7   = 0
+	 ClkDiv
+	   0.ClkDiv_16     = 0
+	 ...
+
+    A similar idea applies to the IO bank registers.  Let the prefix be
+    the bank number.  (2024-10-21)
+
+----------------------------------------------------------------------------
+## RPi5 Features
+----------------------------------------------------------------------------
+
+Gpio Numbering:
+
+    See also:  librgpio/doc/extend_rpi5.text  ## Linux GPIO Banks
+
+    Use Bank number and Gpio bit {27..0} in each bank.  This fits how the
+    hardware is defined.  No mapping for consecutive Gpio numbering {0..53}
+    is provided at this time.  (2024-10-22)
+
+    RPi5  Gpio banks
+	Bank    Consecutive   Qty        RegisterBits   BitRegisters
+	------  -----------   -------    -------------  --------------
+	Bank 0  Gpio  0..27   28 bits    0.RioIn[27:0]  0.IoCntl(27:0)
+	Bank 1  Gpio 28..33    6 bits    1.RioIn[5:0]   1.IoCntl(27:0)
+	Bank 2  Gpio 34..53   20 bits    2.RioIn[19:0]  2.IoCntl(27:0)
+
+    Possibly command default display could show only the valid bits for
+    that bank.  Let --gpio=0x0fffffff override the Gpio range for the bank.
+
+    Allow the full range {27..0} of Gpio bits to be accessed in each bank for
+    debug and exploring.  (Also its simpler.)  It is pretty clear that
+    Bank1 and Bank2 simply have missing (unimplemented) registers.
+
+    Beware accessing undefined registers:  The result is undefined.
+    Sometimes hardware addresses are only partially decoded (to save hardware
+    gates/FETs) resulting in a real register aliasing to an undefined address.
+    Modifying that address would have an unexpected alias effect.
+
 ----------------------------------------------------------------------------
 ## Anti-Bugging
 ----------------------------------------------------------------------------
