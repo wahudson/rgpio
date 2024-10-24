@@ -526,8 +526,8 @@ y_rcon::doit()
 
 	if ( Opx.debug ) {
 	    cout.fill('0');
-	    cout << "+ FeatureAddr  = 0x"
-		 <<hex <<setw(8) << Cx.get_bcm_address() <<endl;
+	    cout << "+ " << Cx.get_bank_num() << ".FeatureAddr  = 0x"
+		 <<hex <<setw(8) << Cx.get_doc_address() <<endl;
 	    cout.fill(' ');
 	    cout <<dec;
 	}

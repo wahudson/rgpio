@@ -302,6 +302,35 @@ Bank/Unit output display:
     A similar idea applies to the IO bank registers.  Let the prefix be
     the bank number.  (2024-10-21)
 
+Debug output FeatureAddr:
+
+    Let --debug output the Feature address shown in the documentation for
+    that RPi.  Help relate the rgpio names to the RPi documentation.
+
+    Let the FeatureAddr be the address of the unit/bank being displayed.
+    Prefix the unit number to make that more clear.  e.g. for RPi4 spi4
+	+ 4.FeatureAddr  = 0x7e204800
+
+    Debug output lines (and verbose trace output) begin with a '+'.
+
+    This could be promoted to a --verbose output (and better user documented)
+    in the future.
+
+librgpio FeatureAddr:
+
+    The attribute named FeatureAddr is private in the library classes.
+    Being private, it can be independent of what the rgpio command displays.
+    It is defined to be the unit specific documentation address (mostly),
+    but exceptions occur for things like RPi3 rgUniSpi class.
+    (see librgpio/doc/architecture.text)
+
+    Initially, accessor get_bcm_address() returned FeatureAddr, which might
+    not be unit specific.
+
+    Now the library is moving to accessor get_doc_address(), which should
+    always be unit specific (computed if necessary).
+    (see librgpio/doc/extend_rpi5.text)
+
 ----------------------------------------------------------------------------
 ## RPi5 Features
 ----------------------------------------------------------------------------

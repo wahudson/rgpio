@@ -97,7 +97,7 @@ run_test( "14", "rcon list format bit numbers",
     0,
     Stderr => q(),
     Stdout => q(
-	+ FeatureAddr  = 0x400d0000
+	+ 0.FeatureAddr  = 0x400d0000
 	 Read Atomic register bit:           28   24   20   16   12    8    4    0
 	   0x00000000  norm  0.IoCntl( 8)  0000 0000 0000 0000 0000 0000 0000 0000
 	   0x00000000  norm  0.IoCntl( 9)  0000 0000 0000 0000 0000 0000 0000 0000
