@@ -40,9 +40,11 @@ rgsIoPads::rgsIoPads(
 	throw std::range_error ( "rgsIoPads::  require bank in {0,1,2}" );
     }
 
-    BankNum = bank_num;
+    BankNum    = bank_num;
 
-    GpioBase = xx->get_mem_block( FeatureAddr + (BankNum * 0x00004000) );
+    DocAddress = FeatureAddr + (BankNum * 0x00004000);
+
+    GpioBase   = xx->get_mem_block( DocAddress );
 
     for ( int ii=0;  ii<=MaxBit;  ii++ )
     {

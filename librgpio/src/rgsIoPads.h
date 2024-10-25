@@ -4,6 +4,7 @@
 #define rgsIoPads_P
 
 #include "rgsRegAtom.h"
+#include "rgsIoBank.h"
 
 //--------------------------------------------------------------------------
 // rgsIoPads - IO Pads Interface class for RPi5
@@ -41,17 +42,17 @@ class rgsIo_Volt : public rgsRegAtom {
 };
 
 
-class rgsIoPads {
+class rgsIoPads : public rgsIoBank {
   private:
-    uint32_t		BankNum;	// Bank number 0..2
-    volatile uint32_t	*GpioBase;	// IO base address of Bank
+//  uint32_t		BankNum;	// Bank number 0..2
+//  volatile uint32_t	*GpioBase;	// IO base address of Bank
 
-    static const uint32_t	FeatureAddr = 0x400f0000;
+    static const uint32_t  FeatureAddr = 0x400f0000;
 			// Bank0, delta= 0x00004000, RP1 doc
 
-    const int		MaxBit = 27;	// Max register array index in any bank
+    static const int	MaxBit = 27;	// Max register array index in any bank
 
-  private:  // register per pin
+  private:	// register per pin
     rgsIo_Pad		PadReg[28];
 
   public:
@@ -65,10 +66,14 @@ class rgsIoPads {
 	uint32_t	bank_num = 0	// IO Bank number 0..2
     );
 
-    uint32_t		get_bank_num()		{ return  BankNum; }
-    volatile uint32_t*	get_base_addr()		{ return  GpioBase; }
     uint32_t		get_bcm_address()	{ return  FeatureAddr; }
     uint32_t		get_MaxBit()		{ return  MaxBit; }
+
+	// base class
+//  uint32_t		get_bank_num()		{ return  BankNum; }
+//  volatile uint32_t*	get_base_addr()		{ return  GpioBase; }
+//  uint32_t		get_doc_address();
+//  uint32_t		get_doc_offset();
 };
 
 #endif
