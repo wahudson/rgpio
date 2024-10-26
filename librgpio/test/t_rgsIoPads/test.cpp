@@ -7,7 +7,7 @@
 //    40-49  Object grab(), push():  _peek _flip _set _clr
 //    41     Object get(), put()
 //    50-59  .
-//    60-98  Object Field Accessors  get_(), put_()
+//    60-98  IoPad() Field Accessors:  get_(), put_()
 //--------------------------------------------------------------------------
 
 #include <iostream>	// std::cerr
@@ -50,29 +50,43 @@ rgsIoPads		Tx   ( &Bx );		// test object
 //## Constructor, get_bcm_address(), rgsIo_Pad register constructor
 //--------------------------------------------------------------------------
 
-  CASE( "10a", "rgsIoPads constructor" );
+  CASE( "10a", "rgsIoPads constructor, default Bank 0" );
     try {
 	rgsIoPads	tx  ( &Bx );
 	CHECK(           0, tx.get_bank_num() );
 	CHECKX( 0x400f0000, tx.get_bcm_address() );
+	CHECKX( 0x400f0000, tx.get_doc_address() );
 	CHECK(          27, tx.get_MaxBit() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "10b", "rgsIoPads constructor bank 2" );
+  CASE( "10b", "rgsIoPads constructor Bank 1" );
+    try {
+	rgsIoPads	tx  ( &Bx, 1 );
+	CHECK(           1, tx.get_bank_num() );
+	CHECKX( 0x400f0000, tx.get_bcm_address() );
+	CHECKX( 0x400f4000, tx.get_doc_address() );
+	CHECK(          27, tx.get_MaxBit() );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "10c", "rgsIoPads constructor Bank 2" );
     try {
 	rgsIoPads	tx  ( &Bx, 2 );
 	CHECK(           2, tx.get_bank_num() );
-	CHECKX( 0x400f0000, tx.get_bcm_address() );	//#!! 0x400f8000
+	CHECKX( 0x400f0000, tx.get_bcm_address() );
+	CHECKX( 0x400f8000, tx.get_doc_address() );
 	CHECK(          27, tx.get_MaxBit() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
     }
 
-  CASE( "10c", "rgsIoPads constructor bank 3" );
+  CASE( "10d", "rgsIoPads constructor Bank 3 exception" );
     try {
 	rgsIoPads	tx  ( &Bx, 3 );
 	FAIL( "no throw" );
@@ -87,9 +101,10 @@ rgsIoPads		Tx   ( &Bx );		// test object
     }
 
 //--------------------------------------
-  CASE( "11", "get_bcm_address() Pads bank 0" );
+  CASE( "11", "get_bcm_address() Pads Bank0" );
     try {
 	CHECKX( 0x400f0000, Tx.get_bcm_address() );
+	CHECKX( 0x400f0000, Tx.get_doc_address() );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -112,7 +127,7 @@ rgsIoPads		Tx   ( &Bx );		// test object
 //--------------------------------------
 // Constructor copy initialization.
 
-  CASE( "15", "rgsIo_Pad register copy constructor" );
+  CASE( "15a", "rgsIo_Pad register copy constructor" );
     try {
 	rgsIo_Pad		rx  ( Tx.IoPad(0) );
 	CHECKX( 0x00000004, (rx.addr()      - Tx.get_base_addr())*4 );
@@ -124,12 +139,24 @@ rgsIoPads		Tx   ( &Bx );		// test object
 	FAIL( "unexpected exception" );
     }
 
+  CASE( "15b", "rgsIo_Pad register copy constructor" );
+    try {
+	rgsIo_Pad		rx  ( Tx.IoPad(0) );
+	CHECKX( 0x00000004, Tx.get_doc_offset( rx.addr()      ) );
+	CHECKX( 0x00001004, Tx.get_doc_offset( rx.addr_flip() ) );
+	CHECKX( 0x00002004, Tx.get_doc_offset( rx.addr_set()  ) );
+	CHECKX( 0x00003004, Tx.get_doc_offset( rx.addr_clr()  ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
 //--------------------------------------
 // Constructor fail on RPi4 or earlier
 
 rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );    // RPi4
 
-  CASE( "17", "rgsIoPads constructor" );
+  CASE( "17", "rgsIoPads constructor, fail RPi4" );
     try {
 	rgsIoPads	tx  ( &Bx );
 	FAIL( "no throw" );
@@ -143,16 +170,21 @@ rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );    // RPi4
 	FAIL( "unexpected exception" );
     }
 
+rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2712 );    // RPi5
+
 //--------------------------------------------------------------------------
 //## Register accessor IoPad(), addr():  _flip _set _clr
 //--------------------------------------------------------------------------
+// Offsets are within each Bank.
+// Each Bank shares the same Fake Memory block.
+// Thus cannot see address differences between banks.
 
   CASE( "20a", "accessor IoPad(0)" );
     try {
-	CHECKX( 0x00000004, (Tx.IoPad(0).addr()      - Tx.get_base_addr())*4 );
-	CHECKX( 0x00001004, (Tx.IoPad(0).addr_flip() - Tx.get_base_addr())*4 );
-	CHECKX( 0x00002004, (Tx.IoPad(0).addr_set()  - Tx.get_base_addr())*4 );
-	CHECKX( 0x00003004, (Tx.IoPad(0).addr_clr()  - Tx.get_base_addr())*4 );
+	CHECKX( 0x00000004, Tx.get_doc_offset( Tx.IoPad(0).addr()      ) );
+	CHECKX( 0x00001004, Tx.get_doc_offset( Tx.IoPad(0).addr_flip() ) );
+	CHECKX( 0x00002004, Tx.get_doc_offset( Tx.IoPad(0).addr_set()  ) );
+	CHECKX( 0x00003004, Tx.get_doc_offset( Tx.IoPad(0).addr_clr()  ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -160,10 +192,10 @@ rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );    // RPi4
 
   CASE( "20b", "accessor IoPad(27)" );
     try {
-	CHECKX( 0x00000070, (Tx.IoPad(27).addr()      - Tx.get_base_addr())*4 );
-	CHECKX( 0x00001070, (Tx.IoPad(27).addr_flip() - Tx.get_base_addr())*4 );
-	CHECKX( 0x00002070, (Tx.IoPad(27).addr_set()  - Tx.get_base_addr())*4 );
-	CHECKX( 0x00003070, (Tx.IoPad(27).addr_clr()  - Tx.get_base_addr())*4 );
+	CHECKX( 0x00000070, Tx.get_doc_offset( Tx.IoPad(27).addr()      ) );
+	CHECKX( 0x00001070, Tx.get_doc_offset( Tx.IoPad(27).addr_flip() ) );
+	CHECKX( 0x00002070, Tx.get_doc_offset( Tx.IoPad(27).addr_set()  ) );
+	CHECKX( 0x00003070, Tx.get_doc_offset( Tx.IoPad(27).addr_clr()  ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -185,10 +217,33 @@ rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );    // RPi4
 
   CASE( "20d", "accessor IoPad(3)" );
     try {
-	CHECKX( 0x00000010, (Tx.IoPad(3).addr()      - Tx.get_base_addr())*4 );
-	CHECKX( 0x00001010, (Tx.IoPad(3).addr_flip() - Tx.get_base_addr())*4 );
-	CHECKX( 0x00002010, (Tx.IoPad(3).addr_set()  - Tx.get_base_addr())*4 );
-	CHECKX( 0x00003010, (Tx.IoPad(3).addr_clr()  - Tx.get_base_addr())*4 );
+	CHECKX( 0x00000010, Tx.get_doc_offset( Tx.IoPad(3).addr()      ) );
+	CHECKX( 0x00001010, Tx.get_doc_offset( Tx.IoPad(3).addr_flip() ) );
+	CHECKX( 0x00002010, Tx.get_doc_offset( Tx.IoPad(3).addr_set()  ) );
+	CHECKX( 0x00003010, Tx.get_doc_offset( Tx.IoPad(3).addr_clr()  ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+//--------------------------------------
+  CASE( "23", "Bank1 IoPad() max Gpio" );
+    try {
+	rgsIoPads	tx  ( &Bx, 1 );
+	CHECKX( 0x400f4000, tx.get_doc_address() );
+	CHECKX( 0x00000004, tx.get_doc_offset( tx.IoPad( 0).addr()      ) );
+	CHECKX( 0x00000070, tx.get_doc_offset( tx.IoPad(27).addr()      ) );
+    }
+    catch (...) {
+	FAIL( "unexpected exception" );
+    }
+
+  CASE( "24", "Bank2 IoPad() max Gpio" );
+    try {
+	rgsIoPads	tx  ( &Bx, 2 );
+	CHECKX( 0x400f8000, tx.get_doc_address() );
+	CHECKX( 0x00000004, tx.get_doc_offset( tx.IoPad( 0).addr()      ) );
+	CHECKX( 0x00000070, tx.get_doc_offset( tx.IoPad(27).addr()      ) );
     }
     catch (...) {
 	FAIL( "unexpected exception" );
@@ -402,7 +457,7 @@ rgRpiRev::simulate_SocEnum( rgRpiRev::soc_BCM2711 );    // RPi4
     }
 
 //--------------------------------------------------------------------------
-//## Object Field Accessors  get_(), put_()
+//## IoPad() Field Accessors:  get_(), put_()
 //--------------------------------------------------------------------------
 // Gray box - check field position and width.
 // Using put_*(0) tests field width and position without a range exception.
