@@ -1,7 +1,8 @@
-    IO Pads interface RPi5
+    IO Pad Control (IoPad) - RPi5
 usage:  rgpio rpad [options..]  [gpio..]
     gpio                bit numbers {27..0}
     --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+    -0, -1, -2          bank number, default -0
   IoPad(gpio) field modification:
     --OutDisable_1=0    output disable
     --InEnable_1=0      input enable
@@ -15,7 +16,7 @@ usage:  rgpio rpad [options..]  [gpio..]
     --flip=0x000000ff   write atomic bitmask XOR   0x1000
     --set=0x000000ff    write atomic bitmask set   0x2000
     --clr=0x000000ff    write atomic bitmask clear 0x3000
-  read atomic register address:
+  read atomic address:  (show register list)
     --norm              read normal (default)      0x0000
     --peek              read without side-effect   0x1000
     --set               read atomic set   address  0x2000

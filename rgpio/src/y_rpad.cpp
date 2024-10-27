@@ -43,9 +43,7 @@ class rpad_yOptLong : public yOption {
 
     yOpVal		gpio;		// mask Gpio bit select
 
-    bool		Bank0    = 0;
-    bool		Bank1    = 0;
-    bool		Bank2    = 0;
+    int			BankN    = 0;
 
     bool		tableF   = 1;	// output control
     bool		listF    = 0;
@@ -89,7 +87,11 @@ class rpad_yOptLong : public yOption {
     void		print_option_flags();
     void		print_usage();
     void		trace_msg( const char* text );
-    void		out_regindex( const char* name, int index, uint32_t vv );
+    void		out_regindex(
+				const char*	atom,
+				const char*	name,
+				int		index,
+				uint32_t	vv );
     void		head_reg( const char* title );
     void		out_IoPads(  rgsIoPads& px );
 };
@@ -120,13 +122,6 @@ rpad_yOptLong::parse_options()
     while ( this->next() )
     {
 	if      ( is( "--gpio="         )) { gpio.set(         val() ); }
-	else if ( is( "--OutDisable_1=" )) { OutDisable_1.set( val() ); Md=1;}
-	else if ( is( "--InEnable_1="   )) { InEnable_1.set(   val() ); Md=1;}
-	else if ( is( "--DriveStr_2="   )) { DriveStr_2.set(   val() ); Md=1;}
-	else if ( is( "--PullUpEn_1="   )) { PullUpEn_1.set(   val() ); Md=1;}
-	else if ( is( "--PullDnEn_1="   )) { PullDnEn_1.set(   val() ); Md=1;}
-	else if ( is( "--HystEn_1="     )) { HystEn_1.set(     val() ); Md=1;}
-	else if ( is( "--SlewFast_1="   )) { SlewFast_1.set(   val() ); Md=1;}
 
 	else if ( is( "--norm="      )) { norm.set(  val() ); Mr=1; }
 	else if ( is( "--flip="      )) { flip.set(  val() ); Mr=1; }
@@ -141,9 +136,17 @@ rpad_yOptLong::parse_options()
 	else if ( is( "--list"       )) { list       = 1; }
 	else if ( is( "--all"        )) { all        = 1; }
 
-	else if ( is( "-0"           )) { Bank0      = 1; }
-	else if ( is( "-1"           )) { Bank1      = 1; }
-	else if ( is( "-2"           )) { Bank2      = 1; }
+	else if ( is( "-0"           )) { BankN      = 0; }
+	else if ( is( "-1"           )) { BankN      = 1; }
+	else if ( is( "-2"           )) { BankN      = 2; }
+
+	else if ( is( "--OutDisable_1=" )) { OutDisable_1.set( val() ); Md=1;}
+	else if ( is( "--InEnable_1="   )) { InEnable_1.set(   val() ); Md=1;}
+	else if ( is( "--DriveStr_2="   )) { DriveStr_2.set(   val() ); Md=1;}
+	else if ( is( "--PullUpEn_1="   )) { PullUpEn_1.set(   val() ); Md=1;}
+	else if ( is( "--PullDnEn_1="   )) { PullDnEn_1.set(   val() ); Md=1;}
+	else if ( is( "--HystEn_1="     )) { HystEn_1.set(     val() ); Md=1;}
+	else if ( is( "--SlewFast_1="   )) { SlewFast_1.set(   val() ); Md=1;}
 
 	else if ( is( "--verbose"    )) { verbose    = 1; }
 	else if ( is( "-v"           )) { verbose    = 1; }
@@ -221,10 +224,6 @@ rpad_yOptLong::parse_options()
     if ( Md && (atomic_cnt > 0) ) {
 	Error::msg( "field modification not valid with write atomic" ) <<endl;
     }
-
-    if ( Bank1 || Bank2 ) {
-	Error::msg( "only Bank0 is supported" ) <<endl;
-    }
 }
 
 
@@ -277,11 +276,11 @@ void
 rpad_yOptLong::print_usage()
 {
     cout <<
-    "    IO Pads interface RPi5\n"
+    "    IO Pad Control (IoPad) - RPi5\n"
     "usage:  " << ProgName << " rpad [options..]  [gpio..]\n"
     "    gpio                bit numbers {27..0}\n"
     "    --gpio=0x0fffffff   mask to select Gpio[27:0] bits\n"
-//  "    -0, -1, -2          bank number, default -0\n"
+    "    -0, -1, -2          bank number, default -0\n"
     "  IoPad(gpio) field modification:\n"
     "    --OutDisable_1=0    output disable\n"
     "    --InEnable_1=0      input enable\n"
@@ -295,7 +294,7 @@ rpad_yOptLong::print_usage()
     "    --flip=0x000000ff   write atomic bitmask XOR   0x1000\n"
     "    --set=0x000000ff    write atomic bitmask set   0x2000\n"
     "    --clr=0x000000ff    write atomic bitmask clear 0x3000\n"
-    "  read atomic register address:\n"
+    "  read atomic address:  (show register list)\n"
     "    --norm              read normal (default)      0x0000\n"
     "    --peek              read without side-effect   0x1000\n"
     "    --set               read atomic set   address  0x2000\n"
@@ -333,15 +332,23 @@ rpad_yOptLong::trace_msg( const char* text )
 
 /*
 * Output register index value in hex and binary.
+* output e.g.:
+* | Read Atomic register bit:           28   24   20   16   12    8    4    0
+* |   0x00000000  norm  2.IoCntl( 0)  0000 0000 0000 0000 0000 0000 0000 0000
 */
 void
-rpad_yOptLong::out_regindex( const char* name, int index, uint32_t vv )
+rpad_yOptLong::out_regindex(
+    const char*		atom,
+    const char*		name,
+    int			index,
+    uint32_t		vv )
 {
     cout.fill('0');
     cout << "   0x" <<hex <<right <<setw(8)  << vv;
 
     cout.fill(' ');
-    cout << "  " <<left            << name
+    cout << "  " <<left            << atom
+	 << "  " <<left            << name
 	 << "("  <<dec  <<setw(2)  <<right << index << ")"
 	 << "  "                   << cstr_bits32( vv ) <<endl;
 
@@ -351,7 +358,7 @@ rpad_yOptLong::out_regindex( const char* name, int index, uint32_t vv )
 void
 rpad_yOptLong::head_reg( const char* title )
 {
-    cout <<setw(29) <<left << title
+    cout <<setw(32) <<left << title
 	 << "    28   24   20   16   12    8    4    0" <<endl;
     cout <<right;		// restore defaults
 }
@@ -363,6 +370,8 @@ rpad_yOptLong::head_reg( const char* title )
 void
 rpad_yOptLong::out_IoPads( rgsIoPads& px )
 {
+    int		bN = px.get_bank_num();		// bank number {0,1,2}
+
     const int	kMax = 6;
     char	ww[kMax+1][50];
     int		jj = 0;		// output char position
@@ -395,15 +404,15 @@ rpad_yOptLong::out_IoPads( rgsIoPads& px )
 	ww[k][jj] = 0;
     }
 
-    cout << " IoPad(i).norm      gpio i:  28   24   20   16   12    8    4    0"
+    cout << " IoPad(i).norm        gpio i:  28   24   20   16   12    8    4    0"
 	 <<endl;
-    cout << "   OutDisable_1    [7]     ---- " << ww[6] <<endl;
-    cout << "   InEnable_1      [6]     ---- " << ww[5] <<endl;
-    cout << "   DriveStr_2      [5:4]   ---- " << ww[4] <<endl;
-    cout << "   PullUpEn_1      [3]     ---- " << ww[3] <<endl;
-    cout << "   PullDnEn_1      [2]     ---- " << ww[2] <<endl;
-    cout << "   HystEn_1        [1]     ---- " << ww[1] <<endl;
-    cout << "   SlewFast_1      [0]     ---- " << ww[0] <<endl;
+    cout << "   " << bN << ".OutDisable_1    [7]     ---- " << ww[6] <<endl;
+    cout << "   " << bN << ".InEnable_1      [6]     ---- " << ww[5] <<endl;
+    cout << "   " << bN << ".DriveStr_2      [5:4]   ---- " << ww[4] <<endl;
+    cout << "   " << bN << ".PullUpEn_1      [3]     ---- " << ww[3] <<endl;
+    cout << "   " << bN << ".PullDnEn_1      [2]     ---- " << ww[2] <<endl;
+    cout << "   " << bN << ".HystEn_1        [1]     ---- " << ww[1] <<endl;
+    cout << "   " << bN << ".SlewFast_1      [0]     ---- " << ww[0] <<endl;
 }
 
 
@@ -440,7 +449,15 @@ y_rpad::doit()
 
 	if ( Error::has_err() )  return 1;
 
-	rgsIoPads	Px  ( AddrMap );	// constructor, Bank0
+	rgsIoPads	Px  ( AddrMap, Opx.BankN );	// constructor
+
+	if ( Opx.debug ) {
+	    cout.fill('0');
+	    cout << "+ " << Px.get_bank_num() << ".FeatureAddr  = 0x"
+		 <<hex <<setw(8) << Px.get_doc_address() <<endl;
+	    cout.fill(' ');
+	    cout <<dec;
+	}
 
 	const int	BitLimit = 32;
 	uint32_t	bitarg[BitLimit];	// bit numbers
@@ -500,73 +517,87 @@ y_rpad::doit()
 
     // Modify
 	if ( Opx.Mr ) {
-	    Opx.trace_msg( "Write atomic register" );
+	    Opx.trace_msg( "Write atomic registers" );
 
 	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
 	    {
-		int		gpio = bitarg[ii];
+		int		gpio  = bitarg[ii];
+		rgsIo_Pad&	iopad = Px.IoPad(gpio);
 
 		if ( Opx.norm.Given ) {
-		    Px.IoPad(gpio).write(      Opx.norm.Val ); }
+		    iopad.write(      Opx.norm.Val ); }
 
 		if ( Opx.flip.Given ) {
-		    Px.IoPad(gpio).write_flip( Opx.flip.Val ); }
+		    iopad.write_flip( Opx.flip.Val ); }
 
-		if ( Opx.set.Given ) {
-		    Px.IoPad(gpio).write_set(  Opx.set.Val  ); }
+		if ( Opx.set.Given )  {
+		    iopad.write_set(  Opx.set.Val  ); }
 
-		if ( Opx.clr.Given ) {
-		    Px.IoPad(gpio).write_clr(  Opx.clr.Val  ); }
+		if ( Opx.clr.Given )  {
+		    iopad.write_clr(  Opx.clr.Val  ); }
 	    }
 	}
 
 	if ( Opx.Md ) {
-	    Opx.trace_msg( "Modify bit field" );
+	    Opx.trace_msg( "Modify registers field" );
 
 	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
 	    {
-		int		gpio = bitarg[ii];
+		int		gpio  = bitarg[ii];
+		rgsIo_Pad&	iopad = Px.IoPad(gpio);
 
-		Px.IoPad(gpio).grab();
+		iopad.grab();
 
-		APPLY( OutDisable_1,  Px.IoPad(gpio).put_OutDisable_1  )
-		APPLY( InEnable_1,    Px.IoPad(gpio).put_InEnable_1    )
-		APPLY( DriveStr_2,    Px.IoPad(gpio).put_DriveStr_2    )
-		APPLY( PullUpEn_1,    Px.IoPad(gpio).put_PullUpEn_1    )
-		APPLY( PullDnEn_1,    Px.IoPad(gpio).put_PullDnEn_1    )
-		APPLY( HystEn_1,      Px.IoPad(gpio).put_HystEn_1      )
-		APPLY( SlewFast_1,    Px.IoPad(gpio).put_SlewFast_1    )
+		APPLY( OutDisable_1,  iopad.put_OutDisable_1  )
+		APPLY( InEnable_1,    iopad.put_InEnable_1    )
+		APPLY( DriveStr_2,    iopad.put_DriveStr_2    )
+		APPLY( PullUpEn_1,    iopad.put_PullUpEn_1    )
+		APPLY( PullDnEn_1,    iopad.put_PullDnEn_1    )
+		APPLY( HystEn_1,      iopad.put_HystEn_1      )
+		APPLY( SlewFast_1,    iopad.put_SlewFast_1    )
 
-		Px.IoPad(gpio).push();
+		iopad.push();
 	    }
 	}
 
     // Output Table
 	if ( Opx.tableF )
 	{
+	    Opx.trace_msg( "Read registers" );
 	    Opx.out_IoPads( Px );
 	}
 
     // Output List
 	if ( Opx.listF )
 	{
-	    Opx.head_reg( " Atomic register bit:  " );
+	    int		bN      = Px.get_bank_num();	// bank number {0,1,2}
+	    char	rname[] = "0.IoPad";
+
+	    rname[0] = '0' + bN;	// replace bank number char
+
+	    Opx.trace_msg( "Read registers" );
+	    Opx.head_reg( " Read Atomic register bit:  " );
 
 	    for ( int ii=0;  ii<bitcnt;  ii++ )	// each bit
 	    {
-		int		gpio = bitarg[ii];
+		int		gpio  = bitarg[ii];
+		rgsIo_Pad&	iopad = Px.IoPad(gpio);
 
-		if ( Opx.o_norm ) { Opx.out_regindex(
-			    "norm IoPad", gpio, Px.IoPad(gpio).read()      ); }
+		if ( Opx.o_norm ) {
+		    Opx.out_regindex( "norm", rname, gpio, iopad.read()      );
+		}
 
-		if ( Opx.o_peek ) { Opx.out_regindex(
-			    "peek IoPad", gpio, Px.IoPad(gpio).read_peek() ); }
+		if ( Opx.o_peek ) {
+		    Opx.out_regindex( "peek", rname, gpio, iopad.read_peek() );
+		}
 
-		if ( Opx.o_set ) { Opx.out_regindex(
-			    "set  IoPad", gpio, Px.IoPad(gpio).read_set()  ); }
+		if ( Opx.o_set )  {
+		    Opx.out_regindex( "set ", rname, gpio, iopad.read_set()  );
+		}
 
-		if ( Opx.o_clr ) { Opx.out_regindex(
-			    "clr  IoPad", gpio, Px.IoPad(gpio).read_clr()  ); }
+		if ( Opx.o_clr )  {
+		    Opx.out_regindex( "clr ", rname, gpio, iopad.read_clr()  );
+		}
 	    }
 	}
 
