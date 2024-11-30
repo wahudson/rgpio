@@ -74,6 +74,16 @@ OBJS       = \
 	$(OJ)/yOption.o \
 	$(OJ)/yUtil.o
 
+PODS       = \
+	rgpio.pod \
+	man1/rgpio-clk.pod \
+	man1/rgpio-fsel.pod \
+	man1/rgpio-fsel5.pod \
+	man1/rgpio-header.pod \
+	man1/rgpio-io.pod \
+	man1/rgpio-pads.pod \
+	man1/rgpio-rcon.pod
+
 		# link libraries, order matters
 LIBFLAGS   = -lrgpio -lcap
 
@@ -99,7 +109,13 @@ man:	$(MAN)/man1 \
 	$(MAN)/man1/rgpio-fsel5.1 \
 	$(MAN)/man1/rgpio-header.1 \
 	$(MAN)/man1/rgpio-io.1 \
-	$(MAN)/man1/rgpio-pads.1
+	$(MAN)/man1/rgpio-pads.1 \
+	$(MAN)/man1/rgpio-rcon.1 \
+	$(MAN)/man1/rgpio-rpad.1 \
+	$(MAN)/man1/rgpio-rstat.1
+
+podchecker:
+	podchecker  $(PODS)
 
 clean:
 	rm -f  $(OJ)/*
@@ -229,4 +245,16 @@ $(MAN)/man1/rgpio-io.1:		man1/rgpio-io.pod
 $(MAN)/man1/rgpio-pads.1:	man1/rgpio-pads.pod
 	pod2man -s 1 -n rgpio-pads --center='Raspberry Pi GPIO' \
 		   man1/rgpio-pads.pod  $@
+
+$(MAN)/man1/rgpio-rcon.1:	man1/rgpio-rcon.pod
+	pod2man -s 1 -n rgpio-rcon --center='Raspberry Pi GPIO' \
+		   man1/rgpio-rcon.pod  $@
+
+	    # shared man pages
+
+$(MAN)/man1/rgpio-rpad.1:	$(MAN)/man1/rgpio-rcon.1
+	ln -s  rgpio-rcon.1  $@
+
+$(MAN)/man1/rgpio-rstat.1:	$(MAN)/man1/rgpio-rcon.1
+	ln -s  rgpio-rcon.1  $@
 

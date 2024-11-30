@@ -1,0 +1,522 @@
+# 2024-11-03  William A. Hudson
+
+# rgpio-rcon -- Man page
+#---------------------------------------------------------------------------
+# See also:  perlpod(1)  perlpodstyle(1)
+
+=head1		NAME
+
+rgpio-rstat, rgpio-rcon, rgpio-rpad - IO status and control RPi5
+
+=head1		SYNOPSIS
+
+ rgpio rstat [options..]  [gpio..]
+ rgpio rcon  [options..]  [gpio..]
+ rgpio rpad  [options..]  [gpio..]
+
+=head2			Common Options
+
+    gpio                bit numbers {27..0}
+    --gpio=0x0fffffff   mask to select Gpio[27:0] bits
+    -0, -1, -2          bank number, default -0
+  write atomic register address:  (one of)
+    --norm=0x000000ff   write normal               0x0000
+    --flip=0x000000ff   write atomic bitmask XOR   0x1000
+    --set=0x000000ff    write atomic bitmask set   0x2000
+    --clr=0x000000ff    write atomic bitmask clear 0x3000
+  read atomic address:  (show register list)
+    --norm              read normal (default)      0x0000
+    --peek              read without side-effect   0x1000
+    --set               read atomic set   address  0x2000
+    --clr               read atomic clear address  0x3000
+    --all               all above
+  options:
+    --list              list only atomic registers (no field table)
+    --help              show this usage
+    -v, --verbose       verbose output
+    --debug             debug output
+  (options with GNU= only)
+
+=head2			Additional Options
+
+rgpio rcon [options..]  [gpio..]
+
+  IoCntl(gpio) field modification:
+    --IrqOver_2=0       interrupt override ..
+    --EdgeReset_1=0     edge detector 1=reset
+    --ImaskFiltHigh_1=0 mask debounced high level
+    --ImaskFiltLow_1=0  mask debounced low level
+    --ImaskFiltRise_1=0 mask filtered rising edge
+    --ImaskFiltFall_1=0 mask filtered falling edge
+    --ImaskHigh_1=0     mask high level
+    --ImaskLow_1=0      mask low level
+    --ImaskRise_1=0     mask rising edge
+    --ImaskFall_1=0     mask falling edge
+    --InOver_2=0        input override 0=norm, 1=invert, 2=low, 3=high
+    --OutEnOver_2=0     output enable override ..
+    --OutOver_2=0       output override ..
+    --FilterM_7=4       filter time constant M {0..127}
+    --FuncSel_5=31      function select {0..31}
+
+rgpio rpad [options..]  [gpio..]
+
+  IoPad(gpio) field modification:
+    --OutDisable_1=0    output disable
+    --InEnable_1=0      input enable
+    --DriveStr_2=3      drive strength {0..3} = {2, 4, 8, 12 mA}
+    --PullUpEn_1=0      pull Up enable
+    --PullDnEn_1=0      pull Down enable
+    --HystEn_1=0        1= hysteresis enabled, 0= not
+    --SlewFast_1=0      1= max slew rate, 0= min
+
+
+=head1		DESCRIPTION
+
+ rgpio-rstat  - IO Status      IoStat(gpio) - RPi5
+ rgpio-rcon   - IO Control     IoCntl(gpio) - RPi5
+ rgpio-rpad   - IO Pad Control IoPad(gpio)  - RPi5
+
+These commands access the IO Status, Control, and Pad Control registers for
+each Gpio.
+They parallel the B<rgsIoCon> and B<rgsIoPads> classes of library B<librgpio>
+and use the same field names.
+
+Each 32-bit register describes a single Gpio bit, indicated by the Gpio
+bit number in parenthesis after the register name, e.g. "IoCntl(27)".
+This notation is the same as the register object accessor functions in the
+library.
+
+If field modification is specified, the process for each Gpio bit is:
+
+    1) Read current hardware register value.
+    2) Modify the specified bit fields.
+    3) Write modified value back to hardware register.
+
+After all Gpios are modified, each hardware register is re-read and the
+values displayed.
+Note this read-modify-write sequence is not atomic.  It is left to the user
+to avoid synchronization issues.
+
+=head2			Atomic Register Access
+
+This is a general mechanism applied to many RPi5 registers.
+It provides four register addresses for each hardware register which are
+decoded to provide special write (and read) methods:
+
+    Name   Offset   Write operation
+    ----   ------   ------------------------------
+    norm   0x0000   reg = v           normal write
+    flip   0x1000   reg = reg XOR v   bitmask flip
+    set    0x2000   reg = reg OR  v   bitmask set
+    clr    0x3000   reg = reg AND v   bitmask clear
+
+    Name   Offset   Read operation
+    ----   ------   ------------------------------
+    norm   0x0000   normal read
+    peek   0x1000   read without side effects
+    set    0x2000   normal read
+    clr    0x3000   normal read
+
+A Name is assigned to each address offset and is used in the command options
+and output tables.
+The "read without side effects" operation is called "peek" instead of "flip"
+to be more suggestive of the actual operation.
+
+Note:  For the IoStat, IoCntl, and IoPad registers on actual RPi5 hardware,
+it appears the peek, set, and clr read addresses are not implemented and
+always return zero.
+
+=head2			Output Field table format
+
+This table shows the field values as hexadecimal digits for the "norm" atomic
+address of each Gpio register.
+Note that wide fields like FuncSel_5 have two lines, one for the lower 4-bits,
+and another line above for the remaining upper bits.
+Example output from command:
+
+ % rgpio rcon
+ IoCntl(i).norm       gpio i:  28   24   20   16   12    8    4    0
+   0.IrqOver_2       [31:30] ---- 0000 0000 0000 0000 0000 0000 0000
+   0.EdgeReset_1     [28]    ---- 0000 0000 0000 0000 0000 0000 0000
+   ...
+   0.FuncSel_5      [4]      ---- 0000 0000 0000 0000 0000 0000 0000
+   0.FuncSel_5       [3:0]   ---- 0000 0000 0000 0000 0000 0000 0000
+   ^ ^               ^            ^
+   | |               |            hexadecimal values for Gpio i
+   | |               bit position in register
+   | field name
+   bank number
+
+The headline shows the register array name "IoCntl(i)" indexed by Gpio number
+i, and trailing atomic read address name "norm".
+The column number is the Gpio bit (register) number, with only every fourth
+number shown for brevity, i.e. 0, 4, 8, .. counting from the right.
+
+Gpio numbers are displayed with zero on the right to match other register
+displays where there each bit corresponds to a Gpio bit.
+
+Non-existent Gpio register numbers are shown as "-".  [Which could have
+been left out.]
+All Gpio registers (27..0) are read for each IO Bank, even though not all
+exist in all Banks (see Register Banks below under OPTIONS).
+
+=head2			Output Register table format
+
+This table shows the value of each 32-bit Gpio register in hexadecimal on
+the left, and binary on the right.
+The column number is the bit position in the register.
+Example output from command:
+
+ % rgpio rcon --list --all 0 27
+Read Atomic register bit:           28   24   20   16   12    8    4    0
+  0x00000000  norm  0.IoCntl( 0)  0000 0000 0000 0000 0000 0000 0000 0000
+  0x00000000  peek  0.IoCntl( 0)  0000 0000 0000 0000 0000 0000 0000 0000
+  0x00000000  set   0.IoCntl( 0)  0000 0000 0000 0000 0000 0000 0000 0000
+  0x00000000  clr   0.IoCntl( 0)  0000 0000 0000 0000 0000 0000 0000 0000
+  0x00000000  norm  0.IoCntl(27)  0000 0000 0000 0000 0000 0000 0000 0000
+  0x00000000  peek  0.IoCntl(27)  0000 0000 0000 0000 0000 0000 0000 0000
+  0x00000000  set   0.IoCntl(27)  0000 0000 0000 0000 0000 0000 0000 0000
+  0x00000000  clr   0.IoCntl(27)  0000 0000 0000 0000 0000 0000 0000 0000
+  ^           ^     ^ ^      ^    ^
+  |           |     | |      |    binary values of register bit position
+  |           |     | |      Gpio number
+  |           |     | register name
+  |           |     bank number
+  |           atomic read address name
+  hex value of register
+
+=head1		OPTIONS
+
+These apply to all three commands.
+
+=head2			Register Banks
+
+There are 3 register banks.  Only Bank0 is connected to the header pins,
+while Bank1 and Bank2 have unspecified internal use on the RPi5 board.
+
+=over
+
+=item B<-0>                 - Bank0  bits [27:0]  (default)
+
+=item B<-1>                 - Bank1  bits  [5:0]
+
+=item B<-2>                 - Bank2  bits [19:0]
+
+=back
+
+Gpio bit numbers are in the range [27:0] for each bank, and are not counted
+consecutively across the banks.
+These are displayed for all banks, even for missing registers.
+Existing bit ranges are shown above.
+
+=head2			Gpio Bits
+
+May be specified in two ways:
+
+Gpio bit numbers in the range [27:0] may be provided as bare integer arguments,
+and are processed for modification or display in the order specified.
+Duplicates are not removed.
+
+=over
+
+=item B<--gpio>=0x0fffffff  - Mask to select Gpio[27:0] bits.
+
+This is a bit mask, where 1= a Gpio bit to be operated on.
+Setting mask bits [31:28] draws an error.
+Not valid with Gpio bit numbers in the argument list.
+
+=back
+
+=head2			Write atomic register address
+
+=over
+
+=item B<--norm>=0x0fffffff  - Write normal               0x0000
+
+=item B<--flip>=0x0fffffff  - Write atomic bitmask XOR   0x1000
+
+=item B<--set>=0x0fffffff   - Write atomic bitmask set   0x2000
+
+=item B<--clr>=0x0fffffff   - Write atomic bitmask clear 0x3000
+
+These write the specified 32-bit value to the corresponding atomic register
+address (shown as an offset to the normal read/write address).
+
+=back
+
+=head2			Read atomic address
+
+=over
+
+=item B<--norm>             - Read normal (default)      0x0000
+
+=item B<--peek>             - Read without side-effect   0x1000
+
+=item B<--set>              - Read atomic set   address  0x2000
+
+=item B<--clr>              - Read atomic clear address  0x3000
+
+These read the corresponding atomic register address (shown as an offset to
+the normal read/write address).
+
+=item B<--all>              - All above
+
+Read and display all four atomic addresses above.
+
+=back
+
+=head2			Options
+
+=over
+
+=item B<--list>             - List only atomic registers (no field table)
+
+Show only the Read atomic addresses for each Gpio bit.
+
+=item B<-v, --verbose>      - Verbose output.
+
+Show actions taken as the command executes, on stdout.
+Text lines are prefixed with a "+" character.
+
+=item B<--debug>            - Debug output.
+
+Show the register bank Feature (documentation) address on stdout.
+Text lines are prefixed with a "+" character.
+
+=back
+
+
+=head1		ADDITIONAL OPTIONS
+
+These apply to specific commands.
+Option names are the same as the field names shown in the output.
+They also match corresponding get/put field accessor function names in the
+B<librgpio> library.
+
+=head2			rgpio-rcon:  IoCntl(gpio) field modification
+
+Each option specifies the field name and value to be set, and is applied
+to all Gpio bits specified.
+
+=over
+
+=item B<--IrqOver_2>=0      - Interrupt override.
+
+    0= Normal
+    1= Invert the interrupt
+    2= Low  - force interrupt to logic 0
+    3= High - force interrupt to logic 1
+
+=item B<--EdgeReset_1>=0    - Edge detector reset.
+
+    0= do nothing
+    1= Reset the event edge detectors
+
+This bit is set/clear single-shot operation where writing 1 resets the event
+edge detectors, and then always reads back 0.
+
+The event edge detectors are shown in the IoStat() registers with field names
+containing "Rise" or "Fall".  e.g. field B<InRise_1> of the B<rgpio-rstat>
+command.  These are:
+
+    InFiltRise_1    [25]
+    InFiltFall_1    [24]
+    InRise_1        [21]
+    InFall_1        [20]
+
+=item B<--ImaskFiltHigh_1>=0 - Mask debounced high level  B<InFiltHigh_1>
+
+=item B<--ImaskFiltLow_1>=0  - Mask debounced low level   B<InFiltLow_1>
+
+=item B<--ImaskFiltRise_1>=0 - Mask filtered rising edge  B<InFiltRise_1>
+
+=item B<--ImaskFiltFall_1>=0 - Mask filtered falling edge B<InFiltFall_1>
+
+=item B<--ImaskHigh_1>=0     - Mask high level            B<InHigh_1>
+
+=item B<--ImaskLow_1>=0      - Mask low level             B<InLow_1>
+
+=item B<--ImaskRise_1>=0     - Mask rising edge           B<InRise_1>
+
+=item B<--ImaskFall_1>=0     - Mask falling edge          B<InFall_1>
+
+    1= Mask the corresponding interrupt source
+    0= not
+
+These Imask* fields in IoCntl(i) mask the corresponding In* interrupt source
+fields from the IoStat(i) register.
+
+=item B<--InOver_2>=0       - Input override.
+
+    0= Normal
+    1= Invert the input
+    2= Low  - force input to logic 0
+    3= High - force input to logic 1
+
+Specify the input signal treatment from the pin to the peripheral device.
+
+=item B<--OutOver_2>=0      - Output override.
+
+    0= Normal
+    1= Invert the output
+    2= Low  - force output to logic 0
+    3= High - force output to logic 1
+
+Specify the output signal treatment from the peripheral device to the pin.
+Only the device selected by B<FuncSel_5> is routed to the pin.
+
+=item B<--OutEnOver_2>=0    - Output Enable override.
+
+    0= Normal
+    1= Invert the enable signal
+    2= Low  - disable output
+    3= High - enable output
+
+Specify the output enable signal treatment from the peripheral device to the
+pad driver.
+Only the device selected by B<FuncSel_5> is routed to the pin.
+
+=item B<--FilterM_7>=4      - Filter time constant M {0..127}.
+
+The reset value is 4.
+
+=item B<--FuncSel_5>=0      - Function select {0..31}.
+
+Select which peripheral device is connected to the pin.  Device output (and
+enable) is connected to the pad driver.  The pad receiver is is connected to
+the device input.
+[Is the pad receiver buffered to all device inputs for that Gpio, regardless
+of function select?]
+
+ Values {0..8} typically have peripherals.
+ Values {9..30} are all reserved.
+ Value  {31} is "null", no device, is the power-on condition.
+
+=back
+
+=head2			rgpio-rpad:  IoPad(gpio) field modification
+
+The power-on state is marked with "(reset)".
+
+=over
+
+=item B<--OutDisable_1>=1   - Output disable.
+
+    1= Disable (high-Z) the pad driver.  (reset)
+    0= Enable
+
+The Disable state has priority over the output enable from peripherals.
+
+=item B<--InEnable_1>=0     - Input enable.
+
+    1= Enable
+    0= Disable  (reset)
+
+Input disable reduces receiver power supply current when the pad is
+unconnected or at an intermediate signal level.
+
+=item B<--DriveStr_2>=3     - Drive strength {0..3} = {2, 4, 8, 12 mA}.
+
+    0= 2 mA
+    1= 4 mA (reset)
+    2= 8 mA
+    3= 12 mA
+
+Drive strength is the maximum current that the pad driver can source/sink
+and stay within valid logic voltage levels.
+
+=item B<--PullUpEn_1>=0     - Pull Up enable.
+
+=item B<--PullDnEn_1>=0     - Pull Down enable.
+
+    1= Enable the internal pull up/down resistors.
+    0= Disable
+
+Enabling both pull-up and pull-down may apply a bus-keeper circuit instead of
+literally appling both resistors.
+[RP1 Doc 3.1.3 Pads p. 17]
+
+=item B<--HystEn_1>=0       - 1= hysteresis enabled, 0= not.
+
+    1= Enable (reset)
+    0= Not
+
+Hysteresis (Schmitt trigger) control on the pad receiver.
+Generally good to be enabled.
+
+=item B<--SlewFast_1>=0     - 1= max slew rate, 0= min.
+
+    1= Fast, maximum slew rate
+    0= Slow, minimum slew rate (reset)
+
+Slew rate control on the pad driver.
+Slew rate is the rate of voltage change on the output when transitioning
+to the other logic level.
+Slower produces less noise in the system.  Use Fast when you really need
+a faster edge.
+
+=back
+
+
+=head1		RETURN VALUE
+
+0= success, otherwise errors
+
+
+=head1		EXAMPLES
+
+ Show decoded bit fields, Bank0 by default.
+ % rgpio rstat
+ % rgpio rcon
+ % rgpio rpad
+
+ Show full register for selected Gpio (with decoded fields).
+ % rgpio rcon --norm  8 9 10 11
+ % rgpio rcon --norm --gpio=0x00000f00
+
+ Show only the register table (no fields).
+ % rgpio rcon --norm --gpio=0x00000f00 --list
+
+ Write register IoCntl(12)  FuncSel_5=0x07
+ % rgpio rcon --norm=0x00000007  12
+
+ Flip bits in register IoCntl(12)  InOver_2=3
+ % rgpio rcon --flip=0x00030000  12
+
+ Set mask bits in register IoCntl(16)  InOver_2=3
+ % rgpio rcon --set=0x00030000  16
+
+ Clear mask bits in register IoCntl(20)  InOver_2=3
+ % rgpio rcon --clr=0x00030000  20
+
+ Read back all atomic addresses of Gpio8
+ % rgpio rcon --all  8
+ % rgpio rcon --norm --peek --set --clr  8
+
+ Configure Gpio6 for gp_CLK2 output.
+ % rgpio rcon --FuncSel_5=0 --OutOver_2=0 --OutEnOver_2=0  6
+ % rgpio rpad --OutDisable_1=0  6
+
+
+=head1		ENVIRONMENT
+
+none
+
+
+=head1		SEE ALSO
+
+B<rgpio>(1)
+B<rgpio-header>(1)
+B<rgpio-fsel5>(1)
+B<rgpio-rio>(1)
+B<librgpio>(3)
+B<rgsIoCon>(3)
+B<rgsIoPads>(3)
+B<rgsIoCon>(7)
+B<rgsIoPads>(7)
+
+ RPi5:  Raspberry Pi RP1 Peripherals (2023-11-07)
+     https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
+
+=cut
+
