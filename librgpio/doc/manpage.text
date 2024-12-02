@@ -157,6 +157,11 @@ Absolute uniformity is not a goal.
 
 Both librgpio and rgpio man pages are discussed here.
 
+NAME:
+    Single line, single dash description.
+    Manual page indexers are often extremely picky about this section.
+    See perlpodstyle(1).
+
 SYNOPSIS:
     Generally the class structure is not complete, leaving out private
     members.
@@ -164,6 +169,16 @@ SYNOPSIS:
     Sometimes public functions are grouped under headings outside of the
     class declaration, where the grouping is the important aspect and matches
     the function description section, as in rgClk(3).
+
+    Commands just show the form of the command, no "usage:" as in the --help
+    output.
+
+OPTIONS:
+
+    Preferred item format:
+	=item B<--OutDisable_1>=0   - Output disable.
+    Bold on the '=' looks the same, e.g. B<--OutDisable_1=>0.
+    Bold on the value seems misleading, as the value is variable.
 
 FILES:
     Library classes can list header files.

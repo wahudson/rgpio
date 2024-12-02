@@ -159,6 +159,58 @@ Programming GPIO pins on RPi 5  (28 Jan 2024)
     Also is programming RP1 processors directly.
 
 ----------------------------------------------------------------------------
+## Linux GPIO Banks
+----------------------------------------------------------------------------
+
+The RP1 Doc has a reference:
+    "For a reference implementation see the RP1 GPIO Linux kernel driver":
+    https://github.com/raspberrypi/linux/blob/rpi-6.1.y/drivers/pinctrl/pinctrl-rp1.c
+
+    This struct seems to indicate the number of Gpio in each Bank:
+
+	const struct rp1_iobank_desc rp1_iobanks[RP1_NUM_BANKS] = {
+		/*         gpio   inte    ints     rio    pads */
+		{  0, 28, 0x0000, 0x011c, 0x0124, 0x0000, 0x0004 },
+		{ 28,  6, 0x4000, 0x411c, 0x4124, 0x4000, 0x4004 },
+		{ 34, 20, 0x8000, 0x811c, 0x8124, 0x8000, 0x8004 },
+	};
+
+    The Gpio pins are "just named GPIO0..GPIO53".
+
+    The first number in the above struct is the Gpio bit number, the second
+    is the number of bits in the bank.
+    Thus it looks like Gpios are split into banks similar to RPi3 but split
+    differently:
+
+    RPi3
+	Bank 0  Gpio  0..27   28 bits
+	Bank 1  Gpio 28..45   18 bits
+	Bank 2  Gpio 46..53    8 bits
+
+    RPi5
+	Bank 0  Gpio  0..27   28 bits
+	Bank 1  Gpio 28..33    6 bits
+	Bank 2  Gpio 34..53   20 bits
+
+    The offsets suggest that "inte" is PCIE_INTE (0x11c), and "ints" is
+    PCIE_INTS (0x124).  These registers are at the same offset in all three
+    banks.
+
+    Bank addresses are:  (from RP1 Doc)
+	io_bank0  0x400d0000
+	io_bank1  0x400d4000
+	io_bank2  0x400d8000
+    which correlates with the Bank index and offsets in the struct.
+
+Design Model:  (deduced)
+
+    Each bank can be modeled as having 28 GPIO register addresses at the same
+    offsets in each bank, but not all addresses actually have a register.
+
+    Essentially GPIO registers are addressed by Bank and Gpio 0..27 index.
+    Sequential numbering of Gpio 0..53 seems like a documentation mapping.
+
+----------------------------------------------------------------------------
 ## Discussion
 ----------------------------------------------------------------------------
 

@@ -1,0 +1,329 @@
+# 2024-11-29  William A. Hudson
+
+# rgsIoPads  Hardware Register Description.
+#---------------------------------------------------------------------------
+
+=head1		NAME
+
+rgsIoPads - Hardware Description, IO Pads Control, RPi5
+
+=head1		SYNOPSIS
+
+There is one register B<IoPad>(i) for each Gpio bit i.  The hardware groups
+them into three Banks.  Each Bank is accessed by the B<rgsIoPads> class.
+
+=head2			Register Banks
+
+ Doc         Bank         sequential
+ BankAddr    name         Gpio number  quantity  Bank.Register(i)
+ ----------  ----------   -----------  --------  ----------------
+ 0x400f0000  pads_bank0   Gpio  0..27   28 bits  0.IoPad(0..27)
+ 0x400f4000  pads_bank1   Gpio 28..33    6 bits  1.IoPad(0..5)
+ 0x400f8000  pads_bank2   Gpio 34..53   20 bits  2.IoPad(0..19)
+
+=head2			Field Names
+
+ Register.Field_Name      Bits     Doc name
+ -------- ------------    -------  --------
+ IoPad(i).OutDisable_1    [7]      OD
+ IoPad(i).InEnable_1      [6]      IE
+ IoPad(i).DriveStr_2      [5:4]    DRIVE
+ IoPad(i).PullUpEn_1      [3]      PUE
+ IoPad(i).PullDnEn_1      [2]      PDE
+ IoPad(i).HystEn_1        [1]      SCHMITT
+ IoPad(i).SlewFast_1      [0]      SLEWFAST
+
+ IoVoltage.LowVolt_1      [0]      Voltage select
+
+The numeric suffix is the field width.
+
+=head2			Abbreviations in Field names
+
+ Out     Output
+ In      Input
+ Str     Strength
+ En      Enable
+ Dn      Down
+ Hyst    Hysteresis
+
+=head2			Register Address Map
+
+ Addr   Register
+ Offset Name
+ ------ ---------
+ 0x00   IoVoltage
+ 0x04   IoPad(0)
+ 0x08   IoPad(1)
+ 0x0c   IoPad(2)
+ 0x10   IoPad(3)
+ 0x14   IoPad(4)
+ 0x18   IoPad(5)
+ 0x1c   IoPad(6)
+ 0x20   IoPad(7)
+ 0x24   IoPad(8)
+ 0x28   IoPad(9)
+ 0x2c   IoPad(10)
+ 0x30   IoPad(11)
+ 0x34   IoPad(12)
+ 0x38   IoPad(13)
+ 0x3c   IoPad(14)
+ 0x40   IoPad(15)
+ 0x44   IoPad(16)
+ 0x48   IoPad(17)
+ 0x4c   IoPad(18)
+ 0x50   IoPad(19)
+ 0x54   IoPad(20)
+ 0x58   IoPad(21)
+ 0x5c   IoPad(22)
+ 0x60   IoPad(23)
+ 0x64   IoPad(24)
+ 0x68   IoPad(25)
+ 0x6c   IoPad(26)
+ 0x70   IoPad(27)
+
+ Address of IoPad(i) = BankAddr + (0x04 * (i + 1)),  i = 0 .. 27
+
+=head2			Atomic Register Access
+
+   Address
+ Name   Offset   Write operation
+ ----   ------   ------------------------------
+ norm   0x0000   reg = v           normal write
+ flip   0x1000   reg = reg XOR v   bitmask flip
+ set    0x2000   reg = reg OR  v   bitmask set
+ clr    0x3000   reg = reg AND v   bitmask clear
+
+ Name   Offset   Read operation
+ ----   ------   ------------------------------
+ norm   0x0000   normal read
+ peek   0x1000   read without side effects
+ set    0x2000   normal read
+ clr    0x3000   normal read
+
+The address offset is added to the normal register address above.
+
+
+=head1		DESCRIPTION
+
+The Gpio pads are split into three Banks numbered {0,1,2}.
+Each bank is a separate IO voltage domain and has a similar set of registers
+and functions.
+
+Each bank has three register groups:  (only Bank0 is shown)
+
+ Bank         Bank         librgpio
+ Address      Name         Class       Functions
+ ----------   ----------   ---------   -----------------
+ 0x400e0000   sys_rio0     rgsRio      Register IO
+ 0x400d0000   io_bank0     rgsIoCon    IO control/status
+ 0x400f0000   pads_bank0   rgsIoPads   IO Pads driver/receiver control
+
+Only B<rgsIoPads> (pads_bank0,1,2) is described here.
+These registers control the IO pads drive strength, input slew rate, input
+hysteresis, pad pull up/down, input/output enables, and IO voltage threshold.
+
+Register B<IoPad>(i) has addresses for i={0..27} at at the same offsets in
+each bank, but not all addresses in Bank1 and Bank2 actually have a register.
+The index i is essentially the Gpio number in the bank.  This is the same
+notation used in the register object accessor functions of the library.
+
+Only Bank0 is connected to the header pins, i.e. Gpio0 .. Gpio27, while Bank1
+and Bank2 have unspecified internal use on the RPi5 board.
+
+All registers are 32-bits, read-write.
+Unspecified bit fields in each register are typically reserved, and should be
+write as 0, and read as don't care.
+
+The following notes provide a model for RPi5 behavior, and some things to
+consider.
+
+=head2			Atomic Register Access
+
+This is a general mechanism that applies to all three banks of the three
+register classes B<rgsRio>, B<rgsIoCon>, B<rgsIoPads>.
+It provides four alias addresses for each hardware register which are
+decoded to provide the special write (and read) methods shown in the SYNOPSIS.
+
+The address offset is applied to the normal register addresses in each bank.
+Essentially each bank occupies a 16kB block that is subdivided into four
+4kB blocks for each atomic address.
+
+The "read without side effects" operation is called "peek" instead of "flip"
+to be more suggestive of the actual operation.
+
+Note:  On current RPi5 hardware it appears the B<peek>, B<set>, and B<clr>
+read addresses are not implemented and always return zero.
+
+=head2			Input Hysteresis
+
+Hysteresis is the difference between the input high and low voltage thresholds
+(Vih - Vil), typically implemented by a Schmitt trigger circuit on the pad
+receiver.
+
+Hysteresis helps reject ringing on a fast edge, and noise on a slow input edge.
+Generally this is good, but it also increases the receiver delay in response
+to the edge.
+
+Generally recommend leaving hysteresis enabled, the power-on default.
+
+=head2			Output Slew Rate
+
+Slew rate refers to how fast the output voltage transitions between logic
+levels.  Measured in Volts per second (V/s).
+
+A fast edge (high slew rate) allows toggling at higher frequencies, but can
+cause increased ringing.
+
+One way the RPi driver circuit could limit slew rate is to turn-on the output
+MOSFETs sequentially instead of all at once.  It may also interact with
+the B<DriveStr_2> control.
+
+=head2			Output Drive Strength
+
+The output drive strength is controlled by changing the active number of
+parallel MOSFETs pulling up/down in the driver circuit via the B<DriveStr_2>
+parameter.  The actual output voltage, and current, will depend on the load.
+
+The B<DriveStr_2> parameter values are identified in terms of the
+nominal maximum current that will still meet the output drive voltage
+specification for Voh and Vol.
+
+A higher drive strength can charge the capacitance of the output line faster,
+producing a faster edge rate and potentially more ringing.
+
+Some things to remember:  The Gpio lines are intended for digital signaling at
+3.3 V logic levels.  A 5 V signal can damage the RPi.
+Driving a few low current LEDs is fine, but use buffers when driving many
+high current LEDs.
+Do NOT drive inductive loads - use appropriate interface circuits.
+
+=head2			IO Voltage Levels
+
+Each Bank of pad drivers/receivers have separate VDDIO power supply pins that
+can be any nominal voltage between 1.8V and 3.3V.
+
+The B<IoVoltage> register field B<LowVolt_1> is used to adjust the pad receiver
+thresholds, and should be set according to the VDDIO power supply voltage.
+
+The RPi5 board has 3.3 V IOs for Bank0, the Gpios on the 40-pin header,
+and should have B<LowVolt_1>=1.
+
+The RP1 doc does not have an electrical specification, but we can assume
+typical CMOS logic thresholds for a given VDDIO.
+
+An odd statement in the RP1 doc [ch 3.1.3 Pads, p. 17]:  "Using VDDIO voltages
+greater than 1.8V, with the input thresholds set for 1.8V may result in damage
+to the chip."
+Software can get it wrong and damage the chip?  Really?  Hardware designers try
+not to allow that.  It seems likely that the statement is confused about an
+improper operating condition.
+
+
+=head1		REGISTER BIT FIELDS
+
+Each Bank has the same registers and fields.
+
+The power-on state is marked with "(reset)",
+but may have been changed by the operating system at boot time.
+
+=head2			IoPad(i) register fields
+
+Register index i is the Gpio bit number within the Bank.
+Each register has the same fields.
+All fields are read/write.
+
+=over
+
+=item B<OutDisable_1>       - Output disable.
+
+    1= Disable (high-Z) the pad driver.  (reset)
+    0= Enable
+
+The Disable state has priority over the output enable from peripherals.
+
+=item B<InEnable_1>         - Input enable.
+
+    1= Enable
+    0= Disable  (reset)
+
+Input disable reduces receiver power supply current when the pad is
+unconnected or at an intermediate signal level.
+
+=item B<DriveStr_2>         - Drive strength {0..3} = {2, 4, 8, 12 mA}.
+
+    0= 2 mA
+    1= 4 mA (reset)
+    2= 8 mA
+    3= 12 mA
+
+Drive strength is the maximum current that the pad driver can source/sink
+and stay within valid logic voltage levels.
+
+=item B<PullUpEn_1>         - Pull Up enable.
+
+=item B<PullDnEn_1>         - Pull Down enable.
+
+    1= Enable the internal pull up/down resistor.
+    0= Disable
+
+Enabling both pull-up and pull-down may apply a bus-keeper circuit instead of
+literally applying both resistors.
+[RP1 doc 3.1.3 Pads p. 17]
+
+It might be better to describe this as a 2-bit field.
+
+=item B<HystEn_1>           - Hysteresis enabled.
+
+    1= Enable (reset)
+    0= Not
+
+Hysteresis (Schmitt trigger) control on the pad receiver.
+Generally good to be enabled.
+
+=item B<SlewFast_1>         - Slew rate control.
+
+    1= Fast, maximum slew rate
+    0= Slow, minimum slew rate (reset)
+
+Slew rate control on the pad driver.
+Slew rate is the rate of voltage change on the output when transitioning
+to the other logic level.
+Slower produces less noise in the system.  Use Fast when you really need
+a faster edge.
+
+=back
+
+=head2			IoVoltage register fields
+
+There is one B<IoVoltage> register for each IO Bank.
+The single field is read/write.
+
+=over
+
+=item B<LowVolt_1>          - IO Bank voltage select.
+
+    0= Normal, 3.3 V signal thresholds, DVDD >= 2.5 V  (reset)
+    1= Low,    1.8 V signal thresholds, DVDD <= 1.8 V
+
+=back
+
+
+=head1		FILES
+
+In the librgpio/ source tree:
+
+ src/rgsIoPads.h
+ src/rgsIoPads.cpp
+ src/rgsRegAtom.h
+
+
+=head1		SEE ALSO
+
+ rgsIoPads(3)
+ rgpio-rpad(1)
+
+ RP1 doc:  Raspberry Pi RP1 Peripherals (2023-11-07)
+    https://datasheets.raspberrypi.com/rp1/rp1-peripherals.pdf
+
+=cut
+
